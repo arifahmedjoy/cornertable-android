@@ -1254,7 +1254,7 @@
       <Version>10.1.1</Version>
     </PackageReference>
     <PackageReference Include="Com.Airbnb.Android.Lottie">
-      <Version>3.0.6</Version>
+      <Version>3.5.0</Version>
     </PackageReference>
     <PackageReference Include="GoogleGson">
       <Version>2.8.5</Version>
@@ -1287,7 +1287,7 @@
       <Version>2.1.0</Version>
     </PackageReference>
     <PackageReference Include="Karamunting.Android.TourenathanG5organisation.SiliCompressor">
-      <Version>2.2.2</Version>
+      <Version>2.2.3</Version>
     </PackageReference>
     <PackageReference Include="Karamunting.Android.TutorialsAndroid.SEmojis">
       <Version>1.0.19</Version>
@@ -1314,10 +1314,10 @@
       <Version>1.7.335</Version>
     </PackageReference>
     <PackageReference Include="SQLitePCLRaw.core">
-      <Version>2.0.3</Version>
+      <Version>2.0.4</Version>
     </PackageReference>
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.android">
-      <Version>2.0.3</Version>
+      <Version>2.0.4</Version>
     </PackageReference>
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.android">
       <Version>1.1.14</Version>
@@ -1419,7 +1419,7 @@
       <Version>3.3.3</Version>
     </PackageReference>
     <PackageReference Include="XamarinAutoResizeEditText">
-      <Version>2.9.0</Version>
+      <Version>3.0.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.PayPal.Android">
       <Version>2.18.1</Version>
@@ -1478,7 +1478,7 @@
     <PackageReference Include="Xamarin.AndroidX.DrawerLayout" Version="1.1.1.1" />
     <PackageReference Include="Xamarin.AndroidX.DynamicAnimation" Version="1.0.0.6" />
     <PackageReference Include="Xamarin.AndroidX.ExifInterface" Version="1.3.2.1" />
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.2.5.4" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.2.5.5" />
     <PackageReference Include="Xamarin.AndroidX.GridLayout" Version="1.0.0.6" />
     <PackageReference Include="Xamarin.AndroidX.Interpolator" Version="1.0.0.6" />
     <PackageReference Include="Xamarin.AndroidX.Leanback" Version="1.0.0.6" />
@@ -1510,13 +1510,13 @@
     <PackageReference Include="Xamarin.AndroidX.Sqlite" Version="2.1.0.6" />
     <PackageReference Include="Xamarin.AndroidX.Sqlite.Framework" Version="2.1.0.6" />
     <PackageReference Include="Xamarin.AndroidX.SwipeRefreshLayout" Version="1.1.0.1" />
-    <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.3.1.6" />
+    <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.4.0" />
     <PackageReference Include="Xamarin.AndroidX.VectorDrawable" Version="1.1.0.6" />
     <PackageReference Include="Xamarin.AndroidX.VectorDrawable.Animated" Version="1.1.0.6" />
     <PackageReference Include="Xamarin.AndroidX.VersionedParcelable" Version="1.1.1.6" />
     <PackageReference Include="Xamarin.AndroidX.ViewPager" Version="1.0.0.6" />
     <PackageReference Include="Xamarin.AndroidX.ViewPager2" Version="1.0.0.8" />
-    <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.4.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.5.0" />
     <PackageReference Include="Xamarin.Firebase.Annotations" Version="116.0.0" />
     <PackageReference Include="Xamarin.Firebase.Common" Version="119.5.0" />
     <PackageReference Include="Xamarin.Firebase.Components" Version="116.1.0" />
@@ -1527,16 +1527,16 @@
     <PackageReference Include="Xamarin.Firebase.Iid.Interop" Version="117.0.0" />
     <PackageReference Include="Xamarin.Firebase.Installations" Version="116.3.5" />
     <PackageReference Include="Xamarin.Firebase.Installations.InterOp" Version="116.0.1" />
-    <PackageReference Include="Xamarin.Firebase.Measurement.Connector" Version="118.0.1" />
+    <PackageReference Include="Xamarin.Firebase.Measurement.Connector" Version="118.0.2" />
     <PackageReference Include="Xamarin.Firebase.Messaging" Version="121.0.1" />
     <PackageReference Include="Xamarin.Google.Android.Places" Version="1.1.0.2" />
     <PackageReference Include="Xamarin.Google.AutoValue.Annotations" Version="1.6.6" />
     <PackageReference Include="Xamarin.Google.Dagger" Version="2.27.0" />
     <PackageReference Include="Xamarin.Google.Guava.ListenableFuture" Version="1.0.0.2" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Ads" Version="119.6.0" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Ads.Base" Version="119.6.0" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Ads" Version="119.7.0" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Ads.Base" Version="119.7.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Ads.Identifier" Version="117.0.0" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="119.6.0" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="119.7.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="119.0.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Auth.Api.Phone" Version="117.5.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Auth.Base" Version="117.1.2" />
@@ -1544,13 +1544,13 @@
     <PackageReference Include="Xamarin.GooglePlayServices.Basement" Version="117.5.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Clearcut" Version="117.0.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.CloudMessaging" Version="116.0.0" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Gass" Version="119.6.0" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Gass" Version="119.7.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Gcm" Version="117.0.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Iid" Version="117.0.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Location" Version="117.1.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Maps" Version="117.0.0" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="118.0.0" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="118.0.0" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="118.0.1" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="118.0.1" />
     <PackageReference Include="Xamarin.GooglePlayServices.Phenotype" Version="117.0.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Places" Version="117.0.0" />
     <PackageReference Include="Xamarin.GooglePlayServices.Places.PlaceReport" Version="117.0.0" />
