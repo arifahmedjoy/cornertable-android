@@ -17,13 +17,13 @@ namespace WoWonder
         /// you should add your website without http in the analytic.xml file >> ../values/analytic.xml .. line 5
         /// <string name="ApplicationUrlWeb">demo.wowonder.com</string>
         /// </summary>
-        public static string TripleDesAppServiceProvider = "bgO4RJV7SfAj1GImlH60fsoSiEGBgR9k7ttzCwEnl/dOZl/tY8nFmbpTmzd9Bv3tXur7HJXK9P/0tHQjOkEL/chpQdxUAVdTSlSySgUndn73S9nbStXjvy291UT7+O7vd6irGnmsr4SyDYzWkHhzGSi0IP68uTVY/G1zA0sF999rIMdLOIGx+lgMX5Siv8FXmUVATChLhErhGyE2WVdUH5VGrwp6JP1mSc5m6XBPXD7YSvcV7gLPV/h6Dl/qTbHziaH24s+OxQE9qOIEdxIHug=="; 
+        public static string TripleDesAppServiceProvider = "9mzWRy0lKsdQ8KBodhFGRFYBpU1+c9fwo5zNmJ6omqQal77Cp7ifye1ryqkjj1yW0LIC+ezBhB++7ILMo5roJ550mvoJ28+BrbQ3WdbI84gFcCNTZYD0nQhok9+fJuCm6EsVBoQp5C0ytfjGc+o5lvS4Euin8Rdqx0OI1J069EGYUXGu4MhP93tZ8hQSla6ABhAmph9LgOCi75dGOPXL781ZwzgTBLhtdTVqafBxpIjere1FgYrTYUIPQd22OVIf"; 
 
         //Main Settings >>>>>
         //*********************************************************
-        public static string Version = "2.7";
-        public static string ApplicationName = "WoWonder Combined";
-        public static string DatabaseName = "WowonderSocial"; 
+        public static string Version = "1.0.5";
+        public static string ApplicationName = "The Corner Table Social Media App";
+        public static string DatabaseName = "CornerTable"; 
 
         // Friend system = 0 , follow system = 1
         public static int ConnectivitySystem = 1;
@@ -48,8 +48,8 @@ namespace WoWonder
         //Notification Settings >>
         //*********************************************************
         public static bool ShowNotification = true;
-        public static string OneSignalAppId = "64974c58-9993-40ed-b782-0814edc401ea";
-        public static string MsgOneSignalAppId = "64974c58-9993-40ed-b782-0814edc401ea";
+        public static string OneSignalAppId = "de8377cd-294d-4fcf-a455-4a4237e2e18e";
+        public static string MsgOneSignalAppId = "de8377cd-294d-4fcf-a455-4a4237e2e18e";
 
         // WalkThrough Settings >>
         //*********************************************************
@@ -64,17 +64,17 @@ namespace WoWonder
         //*********************************************************
         public static bool MessengerIntegration = true;
         public static bool ShowDialogAskOpenMessenger = false;//#New
-        public static string MessengerPackageName = "com.wowondermessenger.app"; //APK name on Google Play
+        public static string MessengerPackageName = "ccom.cornertable.app"; //APK name on Google Play
 
         //AdMob >> Please add the code ad in the Here and analytic.xml 
         //*********************************************************
-        public static bool ShowAdMobBanner = true;
-        public static bool ShowAdMobInterstitial = true;
-        public static bool ShowAdMobRewardVideo = true;
-        public static bool ShowAdMobNative = true;
-        public static bool ShowAdMobNativePost = true;
-        public static bool ShowAdMobAppOpen = true; //#New
-        public static bool ShowAdMobRewardedInterstitial = true; //#New 
+        public static bool ShowAdMobBanner = false;
+        public static bool ShowAdMobInterstitial = false;
+        public static bool ShowAdMobRewardVideo = false;
+        public static bool ShowAdMobNative = false;
+        public static bool ShowAdMobNativePost = false;
+        public static bool ShowAdMobAppOpen = false; //#New
+        public static bool ShowAdMobRewardedInterstitial = false; //#New 
 
         public static string AdInterstitialKey = "ca-app-pub-5135691635931982/3276797899";
         public static string AdRewardVideoKey = "ca-app-pub-5135691635931982/8193070896";
