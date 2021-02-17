@@ -64,7 +64,7 @@ namespace WoWonder
         //*********************************************************
         public static bool MessengerIntegration = true;
         public static bool ShowDialogAskOpenMessenger = false;//#New
-        public static string MessengerPackageName = "ccom.cornertable.app"; //APK name on Google Play
+        public static string MessengerPackageName = "com.cornertable.app"; //APK name on Google Play
 
         //AdMob >> Please add the code ad in the Here and analytic.xml 
         //*********************************************************
@@ -139,8 +139,8 @@ namespace WoWonder
         //Facebook >> ../values/analytic.xml .. line 10-11 
         //Google >> ../values/analytic.xml .. line 15 
         //*********************************************************
-        public static bool ShowFacebookLogin = true;
-        public static bool ShowGoogleLogin = true;
+        public static bool ShowFacebookLogin = false;
+        public static bool ShowGoogleLogin = false;
 
         public static readonly string ClientId = "430795656343-679a7fus3pfr1ani0nr0gosotgcvq2s8.apps.googleusercontent.com";
 
