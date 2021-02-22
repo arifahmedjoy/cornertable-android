@@ -186,11 +186,11 @@ namespace WoWonder
         /// https://rapidapi.com/api-sports/api/covid-193
         /// you can get api key and host from here https://prnt.sc/wngxfc 
         /// </summary>
-        public static bool ShowInfoCoronaVirus = true;//#New
+        public static bool ShowInfoCoronaVirus = false;//#New
         public static string KeyCoronaVirus = "164300ef98msh0911b69bed3814bp131c76jsneaca9364e61f";//#New
         public static string HostCoronaVirus = "covid-193.p.rapidapi.com";//#New
          
-        public static bool ShowLive = true;  
+        public static bool ShowLive = false;  
         public static string AppIdAgoraLive = "c55b9bda665042809b61dfeb3f3832e0"; 
 
         //Events settings
@@ -280,7 +280,7 @@ namespace WoWonder
         /// <summary>
         /// https://www.weatherapi.com
         /// </summary>
-        public static bool ShowWeather = true;  
+        public static bool ShowWeather = false;  
         public static string KeyWeatherApi = "e7cffc4d6a9a4a149a1113143201711";
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace WoWonder
         /// #Currency >> Your currency
         /// #Currencies >> you can use just 3 from those : USD,EUR,DKK,GBP,SEK,NOK,CAD,JPY,TRY,EGP,SAR,JOD,KWD,IQD,BHD,DZD,LYD,AED,QAR,LBP,OMR,AFN,ALL,ARS,AMD,AUD,BYN,BRL,BGN,CLP,CNY,MYR,MAD,ILS,TND,YER
         /// </summary>
-        public static bool ShowExchangeCurrency = true;//#New
+        public static bool ShowExchangeCurrency = false;//#New
         public static string KeyCurrencyApi = "644761ef2ba94ea5aa84767109d6cf7b";//#New
         public static string ExCurrency = "USD"; //#New
         public static string ExCurrencies = "EUR,GBP,TRY";//#New 
@@ -406,7 +406,7 @@ namespace WoWonder
         public static bool ShowCreditCard = true;
 
         //********************************************************* 
-        public static bool ShowCashFree = true;  
+        public static bool ShowCashFree = false;  
 
         /// <summary>
         /// Currencies : http://prntscr.com/u600ok
@@ -426,7 +426,7 @@ namespace WoWonder
         /// </summary>
         public static string RazorPayCurrency = "USD";  
          
-        public static bool ShowPayStack = true;  
+        public static bool ShowPayStack = false;  
         public static bool ShowPaySera = false;  //#Next Version   
 
         //********************************************************* 
