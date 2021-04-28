@@ -21,7 +21,7 @@ namespace WoWonder
 
         //Main Settings >>>>>
         //*********************************************************
-        public static string Version = "2.0.1";
+        public static string Version = "2.0.4";
         public static string ApplicationName = "The Corner Table Social Network";
         public static string DatabaseName = "CornerTable";
 

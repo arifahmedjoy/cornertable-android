@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.wowondertimeline.chat" android:installLocation="preferExternal" android:versionCode="1" android:versionName="1.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.cornertable.app" android:installLocation="auto" android:versionCode="6" android:versionName="2.0">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="30" />
 	<uses-feature android:name="android.hardware.camera" />
 	<uses-feature android:name="android.hardware.camera.autofocus" />
@@ -89,23 +89,23 @@
 		</provider>
 		<meta-data android:name="firebase_performance_logcat_enabled" android:value="true" />
 		<!-- RazorPay API key -->
-    <meta-data android:name="com.razorpay.ApiKey" android:value="@string/razorpay_api_Key" />
-    <service android:name=".ChatApiService" android:exported="false" />
-    <service android:name=".PostApiService" android:exported="false" />
+		<meta-data android:name="com.razorpay.ApiKey" android:value="@string/razorpay_api_Key" />
+		<service android:name=".ChatApiService" android:exported="false" />
+		<service android:name=".PostApiService" android:exported="false" />
 	</application>
-  <queries>
-    <intent>
-      <action android:name="android.support.customtabs.action.CustomTabsService" />
-    </intent>
-    <intent>
-      <action android:name="android.intent.action.GET_CONTENT"/>
-      <data android:mimeType="*/*"/>
-    </intent>
-    <intent>
-      <action android:name="android.media.action.IMAGE_CAPTURE" />
-    </intent>
-    <intent>
-      <action android:name="com.google.android.youtube.api.service.START" />
-    </intent>
-  </queries>
+	<queries>
+		<intent>
+			<action android:name="android.support.customtabs.action.CustomTabsService" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.GET_CONTENT" />
+			<data android:mimeType="*/*" />
+		</intent>
+		<intent>
+			<action android:name="android.media.action.IMAGE_CAPTURE" />
+		</intent>
+		<intent>
+			<action android:name="com.google.android.youtube.api.service.START" />
+		</intent>
+	</queries>
 </manifest>
