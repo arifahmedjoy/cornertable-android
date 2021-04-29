@@ -10,9 +10,10 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="@drawable/linear_gradient_drawable"
+            android:background="?attr/colorFill"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
             <LinearLayout
                 android:layout_width="match_parent"

@@ -10,6 +10,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using Java.IO;
@@ -182,16 +183,18 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_DownloadMyInformation);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_DownloadMyInformation);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)

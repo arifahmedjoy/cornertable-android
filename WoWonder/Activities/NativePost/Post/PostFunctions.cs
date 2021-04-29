@@ -28,16 +28,26 @@ namespace WoWonder.Activities.NativePost.Post
                 if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "profile_cover_picture" || item.PostType == "profile_picture")
                     return PostModelType.ImagePost;
 
-                switch (string.IsNullOrEmpty(item.PostType))
+                if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName))
                 {
-                    case false when item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName):
+                    if (ListUtils.SettingsSiteList?.AgoraLiveVideo is 1 && !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId))
                     {
-                        return ListUtils.SettingsSiteList?.AgoraLiveVideo switch
+                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
                         {
-                            1 when !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId) => PostModelType
-                                .AgoraLivePost,
-                            _ => PostModelType.LivePost
-                        };
+                            return PostModelType.AgoraLivePost;
+                        }
+                        else if (item?.LiveTime != null && item?.LiveTime.Value > 0 && !string.IsNullOrEmpty(item?.AgoraResourceId) && !string.IsNullOrEmpty(item?.PostFile)) //Saved
+                        {
+                            return PostModelType.VideoPost;
+                        }
+                        else //End
+                        {
+                            return PostModelType.AgoraLivePost;
+                        }
+                    }
+                    else
+                    {
+                        return PostModelType.LivePost;
                     }
                 }
 

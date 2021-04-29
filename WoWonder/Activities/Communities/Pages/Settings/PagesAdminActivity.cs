@@ -15,6 +15,7 @@ using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -205,17 +206,19 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Admin);
+                    toolBar.Title = GetText(Resource.String.Lbl_Admin);
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -367,7 +370,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     arrayAdapter.Add(GetText(Resource.String.Lbl_BlockMember));
                     arrayAdapter.Add(GetText(Resource.String.Lbl_ViewProfile));
 
-                    dialogList.Title(Resource.String.Lbl_More);
+                    dialogList.Title(Resource.String.Lbl_More).TitleColorRes(Resource.Color.primary);
                     dialogList.Items(arrayAdapter);
                     dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                     dialogList.AlwaysCallSingleChoiceCallback();
@@ -397,7 +400,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             if (Methods.CheckConnectivity())
             {
                 var countList = MAdapter.UserList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Page.GetNotInPageMembers(PageId);
+                var (apiStatus, respond) = await RequestsAsync.Page.GetNotInPageMembersAsync(PageId);
                 if (apiStatus != 200 || respond is not GetPageMembersObject result || result.Users == null)
                 {
                     Methods.DisplayReportResult(this, respond);
@@ -521,7 +524,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
                 if (itemString.ToString() == GetText(Resource.String.Lbl_MakeAdmin))
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.MakePageAdmin(PageId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.MakePageAdminAsync(PageId, ItemUser.UserId) });
 
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)
@@ -532,7 +535,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 }
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_RemoveAdmin))
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.MakePageAdmin(PageId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.MakePageAdminAsync(PageId, ItemUser.UserId) });
 
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)
@@ -543,7 +546,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 }
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_BlockMember))
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Block_User(PageId, true) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.BlockUserAsync(PageId, true) });
 
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)

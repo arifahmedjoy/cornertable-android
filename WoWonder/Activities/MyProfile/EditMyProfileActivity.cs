@@ -7,16 +7,15 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads.DoubleClick;
-using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Global;
@@ -32,7 +31,7 @@ namespace WoWonder.Activities.MyProfile
         #region Variables Basic
 
         private TextView TxtSave;
-        private TextView IconName, IconLocation, IconMobile, IconWebsite, IconWork, IconSchool, IconRelationship;
+        //private TextView IconName, IconLocation, IconMobile, IconWebsite, IconWork, IconSchool, IconRelationship;
         private EditText TxtFirstName, TxtLastName, TxtLocation, TxtMobile,TxtWebsite,TxtWork,TxtSchool, TxtRelationship;
         private PublisherAdView PublisherAdView;
         private string TypeDialog,IdRelationShip;
@@ -158,38 +157,38 @@ namespace WoWonder.Activities.MyProfile
             {
                 TxtSave = FindViewById<TextView>(Resource.Id.toolbar_title);
 
-                IconName = FindViewById<TextView>(Resource.Id.IconName);
+                //IconName = FindViewById<TextView>(Resource.Id.IconName);
                 TxtFirstName = FindViewById<EditText>(Resource.Id.FirstNameEditText);
                 TxtLastName = FindViewById<EditText>(Resource.Id.LastNameEditText);
-                IconLocation = FindViewById<TextView>(Resource.Id.IconLocation);
+                //IconLocation = FindViewById<TextView>(Resource.Id.IconLocation);
                 TxtLocation = FindViewById<EditText>(Resource.Id.LocationEditText);
-                IconMobile = FindViewById<TextView>(Resource.Id.IconPhone);
+                //IconMobile = FindViewById<TextView>(Resource.Id.IconPhone);
                 TxtMobile = FindViewById<EditText>(Resource.Id.PhoneEditText); 
-                IconWebsite = FindViewById<TextView>(Resource.Id.IconWebsite);
+                //IconWebsite = FindViewById<TextView>(Resource.Id.IconWebsite);
                 TxtWebsite = FindViewById<EditText>(Resource.Id.WebsiteEditText); 
-                IconWork = FindViewById<TextView>(Resource.Id.IconWorkStatus);
+                //IconWork = FindViewById<TextView>(Resource.Id.IconWorkStatus);
                 TxtWork = FindViewById<EditText>(Resource.Id.WorkStatusEditText); 
-                IconSchool = FindViewById<TextView>(Resource.Id.IconSchool);
+                //IconSchool = FindViewById<TextView>(Resource.Id.IconSchool);
                 TxtSchool = FindViewById<EditText>(Resource.Id.SchoolEditText);
-                IconRelationship = FindViewById<TextView>(Resource.Id.IconRelationship);
+                //IconRelationship = FindViewById<TextView>(Resource.Id.IconRelationship);
                 TxtRelationship = FindViewById<EditText>(Resource.Id.RelationshipEditText);
 
-                Methods.SetColorEditText(TxtFirstName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                /*Methods.SetColorEditText(TxtFirstName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtLastName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtLocation, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtMobile, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtWebsite, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtWork, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtSchool, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtRelationship, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                Methods.SetColorEditText(TxtRelationship, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);*/
  
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconName, FontAwesomeIcon.User);
+                /*FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconName, FontAwesomeIcon.User);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconLocation, FontAwesomeIcon.MapMarkedAlt);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconMobile, FontAwesomeIcon.Mobile);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWork, FontAwesomeIcon.Briefcase);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWebsite, FontAwesomeIcon.Globe);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconSchool, FontAwesomeIcon.School);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconRelationship, FontAwesomeIcon.Heart);
+                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconRelationship, FontAwesomeIcon.Heart);*/
  
                 Methods.SetFocusable(TxtRelationship);
 
@@ -206,16 +205,19 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_Update_DataProfile);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetString(Resource.String.Lbl_Update_DataProfile);
+                    //toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -255,20 +257,20 @@ namespace WoWonder.Activities.MyProfile
             {
                 PublisherAdView?.Destroy();
                 TxtSave = null!;
-                IconName = null!;
+                //IconName = null!;
                 TxtFirstName = null!;
                 TxtLastName  = null!;
-                IconLocation = null!;
+                //IconLocation = null!;
                 TxtLocation  = null!;
-                IconMobile = null!;
+                //IconMobile = null!;
                 TxtMobile = null!;
-                IconWebsite  = null!;
+                //IconWebsite  = null!;
                 TxtWebsite = null!;
-                IconWork = null!;
+                //IconWork = null!;
                 TxtWork = null!;
-                IconSchool = null!;
+                //IconSchool = null!;
                 TxtSchool = null!;
-                IconRelationship = null!;
+                //IconRelationship = null!;
                 TxtRelationship = null!;
                 PublisherAdView = null!;
                 IdRelationShip = null!;
@@ -304,7 +306,7 @@ namespace WoWonder.Activities.MyProfile
                         {"relationship", IdRelationShip}
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.Update_User_Data(dictionary);
+                    var (apiStatus, respond) = await RequestsAsync.Global.UpdateUserDataAsync(dictionary);
                     switch (apiStatus)
                     {
                         case 200:
@@ -405,7 +407,7 @@ namespace WoWonder.Activities.MyProfile
 
                 var arrayAdapter = relationshipArray?.ToList();
 
-                dialogList.Title(GetText(Resource.String.Lbl_ChooseRelationshipStatus));
+                dialogList.Title(GetText(Resource.String.Lbl_ChooseRelationshipStatus)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.PositiveText(GetText(Resource.String.Lbl_Close)).OnPositive(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

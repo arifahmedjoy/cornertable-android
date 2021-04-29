@@ -3,15 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:background="?attr/selectableItemBackground"
-    android:layout_height="70dp" 
+    android:layout_height="wrap_content" 
     android:gravity="center_vertical"
-    android:paddingTop="@dimen/padding_list_row"
-    android:paddingEnd="@dimen/padding_list_row" >
+    android:paddingTop="15dp"
+    android:paddingStart="15dp"
+    android:paddingEnd="15dp">
   <ImageView
     android:id="@+id/card_pro_pic"
     android:scaleType="centerCrop"
-    android:layout_width="55dp"
-    android:layout_height="55dp"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
     android:focusable="false"
     android:clickable="false"
     android:src="@drawable/no_profile_image_circle"
@@ -26,7 +27,8 @@
     android:layout_marginBottom="1dp" 
     android:layout_marginStart="44dp"
     android:layout_above="@id/card_pro_pic"
-    android:src="@drawable/green_color" />
+    android:src="@drawable/green_color"
+        android:visibility="gone"/>
   <TextView
     android:id="@+id/card_name"
     android:layout_width="wrap_content"
@@ -86,9 +88,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0.3dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="15dp"
+        android:layout_marginTop="15dp"
         android:background="?attr/colorDivider"
         android:layout_below="@id/card_pro_pic" />
 </RelativeLayout>

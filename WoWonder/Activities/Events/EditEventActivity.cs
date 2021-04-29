@@ -11,6 +11,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
@@ -212,16 +213,18 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_EditEvents);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_EditEvents);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -396,7 +399,7 @@ namespace WoWonder.Activities.Events
                         //Show a progress
                         AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
-                        var (apiStatus, respond) = await RequestsAsync.Event.Edit_Event(EventId, TxtEventName.Text, TxtLocation.Text, TxtDescription.Text, TxtStartDate.Text, TxtEndDate.Text, TxtStartTime.Text, TxtEndTime.Text, EventPathImage);
+                        var (apiStatus, respond) = await RequestsAsync.Event.EditEventAsync(EventId, TxtEventName.Text, TxtLocation.Text, TxtDescription.Text, TxtStartDate.Text, TxtEndDate.Text, TxtStartTime.Text, TxtEndTime.Text, EventPathImage);
                         switch (apiStatus)
                         {
                             case 200:

@@ -445,7 +445,7 @@ namespace WoWonder.Activities.Communities.Groups
                     arrayAdapter.Add(GetString(Resource.String.Lbl_Settings));
                 }
 
-                dialogList.Title(GetString(Resource.String.Lbl_More));
+                dialogList.Title(GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -497,7 +497,7 @@ namespace WoWonder.Activities.Communities.Groups
                             BtnJoin.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
                             BtnJoin.SetTextColor(isJoined == "yes" || isJoined == "true" ? Color.Black : Color.White);
 
-                            var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(GroupId);
+                            var (apiStatus, respond) = await RequestsAsync.Group.JoinGroupAsync(GroupId);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -1138,7 +1138,7 @@ namespace WoWonder.Activities.Communities.Groups
 
         private async Task GetGroupDataApi()
         {
-            var (apiStatus, respond) = await RequestsAsync.Group.Get_Group_Data(GroupId);
+            var (apiStatus, respond) = await RequestsAsync.Group.GetGroupDataAsync(GroupId);
 
             if (apiStatus != 200 || respond is not GetGroupDataObject result || result.GroupData == null)
                 Methods.DisplayReportResult(this, respond);
@@ -1223,7 +1223,7 @@ namespace WoWonder.Activities.Communities.Groups
                     {
                         case "Avatar":
                         {
-                            var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Avatar(GroupId, path).ConfigureAwait(false);
+                            var (apiStatus, respond) = await RequestsAsync.Group.UpdateGroupAvatarAsync(GroupId, path).ConfigureAwait(false);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -1247,7 +1247,7 @@ namespace WoWonder.Activities.Communities.Groups
                         }
                         case "Cover":
                         {
-                            var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Cover(GroupId, path).ConfigureAwait(false);
+                            var (apiStatus, respond) = await RequestsAsync.Group.UpdateGroupCoverAsync(GroupId, path).ConfigureAwait(false);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -1281,7 +1281,7 @@ namespace WoWonder.Activities.Communities.Groups
         {
             if (GroupDataClass.UserId == UserDetails.UserId)
             {
-                var (apiStatus, respond) = await RequestsAsync.Group.GetGroupJoinRequests(GroupId, "5");
+                var (apiStatus, respond) = await RequestsAsync.Group.GetGroupJoinRequestsAsync(GroupId, "5");
                 switch (apiStatus)
                 {
                     case 200:

@@ -13,10 +13,9 @@ using Android.Graphics.Drawables;
 using Android.Locations;
 using Android.OS;
 using Android.Views;
-using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.AppCompat.App;
-using AndroidX.ViewPager.Widget;
+using AndroidX.ViewPager2.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Load.Engine;
 using Bumptech.Glide.Request;
@@ -25,7 +24,7 @@ using Com.Luseen.Autolinklibrary;
 using Google.Android.Material.FloatingActionButton;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.Lang;
-using MeoNavLib.Com;
+using MeoNavLib.Com; 
 using Newtonsoft.Json;
 using Plugin.Geolocator;
 using WoWonder.Activities.AddPost;
@@ -40,19 +39,18 @@ using WoWonder.Activities.Events;
 using WoWonder.Activities.Live.Page;
 using WoWonder.Activities.Live.Utils;
 using WoWonder.Activities.Market;
-using WoWonder.Activities.MyProfile;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.NativePost.Services;
 using WoWonder.Activities.Search;
 using WoWonder.Activities.SettingsPreferences;
 using WoWonder.Activities.Story;
-using WoWonder.Activities.Story.Adapters;
+using WoWonder.Activities.Story.Adapters; 
 using WoWonder.Activities.Tabbes.Fragment;
 using WoWonder.Adapters;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
-using WoWonder.Helpers.Utils;
+using WoWonder.Helpers.Utils; 
 using WoWonder.SQLite;
 using WoWonderClient;
 using WoWonderClient.Classes.Global;
@@ -76,9 +74,9 @@ namespace WoWonder.Activities.Tabbes
         #region Variables Basic
 
         public Toolbar ToolBar;
-        private static TabbedMainActivity Instance;
+        private static TabbedMainActivity Instance; 
         private CustomNavigationController FragmentBottomNavigator;
-        public ViewPager ViewPager;
+        public ViewPager2 ViewPager;
         private MainTabAdapter TabAdapter;
         public NewsFeedNative NewsFeedTab;
         private NotificationsFragment NotificationsTab;
@@ -93,11 +91,10 @@ namespace WoWonder.Activities.Tabbes
         private readonly Handler ExitHandler = new Handler(Looper.MainLooper);
         
         private PowerManager.WakeLock Wl;
-
-        // insert ar dev
+         
         public RelativeLayout RlFilter;
-        private RelativeLayout RlSearch, RlFriend, RlAdd;
-   
+        private RelativeLayout RlSearch, RlMessage, RlAdd;
+         
         #endregion
 
         #region General
@@ -120,17 +117,16 @@ namespace WoWonder.Activities.Tabbes
                 // Create your application here
                 SetContentView(Resource.Layout.Tabbed_Main_Layout);
 
-                Instance = this;
-
+                Instance = this; 
                 UserDetails.OnlineUsers = MainSettings.SharedData?.GetBoolean("onlineUser_key", true) ?? true;
-
+                 
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
                 AddFragmentsTabs();
 
                 GetGeneralAppData(); 
-                SetService(); 
+                SetService();  
             }
             catch (Exception e)
             {
@@ -269,15 +265,15 @@ namespace WoWonder.Activities.Tabbes
                 NavigationTabBar = FindViewById<MeowBottomNavigation>(Resource.Id.ntb_horizontal);
                 FragmentBottomNavigator = new CustomNavigationController(this, NavigationTabBar);
 
-                ViewPager = FindViewById<ViewPager>(Resource.Id.vp_horizontal_ntb);
-                TabAdapter = new MainTabAdapter(SupportFragmentManager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.vp_horizontal_ntb);
+                TabAdapter = new MainTabAdapter(this);
                  
                 RlSearch = FindViewById<RelativeLayout>(Resource.Id.rlSearch);
-
-
-                RlFilter = FindViewById<RelativeLayout>(Resource.Id.rlFilter); 
-                RlFriend = FindViewById<RelativeLayout>(Resource.Id.rlFriend);
+                RlMessage = FindViewById<RelativeLayout>(Resource.Id.rl_message);
+                RlFilter = FindViewById<RelativeLayout>(Resource.Id.rlFilter);
                 RlAdd = FindViewById<RelativeLayout>(Resource.Id.rlAdd);
+
+                RlMessage.Visibility = ViewStates.Gone;
 
                 NavigationTabBar.LayoutDirection = AppSettings.FlowDirectionRightToLeft switch
                 {
@@ -316,19 +312,19 @@ namespace WoWonder.Activities.Tabbes
                 switch (addEvent)
                 {
                     // true +=  // false -=
-                    case true:
-                        RlAdd.Click += BtnAddOnClick;
+                    case true: 
                         FloatingActionButton.Click += Btn_AddPost_OnClick;
                         RlSearch.Click += RlSearchOnClick;
                         RlFilter.Click += RlFilterOnClick;
-                        RlFriend.Click += RlFriendOnClick;
+                        RlMessage.Click += RlMessageOnClick;
+                        RlAdd.Click += BtnAddOnClick;
                         break;
-                    default:
-                        RlAdd.Click -= BtnAddOnClick;
+                    default: 
                         FloatingActionButton.Click -= Btn_AddPost_OnClick;
                         RlSearch.Click -= RlSearchOnClick;
                         RlFilter.Click -= RlFilterOnClick;
-                        RlFriend.Click -= RlFriendOnClick;
+                        RlMessage.Click -= RlMessageOnClick;
+                        RlAdd.Click -= BtnAddOnClick;
                         break;
                 }
             }
@@ -355,6 +351,30 @@ namespace WoWonder.Activities.Tabbes
 
         #region Events
 
+        //Add 
+        private void BtnAddOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var arrayAdapter = new List<string>();
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+
+                if (AppSettings.ShowAdvertise) arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Ad));
+                if (AppSettings.ShowEvents) arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Events));
+                if (AppSettings.ShowMarket) arrayAdapter.Add(GetText(Resource.String.Lbl_CreateNewProduct));
+                if (AppSettings.ShowCommunitiesPages) arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Page));
+                if (AppSettings.ShowCommunitiesGroups) arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Group));
+
+                dialogList.Items(arrayAdapter);
+                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                dialogList.AlwaysCallSingleChoiceCallback();
+                dialogList.ItemsCallback(this).Build().Show();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
         private void RlSearchOnClick(object sender, EventArgs e)
         {
             try
@@ -369,20 +389,18 @@ namespace WoWonder.Activities.Tabbes
             }
         }
          
-        private void RlFriendOnClick(object sender, EventArgs e)
+        private void RlMessageOnClick(object sender, EventArgs e)
         {
             try
             {
-                var intent = new Intent(this, typeof(MyProfileActivity));
-                StartActivity(intent);
+                Methods.App.OpenAppByPackageName(this, AppSettings.MessengerPackageName, "OpenChatApp");
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
-
+         
         private void RlFilterOnClick(object sender, EventArgs e)
         {
             try
@@ -393,7 +411,7 @@ namespace WoWonder.Activities.Tabbes
                 arrayAdapter.Add(GetString(Resource.String.Lbl_All));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_People_i_Follow));
 
-                dialogList.Title(GetString(Resource.String.Lbl_Filter));
+                dialogList.Title(GetString(Resource.String.Lbl_Filter)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -415,61 +433,7 @@ namespace WoWonder.Activities.Tabbes
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
-        //Add 
-        private void BtnAddOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                 
-                switch (AppSettings.ShowAdvertise)
-                {
-                    case true:
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Ad));
-                        break;
-                }
-
-                switch (AppSettings.ShowEvents)
-                {
-                    case true:
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Events));
-                        break;
-                }
-
-                switch (AppSettings.ShowMarket)
-                {
-                    case true:
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_CreateNewProduct));
-                        break;
-                }
-
-                switch (AppSettings.ShowCommunitiesPages)
-                {
-                    case true:
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Page));
-                        break;
-                }
-
-                switch (AppSettings.ShowCommunitiesGroups)
-                {
-                    case true:
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Group));
-                        break;
-                }
-
-                dialogList.Items(arrayAdapter);
-                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                dialogList.AlwaysCallSingleChoiceCallback();
-                dialogList.ItemsCallback(this).Build().Show();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+          
         //Event Open page add post
         private void Btn_AddPost_OnClick(object sender, EventArgs eventArgs)
         {
@@ -778,7 +742,13 @@ namespace WoWonder.Activities.Tabbes
                         switch (resultCode) // The switch block will be triggered only with flexible update since it returns the install result codes
                         {
                             case Result.Ok:
-                                Toast.MakeText(this, "App updated", ToastLength.Short)?.Show();
+                                switch (UpdateManagerApp.AppUpdateTypeSupported)
+                                {
+                                    // In app update success
+                                    case AppUpdateType.Immediate:
+                                        Toast.MakeText(this, "App updated", ToastLength.Short)?.Show();
+                                        break;
+                                }
                                 break;
                             case Result.Canceled:
                                 Toast.MakeText(this, "In app update cancelled", ToastLength.Short)?.Show();
@@ -786,8 +756,7 @@ namespace WoWonder.Activities.Tabbes
                             case (Result)ActivityResult.ResultInAppUpdateFailed:
                                 Toast.MakeText(this, "In app update failed", ToastLength.Short)?.Show();
                                 break;
-                        }
-
+                        } 
                         break;
                     case 2200 when resultCode == Result.Ok:
                         RunOnUiThread(() =>
@@ -815,7 +784,7 @@ namespace WoWonder.Activities.Tabbes
 
                         UserDetails.ChatHead = true;
                         MainSettings.SharedData?.Edit()?.PutBoolean("chatheads_key", UserDetails.ChatHead)?.Commit();
-                        break;
+                        break; 
                 }
             }
             catch (Exception e)
@@ -871,6 +840,12 @@ namespace WoWonder.Activities.Tabbes
                     case 235:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
                         break;
+                    case 110 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        break;
+                    case 110:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -889,13 +864,13 @@ namespace WoWonder.Activities.Tabbes
             {
                 TabAdapter.ClaerFragment();
 
-                ChatTab = new MsgTabbedMainActivity();
+                ChatTab = new MsgTabbedMainActivity(); 
                 NewsFeedTab = new NewsFeedNative();
                 NotificationsTab = new NotificationsFragment();
                 TrendingTab = new TrendingFragment();
                 MoreTab = new MoreFragment();
 
-                if (TabAdapter != null && TabAdapter.Count <= 0)
+                if (TabAdapter != null && TabAdapter.ItemCount <= 0)
                 {
                     TabAdapter.AddFragment(NewsFeedTab, GetText(Resource.String.Lbl_News_Feed));
                     TabAdapter.AddFragment(NotificationsTab, GetText(Resource.String.Lbl_Notifications));
@@ -909,15 +884,18 @@ namespace WoWonder.Activities.Tabbes
 
                     TabAdapter.AddFragment(ChatTab, GetText(Resource.String.Lbl_Message));
                     TabAdapter.AddFragment(MoreTab, GetText(Resource.String.Lbl_More));
-                    ViewPager.CurrentItem = 4;
-                    ViewPager.OffscreenPageLimit = TabAdapter.Count;
+
+                    ViewPager.CurrentItem = TabAdapter.ItemCount;
+                    ViewPager.OffscreenPageLimit = TabAdapter.ItemCount;
+
+                    ViewPager.Orientation = ViewPager2.OrientationHorizontal;
+                    ViewPager.RegisterOnPageChangeCallback(new MyOnPageChangeCallback(this));
                     ViewPager.Adapter = TabAdapter;
-                    ViewPager.PageScrolled += ViewPagerOnPageScrolled;
-                    ViewPager.PageSelected += ViewPagerOnPageSelected;
-                     
+                    ViewPager.Adapter.NotifyDataSetChanged();
+
                     NavigationTabBar.SetZ(5);
                 }
-                 
+
                 NavigationTabBar.Show(0, false);
             }
             catch (Exception exception)
@@ -926,151 +904,172 @@ namespace WoWonder.Activities.Tabbes
             }
         }
 
-        private void ViewPagerOnPageScrolled(object sender, ViewPager.PageScrolledEventArgs e)
+        private class MyOnPageChangeCallback : ViewPager2.OnPageChangeCallback
         {
-            try
-            {
-                switch (e.Position)
-                {
-                    case < 0:
-                        return;
-                    // News_Feed_Tab
-                    case 0:
-                        {
-                            ToolBar.Visibility = ViewStates.Visible;
+            private readonly TabbedMainActivity Activity;
 
-                            switch (AppSettings.ShowAddPostOnNewsFeed)
+            public MyOnPageChangeCallback(TabbedMainActivity activity)
+            {
+                try
+                {
+                    Activity = activity;
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            public override void OnPageSelected(int position)
+            {
+                try
+                {
+                    base.OnPageSelected(position);
+                    switch (position)
+                    {
+                        case < 0:
+                            return;
+                        // News_Feed_Tab
+                        case 0:
                             {
-                                case true when FloatingActionButton.Visibility != ViewStates.Visible:
-                                    FloatingActionButton.Tag = "AddPost";
-                                    FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
-                                    FloatingActionButton.Visibility = ViewStates.Visible;
-                                    break;
-                                default:
-                                    FloatingActionButton.Visibility = ViewStates.Gone;
-                                    break;
+                                if (Activity.NavigationTabBar.GetSelectedId() != position)
+                                    Activity.NavigationTabBar.Show(0, false);
+
+                                Activity.RlFilter.Visibility = ViewStates.Visible;
+
+                                if (AppSettings.ShowAddPostOnNewsFeed && Activity.FloatingActionButton.Visibility != ViewStates.Visible)
+                                {
+                                    Activity.FloatingActionButton.Tag = "AddPost";
+                                    Activity.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
+                                    Activity.FloatingActionButton.Visibility = ViewStates.Visible;
+                                }
+                                else
+                                {
+                                    Activity.FloatingActionButton.Visibility = ViewStates.Gone;
+                                }
+
+                                Activity.ToolBar.Visibility = ViewStates.Visible;
+                                break;
                             }
+                        // Notifications_Tab
+                        case 1:
+                            {
+                                if (Activity.NavigationTabBar.GetSelectedId() != position)
+                                    Activity.NavigationTabBar.Show(1, false);
 
-                            break;
-                        }
-                    // Notifications_Tab
-                    case 1:
-                        ToolBar.Visibility = ViewStates.Visible;
-                        FloatingActionButton.Visibility = ViewStates.Gone;
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
-                    // Trending_Tab
-                    case 2 when AppSettings.ShowTrendingPage:
-                        ToolBar.Visibility = ViewStates.Visible;
-                        FloatingActionButton.Visibility = ViewStates.Gone;
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
-                    // Chat_Tab
-                    case 3:
-                        ToolBar.Visibility = ViewStates.Gone;
-                        ChatTab.FloatingActionButtonView_Tag();
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
-                    // More_Tab
-                    case 4:
-                        ToolBar.Visibility = ViewStates.Visible;
-                        FloatingActionButton.Visibility = ViewStates.Gone;
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
+                                Activity.ToolBar.Visibility = ViewStates.Visible;
+                                Activity.RlFilter.Visibility = ViewStates.Gone;
+
+                                Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                                break;
+                            }
+                        // Trending_Tab
+                        case 2 when AppSettings.ShowTrendingPage:
+                            {
+                                if (Activity.NavigationTabBar.GetSelectedId() != position)
+                                    Activity.NavigationTabBar.Show(2, false);
+
+                                Activity.ToolBar.Visibility = ViewStates.Visible;
+                                Activity.RlFilter.Visibility = ViewStates.Gone;
+
+                                Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                                break;
+                            }
+                        // Chat_Tab
+                        case 3:
+                            {
+                                if (Activity.NavigationTabBar.GetSelectedId() != position)
+                                    Activity.NavigationTabBar.Show(3, false);
+
+                                Activity.RlFilter.Visibility = ViewStates.Gone;
+                                Activity.ToolBar.Visibility = ViewStates.Gone;
+
+                                if (Activity.FloatingActionButton.Visibility != ViewStates.Visible)
+                                    Activity.ChatTab.FloatingActionButtonView_Tag();
+
+                                Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+
+                                break;
+                            }
+                        // More_Tab
+                        case 4:
+                            {
+                                if (Activity.NavigationTabBar.GetSelectedId() != position)
+                                    Activity.NavigationTabBar.Show(4, false);
+
+                                Activity.RlFilter.Visibility = ViewStates.Gone;
+                                Activity.ToolBar.Visibility = ViewStates.Visible;
+
+                                Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                                break;
+                            }
+                    }
                 }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-        private void ViewPagerOnPageSelected(object sender, ViewPager.PageSelectedEventArgs e)
-        {
-            try
-            {
-                switch (e.Position)
+                catch (Exception exception)
                 {
-                    case < 0:
-                        return;
-                    // News_Feed_Tab
-                    case 0:
-                    {
-                        if (NavigationTabBar.GetSelectedId() != e.Position)
-                            NavigationTabBar.Show(0, true);
-
-                        RlFilter.Visibility = ViewStates.Visible;
-
-                        if (AppSettings.ShowAddPostOnNewsFeed && FloatingActionButton.Visibility != ViewStates.Visible)
-                        {
-                            FloatingActionButton.Tag = "AddPost";
-                            FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
-                            FloatingActionButton.Visibility = ViewStates.Visible;
-                        }
-                        else
-                        {
-                            FloatingActionButton.Visibility = ViewStates.Gone;
-                        }
-
-                        ToolBar.Visibility = ViewStates.Visible;
-                        break;
-                    }
-                    // Notifications_Tab
-                    case 1:
-                    {
-                        if (NavigationTabBar.GetSelectedId() != e.Position)
-                            NavigationTabBar.Show(1, true);
-
-                        ToolBar.Visibility = ViewStates.Visible;
-                        RlFilter.Visibility = ViewStates.Gone;
-
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
-                    }
-                    // Trending_Tab
-                    case 2 when AppSettings.ShowTrendingPage:
-                    {
-                        if (NavigationTabBar.GetSelectedId() != e.Position)
-                            NavigationTabBar.Show(2, true);
-
-                        ToolBar.Visibility = ViewStates.Visible;
-                        RlFilter.Visibility = ViewStates.Gone;
-                             
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
-                    }
-                    // Chat_Tab
-                    case 3:
-                    {
-                        if (NavigationTabBar.GetSelectedId() != e.Position)
-                            NavigationTabBar.Show(3, true);
-                        
-                        RlFilter.Visibility = ViewStates.Gone;
-                        ToolBar.Visibility = ViewStates.Gone;
-
-                        if (FloatingActionButton.Visibility != ViewStates.Visible)
-                            ChatTab.FloatingActionButtonView_Tag();
-
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-
-                        break;
-                    }
-                    // More_Tab
-                    case 4:
-                    {
-                        if (NavigationTabBar.GetSelectedId() != e.Position)
-                            NavigationTabBar.Show(4, true);
-
-                        RlFilter.Visibility = ViewStates.Gone;
-                        ToolBar.Visibility = ViewStates.Visible;
-
-                        NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        break;
-                    } 
+                    Methods.DisplayReportResultTrack(exception);
                 }
             }
-            catch (Exception exception)
+
+            public override void OnPageScrolled(int position, float positionOffset, int positionOffsetPixels)
             {
-                Methods.DisplayReportResultTrack(exception);
+                try
+                {
+                    base.OnPageScrolled(position, positionOffset, positionOffsetPixels);
+
+                    switch (position)
+                    {
+                        case < 0:
+                            return;
+                        // News_Feed_Tab
+                        case 0:
+                            {
+                                Activity.ToolBar.Visibility = ViewStates.Visible;
+
+                                switch (AppSettings.ShowAddPostOnNewsFeed)
+                                {
+                                    case true when Activity.FloatingActionButton.Visibility != ViewStates.Visible:
+                                        Activity.FloatingActionButton.Tag = "AddPost";
+                                        Activity.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
+                                        Activity.FloatingActionButton.Visibility = ViewStates.Visible;
+                                        break;
+                                    default:
+                                        Activity.FloatingActionButton.Visibility = ViewStates.Gone;
+                                        break;
+                                }
+
+                                break;
+                            }
+                        // Notifications_Tab
+                        case 1:
+                            Activity.ToolBar.Visibility = ViewStates.Visible;
+                            Activity.FloatingActionButton.Visibility = ViewStates.Gone;
+                            Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                            break;
+                        // Trending_Tab
+                        case 2 when AppSettings.ShowTrendingPage:
+                            Activity.ToolBar.Visibility = ViewStates.Visible;
+                            Activity.FloatingActionButton.Visibility = ViewStates.Gone;
+                            Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                            break;
+                        // Chat_Tab
+                        case 3:
+                            Activity.ToolBar.Visibility = ViewStates.Gone;
+                            Activity.ChatTab.FloatingActionButtonView_Tag();
+                            Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                            break;
+                        // More_Tab
+                        case 4:
+                            Activity.ToolBar.Visibility = ViewStates.Visible;
+                            Activity.FloatingActionButton.Visibility = ViewStates.Gone;
+                            Activity.NewsFeedTab?.MainRecyclerView?.StopVideo();
+                            break;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
             }
         }
          
@@ -1085,11 +1084,11 @@ namespace WoWonder.Activities.Tabbes
                 var arrayAdapter = new List<string>();
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                arrayAdapter.Add(GetText(Resource.String.text));
+                arrayAdapter.Add(GetText(Resource.String.text)); 
                 arrayAdapter.Add(GetText(Resource.String.image));
                 arrayAdapter.Add(GetText(Resource.String.video));
 
-                dialogList.Title(GetText(Resource.String.Lbl_Addnewstory));
+                dialogList.Title(GetText(Resource.String.Lbl_Addnewstory)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -1111,7 +1110,7 @@ namespace WoWonder.Activities.Tabbes
                 arrayAdapter.Add(GetText(Resource.String.Lbl_VideoGallery));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_RecordVideoFromCamera));
 
-                dialogList.Title(GetText(Resource.String.Lbl_SelectVideoFrom));
+                dialogList.Title(GetText(Resource.String.Lbl_SelectVideoFrom)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.PositiveText(GetText(Resource.String.Lbl_Close)).OnPositive(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -1134,6 +1133,10 @@ namespace WoWonder.Activities.Tabbes
                 else if (itemString.ToString() == GetText(Resource.String.video))
                 {
                     OpenDialogVideo(); 
+                } 
+                else if (itemString.ToString() == GetText(Resource.String.text))
+                {
+                    OpenEditColor(); 
                 } 
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_VideoGallery))
                 {
@@ -1243,6 +1246,21 @@ namespace WoWonder.Activities.Tabbes
                             case "Your":
                                 ShowDialogAddStory();
                                 break;
+                            case "Live":
+                            { 
+                                if (item.DataLivePost?.LiveTime != null && item.DataLivePost?.LiveTime.Value > 0 && string.IsNullOrEmpty(item.DataLivePost?.AgoraResourceId) && string.IsNullOrEmpty(item.DataLivePost?.PostFile))
+                                {
+                                    //Live
+                                    //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
+                                    Intent intent = new Intent(this, typeof(LiveStreamingActivity));
+                                    intent.PutExtra(Constants.KeyClientRole, DT.Xamarin.Agora.Constants.ClientRoleAudience);
+                                    intent.PutExtra("PostId", item.DataLivePost.PostId);
+                                    intent.PutExtra("StreamName", item.DataLivePost.StreamName);
+                                    intent.PutExtra("PostLiveStream", JsonConvert.SerializeObject(item.DataLivePost));
+                                    StartActivity(intent);
+                                }
+                                break;
+                            } 
                             default:
                             {
                                 Intent intent = new Intent(this, typeof(ViewStoryActivity));
@@ -1585,7 +1603,7 @@ namespace WoWonder.Activities.Tabbes
                                 }
 
                                 if (Methods.CheckConnectivity())
-                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dictionaryProfile) });
+                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dictionaryProfile) });
                             }
                         }
                         catch (Exception e)
@@ -1600,92 +1618,98 @@ namespace WoWonder.Activities.Tabbes
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         public void GetOneSignalNotification()
         {
             try
             {
                 string notifier = Intent?.GetStringExtra("Notifier") ?? "";
-                if (notifier == "Notifier")
+                switch (notifier)
                 {
-                    string userId = Intent?.GetStringExtra("userId") ?? "";
-                    string postId = Intent?.GetStringExtra("PostId") ?? "";
-                    string pageId = Intent?.GetStringExtra("PageId") ?? "";
-                    string groupId = Intent?.GetStringExtra("GroupId") ?? "";
-                    string eventId = Intent?.GetStringExtra("EventId") ?? "";
-                    string type = Intent?.GetStringExtra("type") ?? "";
-
-                    //PageId, GroupId,EventId
-                    NotificationsTab.EventClickNotification(this, new NotificationObject
+                    case "Notifier":
                     {
-                        NotifierId = userId,
-                        Notifier = new UserDataObject
-                        {
-                            UserId = userId,
-                        },
-                        PostId = postId,
-                        PageId = pageId,
-                        GroupId = groupId,
-                        EventId = eventId,
-                        Type = type,
-                    });
-                }
-                else if (notifier == "Chat")
-                {
-                    string userId = Intent?.GetStringExtra("userId") ?? "";
-                    if (string.IsNullOrEmpty(userId))
-                        return;
+                        string userId = Intent?.GetStringExtra("userId") ?? "";
+                        string postId = Intent?.GetStringExtra("PostId") ?? "";
+                        string pageId = Intent?.GetStringExtra("PageId") ?? "";
+                        string groupId = Intent?.GetStringExtra("GroupId") ?? "";
+                        string eventId = Intent?.GetStringExtra("EventId") ?? "";
+                        string type = Intent?.GetStringExtra("type") ?? "";
 
-                    if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+                        //PageId, GroupId,EventId
+                        NotificationsTab.EventClickNotification(this, new NotificationObject
+                        {
+                            NotifierId = userId,
+                            Notifier = new UserDataObject
+                            {
+                                UserId = userId,
+                            },
+                            PostId = postId,
+                            PageId = pageId,
+                            GroupId = groupId,
+                            EventId = eventId,
+                            Type = type,
+                        });
+                        break;
+                    }
+                    case "Chat":
                     {
-                        var dataUser = ChatTab?.LastChatTab?.MAdapter?.LastChatsList?.FirstOrDefault(a => a.LastChat != null && a.LastChat.UserId == userId);
+                        string userId = Intent?.GetStringExtra("userId") ?? "";
+                        if (string.IsNullOrEmpty(userId))
+                            return;
 
-                        Intent intent = new Intent(this, typeof(ChatWindowActivity));
-                        intent.PutExtra("UserID", userId);
-
-                        if (dataUser != null)
+                        if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                         {
-                            intent.PutExtra("TypeChat", "LastMessenger");
-                            intent.PutExtra("ColorChat", dataUser.LastChat.LastMessage.LastMessageClass.ChatColor ?? AppSettings.MainColor);
-                            intent.PutExtra("UserItem", JsonConvert.SerializeObject(dataUser));
+                            var dataUser = ChatTab?.LastChatTab?.MAdapter?.LastChatsList?.FirstOrDefault(a => a.LastChat != null && a.LastChat.UserId == userId);
+
+                            Intent intent = new Intent(this, typeof(ChatWindowActivity));
+                            intent.PutExtra("UserID", userId);
+
+                            if (dataUser != null)
+                            {
+                                intent.PutExtra("TypeChat", "LastMessenger");
+                                intent.PutExtra("ColorChat", dataUser.LastChat.LastMessage.LastMessageClass.ChatColor ?? AppSettings.MainColor);
+                                intent.PutExtra("UserItem", JsonConvert.SerializeObject(dataUser));
+                            }
+                            else
+                            {
+                                intent.PutExtra("TypeChat", "OneSignalNotification");
+                                intent.PutExtra("ColorChat", AppSettings.MainColor);
+                            }
+
+                            StartActivity(intent);
                         }
                         else
                         {
-                            intent.PutExtra("TypeChat", "OneSignalNotification");
-                            intent.PutExtra("ColorChat", AppSettings.MainColor);
-                        }
+                            var dataUser = ChatTab?.LastChatTab?.MAdapter?.LastChatsList?.FirstOrDefault(a => a.LastMessagesUser != null && a.LastMessagesUser.UserId == userId);
 
-                        StartActivity(intent);
+                            Intent intent = new Intent(this, typeof(ChatWindowActivity));
+                            intent.PutExtra("UserID", userId);
+
+                            if (dataUser != null)
+                            {
+                                intent.PutExtra("TypeChat", "LastMessenger");
+                                intent.PutExtra("ColorChat", dataUser.LastMessagesUser.ChatColor ?? AppSettings.MainColor);
+                                intent.PutExtra("UserItem", JsonConvert.SerializeObject(dataUser));
+                            }
+                            else
+                            {
+                                intent.PutExtra("TypeChat", "OneSignalNotification");
+                                intent.PutExtra("ColorChat", AppSettings.MainColor);
+                            }
+                            StartActivity(intent);
+                        }
                     }
-                    else
+                        break;
+                    default:
                     {
-                        var dataUser = ChatTab?.LastChatTab?.MAdapter?.LastChatsList?.FirstOrDefault(a => a.LastMessagesUser != null && a.LastMessagesUser.UserId == userId);
-
-                        Intent intent = new Intent(this, typeof(ChatWindowActivity));
-                        intent.PutExtra("UserID", userId);
-
-                        if (dataUser != null)
+                        string userId = Intent?.GetStringExtra("userId") ?? "";
+                        if (!string.IsNullOrEmpty(userId))
                         {
-                            intent.PutExtra("TypeChat", "LastMessenger");
-                            intent.PutExtra("ColorChat", dataUser.LastMessagesUser.ChatColor ?? AppSettings.MainColor);
-                            intent.PutExtra("UserItem", JsonConvert.SerializeObject(dataUser));
+                            NavigationTabBar.Show(1, true);
+                            ViewPager.SetCurrentItem(1, true);
                         }
-                        else
-                        {
-                            intent.PutExtra("TypeChat", "OneSignalNotification");
-                            intent.PutExtra("ColorChat", AppSettings.MainColor);
-                        }
-                        StartActivity(intent);
                     }
-                }
-                else
-                {
-                    string userId = Intent?.GetStringExtra("userId") ?? "";
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        NavigationTabBar.Show(1, true);
-                        ViewPager.SetCurrentItem(1, true);
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -1751,7 +1775,6 @@ namespace WoWonder.Activities.Tabbes
                             {
                                 FragmentBottomNavigator.ShowBadge(3, countMessages, true);
                                 CountMessagesStatic = countMessages;
-
 
                                 //var listMore = MoreTab.MoreSectionAdapter.SectionList;
                                 //switch (listMore?.Count)
@@ -1844,7 +1867,7 @@ namespace WoWonder.Activities.Tabbes
                 switch (UserDetails.SoundControl)
                 {
                     case true:
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("alert_announcement.mp3");
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
                         break;
                 }
 
@@ -1968,7 +1991,7 @@ namespace WoWonder.Activities.Tabbes
                         if (CountRateApp == AppSettings.ShowRateAppCount)
                         {
                             var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                            dialog.Title(GetText(Resource.String.Lbl_RateOurApp));
+                            dialog.Title(GetText(Resource.String.Lbl_RateOurApp)).TitleColorRes(Resource.Color.primary);
                             dialog.Content(GetText(Resource.String.Lbl_RateOurAppContent));
                             dialog.PositiveText(GetText(Resource.String.Lbl_Rate)).OnPositive((materialDialog, action) =>
                             {
@@ -2072,7 +2095,7 @@ namespace WoWonder.Activities.Tabbes
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         #endregion
 
         private void OpenEditColor()
@@ -2087,7 +2110,6 @@ namespace WoWonder.Activities.Tabbes
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
 
     }
 }

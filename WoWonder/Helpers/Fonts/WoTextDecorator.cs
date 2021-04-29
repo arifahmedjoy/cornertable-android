@@ -386,21 +386,23 @@ namespace WoWonder.Helpers.Fonts
                         break;
                 }
 
-                switch (string.IsNullOrEmpty(item.PostType))
+                if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName))
                 {
-                    case false when item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName):
+                    if (ListUtils.SettingsSiteList?.AgoraLiveVideo is 1 && !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId))
                     {
-                        if (item?.LiveTime != null && item.LiveTime.Value > 0)
+                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
                         {
                             textImageChange += " " + mainContext.GetText(Resource.String.Lbl_IsLiveNow) + " ";
                         }
-                        else
+                        else if (item?.LiveTime != null && item?.LiveTime.Value > 0 && !string.IsNullOrEmpty(item?.AgoraResourceId) && !string.IsNullOrEmpty(item?.PostFile)) //Saved
                         {
                             textImageChange += " " + mainContext.GetText(Resource.String.Lbl_WasLive) + " ";
                         }
-                   
+                        else //End
+                        {
+                            textImageChange += " " + mainContext.GetText(Resource.String.Lbl_WasLive) + " ";
+                        }
                         textHighLighter += textImageChange;
-                        break;
                     }
                 }
 

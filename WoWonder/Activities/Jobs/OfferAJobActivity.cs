@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -199,12 +200,14 @@ namespace WoWonder.Activities.Jobs
                 {
                     toolBar.Title = GetText(Resource.String.Lbl_OfferAJob);
 
-                    toolBar.SetTitleTextColor(Color.White);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -420,7 +423,7 @@ namespace WoWonder.Activities.Jobs
                 MainScrollEvent.IsLoading = true;
                 // api get job by page 
                 var countList = MAdapter.JobList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Jobs.JobByPage(PageId, "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Jobs.JobByPageAsync(PageId, "10", offset);
                 if (apiStatus != 200 || respond is not JobByPageObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

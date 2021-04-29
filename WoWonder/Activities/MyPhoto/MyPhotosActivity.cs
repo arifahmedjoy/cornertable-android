@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -196,16 +197,18 @@ namespace WoWonder.Activities.MyPhoto
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_MyImages);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_MyImages);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -403,7 +406,7 @@ namespace WoWonder.Activities.MyPhoto
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.MyPhotosList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Album.GetPostByType(UserDetails.UserId, "photos", "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Album.GetPostByTypeAsync(UserDetails.UserId, "photos", "10", offset);
                 if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

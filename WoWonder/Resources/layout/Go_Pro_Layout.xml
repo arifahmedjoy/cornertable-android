@@ -10,16 +10,17 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             app:title="@string/Lbl_Go_Pro"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
-            android:background="@drawable/linear_gradient_drawable">
+            android:background="?attr/colorFill">
             <ImageView
                 android:id="@+id/iv1"
                 android:scaleType="centerCrop"
                 android:layout_gravity="end"
-                android:tint="@color/textLight_color"
+                android:tint="@color/accent"
                 android:layout_centerHorizontal="true" 
                 android:src="@drawable/icon_close_vector"
                 android:padding="18dp"

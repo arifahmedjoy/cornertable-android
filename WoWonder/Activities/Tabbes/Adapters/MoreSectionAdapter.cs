@@ -51,24 +51,24 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     BackIcon = Color.ParseColor("#6D7278"),
                     IconColor = Color.ParseColor("#047cac")
                 });
-                //switch (AppSettings.MessengerIntegration)
-                //{
-                //    case true:
-                //        SectionList.Add(new SectionItem
-                //        {
-                //            Id = 2,
-                //            SectionName = activityContext.GetText(Resource.String.Lbl_Messages),
-                //            BadgeCount = 0,
-                //            StyleRow = AppSettings.MoreTheme == MoreTheme.BeautyTheme ? 0 : 1,
-                //            Badgevisibilty = false,
-                //            IconAsImage = Resource.Drawable.ic_more_messages,
-                //            //IconAsImage = Resource.Drawable.icon_more_chat,
-                //            Icon = IonIconsFonts.Chatbubbles,
-                //            BackIcon = Color.ParseColor("#0091FF"),
-                //            IconColor = Color.ParseColor("#03a9f4")
-                //        });
-                //        break;
-                //}
+                switch (AppSettings.MessengerIntegration)
+                {
+                    case true:
+                        SectionList.Add(new SectionItem
+                        {
+                            Id = 2,
+                            SectionName = activityContext.GetText(Resource.String.Lbl_Messages),
+                            BadgeCount = 0,
+                            StyleRow = AppSettings.MoreTheme == MoreTheme.BeautyTheme ? 0 : 1,
+                            Badgevisibilty = false,
+                            IconAsImage = Resource.Drawable.ic_more_messages,
+                            //IconAsImage = Resource.Drawable.icon_more_chat,
+                            Icon = IonIconsFonts.Chatbubbles,
+                            BackIcon = Color.ParseColor("#0091FF"),
+                            IconColor = Color.ParseColor("#03a9f4")
+                        });
+                        break;
+                }
                 switch (AppSettings.ShowUserContacts)
                 {
                     case true:

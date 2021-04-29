@@ -21,7 +21,6 @@
         android:paddingEnd="8dp"
         android:paddingTop="8dp"
         android:textStyle="bold"
-        android:text="Vote 1"
         android:ellipsize="end"
         android:lines="1"
         android:layout_marginEnd="25dp"
@@ -36,7 +35,6 @@
         android:paddingStart="13dp"
         android:paddingEnd="8dp"
         android:paddingTop="8dp"
-        android:text="ICO"
         android:layout_marginEnd="5dp"
         android:textColor="#999"
         android:layout_alignParentTop="true"
@@ -50,7 +48,6 @@
         android:paddingStart="13dp"
         android:paddingEnd="9dp"
         android:paddingTop="0dp"
-        android:text="25%"
         android:layout_below="@+id/checkIcon"
         
         android:layout_alignParentEnd="true"
@@ -67,7 +64,6 @@
         android:paddingStart="13dp"
         android:paddingEnd="8dp"
         android:layout_marginTop="3dp"
-        
         android:id="@+id/progress"
         android:indeterminate="false"
         android:max="100"

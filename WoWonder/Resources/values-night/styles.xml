@@ -4,7 +4,7 @@
   <style name="SplashScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">
     <!--drawable/splashscreen >> from image | drawable/splash From xml logo -->
     <!--<item name="android:windowBackground">@drawable/splashscreen</item>-->
-    <item name="android:windowBackground">@drawable/splashscreen</item>
+    <item name="android:windowBackground">@drawable/splash</item>
     <item name="android:windowNoTitle">true</item>
     <item name="android:windowFullscreen">true</item>
     <item name="android:windowContentOverlay">@null</item>
@@ -38,6 +38,7 @@
     <item name="colorReact">@color/textLight_color</item>
     <item name="android:fontFamily">@font/wowonder</item>
     <item name="fontFamily">@font/wowonder</item>
+    <item name="android:actionOverflowButtonStyle">@style/Overflow</item>
     <item name="colorHint">#efefef</item>
     <item name="ShapeCircleColor1">#00232323</item>
     <item name="ShapeCircleColor2">#05232323</item>
@@ -383,8 +384,8 @@
 
   <style name="MyDialogTheme" parent="android:Theme.Dialog">
     <!-- Fill the screen -->
-    <item name="android:layout_width">fill_parent</item>
-    <item name="android:layout_height">fill_parent</item>
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
 
     <!-- No backgrounds, titles or window float -->
     <item name="android:windowBackground">@null</item>
@@ -393,6 +394,22 @@
 
     <!-- Just to prove it's working -->
     <item name="android:background">#f7f7f7</item>
+    <item name="colorFill">#FFFEFE</item>
+  </style>
+
+  <style name="MyDialogThemeDark" parent="android:Theme.Dialog">
+    <!-- Fill the screen -->
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+
+    <!-- No backgrounds, titles or window float -->
+    <item name="android:windowBackground">@null</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowIsFloating">false</item>
+
+    <!-- Just to prove it's working -->
+    <item name="android:background">#444444</item>
+    <item name="colorFill">#282828</item>
   </style>
 
   <style name="MySeekBar" parent="Theme.AppCompat.Light">
@@ -437,6 +454,15 @@
 
   <style name="EditText.Grey.Hint" parent="@style/EditText.Grey">
     <item name="colorAccent">#666666</item>
+  </style>
+
+  <style name="Overflow" parent="@style/Widget.AppCompat.ActionButton.Overflow">
+    <item name="android:src">@drawable/ic_action_circle_more</item>
+  </style>
+
+  <style name="Animation">
+    <item name="android:windowEnterAnimation">@anim/emoji_default_in_animation</item>
+    <item name="android:windowExitAnimation">@anim/emoji_default_out_animation</item>
   </style>
 
 

@@ -87,7 +87,7 @@ namespace WoWonder.Adapters
                                             var arrayAdapter = item.Options.Split(',').ToList();
 
                                             var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                                            dialogList.Title(Methods.FunString.DecodeString(item.Name));
+                                            dialogList.Title(Methods.FunString.DecodeString(item.Name)).TitleColorRes(Resource.Color.primary);
                                             dialogList.Items(arrayAdapter);
                                             dialogList.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
                                             dialogList.AlwaysCallSingleChoiceCallback();

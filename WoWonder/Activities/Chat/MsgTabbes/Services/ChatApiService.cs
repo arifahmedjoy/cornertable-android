@@ -171,7 +171,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                     if (Methods.AppLifecycleObserver.AppState == "Background")
                         UserDetails.OnlineUsers = false;
 
-                    var (apiStatus, respond) = await RequestsAsync.Message.Get_users_list_Async(UserDetails.UserId, UserDetails.UserId, "20", "0", UserDetails.OnlineUsers);
+                    var (apiStatus, respond) = await RequestsAsync.Message.GetusersListAsync(UserDetails.UserId, UserDetails.UserId, "20", "0", UserDetails.OnlineUsers);
                     if (apiStatus != 200 || respond is not GetUsersListObject result || result.Users == null)
                     {
                         LastChatFragment.ApiRun = false;

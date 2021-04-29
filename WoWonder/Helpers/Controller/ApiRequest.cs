@@ -60,7 +60,7 @@ namespace WoWonder.Helpers.Controller
             {
                 await SetLangUserAsync().ConfigureAwait(false);
 
-                (var apiStatus, dynamic respond) = await Current.GetSettings();
+                (var apiStatus, dynamic respond) = await Current.GetSettingsAsync();
 
                 if (apiStatus != 200 || respond is not GetSiteSettingsObject result || result.Config == null)
                     return Methods.DisplayReportResult(context, respond);
@@ -449,7 +449,7 @@ namespace WoWonder.Helpers.Controller
                 if (string.IsNullOrEmpty(Current.AccessToken) || !AppSettings.SetLangUser)
                     return;
 
-                string lang;
+                string lang = "english";
                 if (UserDetails.LangName.Contains("en"))
                     lang = "english";
                 else if (UserDetails.LangName.Contains("ar"))
@@ -480,8 +480,8 @@ namespace WoWonder.Helpers.Controller
                     lang = "serbian";
                 else if (UserDetails.LangName.Contains("tr"))
                     lang = "turkish";
-                else
-                    lang = string.IsNullOrEmpty(UserDetails.LangName) ? AppSettings.Lang : "";
+                //else
+                //    lang = string.IsNullOrEmpty(UserDetails.LangName) ? AppSettings.Lang : "";
 
                 await Task.Factory.StartNew(() =>
                 {
@@ -503,8 +503,7 @@ namespace WoWonder.Helpers.Controller
                         }
 
                         if (Methods.CheckConnectivity())
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>>
-                                {() => RequestsAsync.Global.Update_User_Data(dataPrivacy)});
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy)});
                         else
                             Toast.MakeText(Application.Context,Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short)?.Show();
                     }
@@ -672,7 +671,7 @@ namespace WoWonder.Helpers.Controller
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Global.Get_User_Data(UserDetails.UserId);
+                var (apiStatus, respond) = await RequestsAsync.Global.GetUserDataAsync(UserDetails.UserId);
 
                 switch (apiStatus)
                 {
@@ -740,7 +739,7 @@ namespace WoWonder.Helpers.Controller
             if (Methods.CheckConnectivity())
             {
                 //var countList = ListUtils.SuggestedGroupList.Count;
-                var (respondCode, respondString) = await RequestsAsync.Group.GetRecommendedGroups("25", "0").ConfigureAwait(false);
+                var (respondCode, respondString) = await RequestsAsync.Group.GetRecommendedGroupsAsync("25", "0").ConfigureAwait(false);
                 switch (respondCode)
                 {
                     case 200:
@@ -773,7 +772,7 @@ namespace WoWonder.Helpers.Controller
             if (Methods.CheckConnectivity())
             {
                 //var countList = ListUtils.SuggestedUserList.Count;
-                var (respondCode, respondString) = await RequestsAsync.Global.GetRecommendedUsers("25", "0").ConfigureAwait(false);
+                var (respondCode, respondString) = await RequestsAsync.Global.GetRecommendedUsersAsync("25", "0").ConfigureAwait(false);
                 switch (respondCode)
                 {
                     case 200:
@@ -807,7 +806,7 @@ namespace WoWonder.Helpers.Controller
             {
                 try
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroups("0", "25");
+                    var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroupsAsync("0", "25");
                     if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                     {
                         //Methods.DisplayReportResult(this, respond);
@@ -846,7 +845,7 @@ namespace WoWonder.Helpers.Controller
 
                 try
                 {
-                    var (apiStatus2, respond2) = await RequestsAsync.Group.GetJoinedGroups(UserDetails.UserId, "0", "25");
+                    var (apiStatus2, respond2) = await RequestsAsync.Group.GetJoinedGroupsAsync(UserDetails.UserId, "0", "25");
                     if (apiStatus2 != 200 || !(respond2 is ListGroupsObject result2) || result2.Data == null)
                     {
                         //Methods.DisplayReportResult(this, respond);
@@ -884,7 +883,7 @@ namespace WoWonder.Helpers.Controller
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Page.GetMyPages("0", "25");
+                var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync("0", "25");
                 if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                 {
                     //Methods.DisplayReportResult(this, respond);
@@ -923,7 +922,7 @@ namespace WoWonder.Helpers.Controller
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Article.Get_Articles("5");
+                var (apiStatus, respond) = await RequestsAsync.Article.GetArticlesAsync("5");
                 if (apiStatus != 200 || respond is not GetUsersArticlesObject result || result.Articles == null)
                 {
                     //Methods.DisplayReportResult(this, respond);
@@ -1072,14 +1071,12 @@ namespace WoWonder.Helpers.Controller
                                 Methods.Path.DeleteAll_MyFolderDisk();
 
                                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                                dbDatabase.DropAll();
 
                                 Runtime.GetRuntime()?.RunFinalization();
                                 Runtime.GetRuntime()?.Gc();
                                 TrimCache(context);
-
-                                dbDatabase.ClearAll();
-                                dbDatabase.DropAll();
-
+                                 
                                 ListUtils.ClearAllList();
 
                                 UserDetails.ClearAllValueUserDetails();
@@ -1094,7 +1091,7 @@ namespace WoWonder.Helpers.Controller
                                 MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
                                 MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
 
-                                Intent intent = new Intent(context, typeof(FirstActivity));
+                                Intent intent = new Intent(context, typeof(LoginActivity)); 
                                 intent.AddCategory(Intent.CategoryHome);
                                 intent.SetAction(Intent.ActionMain);
                                 intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
@@ -1136,20 +1133,18 @@ namespace WoWonder.Helpers.Controller
                                 Methods.Path.DeleteAll_MyFolderDisk();
 
                                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                                dbDatabase.DropAll();
 
                                 Runtime.GetRuntime()?.RunFinalization();
                                 Runtime.GetRuntime()?.Gc();
                                 TrimCache(context);
-
-                                dbDatabase.ClearAll();
-                                dbDatabase.DropAll();
-
+                                 
                                 ListUtils.ClearAllList();
 
                                 UserDetails.ClearAllValueUserDetails();
 
                                 dbDatabase.CheckTablesStatus();
-
+                         
                                 context.StopService(new Intent(context, typeof(PostService)));
                                 context.StopService(new Intent(context, typeof(PostApiService)));
                                 context.StopService(new Intent(context, typeof(ChatApiService)));
@@ -1158,7 +1153,7 @@ namespace WoWonder.Helpers.Controller
                                 MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
                                 MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
 
-                                Intent intent = new Intent(context, typeof(FirstActivity));
+                                Intent intent = new Intent(context, typeof(LoginActivity)); 
                                 intent.AddCategory(Intent.CategoryHome);
                                 intent.SetAction(Intent.ActionMain);
                                 intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
@@ -1264,7 +1259,7 @@ namespace WoWonder.Helpers.Controller
                     {
                         if (Methods.CheckConnectivity())
                         {
-                            await RequestsAsync.Global.Get_Delete_Token();
+                            await RequestsAsync.Auth.DeleteTokenAsync();
                         }
 
                         break;
@@ -1275,7 +1270,7 @@ namespace WoWonder.Helpers.Controller
 
                         if (Methods.CheckConnectivity())
                         {
-                            await RequestsAsync.Global.Delete_User(UserDetails.Password);
+                            await RequestsAsync.Auth.DeleteUserAsync(UserDetails.Password);
                         }
 
                         break;

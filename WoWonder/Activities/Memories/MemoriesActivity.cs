@@ -10,6 +10,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.NativePost.Extra;
@@ -166,16 +167,18 @@ namespace WoWonder.Activities.Memories
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Memories);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Memories);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -279,7 +282,7 @@ namespace WoWonder.Activities.Memories
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Posts.FetchMemoriesPost(type);
+                var (apiStatus, respond) = await RequestsAsync.Posts.FetchMemoriesPostAsync(type);
                 switch (apiStatus)
                 {
                     case 200:

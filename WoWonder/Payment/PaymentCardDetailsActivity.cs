@@ -10,6 +10,7 @@ using Android.Text;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Com.Stripe.Android;
 using Com.Stripe.Android.Model;
 using Com.Stripe.Android.View;
@@ -171,16 +172,18 @@ namespace WoWonder.Payment
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_CreditCard);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetString(Resource.String.Lbl_CreditCard);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -388,7 +391,7 @@ namespace WoWonder.Payment
                         //send api  
                         case "Funding":
                         {
-                            var (apiStatus, respond) = await RequestsAsync.Funding.FundingPay(Id, Price);
+                            var (apiStatus, respond) = await RequestsAsync.Funding.FundingPayAsync(Id, Price);
                             switch (apiStatus)
                             {
                                 case 200:

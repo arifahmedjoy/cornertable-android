@@ -179,9 +179,9 @@ namespace WoWonder.Activities.Games
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
-                    toolbar.Visibility = ViewStates.Gone;
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
+                    toolBar.Visibility = ViewStates.Gone;
             }
             catch (Exception e)
             {
@@ -270,7 +270,7 @@ namespace WoWonder.Activities.Games
                         HybridView.LoadDataWithBaseURL(null, data, "text/html", "UTF-8", null);
 
                         if (DataObject.Active != "1")
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Games.AddToMyGames(DataObject.Id)  }); 
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Games.AddToMyGamesAsync(DataObject.Id)  }); 
                     } 
                 } 
             }

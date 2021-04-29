@@ -30,6 +30,8 @@ using WoWonderClient.Classes.Global;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
+using AndroidX.Core.Content;
+using AndroidX.AppCompat.Content.Res;
 
 namespace WoWonder.Activities.Articles
 {
@@ -167,9 +169,25 @@ namespace WoWonder.Activities.Articles
                 case Android.Resource.Id.Home:
                     Finish();
                     return true;
+                case Resource.Id.article_circle_filter:
+                    var arrayAdapter = CategoriesController.ListCategoriesBlog.Select(item => item.CategoriesName).ToList();
+
+                    arrayAdapter.Insert(0, GetString(Resource.String.Lbl_Default));
+                    arrayAdapter.Insert(1, GetString(Resource.String.Lbl_MyArticle));
+
+                    Intent intent = new Intent(this, typeof(FilterCategoriesActivity));
+                    intent.PutExtra("filter_category", JsonConvert.SerializeObject(arrayAdapter));
+                    StartActivityForResult(intent, 2);
+                    break;
             }
 
             return base.OnOptionsItemSelected(item);
+        }
+
+        public override bool OnCreateOptionsMenu(IMenu menu)
+        {
+            MenuInflater.Inflate(Resource.Menu.Articles_menu, menu); 
+            return base.OnCreateOptionsMenu(menu);
         }
 
         #endregion
@@ -200,7 +218,7 @@ namespace WoWonder.Activities.Articles
                 AdsGoogle.InitAdView(MAdView, MRecycler);
 
                 BtnFilter = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                BtnFilter.Visibility = ViewStates.Visible;
+                BtnFilter.Visibility = ViewStates.Gone;
             }
             catch (Exception e)
             {
@@ -212,17 +230,18 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_ExploreArticle);
+                    toolBar.Title = GetText(Resource.String.Lbl_ExploreArticle);
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(ContextCompat.GetColor(this, Resource.Color.primary));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -428,7 +447,7 @@ namespace WoWonder.Activities.Articles
                         arrayAdapter.Insert(0,GetString(Resource.String.Lbl_Default));
                         arrayAdapter.Insert(1,GetString(Resource.String.Lbl_MyArticle));
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
                         dialogList.Content(GetText(Resource.String.Lbl_GetArticlesByCategories));
                         dialogList.Items(arrayAdapter);
                         dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
@@ -467,6 +486,9 @@ namespace WoWonder.Activities.Articles
                         MainScrollEvent.IsLoading = false;
 
                         StartApiService();
+                        break;
+                    case 2 when resultCode == Result.Ok:
+                        FilterCategory(data.GetStringExtra("category_item"));
                         break;
                 }
             }
@@ -516,7 +538,7 @@ namespace WoWonder.Activities.Articles
                 MainScrollEvent.IsLoading = true;
 
                 var countList = MAdapter.ArticlesList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Article.Get_Articles("10", offset, CategoryId, UserId);
+                var (apiStatus, respond) = await RequestsAsync.Article.GetArticlesAsync("10", offset, CategoryId, UserId);
                 if (apiStatus != 200 || respond is not GetUsersArticlesObject result || result.Articles == null)
                 {
                     MainScrollEvent.IsLoading = false;
@@ -634,24 +656,29 @@ namespace WoWonder.Activities.Articles
 
         public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
         {
+            FilterCategory(itemString.ToString());
+        }
+
+        private void FilterCategory(string item)
+        {
             try
             {
-                if (itemString.ToString() == GetString(Resource.String.Lbl_Default))
+                if (item == GetString(Resource.String.Lbl_Default))
                 {
                     CategoryId = "";
                     UserId = "";
                 }
-                if (itemString.ToString() == GetString(Resource.String.Lbl_MyArticle))
+                if (item == GetString(Resource.String.Lbl_MyArticle))
                 {
                     CategoryId = "";
                     UserId = UserDetails.UserId;
                 }
                 else
                 {
-                    CategoryId = CategoriesController.ListCategoriesBlog.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
+                    CategoryId = CategoriesController.ListCategoriesBlog.FirstOrDefault(categories => categories.CategoriesName == item)?.CategoriesId;
                     UserId = "";
                 }
-                 
+
                 MAdapter.ArticlesList.Clear();
                 MAdapter.NotifyDataSetChanged();
 

@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -213,10 +214,10 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = Type switch
+                    toolBar.Title = Type switch
                     {
                         "MangedGroupsModel" => GetString(Resource.String.Lbl_Manage_Groups),
                         "MangedPagesModel" => GetString(Resource.String.Lbl_Manage_Pages),
@@ -225,15 +226,17 @@ namespace WoWonder.Activities.UsersPages
                         "GroupsModel" => GetString(Resource.String.Lbl_Groups),
                         "PagesModel" => GetString(Resource.String.Lbl_Pages),
                         "ImagesModel" => GetString(Resource.String.Lbl_Photos),
-                        _ => toolbar.Title
+                        _ => toolBar.Title
                     };
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -280,14 +283,14 @@ namespace WoWonder.Activities.UsersPages
                         break;
                     case "StoryModel":
                         LayoutManager = new LinearLayoutManager(this);
-                        MAdapter = new RowStoryAdapter(this) { StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>() };
+                        MAdapter = new RowStoryAdapter(this) { StoryList = new ObservableCollection<StoryDataObject>() };
                         switch (MAdapter)
                         {
                             case RowStoryAdapter adapter3:
                                 adapter3.ItemClick += StoryModelOnItemClick;
                                 break;
                         }
-                        preLoader = new RecyclerViewPreloader<GetUserStoriesObject.StoryObject>(this, MAdapter, sizeProvider, 10);
+                        preLoader = new RecyclerViewPreloader<StoryDataObject>(this, MAdapter, sizeProvider, 10);
                         break;
                     case "FollowersModel":
                         LayoutManager = new LinearLayoutManager(this);
@@ -681,7 +684,7 @@ namespace WoWonder.Activities.UsersPages
                                 AdapterModelsClass = JsonConvert.DeserializeObject<AdapterModelsClass>(item);
                                 if (AdapterModelsClass != null)
                                 {
-                                    adapter4.StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>(AdapterModelsClass.StoryList);
+                                    adapter4.StoryList = new ObservableCollection<StoryDataObject>(AdapterModelsClass.StoryList);
                                     adapter4.StoryList.Remove(adapter4.StoryList.FirstOrDefault(a => a.Type == "Your"));
                                     adapter4.NotifyDataSetChanged();
                                 }
@@ -909,7 +912,7 @@ namespace WoWonder.Activities.UsersPages
 
                         var offset = adapter.UserPhotosList.LastOrDefault()?.Id ?? "0";
                         var countList = adapter.UserPhotosList.Count;
-                        var (apiStatus, respond) = await RequestsAsync.Album.GetPostByType(PassedId , "photos", "10", offset);
+                        var (apiStatus, respond) = await RequestsAsync.Album.GetPostByTypeAsync(PassedId , "photos", "10", offset);
                         if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
                         {
                             Methods.DisplayReportResult(this, respond);
@@ -999,7 +1002,7 @@ namespace WoWonder.Activities.UsersPages
                         MainScrollEvent.IsLoading = true;
                         var countList = adapter1.GroupList.Count;
 
-                        var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroups(lastIdGroup, "10");
+                        var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroupsAsync(lastIdGroup, "10");
                         if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                         {
                             Methods.DisplayReportResult(this, respond);
@@ -1086,7 +1089,7 @@ namespace WoWonder.Activities.UsersPages
                         MainScrollEvent.IsLoading = true;
                         var countList = adapter1.PageList.Count;
 
-                        var (apiStatus, respond) = await RequestsAsync.Page.GetMyPages(lastIdPage, "10");
+                        var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync(lastIdPage, "10");
                         if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                         {
                             Methods.DisplayReportResult(this, respond);

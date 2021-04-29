@@ -257,7 +257,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             //Show a progress
                             AndHUD.Shared.Show(Activity, GetText(Resource.String.Lbl_Loading));
 
-                            var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChat(DataChatObject.GroupId);
+                            var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChatAsync(DataChatObject.GroupId);
                             if (apiStatus == 200)
                             {
                                 if (respond is AddOrRemoveUserToGroupObject result)
@@ -487,7 +487,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Global.Block_User(userId, true); //true >> "block" 
+                    var (apiStatus, respond) = await RequestsAsync.Global.BlockUserAsync(userId, true); //true >> "block" 
                     if (apiStatus == 200)
                     {
                         Methods.DisplayReportResultTrack(respond);
@@ -1384,7 +1384,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                                         Methods.Path.DeleteAll_FolderUser(DataChatObject.UserId);
 
-                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Delete_Conversation(DataChatObject.UserId) });
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(DataChatObject.UserId) });
                                         Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Long)?.Show();
                                     }
                                     else
@@ -1407,7 +1407,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                                         Methods.Path.DeleteAll_FolderUser(DataUserObject.UserId);
 
-                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Delete_Conversation(DataUserObject.UserId) });
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(DataUserObject.UserId) });
                                         Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Long)?.Show();
                                     }
                                     break;
@@ -1450,7 +1450,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                                             Methods.Path.DeleteAll_FolderUser(DataChatObject.PageId);
 
-                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.DeletePageChat(DataChatObject.PageId, userId) });
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.DeletePageChatAsync(DataChatObject.PageId, userId) });
                                         }
                                     }
                                     else
@@ -1472,7 +1472,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                                             Methods.Path.DeleteAll_FolderUser(PageClassObject.PageId);
 
-                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.DeletePageChat(PageClassObject.PageId, userId) });
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.DeletePageChatAsync(PageClassObject.PageId, userId) });
                                         }
                                     }
 
@@ -1510,7 +1510,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                                     Methods.Path.DeleteAll_FolderUser(DataChatObject.GroupId);
 
-                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.ExitGroupChat(DataChatObject.GroupId) });
+                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.ExitGroupChatAsync(DataChatObject.GroupId) });
 
                                     Toast.MakeText(Activity, Activity.GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short)?.Show();
                                     break;

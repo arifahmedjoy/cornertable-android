@@ -11,19 +11,19 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             app:title="@string/Lbl_Update_Data_Group"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
-            android:background="@drawable/linear_gradient_drawable">
+            android:background="?attr/colorFill">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/Lbl_Save"
                 android:layout_gravity="end"
                 android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/textLight_color"
+                android:textStyle="bold" 
                 android:padding="15dp"
                 android:layout_marginEnd="10dp"
                 android:id="@+id/toolbar_title" />

@@ -12,6 +12,7 @@ using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -200,12 +201,14 @@ namespace WoWonder.Activities.Jobs
                 {
                     toolBar.Title = GetText(Resource.String.Lbl_jobs);
 
-                    toolBar.SetTitleTextColor(Color.White);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -341,7 +344,7 @@ namespace WoWonder.Activities.Jobs
                         {
                             var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                            dialog.Title(Resource.String.Lbl_Warning);
+                            dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                             dialog.Content(GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
                             dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
                             {
@@ -419,7 +422,7 @@ namespace WoWonder.Activities.Jobs
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.JobList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Jobs.FetchJobApply(DataInfoObject.Id,"25", offset);
+                var (apiStatus, respond) = await RequestsAsync.Jobs.FetchJobApplyAsync(DataInfoObject.Id,"25", offset);
                 if (apiStatus != 200 || respond is not FetchJobApplyObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

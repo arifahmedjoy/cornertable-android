@@ -194,7 +194,8 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+
                 }
             }
             catch (Exception e)

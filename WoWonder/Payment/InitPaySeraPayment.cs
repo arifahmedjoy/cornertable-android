@@ -147,7 +147,7 @@ namespace WoWonder.Payment
                             break;
                     }
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.PaySera(request, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.PaySeraAsync(request, keyValues);
                     switch (apiStatus)
                     {
                         case 200:

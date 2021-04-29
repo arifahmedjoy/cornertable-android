@@ -10,6 +10,7 @@ using Android.Graphics;
 using Android.OS; 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -195,30 +196,32 @@ namespace WoWonder.Activities.PostData
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
                     switch (TypePost)
                     {
                         case "post_likes":
-                            toolbar.Title = GetText(Resource.String.Lbl_PostLikes);
+                            toolBar.Title = GetText(Resource.String.Lbl_PostLikes);
                             break;
                         case "post_wonders":
-                            toolbar.Title = AppSettings.PostButton switch
+                            toolBar.Title = AppSettings.PostButton switch
                             {
                                 PostButtonSystem.Wonder => GetText(Resource.String.Lbl_PostWonders),
                                 PostButtonSystem.DisLike => GetText(Resource.String.Lbl_PostDisLike),
-                                _ => toolbar.Title
+                                _ => toolBar.Title
                             };
                             break;
                     }
-                       
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -353,7 +356,7 @@ namespace WoWonder.Activities.PostData
                     case "post_likes":
                     {
                         var countList = MAdapter.UserList.Count;
-                        var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(IdPost, "post_liked_users");
+                        var (apiStatus, respond) = await RequestsAsync.Posts.GetPostDataAsync(IdPost, "post_liked_users");
                         switch (apiStatus)
                         {
                             case 200:
@@ -408,7 +411,7 @@ namespace WoWonder.Activities.PostData
                     case "post_wonders":
                     {
                         var countList = MAdapter.UserList.Count;
-                        var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(IdPost, "post_wondered_users");
+                        var (apiStatus, respond) = await RequestsAsync.Posts.GetPostDataAsync(IdPost, "post_wondered_users");
                         switch (apiStatus)
                         {
                             case 200:

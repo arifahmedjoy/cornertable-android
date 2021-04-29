@@ -11,6 +11,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
@@ -189,16 +190,18 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                Toolbar toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                Toolbar toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_TwoFactor);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetString(Resource.String.Lbl_TwoFactor);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)

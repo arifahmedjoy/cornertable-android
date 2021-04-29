@@ -399,7 +399,7 @@ namespace WoWonder.Helpers.Utils
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-            } 
+            }
         }
     }
 }

@@ -2,154 +2,146 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:background="?attr/colorFill"
+    android:background="@drawable/bottom_sheet_background"
     android:layout_height="match_parent">
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/ShareTimelineLayout"
         android:layout_width="match_parent"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
-        android:padding="7dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
+        android:padding="15dp"
         android:clickable="true"
         android:background="?attr/selectableItemBackground"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/StImage1"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:src="@drawable/sharePost"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="0dp"
-            android:tint="?attr/colorReact"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="5dp"
-            android:scaleType="centerCrop" />
+        android:weightSum="3">
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+            <ImageView
+                android:id="@+id/StImage1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_share_timeline"
+                android:scaleType="centerCrop" />
+        </RelativeLayout>
         <TextView
             android:id="@+id/St_1"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="2.7"
             android:layout_height="wrap_content"
-            
-            android:layout_toEndOf="@+id/StImage1"
-            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
             android:text="@string/Lbl_ShareToMyTimeline"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
-            android:layout_marginStart="5dp"
-            android:layout_centerVertical="true"
-            android:textSize="14sp"
-            android:layout_marginBottom="0dp" />
-    </RelativeLayout>
-    <RelativeLayout
+            android:textSize="16sp"/>
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/ShareGroupLayout"
         android:layout_width="match_parent"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
-        android:padding="7dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
+        android:padding="15dp"
         android:clickable="true"
         android:background="?attr/selectableItemBackground"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/StImage2"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:src="@drawable/shareGroup"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="0dp" 
-            android:tint="?attr/colorReact"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="5dp"
-            android:scaleType="centerCrop" />
+        android:weightSum="3">
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+            <ImageView
+                android:id="@+id/StImage2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_share_group"
+                android:scaleType="centerCrop" />
+        </RelativeLayout>
         <TextView
             android:id="@+id/St_1"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="2.7"
             android:layout_height="wrap_content"
-            
-            android:layout_toEndOf="@+id/StImage2"
-            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
             android:text="@string/Lbl_ShareToGroup"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
-            android:layout_marginStart="5dp"
-            android:layout_centerVertical="true"
-            android:textSize="14sp"
-            android:layout_marginBottom="0dp" />
-    </RelativeLayout>
-    <RelativeLayout
+            android:textSize="16sp"/>
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/ShareOptionsLayout"
         android:layout_width="match_parent"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
-        android:padding="7dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
+        android:padding="15dp"
         android:clickable="true"
         android:background="?attr/selectableItemBackground"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/StImage3"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/shareGlobal"
-            android:layout_marginEnd="10dp"
-            android:tint="?attr/colorReact"
-            android:layout_marginTop="0dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="5dp"
-            android:scaleType="centerCrop" />
+        android:weightSum="3">
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+            <ImageView
+                android:id="@+id/StImage3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_share_more"
+                android:scaleType="centerCrop" />
+        </RelativeLayout>
         <TextView
             android:id="@+id/St_3"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="2.7"
             android:layout_height="wrap_content"
-            
-            android:layout_toEndOf="@+id/StImage3"
-            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
             android:text="@string/Lbl_MoreOptions"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
-            android:layout_marginStart="5dp"
-            android:layout_centerVertical="true"
-            android:textSize="14sp"
-            android:layout_marginBottom="0dp" />
-    </RelativeLayout>
-    <RelativeLayout
+            android:textSize="16sp"/>
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/SharePageLayout"
         android:layout_width="match_parent"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
-        android:padding="7dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
+        android:padding="15dp"
         android:clickable="true"
         android:background="?attr/selectableItemBackground"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/StImage4"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:src="@drawable/sharePage"
-            android:layout_marginEnd="10dp"
-            android:tint="?attr/colorReact"
-            android:layout_marginTop="0dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="5dp"
-            android:scaleType="centerCrop" />
+        android:weightSum="3">
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+            <ImageView
+                android:id="@+id/StImage4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_share_flag"
+                android:scaleType="centerCrop" />
+        </RelativeLayout>
         <TextView
             android:id="@+id/St_4"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="2.7"
             android:layout_height="wrap_content"
-            
-            android:layout_toEndOf="@+id/StImage4"
-            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
             android:text="@string/Lbl_ShareToPage"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
-            android:layout_marginStart="5dp"
-            android:layout_centerVertical="true"
-            android:textSize="14sp"
-            android:layout_marginBottom="0dp" />
-    </RelativeLayout>
+            android:textSize="16sp" />
+    </LinearLayout>
 </LinearLayout>

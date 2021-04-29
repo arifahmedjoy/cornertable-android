@@ -470,7 +470,7 @@ namespace WoWonder.Activities.AddPost.Service
                     var userData = ListUtils.MyProfileList?.FirstOrDefault();
 
                     //just pass file_path and type video or image
-                    var (apiStatus, respond) = await RequestsAsync.Story.Create_Story(DataPost.StoryTitle, DataPost.StoryDescription, DataPost.StoryFilePath, DataPost.StoryFileType, DataPost.StoryThumbnail);
+                    var (apiStatus, respond) = await RequestsAsync.Story.CreateStoryAsync(DataPost.StoryTitle, DataPost.StoryDescription, DataPost.StoryFilePath, DataPost.StoryFileType, DataPost.StoryThumbnail);
                     switch (apiStatus)
                     {
                         case 200:
@@ -488,7 +488,7 @@ namespace WoWonder.Activities.AddPost.Service
                                         {
                                             case "image":
                                             {
-                                                var item = new GetUserStoriesObject.StoryObject.Story
+                                                var item = new StoryDataObject.Story
                                                 {
                                                     UserId = UserDetails.UserId,
                                                     Id = result.StoryId,
@@ -500,8 +500,8 @@ namespace WoWonder.Activities.AddPost.Service
                                                     Posted = time2,
                                                     Thumbnail = DataPost.StoryFilePath,
                                                     UserData = userData,
-                                                    Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                                    Videos = new List<GetUserStoriesObject.StoryObject.Video>()
+                                                    Images = new List<StoryDataObject.Image>(),
+                                                    Videos = new List<StoryDataObject.Video>()
                                                 };
 
                                                 check.DurationsList ??= new List<long> { AppSettings.StoryDuration }; 
@@ -512,7 +512,7 @@ namespace WoWonder.Activities.AddPost.Service
                                             }
                                             default:
                                             {
-                                                var item = new GetUserStoriesObject.StoryObject.Story
+                                                var item = new StoryDataObject.Story
                                                 {
                                                     UserId = UserDetails.UserId,
                                                     Id = result.StoryId,
@@ -524,10 +524,10 @@ namespace WoWonder.Activities.AddPost.Service
                                                     Posted = time2,
                                                     Thumbnail = DataPost.StoryThumbnail,
                                                     UserData = userData,
-                                                    Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                                    Videos = new List<GetUserStoriesObject.StoryObject.Video>
+                                                    Images = new List<StoryDataObject.Image>(),
+                                                    Videos = new List<StoryDataObject.Video>
                                                     {
-                                                        new GetUserStoriesObject.StoryObject.Video
+                                                        new StoryDataObject.Video
                                                         {
                                                             StoryId = result.StoryId,
                                                             Filename = DataPost.StoryFilePath,
@@ -554,12 +554,12 @@ namespace WoWonder.Activities.AddPost.Service
                                         {
                                             case "image":
                                             {
-                                                var item = new GetUserStoriesObject.StoryObject
+                                                var item = new StoryDataObject
                                                 {
                                                     Type = "image",
-                                                    Stories = new List<GetUserStoriesObject.StoryObject.Story>
+                                                    Stories = new List<StoryDataObject.Story>
                                                     {
-                                                        new GetUserStoriesObject.StoryObject.Story
+                                                        new StoryDataObject.Story
                                                         {
                                                             UserId = UserDetails.UserId,
                                                             Id = result.StoryId,
@@ -571,8 +571,8 @@ namespace WoWonder.Activities.AddPost.Service
                                                             Posted = time2,
                                                             Thumbnail = DataPost.StoryFilePath,
                                                             UserData = userData,
-                                                            Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                                            Videos = new List<GetUserStoriesObject.StoryObject.Video>(),
+                                                            Images = new List<StoryDataObject.Image>(),
+                                                            Videos = new List<StoryDataObject.Video>(),
                                                         }
 
                                                     },
@@ -692,12 +692,12 @@ namespace WoWonder.Activities.AddPost.Service
                                             }
                                             default:
                                             {
-                                                var item = new GetUserStoriesObject.StoryObject
+                                                var item = new StoryDataObject
                                                 {
                                                     Type = "video",
-                                                    Stories = new List<GetUserStoriesObject.StoryObject.Story>
+                                                    Stories = new List<StoryDataObject.Story>
                                                     {
-                                                        new GetUserStoriesObject.StoryObject.Story
+                                                        new StoryDataObject.Story
                                                         {
                                                             UserId = UserDetails.UserId,
                                                             Id = result.StoryId,
@@ -709,10 +709,10 @@ namespace WoWonder.Activities.AddPost.Service
                                                             Posted = time2,
                                                             Thumbnail = DataPost.StoryThumbnail,
                                                             UserData = userData,
-                                                            Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                                            Videos = new List<GetUserStoriesObject.StoryObject.Video>
+                                                            Images = new List<StoryDataObject.Image>(),
+                                                            Videos = new List<StoryDataObject.Video>
                                                             {
-                                                                new GetUserStoriesObject.StoryObject.Video
+                                                                new StoryDataObject.Video
                                                                 {
                                                                     StoryId = result.StoryId,
                                                                     Filename = DataPost.StoryFilePath,

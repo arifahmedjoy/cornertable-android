@@ -39,7 +39,7 @@ namespace WoWonder.Activities.Story
         private string UserId = "", StoryId = "";
         private int IndexItem;
         private StoriesProgressView StoriesProgress;
-        private GetUserStoriesObject.StoryObject DataStories;
+        private StoryDataObject DataStories;
         private View ReverseView, SkipView;
         private TextView CaptionStoryTextView, UsernameTextView, LastSeenTextView, DeleteIconView;
         private int Counter;
@@ -48,7 +48,7 @@ namespace WoWonder.Activities.Story
         private Toolbar Toolbar;
         private TabbedMainActivity GlobalContext;
         private LinearLayout StoryAboutLayout;
-        private ObservableCollection<GetUserStoriesObject.StoryObject> StoryList;
+        private ObservableCollection<StoryDataObject> StoryList;
         private bool PlayerPaused;
 
         #endregion
@@ -77,7 +77,7 @@ namespace WoWonder.Activities.Story
                 {
                     UserId = Intent.GetStringExtra("UserId") ?? "";
                     IndexItem = Intent.GetIntExtra("IndexItem", 0);
-                    DataStories = JsonConvert.DeserializeObject<GetUserStoriesObject.StoryObject>(Intent?.GetStringExtra("DataItem") ?? "");
+                    DataStories = JsonConvert.DeserializeObject<StoryDataObject>(Intent?.GetStringExtra("DataItem") ?? "");
                 }
 
                 LoadData(DataStories);
@@ -187,7 +187,7 @@ namespace WoWonder.Activities.Story
                 var checkSection = GlobalContext?.NewsFeedTab?.PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList;
                 StoryList = checkSection?.Count switch
                 {
-                    > 0 => new ObservableCollection<GetUserStoriesObject.StoryObject>(checkSection),
+                    > 0 => new ObservableCollection<StoryDataObject>(checkSection),
                     _ => StoryList
                 };
             }
@@ -222,12 +222,13 @@ namespace WoWonder.Activities.Story
                 Toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (Toolbar != null)
                 {
-                    Toolbar.SetTitleTextColor(Color.White);
+                    Toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(Toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+
                 }
             }
             catch (Exception e)
@@ -317,7 +318,7 @@ namespace WoWonder.Activities.Story
 
                 if (Methods.CheckConnectivity())
                 {
-                    (int respondCode, var respond) = await RequestsAsync.Story.Delete_Story(StoryId);
+                    (int respondCode, var respond) = await RequestsAsync.Story.DeleteStoryAsync(StoryId);
                     switch (respondCode)
                     {
                         case 200:
@@ -399,7 +400,7 @@ namespace WoWonder.Activities.Story
 
         #endregion
 
-        private async void LoadData(GetUserStoriesObject.StoryObject dataStories)
+        private async void LoadData(StoryDataObject dataStories)
         {
             try
             {
@@ -443,7 +444,7 @@ namespace WoWonder.Activities.Story
 
         private string MediaFile;
 
-        private async Task SetStory(GetUserStoriesObject.StoryObject.Story story)
+        private async Task SetStory(StoryDataObject.Story story)
         {
             try
             {

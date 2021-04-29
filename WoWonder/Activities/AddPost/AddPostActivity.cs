@@ -13,6 +13,7 @@ using Android.Text;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.Core.Widget;
 using AndroidX.RecyclerView.Widget;
@@ -259,12 +260,14 @@ namespace WoWonder.Activities.AddPost
                 if (TopToolBar != null)
                 {
                     TopToolBar.Title = GetText(Resource.String.Lbl_AddPost);
-                    TopToolBar.SetTitleTextColor(Color.White);
+                    TopToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(TopToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -418,7 +421,7 @@ namespace WoWonder.Activities.AddPost
 
                 var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                dialog.Title(GetText(Resource.String.Lbl_AddPicturesToAlbum));
+                dialog.Title(GetText(Resource.String.Lbl_AddPicturesToAlbum)).TitleColorRes(Resource.Color.primary);
                 dialog.Input(Resource.String.Lbl_AlbumName, 0, false, this);
                 dialog.InputType(InputTypes.TextFlagImeMultiLine);
                 dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
@@ -629,7 +632,7 @@ namespace WoWonder.Activities.AddPost
                                         break;
                                 }
 
-                                dialogList.Title(GetString(Resource.String.Lbl_What_Are_You_Doing));
+                                dialogList.Title(GetString(Resource.String.Lbl_What_Are_You_Doing)).TitleColorRes(Resource.Color.primary);
                                 dialogList.Items(arrayAdapter);
                                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -1702,7 +1705,7 @@ namespace WoWonder.Activities.AddPost
                         break;
                 }
 
-                dialogList.Title(GetText(Resource.String.Lbl_PostPrivacy));
+                dialogList.Title(GetText(Resource.String.Lbl_PostPrivacy)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.ItemsCallback(this).Build().Show();
@@ -1841,7 +1844,7 @@ namespace WoWonder.Activities.AddPost
 
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(Resource.String.Lbl_Listening);
+                        dialog.Title(Resource.String.Lbl_Listening).TitleColorRes(Resource.Color.primary);
                         dialog.Input(Resource.String.Lbl_Comment_Hint_Listening, 0, false, this);
                         dialog.InputType(InputTypes.TextFlagImeMultiLine);
                         dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
@@ -1857,7 +1860,7 @@ namespace WoWonder.Activities.AddPost
 
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(Resource.String.Lbl_Playing);
+                        dialog.Title(Resource.String.Lbl_Playing).TitleColorRes(Resource.Color.primary);
                         dialog.Input(Resource.String.Lbl_Comment_Hint_Playing, 0, false, this);
                         dialog.InputType(InputTypes.TextFlagImeMultiLine);
                         dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
@@ -1873,7 +1876,7 @@ namespace WoWonder.Activities.AddPost
 
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(Resource.String.Lbl_Watching);
+                        dialog.Title(Resource.String.Lbl_Watching).TitleColorRes(Resource.Color.primary);
                         dialog.Input(Resource.String.Lbl_Comment_Hint_Watching, 0, false, this);
                         dialog.InputType(InputTypes.TextFlagImeMultiLine);
                         dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
@@ -1893,7 +1896,7 @@ namespace WoWonder.Activities.AddPost
 
                                 var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                                dialog.Title(Resource.String.Lbl_Traveling);
+                                dialog.Title(Resource.String.Lbl_Traveling).TitleColorRes(Resource.Color.primary);
                                 dialog.Input(Resource.String.Lbl_Comment_Hint_Traveling, 0, false, this);
                                 dialog.InputType(InputTypes.TextFlagImeMultiLine);
                                 dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
@@ -2055,7 +2058,7 @@ namespace WoWonder.Activities.AddPost
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    dialog.Title(GetText(Resource.String.Lbl_Title_Back));
+                    dialog.Title(GetText(Resource.String.Lbl_Title_Back)).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_Content_Back));
                     dialog.PositiveText(GetText(Resource.String.Lbl_PositiveText_Back)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_NegativeText_Back)).OnNegative(this);
@@ -2213,7 +2216,7 @@ namespace WoWonder.Activities.AddPost
                 arrayAdapter.Add(GetText(Resource.String.Lbl_VideoGallery));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_RecordVideoFromCamera));
 
-                dialogList.Title(GetText(Resource.String.Lbl_SelectVideoFrom));
+                dialogList.Title(GetText(Resource.String.Lbl_SelectVideoFrom)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.PositiveText(GetText(Resource.String.Lbl_Close)).OnPositive(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

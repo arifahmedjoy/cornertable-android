@@ -9,6 +9,7 @@ using Android.Graphics;
 using Android.OS; 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
@@ -152,16 +153,18 @@ namespace WoWonder.Activities.Covid19
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_CoronaVirus);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_CoronaVirus);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)

@@ -10,6 +10,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
@@ -183,16 +184,18 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Privacy);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Privacy);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -324,7 +327,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                     {"join_privacy", JoinPrivacyId},
                 };
 
-                var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Data(GroupsId, dictionary);
+                var (apiStatus, respond) = await RequestsAsync.Group.UpdateGroupDataAsync(GroupsId, dictionary);
                 switch (apiStatus)
                 {
                     case 200:

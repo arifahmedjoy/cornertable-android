@@ -163,7 +163,7 @@ namespace WoWonder.Payment
                             break;
                     }
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.CashFree(request, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.CashFreeAsync(request, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -229,7 +229,7 @@ namespace WoWonder.Payment
                         //Show a progress
                         AndHUD.Shared.Show(MActivity.ActivityContext, MActivity.ActivityContext.GetText(Resource.String.Lbl_Processing));
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.CashFreeGetStatus(MActivity.CashFreeObject.AppId, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", MActivity.CashFreeObject.OrderId, ListUtils.SettingsSiteList?.CashfreeMode);
+                        var (apiStatus, respond) = await RequestsAsync.Global.CashFreeGetStatusAsync(MActivity.CashFreeObject.AppId, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", MActivity.CashFreeObject.OrderId, ListUtils.SettingsSiteList?.CashfreeMode);
                         switch (apiStatus)
                         {
                             case 200:

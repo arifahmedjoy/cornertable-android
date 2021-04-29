@@ -148,7 +148,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             {
                 //Code get last id where LoadMore >>
                 var item = MAdapter.LastChatsList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item.LastChat.GroupId) && !MainScrollEvent.IsLoading)
+                if (item != null && !string.IsNullOrEmpty(item?.LastChat?.GroupId) && !MainScrollEvent.IsLoading)
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGroupChatAsync(item.LastChat.GroupId) });
             }
             catch (Exception exception)
@@ -283,7 +283,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             MainScrollEvent.IsLoading = true;
 
             var countList = MAdapter.LastChatsList.Count;
-            var (apiStatus, respond) = await RequestsAsync.GroupChat.GetGroupChatList("20", offset);
+            var (apiStatus, respond) = await RequestsAsync.GroupChat.GetGroupChatListAsync("20", offset);
             if (apiStatus.Equals(200))
             {
                 if (respond is GroupListObject result)
@@ -398,7 +398,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Global.Get_General_Data(false, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, "1", "group_chat_requests");
+                    var (apiStatus, respond) = await RequestsAsync.Global.GetGeneralDataAsync(false, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, "1", "group_chat_requests");
                     if (apiStatus == 200)
                     {
                         if (respond is GetGeneralDataObject result)

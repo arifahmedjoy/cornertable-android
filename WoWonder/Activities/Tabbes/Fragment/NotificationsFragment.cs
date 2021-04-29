@@ -263,7 +263,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 {
                     MainScrollEvent.IsLoading = true;
                      
-                    var (apiStatus, respond) = await RequestsAsync.Global.Get_General_Data(seenNotifications, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, offset);
+                    var (apiStatus, respond) = await RequestsAsync.Global.GetGeneralDataAsync(seenNotifications, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, offset);
                     switch (apiStatus)
                     {
                         case 200:
@@ -723,7 +723,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         //"url": "https:\/\/demo.wowonder.com\/timeline&u=Matan&story=true&story_id=1946",
                         //var id = item.Url.Split("/").Last().Split("&story_id=").Last();
 
-                        GetUserStoriesObject.StoryObject dataMyStory = GlobalContext?.NewsFeedTab?.PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList?.FirstOrDefault(o => o.UserId == UserDetails.UserId);
+                        StoryDataObject dataMyStory = GlobalContext?.NewsFeedTab?.PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList?.FirstOrDefault(o => o.UserId == UserDetails.UserId);
                         if (dataMyStory != null)
                         {
                             Intent intent = new Intent(activity, typeof(ViewStoryActivity));

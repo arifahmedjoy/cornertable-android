@@ -28,7 +28,7 @@
                 android:background="#33a0c1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ad"
+                android:text="@string/ad_attribution"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true" />
             <RelativeLayout

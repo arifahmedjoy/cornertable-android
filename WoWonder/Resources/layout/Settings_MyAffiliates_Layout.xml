@@ -16,11 +16,12 @@
 		android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 		<androidx.appcompat.widget.Toolbar
 			android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             app:title="@string/Lbl_MyAffiliates"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
-			android:background="@drawable/linear_gradient_drawable">
+			android:background="?attr/colorFill">
 		</androidx.appcompat.widget.Toolbar>
 	</com.google.android.material.appbar.AppBarLayout>
   <ScrollView  
@@ -51,7 +52,6 @@
             android:layout_marginTop="20dp"
             android:focusable="false"
             android:clickable="false"
-            android:text="Earn up to $0.10 for each user your refer to us !"
             android:layout_alignParentStart="true"
             android:gravity="start"
 			android:textSize="13dp"

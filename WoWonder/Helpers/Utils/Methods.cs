@@ -457,7 +457,7 @@ namespace WoWonder.Helpers.Utils
                 var clipData = ClipData.NewPlainText("text", text);
                 clipboardManager.PrimaryClip = clipData;
 
-                Toast.MakeText(activityContext, activityContext.GetText(Resource.String.Lbl_Text_copied), ToastLength.Short)?.Show();
+                //Toast.MakeText(activityContext, activityContext.GetText(Resource.String.Lbl_Text_copied), ToastLength.Short)?.Show();
             }
             catch (Exception exception)
             {
@@ -2090,7 +2090,7 @@ namespace WoWonder.Helpers.Utils
             public static string LblYesterday = Application.Context.GetText(Resource.String.Lbl_yesterday);
             public static string LblAboutMonth = Application.Context.GetText(Resource.String.Lbl_about_month);
             public static string LblAboutYear = Application.Context.GetText(Resource.String.Lbl_about_year);
-
+            
             //Split String Duration (00:00:00)
             public static string SplitStringDuration(string duration)
             {
@@ -2149,7 +2149,7 @@ namespace WoWonder.Helpers.Utils
                     return "UTC";
                 }
             }
-
+             
             public static string TimeAgo(long time, bool withReplace)
             {
                 try
@@ -2526,7 +2526,7 @@ namespace WoWonder.Helpers.Utils
                         try
                         {
                             var dialog = new MaterialDialog.Builder(activity).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                            dialog.Title(title);
+                            dialog.Title(title).TitleColorRes(Resource.Color.primary);
                             dialog.Content(message);
                             dialog.PositiveText(positiveButtonstring).OnPositive(new WoWonderTools.MyMaterialDialog());
                             dialog.AlwaysCallSingleChoiceCallback();

@@ -12,6 +12,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
@@ -220,17 +221,19 @@ namespace WoWonder.Activities.Advertise
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_Create_Ad);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolBar.Title = GetString(Resource.String.Lbl_Create_Ad);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
 
-                    SetSupportActionBar(toolbar);
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -340,7 +343,7 @@ namespace WoWonder.Activities.Advertise
                 arrayAdapter.Add(GetText(Resource.String.Lbl_BiddingClick)); //clicks
                 arrayAdapter.Add(GetText(Resource.String.Lbl_BiddingViews)); //views
 
-                dialogList.Title(GetText(Resource.String.Lbl_Bidding));
+                dialogList.Title(GetText(Resource.String.Lbl_Bidding)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -366,7 +369,7 @@ namespace WoWonder.Activities.Advertise
                 arrayAdapter.Add(GetText(Resource.String.Lbl_PlacementPost)); //post
                 arrayAdapter.Add(GetText(Resource.String.Lbl_PlacementSidebar)); //sidebar
 
-                dialogList.Title(GetText(Resource.String.Lbl_Placement));
+                dialogList.Title(GetText(Resource.String.Lbl_Placement)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -392,7 +395,7 @@ namespace WoWonder.Activities.Advertise
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
                
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                dialogList.Title(GetText(Resource.String.Lbl_Audience))
+                dialogList.Title(GetText(Resource.String.Lbl_Audience)).TitleColorRes(Resource.Color.primary)
                     .Items(arrayAdapter)
                     .ItemsCallbackMultiChoice(arrayIndexAdapter, OnSelection)
                     .AlwaysCallMultiChoiceCallback()
@@ -441,7 +444,7 @@ namespace WoWonder.Activities.Advertise
                         break;
                 }
 
-                dialogList.Title(GetString(Resource.String.Lbl_MyPages));
+                dialogList.Title(GetString(Resource.String.Lbl_MyPages)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -477,7 +480,7 @@ namespace WoWonder.Activities.Advertise
                         break;
                 }
 
-                dialogList.Title(GetText(Resource.String.Lbl_Gender));
+                dialogList.Title(GetText(Resource.String.Lbl_Gender)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -503,7 +506,7 @@ namespace WoWonder.Activities.Advertise
 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
 
-                dialogList.Title(GetText(Resource.String.Lbl_Location));
+                dialogList.Title(GetText(Resource.String.Lbl_Location)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -672,7 +675,7 @@ namespace WoWonder.Activities.Advertise
                         {"end", TxtEndDate.Text},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Advertise.CreateAdvertise(dictionary, PathImage);
+                    var (apiStatus, respond) = await RequestsAsync.Advertise.CreateAdvertiseAsync(dictionary, PathImage);
                     switch (apiStatus)
                     {
                         case 200:

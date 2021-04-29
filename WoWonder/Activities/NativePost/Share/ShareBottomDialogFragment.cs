@@ -25,7 +25,7 @@ namespace WoWonder.Activities.NativePost.Share
     {
         #region  Variables Basic
 
-        private RelativeLayout ShareTimelineLayout, ShareGroupLayout, ShareOptionsLayout, SharePageLayout;
+        private LinearLayout ShareTimelineLayout, ShareGroupLayout, ShareOptionsLayout, SharePageLayout;
         private PostDataObject DataPost;
         private PostModelType TypePost;
         private string TypeDialog;
@@ -89,10 +89,10 @@ namespace WoWonder.Activities.NativePost.Share
         {
             try
             {
-                ShareTimelineLayout = view.FindViewById<RelativeLayout>(Resource.Id.ShareTimelineLayout);
-                ShareGroupLayout = view.FindViewById<RelativeLayout>(Resource.Id.ShareGroupLayout);
-                ShareOptionsLayout = view.FindViewById<RelativeLayout>(Resource.Id.ShareOptionsLayout);
-                SharePageLayout = view.FindViewById<RelativeLayout>(Resource.Id.SharePageLayout);
+                ShareTimelineLayout = view.FindViewById<LinearLayout>(Resource.Id.ShareTimelineLayout);
+                ShareGroupLayout = view.FindViewById<LinearLayout>(Resource.Id.ShareGroupLayout);
+                ShareOptionsLayout = view.FindViewById<LinearLayout>(Resource.Id.ShareOptionsLayout);
+                SharePageLayout = view.FindViewById<LinearLayout>(Resource.Id.SharePageLayout);
             }
             catch (Exception e)
             {
@@ -138,27 +138,18 @@ namespace WoWonder.Activities.NativePost.Share
             {
                 if (Methods.CheckConnectivity())
                 {
-                    TypeDialog = "ShareToPage";
+                    List<PageClass> listPageClass = ListUtils.MyPageList.ToList();
 
-                    var arrayAdapter = new List<string>();
-                    var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                    switch (ListUtils.MyPageList?.Count)
+                    if (listPageClass.Count > 0)
                     {
-                        case > 0:
-                            arrayAdapter.AddRange(ListUtils.MyPageList.Select(item => item.PageName));
-                            break;
-                        default:
-                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoPageManaged), ToastLength.Short)?.Show();
-                            return;
+                        Intent intent = new Intent(Context, typeof(SharePageActivity));
+                        intent.PutExtra("Pages", JsonConvert.SerializeObject(listPageClass));
+                        intent.PutExtra("PostObject", JsonConvert.SerializeObject(DataPost));
+                        StartActivity(intent);
                     }
+                    else
+                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoPageManaged), ToastLength.Short)?.Show();
 
-                    dialogList.Title(Context.GetString(Resource.String.Lbl_ShareToPage));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.PositiveText(Context.GetText(Resource.String.Lbl_Close)).OnPositive(this);
-                    dialogList.NeutralText(Context.GetText(Resource.String.Lbl_Create)).OnNeutral(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
                 }
                 else
                 {
@@ -169,7 +160,7 @@ namespace WoWonder.Activities.NativePost.Share
             {
                 Methods.DisplayReportResultTrack(exception);
             }
-        }
+        } 
 
         private async void ShareOptionsLayoutOnClick(object sender, EventArgs e)
         {
@@ -390,27 +381,17 @@ namespace WoWonder.Activities.NativePost.Share
             {
                 if (Methods.CheckConnectivity())
                 {
-                    TypeDialog = "ShareToGroup";
+                    List<GroupClass> listGroupClass = ListUtils.MyGroupList.ToList();
 
-                    var arrayAdapter = new List<string>();
-                    var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                    switch (ListUtils.MyGroupList?.Count)
+                    if (listGroupClass.Count > 0)
                     {
-                        case > 0:
-                            arrayAdapter.AddRange(ListUtils.MyGroupList.Select(item => item.GroupName));
-                            break;
-                        default:
-                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoGroupManaged), ToastLength.Short)?.Show();
-                            return;
-                    }
-                     
-                    dialogList.Title(Context.GetString(Resource.String.Lbl_ShareToGroup));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.PositiveText(Context.GetText(Resource.String.Lbl_Close)).OnPositive(this);
-                    dialogList.NeutralText(Context.GetText(Resource.String.Lbl_Create)).OnNeutral(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
+                        Intent intent = new Intent(Context, typeof(ShareGroupActivity));
+                        intent.PutExtra("Groups", JsonConvert.SerializeObject(listGroupClass));
+                        intent.PutExtra("PostObject", JsonConvert.SerializeObject(DataPost));
+                        StartActivity(intent);
+                    } 
+                    else
+                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoGroupManaged), ToastLength.Short)?.Show();
                 }
                 else
                 {
@@ -422,7 +403,7 @@ namespace WoWonder.Activities.NativePost.Share
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
+         
         private void ShareTimelineLayoutOnClick(object sender, EventArgs e)
         {
             try
@@ -433,10 +414,10 @@ namespace WoWonder.Activities.NativePost.Share
 
                     var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    dialog.Title(Resource.String.Lbl_Share);
+                    dialog.Title(Resource.String.Lbl_Share).TitleColorRes(Resource.Color.primary);
                     dialog.Content(Context.GetText(Resource.String.Lbl_ShareToMyTimeline));
                     dialog.PositiveText(Context.GetText(Resource.String.Lbl_Yes)).OnPositive(this);
-                    dialog.NegativeText(Context.GetText(Resource.String.Lbl_No)).OnNegative(this);
+                    dialog.NegativeText(Context.GetText(Resource.String.Lbl_No)).OnNegative(this).NegativeColorRes(Resource.Color.colorIcon);
                     dialog.AlwaysCallSingleChoiceCallback();
                     dialog.ItemsCallback(this).Build().Show();
                 }

@@ -11,6 +11,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.NativePost.Extra;
@@ -167,16 +168,18 @@ namespace WoWonder.Activities.SearchForPosts
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = "";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = "";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
 
                 SearchView = FindViewById<AutoCompleteTextView>(Resource.Id.searchBox);

@@ -431,7 +431,7 @@ namespace WoWonder.Activities.Comment
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostComments(CommentId, text, PathImage, "", "create_reply");
+                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(CommentId, text, PathImage, "", "create_reply");
                     switch (apiStatus)
                     {
                         case 200:
@@ -619,7 +619,7 @@ namespace WoWonder.Activities.Comment
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.ReplyCommentList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostComments(CommentId, "10", offset, "fetch_comments_reply");
+                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostCommentsAsync(CommentId, "10", offset, "fetch_comments_reply");
                 if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
                 {
                     MainScrollEvent.IsLoading = false;

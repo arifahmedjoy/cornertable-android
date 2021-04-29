@@ -47,7 +47,7 @@
                     app:tabGravity="fill" />
             </LinearLayout>
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+                android:id="@+id/toolbar" 
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="1dp"
@@ -84,7 +84,7 @@
 			 </androidx.appcompat.widget.Toolbar>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/Searchviewpager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -16,6 +16,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Google.Android.Material.FloatingActionButton;
@@ -170,7 +171,8 @@ namespace WoWonder.Activities.NearbyBusiness
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
-
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
+            
             var item = menu.FindItem(Resource.Id.searchUserBar);
             SearchView searchItem = (SearchView)item.ActionView;
 
@@ -178,6 +180,15 @@ namespace WoWonder.Activities.NearbyBusiness
             SearchView.SetIconifiedByDefault(true);
             SearchView.QueryTextChange += SearchView_OnTextChange;
             SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
+
+             //Change text colors
+            var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
+            editText.SetHintTextColor(Color.Black);
+            editText.SetTextColor(Color.ParseColor("#888888")); 
+
+            //Change Color Icon Search
+            ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
+            searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -262,12 +273,14 @@ namespace WoWonder.Activities.NearbyBusiness
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_NearbyBusiness);
 
-                    ToolBar.SetTitleTextColor(Color.White);
+                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
 
                 }
             }
@@ -451,7 +464,7 @@ namespace WoWonder.Activities.NearbyBusiness
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.NearbyBusinessList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Global.GetNearbyBusinesses("10", offset, SearchText, UserDetails.NearbyBusinessDistanceCount);
+                var (apiStatus, respond) = await RequestsAsync.Nearby.GetNearbyBusinessesAsync("10", offset, SearchText, UserDetails.NearbyBusinessDistanceCount);
                 if (apiStatus != 200 || respond is not NearbyBusinessesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

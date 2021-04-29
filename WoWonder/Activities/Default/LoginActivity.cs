@@ -8,11 +8,17 @@ using Android.Content.PM;
 using Android.Gms.Auth.Api.SignIn;
 using Android.Gms.Common;
 using Android.Gms.Common.Apis;
+using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.OS;
+using Android.Text;
+using Android.Text.Method;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using Com.EightbitLab.BlurViewBinding;
+using Newtonsoft.Json;
 using Org.Json;
 using WoWonder.Activities.General;
 using WoWonder.Activities.Tabbes;
@@ -29,33 +35,34 @@ using WoWonderClient.Requests;
 using Xamarin.Facebook;
 using Xamarin.Facebook.Login;
 using Xamarin.Facebook.Login.Widget;
-using Console = System.Console;
-using Exception = System.Exception;
-using Object = Java.Lang.Object;
 
 namespace WoWonder.Activities.Default
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class LoginActivity : AppCompatActivity, IFacebookCallback, GraphRequest.IGraphJSONObjectCallback 
+    public class LoginActivity : AppCompatActivity, IFacebookCallback, GraphRequest.IGraphJSONObjectCallback
     {
         #region Variables Basic
 
-        private TextView MTextViewForgotPwd, MTextViewCreateAccount, MTextViewSignUp;
-        private EditText MEditTextEmail, MEditTextPassword;
-        private Button MButtonViewSignIn;
+        private RelativeLayout EmailLayout, PasswordLayout;
+        private EditText TxtEmail, TxtPassword;
+        private TextView TxtForgotPassword, TxtEmailRequired, TxtPasswordRequired;
+        private Button BtnLogin, BtnGoogle, BtnFacebook, ContinueButton;
+        private ImageView ImageShowPass;
         private ProgressBar ProgressBar;
         private LinearLayout LayoutCreateAccount;
-        private LoginButton BtnFbLogin;
-        private ICallbackManager MFbCallManager;
-        private FbMyProfileTracker ProfileTracker;
 
-        public static GoogleSignInClient MGoogleSignInClient;
-        private SignInButton MGoogleSignIn;
         private string TimeZone = "";
         private bool IsActiveUser = true;
 
+        private FbMyProfileTracker MprofileTracker;
+        private ICallbackManager MFbCallManager;
+        public static GoogleSignInClient MGoogleSignInClient;
+
+        private BlurView BlurView;
+        private DataTables.LoginTb LoginTb;
+
         #endregion
-     
+
         #region General
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -63,50 +70,43 @@ namespace WoWonder.Activities.Default
             try
             {
                 base.OnCreate(savedInstanceState);
+                Window?.SetSoftInputMode(SoftInput.AdjustResize);
 
-                //Set Full screen 
                 Methods.App.FullScreenApp(this, true);
 
                 // Create your application here
                 SetContentView(Resource.Layout.Login_Layout);
 
-                Client a = new Client(AppSettings.TripleDesAppServiceProvider);
-                Console.WriteLine(a);
-
                 //Get Value And Set Toolbar
                 InitComponent();
-                InitSocialLogins();
+                InitSocialLogins(); 
                 GetTimezone();
 
-                switch ((int)Build.VERSION.SdkInt)
+                if ((int) Build.VERSION.SdkInt is < 23)
                 {
-                    // Check if we're running on Android 5.0 or higher
-                    case < 23:
-                        LoadConfigSettings();
-                        break;
-                    default:
+                    LoadConfigSettings();
+                    CheckCrossAppAuthentication();
+                }
+                else
+                {
+                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
                     {
-                        if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                        LoadConfigSettings();
+                        CheckCrossAppAuthentication();
+                    }
+                    else
+                    {
+                        RequestPermissions(new[]
                         {
-                            LoadConfigSettings(); 
-                        }
-                        else
-                        {
-                            RequestPermissions(new[]
-                            {
-                                Manifest.Permission.ReadExternalStorage,
-                                Manifest.Permission.WriteExternalStorage
-                            }, 101);
-                        }
-
-                        break;
+                            Manifest.Permission.ReadExternalStorage,
+                            Manifest.Permission.WriteExternalStorage
+                        }, 101);
                     }
                 }
 
                 if (string.IsNullOrEmpty(UserDetails.DeviceId))
-                {
-                    OneSignalNotification.RegisterNotificationDevice();
-                }
+                    OneSignalNotification.RegisterNotificationDevice(); 
             }
             catch (Exception e)
             {
@@ -139,17 +139,18 @@ namespace WoWonder.Activities.Default
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         public override void OnTrimMemory(TrimMemory level)
         {
             try
-            { 
+            {
+
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
                 base.OnTrimMemory(level);
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                Methods.DisplayReportResultTrack(e);
+                Methods.DisplayReportResultTrack(exception);
             }
         }
 
@@ -160,17 +161,16 @@ namespace WoWonder.Activities.Default
                 GC.Collect(GC.MaxGeneration);
                 base.OnLowMemory();
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                Methods.DisplayReportResultTrack(e);
+                Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         protected override void OnDestroy()
         {
             try
             {
-                ProfileTracker?.StopTracking();
                 DestroyBasic();
                 base.OnDestroy();
             }
@@ -180,81 +180,37 @@ namespace WoWonder.Activities.Default
             }
         }
 
-        //protected override void AttachBaseContext(Context @base)
-        //{
-        //    try
-        //    {
-        //        base.AttachBaseContext(@base);
-        //        if (AppSettings.Lang != "")
-        //            LangController.SetApplicationLang(@base, AppSettings.Lang);
-        //        else
-        //        {
-        //            UserDetails.LangName = Resources?.Configuration?.Locale?.DisplayLanguage.ToLower();
-        //            LangController.SetAppLanguage(@base);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Methods.DisplayReportResultTrack(e);
-        //    }
-        //}
-
         #endregion
-
+         
         #region Functions
 
         private void InitComponent()
         {
             try
             {
-                //declare layouts and editText
-                MEditTextEmail = (EditText)FindViewById(Resource.Id.editTxtEmail);
-                MEditTextPassword = (EditText)FindViewById(Resource.Id.editTxtPassword);
+                EmailLayout = FindViewById<RelativeLayout>(Resource.Id.rl_login_email);
+                TxtEmail = FindViewById<EditText>(Resource.Id.etEmail);
+                TxtEmailRequired = FindViewById<TextView>(Resource.Id.tv_email_required);
 
-                MTextViewSignUp = (TextView)FindViewById(Resource.Id.tvSignUp); // Register
-                MButtonViewSignIn = (Button)FindViewById(Resource.Id.SignInButton); // Login
-                 
-                MTextViewForgotPwd = (TextView)FindViewById(Resource.Id.tvForgotPwd); // Forget password 
+                PasswordLayout = FindViewById<RelativeLayout>(Resource.Id.rl_login_password);
+                TxtPassword = FindViewById<EditText>(Resource.Id.etPassword);
+                TxtPasswordRequired = FindViewById<TextView>(Resource.Id.tv_password_required);
 
-                LayoutCreateAccount = (LinearLayout)FindViewById(Resource.Id.layout_create_account);  
-                MTextViewCreateAccount = (TextView)FindViewById(Resource.Id.tvCreateAccount);
+                BtnLogin = FindViewById<Button>(Resource.Id.btn_login);
+                TxtForgotPassword = FindViewById<TextView>(Resource.Id.textForgotPassword);
 
+                ImageShowPass = FindViewById<ImageView>(Resource.Id.imageShowPass);
                 ProgressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
-                ProgressBar.Visibility = ViewStates.Gone;
-                MButtonViewSignIn.Visibility = ViewStates.Visible;
 
-                LayoutCreateAccount.Visibility = AppSettings.EnableRegisterSystem switch
-                {
-                    false => ViewStates.Gone,
-                    _ => LayoutCreateAccount.Visibility
-                };
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
+                ContinueButton = FindViewById<Button>(Resource.Id.btn_continue);
+                ContinueButton.Visibility = ViewStates.Gone;
 
-        private void AddOrRemoveEvent(bool addEvent)
-        {
-            try
-            {
-                switch (addEvent)
-                {
-                    // true +=  // false -=
-                    case true:
-                        MButtonViewSignIn.Click += BtnLoginOnClick;
-                        MTextViewCreateAccount.Click += RegisterButton_Click;
-                        MTextViewSignUp.Click += RegisterButton_Click;
-                        MTextViewForgotPwd.Click += TxtForgetPassOnClick;
-                        break;
-                    default:
-                        MButtonViewSignIn.Click -= BtnLoginOnClick;
-                        MTextViewCreateAccount.Click -= RegisterButton_Click;
-                        MTextViewSignUp.Click -= RegisterButton_Click;
-                        MTextViewForgotPwd.Click -= TxtForgetPassOnClick;
-                        break;
-                }
+                LayoutCreateAccount = FindViewById<LinearLayout>(Resource.Id.layout_create_account);
+                 
+                BlurView = FindViewById<BlurView>(Resource.Id.bv_login);
+                BlurBackground(BlurView, 10f);
+
+                LayoutCreateAccount.Visibility = AppSettings.EnableRegisterSystem == false ? ViewStates.Gone : ViewStates.Visible;
             }
             catch (Exception e)
             {
@@ -266,73 +222,66 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                switch (AppSettings.ShowFacebookLogin)
+                //#Facebook
+                if (AppSettings.ShowFacebookLogin)
                 {
-                    //#Facebook
-                    case true:
+                    LoginButton loginButton = new LoginButton(this);
+                    MprofileTracker = new FbMyProfileTracker();
+                    MprofileTracker.StartTracking();
+
+                    BtnFacebook = FindViewById<Button>(Resource.Id.btn_facebook); 
+                    BtnFacebook.Visibility = ViewStates.Visible;
+                    BtnFacebook.Click += BtnFacebookOnClick;
+
+                    MprofileTracker.MOnProfileChanged += MprofileTrackerOnMOnProfileChanged;
+                    loginButton.SetPermissions(new List<string>
                     {
-                        //FacebookSdk.SdkInitialize(this);
+                        "email",
+                        "public_profile"
+                    });
 
-                        ProfileTracker = new FbMyProfileTracker();
-                        ProfileTracker.StartTracking();
-                        ProfileTracker.MOnProfileChanged += ProfileTrackerOnMOnProfileChanged;
+                    MFbCallManager = CallbackManagerFactory.Create();
+                    loginButton.RegisterCallback(MFbCallManager, this);
 
-                        BtnFbLogin = FindViewById<LoginButton>(Resource.Id.fblogin_button);
-                        BtnFbLogin.Visibility = ViewStates.Visible;
-                        BtnFbLogin.SetPermissions(new List<string>
-                        {
-                            "email",
-                            "public_profile"
-                        });
-
-                        MFbCallManager = CallbackManagerFactory.Create();
-                        BtnFbLogin.RegisterCallback(MFbCallManager, this);
-
-                        //FB accessToken
-                        var accessToken = AccessToken.CurrentAccessToken;
-                        var isLoggedIn = accessToken != null && !accessToken.IsExpired;
-                        switch (isLoggedIn)
-                        {
-                            case true when Profile.CurrentProfile != null:
-                                LoginManager.Instance.LogOut();
-                                break;
-                        }
-
-                        string hash = Methods.App.GetKeyHashesConfigured(this);
-                        Console.WriteLine(hash);
-                        break;
+                    //FB accessToken
+                    var accessToken = AccessToken.CurrentAccessToken;
+                    var isLoggedIn = accessToken != null && !accessToken.IsExpired;
+                    if (isLoggedIn && Profile.CurrentProfile != null)
+                    {
+                        LoginManager.Instance.LogOut();
                     }
-                    default:
-                        BtnFbLogin = FindViewById<LoginButton>(Resource.Id.fblogin_button);
-                        BtnFbLogin.Visibility = ViewStates.Gone;
-                        break;
+
+                    string hashId = Methods.App.GetKeyHashesConfigured(this);
+                    Console.WriteLine(hashId);
+                }
+                else
+                {
+                    BtnFacebook = FindViewById<Button>(Resource.Id.btn_facebook); 
+                    BtnFacebook.Visibility = ViewStates.Gone;
                 }
 
-                switch (AppSettings.ShowGoogleLogin)
+                //#Google
+                if (AppSettings.ShowGoogleLogin)
                 {
-                    //#Google
-                    case true:
-                    {
-                        // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-                        var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
-                            .RequestIdToken(AppSettings.ClientId)
-                            .RequestScopes(new Scope(Scopes.Profile))
-                            .RequestScopes(new Scope(Scopes.PlusMe))
-                            .RequestScopes(new Scope(Scopes.DriveAppfolder))
-                            .RequestServerAuthCode(AppSettings.ClientId)
-                            .RequestProfile().RequestEmail().Build();
+                    // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+                    var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+                        .RequestIdToken(AppSettings.ClientId)
+                        .RequestScopes(new Scope(Scopes.Profile))
+                        .RequestScopes(new Scope(Scopes.PlusMe))
+                        .RequestScopes(new Scope(Scopes.DriveAppfolder))
+                        .RequestServerAuthCode(AppSettings.ClientId)
+                        .RequestProfile().RequestEmail().Build();
 
-                        MGoogleSignInClient = GoogleSignIn.GetClient(this, gso);
+                    MGoogleSignInClient = GoogleSignIn.GetClient(this, gso);
 
-                        MGoogleSignIn = FindViewById<SignInButton>(Resource.Id.Googlelogin_button);
-                        MGoogleSignIn.Click += GoogleSignInButtonOnClick;
-                        break;
-                    }
-                    default:
-                        MGoogleSignIn = FindViewById<SignInButton>(Resource.Id.Googlelogin_button);
-                        MGoogleSignIn.Visibility = ViewStates.Gone;
-                        break;
+                    BtnGoogle = FindViewById<Button>(Resource.Id.btn_google);
+                    BtnGoogle.Click += GoogleSignInButtonOnClick;
                 }
+                else
+                {
+                    BtnGoogle = FindViewById<Button>(Resource.Id.btn_google);
+                    BtnGoogle.Visibility = ViewStates.Gone;
+                } 
             }
             catch (Exception e)
             {
@@ -340,60 +289,35 @@ namespace WoWonder.Activities.Default
             }
         }
 
-        //Login With Facebook
-        private void ProfileTrackerOnMOnProfileChanged(object sender, ProfileChangedEventArgs e)
+        private void AddOrRemoveEvent(bool addEvent)
         {
             try
             {
-                if (e.MProfile != null)
+                // true +=  // false -=
+                if (addEvent)
                 {
-                   //var FbFirstName = e.MProfile.FirstName;
-                   //var FbLastName = e.MProfile.LastName;
-                   //var FbName = e.MProfile.Name;
-                   //var FbProfileId = e.MProfile.Id;
-                    
-                    var request = GraphRequest.NewMeRequest(AccessToken.CurrentAccessToken, this);
-                    var parameters = new Bundle();
-                    parameters.PutString("fields", "id,name,age_range,email");
-                    request.Parameters = parameters;
-                    request.ExecuteAsync();
+                    BtnLogin.Click += BtnLoginOnClick;
+                    TxtForgotPassword.Click += TxtForgotPasswordOnClick;
+                    ImageShowPass.Touch += ImageShowPassOnTouch;
+                    LayoutCreateAccount.Click += LayoutCreateAccountOnClick;
+                    TxtEmail.TextChanged += TxtEmailOnTextChanged;
+                    TxtPassword.TextChanged += TxtPasswordOnTextChanged;
+                    ContinueButton.Click += ContinueButtonOnClick;
+                }
+                else
+                {
+                    BtnLogin.Click -= BtnLoginOnClick;
+                    TxtForgotPassword.Click -= TxtForgotPasswordOnClick;
+                    ImageShowPass.Touch -= ImageShowPassOnTouch;
+                    LayoutCreateAccount.Click -= LayoutCreateAccountOnClick;
+                    TxtEmail.TextChanged -= TxtEmailOnTextChanged;
+                    TxtPassword.TextChanged -= TxtPasswordOnTextChanged;
+                    ContinueButton.Click -= ContinueButtonOnClick;
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(ex);
-            }
-        }
-
-        //Login With Google
-        private void GoogleSignInButtonOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                switch (MGoogleSignInClient)
-                {
-                    case null:
-                    {
-                        // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-                        var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
-                            .RequestIdToken(AppSettings.ClientId)
-                            .RequestScopes(new Scope(Scopes.Profile))
-                            .RequestScopes(new Scope(Scopes.PlusMe))
-                            .RequestScopes(new Scope(Scopes.DriveAppfolder))
-                            .RequestServerAuthCode(AppSettings.ClientId)
-                            .RequestProfile().RequestEmail().Build();
-
-                        MGoogleSignInClient ??= GoogleSignIn.GetClient(this, gso);
-                        break;
-                    }
-                }
-
-                var signInIntent = MGoogleSignInClient.SignInIntent;
-                StartActivityForResult(signInIntent, 0);
-            }
-            catch (Exception ex)
-            {
-                Methods.DisplayReportResultTrack(ex);
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -401,214 +325,237 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                MTextViewForgotPwd = null!;
-                MTextViewCreateAccount = null!;
-                MTextViewSignUp = null!;
-                MEditTextEmail = null!;
-                MEditTextPassword = null!;
-                MButtonViewSignIn = null!;
-                LayoutCreateAccount = null!;
-                LayoutCreateAccount = null!;
-                ProgressBar = null!;
-                BtnFbLogin = null!;
-                MFbCallManager = null!;
-                MGoogleSignIn = null!;
-                TimeZone = null!;
+                TxtEmail = null!;
+                TxtPassword = null!;
+                TxtForgotPassword = null!;
+                BtnLogin = null!;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
+
         #endregion
 
         #region Events
 
-        //Click Button Login
-        private async void BtnLoginOnClick(object sender, EventArgs eventArgs)
+        //Continue as
+        private void ContinueButtonOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                CrossAppAuthentication();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //Show Password 
+        private void ImageShowPassOnTouch(object sender, View.TouchEventArgs e)
+        {
+            try
+            {
+                switch (e.Event?.Action)
+                {
+                    case MotionEventActions.Up: // hide password
+                        TxtPassword.TransformationMethod = PasswordTransformationMethod.Instance;
+                        ImageShowPass.SetImageResource(Resource.Drawable.ic_eye_hide);
+                        break;
+                    case MotionEventActions.Down: // show password
+                        TxtPassword.TransformationMethod = HideReturnsTransformationMethod.Instance;
+                        ImageShowPass.SetImageResource(Resource.Drawable.icon_eye);
+                        break;
+                    default:
+                        return;
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //Forgot Password
+        private void TxtForgotPasswordOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                StartActivity(new Intent(this, typeof(ForgetPasswordActivity)));
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //start login 
+        private async void BtnLoginOnClick(object sender, EventArgs e)
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
                     Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CheckYourInternetConnection), GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                 
+                if (string.IsNullOrEmpty(TxtEmail.Text.Replace(" ", "")))
+                {
+                    SetHighLight(true, EmailLayout, TxtEmail, TxtEmailRequired);
+                    return;
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(MEditTextEmail.Text.Replace(" ", "")) || !string.IsNullOrEmpty(MEditTextPassword.Text))
+                    SetHighLight(false, EmailLayout, TxtEmail, TxtEmailRequired);
+                }
+                
+                if (string.IsNullOrEmpty(TxtPassword.Text))
+                {
+                    SetHighLight(true, PasswordLayout, TxtPassword, TxtPasswordRequired);
+                    return;
+                }
+                else
+                {
+                    SetHighLight(false, PasswordLayout, TxtPassword, TxtPasswordRequired);
+                }
+
+                HideKeyboard();
+
+                ToggleVisibility(true);
+
+                var (apiStatus, respond) = await RequestsAsync.Auth.AuthAsync(TxtEmail.Text.Replace(" ", ""), TxtPassword.Text, TimeZone, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                if (apiStatus == 200 && respond is AuthObject auth)
+                {
+                    var emailValidation = ListUtils.SettingsSiteList?.EmailValidation ?? "0";
+                    IsActiveUser = emailValidation switch
                     {
-                        HideKeyboard();
-
-                        ProgressBar.Visibility = ViewStates.Visible;
-                        MButtonViewSignIn.Visibility = ViewStates.Gone;
-
-                        if (string.IsNullOrEmpty(TimeZone))
-                            GetTimezone();
-
-                        var (apiStatus, respond) = await RequestsAsync.Global.Get_Auth(MEditTextEmail.Text.Replace(" ", ""), MEditTextPassword.Text, TimeZone, UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                        switch (apiStatus)
-                        {
-                            case 200 when respond is AuthObject auth:
+                        "1" => await CheckIsActiveUser(auth.UserId),
+                        _ => IsActiveUser
+                    };
+                     
+                    switch (IsActiveUser)
+                    {
+                        case true:
                             {
-                                var emailValidation = ListUtils.SettingsSiteList?.EmailValidation ?? "0";
-                                IsActiveUser = emailValidation switch
-                                {
-                                    "1" => await CheckIsActiveUser(auth.UserId),
-                                    _ => IsActiveUser
-                                };
+                                SetDataLogin(auth);
 
-                                switch (IsActiveUser)
+                                if (auth.Membership != null && auth.Membership.Value)
                                 {
-                                    case true:
+                                    var intent = new Intent(this, typeof(GoProActivity));
+                                    intent.PutExtra("class", "login");
+                                    StartActivity(intent);
+                                }
+                                else
+                                {
+                                    switch (AppSettings.ShowWalkTroutPage)
                                     {
-                                        SetDataLogin(auth);
-
-                                        if (auth.Membership != null && auth.Membership.Value)
-                                        {
-                                            var intent = new Intent(this, typeof(GoProActivity));
-                                            intent.PutExtra("class", "login");
-                                            StartActivity(intent);
-                                        }
-                                        else
-                                        {
-                                            switch (AppSettings.ShowWalkTroutPage)
+                                        case true:
                                             {
-                                                case true:
-                                                {
-                                                    Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                                    newIntent?.PutExtra("class", "login");
-                                                    StartActivity(newIntent);
-                                                    break;
-                                                }
-                                                default:
-                                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                                    break;
+                                                Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                                newIntent?.PutExtra("class", "login");
+                                                StartActivity(newIntent);
+                                                break;
                                             }
-                                        }
-                                   
-                                        ProgressBar.Visibility = ViewStates.Gone;
-                                        MButtonViewSignIn.Visibility = ViewStates.Visible;
-                                        Finish();
-                                        break;
-                                    }
-                                    default:
-                                        ProgressBar.Visibility = ViewStates.Gone;
-                                        MButtonViewSignIn.Visibility = ViewStates.Visible;
-                                        break;
-                                }
-
-                                break;
-                            }
-                            case 200:
-                            {
-                                switch (respond)
-                                {
-                                    case AuthMessageObject messageObject:
-                                    {
-                                        UserDetails.Username = MEditTextEmail.Text;
-                                        UserDetails.FullName = MEditTextEmail.Text;
-                                        UserDetails.Password = MEditTextPassword.Text;
-                                        UserDetails.UserId = messageObject.UserId;
-                                        UserDetails.Status = "Pending";
-                                        UserDetails.Email = MEditTextEmail.Text;
-
-                                        //Insert user data to database
-                                        var user = new DataTables.LoginTb
-                                        {
-                                            UserId = UserDetails.UserId,
-                                            AccessToken = "",
-                                            Cookie = "",
-                                            Username = MEditTextEmail.Text,
-                                            Password = MEditTextPassword.Text,
-                                            Status = "Pending",
-                                            Lang = "",
-                                            DeviceId = UserDetails.DeviceId,
-                                        };
-                                        ListUtils.DataUserLoginList.Add(user);
-
-                                        var dbDatabase = new SqLiteDatabase();
-                                        dbDatabase.InsertOrUpdateLogin_Credentials(user);
-                                
-
-                                        Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
-                                        newIntent?.PutExtra("TypeCode", "TwoFactor");
-                                        StartActivity(newIntent);
-                                        break;
+                                        default:
+                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                            break;
                                     }
                                 }
 
+                                ToggleVisibility(false);
+                                FinishAffinity();
                                 break;
                             }
-                            case 400:
-                            {
-                                switch (respond)
-                                {
-                                    case ErrorObject error:
-                                    {
-                                        var errorText = error.Error.ErrorText;
-                                        var errorId = error.Error.ErrorId;
-                                        switch (errorId)
-                                        {
-                                            case "3":
-                                                Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                    GetText(Resource.String.Lbl_Security),
-                                                    GetText(Resource.String.Lbl_ErrorLogin_3), GetText(Resource.String.Lbl_Ok));
-                                                break;
-                                            case "4":
-                                                Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                    GetText(Resource.String.Lbl_Security),
-                                                    GetText(Resource.String.Lbl_ErrorLogin_4), GetText(Resource.String.Lbl_Ok));
-                                                break;
-                                            case "5":
-                                                Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                    GetText(Resource.String.Lbl_Security),
-                                                    GetText(Resource.String.Lbl_ErrorLogin_5), GetText(Resource.String.Lbl_Ok));
-                                                break;
-                                            default:
-                                                Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                    GetText(Resource.String.Lbl_Security), errorText,
-                                                    GetText(Resource.String.Lbl_Ok));
-                                                break;
-                                        }
+                        default:
+                            ToggleVisibility(false);
+                            break;
+                    } 
+                }
+                else if (apiStatus == 200 && respond is AuthMessageObject messageObject)
+                {
+                    ToggleVisibility(false);
 
-                                        break;
-                                    }
-                                }
+                    UserDetails.Username = TxtEmail.Text;
+                    UserDetails.FullName = TxtEmail.Text;
+                    UserDetails.Password = TxtPassword.Text;
+                    UserDetails.UserId = messageObject.UserId;
+                    UserDetails.Status = "Pending";
+                    UserDetails.Email = TxtEmail.Text;
 
-                                ProgressBar.Visibility = ViewStates.Gone;
-                                MButtonViewSignIn.Visibility = ViewStates.Visible;
+                    //Insert user data to database
+                    var user = new DataTables.LoginTb
+                    {
+                        UserId = UserDetails.UserId,
+                        AccessToken = "",
+                        Cookie = "",
+                        Username = TxtEmail.Text,
+                        Password = TxtPassword.Text,
+                        Status = "Pending",
+                        Lang = "",
+                        DeviceId = UserDetails.DeviceId,
+                    };
+                    ListUtils.DataUserLoginList.Add(user);
+
+                    var dbDatabase = new SqLiteDatabase();
+                    dbDatabase.InsertOrUpdateLogin_Credentials(user);
+                     
+                    Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
+                    newIntent?.PutExtra("TypeCode", "TwoFactor");
+                    StartActivity(newIntent);
+
+                }
+                else if (apiStatus == 400)
+                {
+                    if (respond is ErrorObject error)
+                    {
+                        ToggleVisibility(false);
+
+                        var errorText = error.Error.ErrorText;
+                        var errorId = error.Error.ErrorId;
+                        switch (errorId)
+                        {
+                            case "3":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
+                                    GetText(Resource.String.Lbl_ErrorLogin_3), GetText(Resource.String.Lbl_Ok));
                                 break;
-                            }
-                            case 404:
-                                ProgressBar.Visibility = ViewStates.Gone;
-                                MButtonViewSignIn.Visibility = ViewStates.Visible;
-                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), respond.ToString(), GetText(Resource.String.Lbl_Ok));
+                            case "4":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
+                                    GetText(Resource.String.Lbl_ErrorLogin_4), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "5":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
+                                    GetText(Resource.String.Lbl_ErrorLogin_5), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            default:
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
+                                    errorText, GetText(Resource.String.Lbl_Ok));
                                 break;
                         }
                     }
-                    else
-                    {
-                        ProgressBar.Visibility = ViewStates.Gone;
-                        MButtonViewSignIn.Visibility = ViewStates.Visible;
-                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
-                    }
+                }
+                else
+                {
+                    ToggleVisibility(false);
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), respond.ToString(), GetText(Resource.String.Lbl_Ok));
                 }
             }
             catch (Exception exception)
             {
-                ProgressBar.Visibility = ViewStates.Gone;
-                MButtonViewSignIn.Visibility = ViewStates.Visible;
-                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message,GetText(Resource.String.Lbl_Ok));
+                ToggleVisibility(false);
+                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message, GetText(Resource.String.Lbl_Ok));
                 Methods.DisplayReportResultTrack(exception);
             }
         }
 
-        //Click Button Register
-        private void RegisterButton_Click(object sender, EventArgs e)
+        //CreateAccount
+        private void LayoutCreateAccountOnClick(object sender, EventArgs e)
         {
             try
             {
-                StartActivity(new Intent(this, typeof(RegisterActivity)));
+                StartActivity(new Intent(this, typeof(SelectRegisterActivity))); 
             }
             catch (Exception exception)
             {
@@ -616,12 +563,25 @@ namespace WoWonder.Activities.Default
             }
         }
 
-        //Click Forget Password
-        private void TxtForgetPassOnClick(object sender, EventArgs eventArgs)
+        private void TxtPasswordOnTextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-                StartActivity(typeof(ForgetPasswordActivity));
+                if (TxtPassword.Text.Length > 0)
+                    SetHighLight(false, PasswordLayout, TxtPassword, TxtPasswordRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtEmailOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtEmail.Text.Length > 0)
+                    SetHighLight(false, EmailLayout, TxtEmail, TxtEmailRequired);
             }
             catch (Exception exception)
             {
@@ -631,26 +591,311 @@ namespace WoWonder.Activities.Default
 
         #endregion
 
-        #region Permissions && Result
-         
+        #region Social Logins
+
+        private string FbAccessToken, GAccessToken, GServerCode;
+
+        #region Facebook
+
+        private void BtnFacebookOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                LoginManager.Instance.LogInWithReadPermissions(this, new List<string>
+                {
+                    "email",
+                    "public_profile"
+                });
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnCancel()
+        {
+            try
+            {
+                ToggleVisibility(false);
+
+                SetResult(Result.Canceled);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnError(FacebookException error)
+        {
+            try
+            {
+
+                ToggleVisibility(false);
+
+                // Handle exception
+                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), error.Message, GetText(Resource.String.Lbl_Ok));
+
+                SetResult(Result.Canceled);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnSuccess(Java.Lang.Object result)
+        {
+            try
+            {
+                //var loginResult = result as LoginResult;
+                //var id = AccessToken.CurrentAccessToken.UserId;
+
+                ToggleVisibility(false);
+
+                SetResult(Result.Ok);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public async void OnCompleted(JSONObject json, GraphResponse response)
+        {
+            try
+            {
+                //var data = json.ToString();
+                //var result = JsonConvert.DeserializeObject<FacebookResult>(data);
+                //FbEmail = result.Email;
+
+                ToggleVisibility(true);
+
+                var accessToken = AccessToken.CurrentAccessToken;
+                if (accessToken != null)
+                {
+                    FbAccessToken = accessToken.Token;
+
+                    //Login Api 
+                    var (apiStatus, respond) = await RequestsAsync.Auth.SocialLoginAsync(FbAccessToken, "facebook", UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                    if (apiStatus == 200)
+                    {
+                        if (respond is AuthObject auth)
+                        {
+                            SetDataLogin(auth);
+
+                            switch (AppSettings.ShowWalkTroutPage)
+                            {
+                                case true:
+                                {
+                                    Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                    newIntent?.PutExtra("class", "login");
+                                    StartActivity(newIntent);
+                                    break;
+                                }
+                                default:
+                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                    break;
+                            }
+
+                            ToggleVisibility(false);
+                            Finish();
+                        }
+                    }
+                    else if (apiStatus == 400)
+                    {
+                        if (respond is ErrorObject error)
+                        {
+                            ToggleVisibility(false);
+                            var errorText = error.Error.ErrorText; 
+                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                        }
+                    }
+                    else
+                    {
+                        ToggleVisibility(false);
+                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
+                            respond.ToString(), GetText(Resource.String.Lbl_Ok));
+                    }
+                }
+                else
+                {
+                    ToggleVisibility(false);
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
+                }
+            }
+            catch (Exception exception)
+            {
+                ToggleVisibility(false);
+                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message, GetText(Resource.String.Lbl_Ok));
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void MprofileTrackerOnMOnProfileChanged(object sender, ProfileChangedEventArgs e)
+        {
+            try
+            {
+                if (e.MProfile != null)
+                    try
+                    {
+                        //var FbFirstName = e.MProfile.FirstName;
+                        //var FbLastName = e.MProfile.LastName;
+                        //var FbName = e.MProfile.Name;
+                        //var FbProfileId = e.MProfile.Id;
+
+                        var request = GraphRequest.NewMeRequest(AccessToken.CurrentAccessToken, this);
+                        var parameters = new Bundle();
+                        parameters.PutString("fields", "id,name,age_range,email");
+                        request.Parameters = parameters;
+                        request.ExecuteAsync();
+                    }
+                    catch (Java.Lang.Exception ex)
+                    {
+                        Methods.DisplayReportResultTrack(ex);
+                    }
+                //else
+                //    Toast.MakeText(this, GetString(Resource.String.Lbl_Null_Data_User), ToastLength.Short)?.Show();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+        #endregion
+
+        //======================================================
+
+        #region Google
+
+        //Event Click login using google
+        private void GoogleSignInButtonOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (MGoogleSignInClient == null)
+                {
+                    // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+                    var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+                        .RequestIdToken(AppSettings.ClientId)
+                        .RequestScopes(new Scope(Scopes.Profile))
+                        .RequestScopes(new Scope(Scopes.PlusMe))
+                        .RequestScopes(new Scope(Scopes.DriveAppfolder))
+                        .RequestServerAuthCode(AppSettings.ClientId)
+                        .RequestProfile().RequestEmail().Build();
+
+                    MGoogleSignInClient ??= GoogleSignIn.GetClient(this, gso);
+                }
+
+                var signInIntent = MGoogleSignInClient.SignInIntent;
+                StartActivityForResult(signInIntent, 0);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private async void SetContentGoogle(GoogleSignInAccount acct)
+        {
+            try
+            {
+                //Successful log in hooray!!
+                if (acct != null)
+                {
+                    ToggleVisibility(true);
+
+                    //var GAccountName = acct.Account.Name;
+                    //var GAccountType = acct.Account.Type;
+                    //var GDisplayName = acct.DisplayName;
+                    //var GFirstName = acct.GivenName;
+                    //var GLastName = acct.FamilyName;
+                    //var GProfileId = acct.Id;
+                    //var GEmail = acct.Email;
+                    //var GImg = acct.PhotoUrl.Path;
+                    GAccessToken = acct.IdToken;
+                    GServerCode = acct.ServerAuthCode;
+                    Console.WriteLine(GServerCode);
+
+                    if (!string.IsNullOrEmpty(GAccessToken))
+                    {
+                        var (apiStatus, respond) = await RequestsAsync.Auth.SocialLoginAsync(GAccessToken, "google", UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                        if (apiStatus == 200)
+                        {
+                            if (respond is AuthObject auth)
+                            {
+                                SetDataLogin(auth);
+
+                                switch (AppSettings.ShowWalkTroutPage)
+                                {
+                                    case true:
+                                    {
+                                        Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                        newIntent?.PutExtra("class", "login");
+                                        StartActivity(newIntent);
+                                        break;
+                                    }
+                                    default:
+                                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                        break;
+                                }
+
+                                ToggleVisibility(false);
+                                Finish();
+                            }
+                        }
+                        else if (apiStatus == 400)
+                        {
+                            if (respond is ErrorObject error)
+                            {
+                                ToggleVisibility(false);
+                                var errorText = error.Error.ErrorText; 
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                            }
+                        }
+                        else
+                        {
+                            ToggleVisibility(false);
+                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), respond.ToString(), GetText(Resource.String.Lbl_Ok));
+                        }
+                    }
+                    else
+                    {
+                        ToggleVisibility(false);
+                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                ToggleVisibility(false);
+                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message, GetText(Resource.String.Lbl_Ok));
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Result && Permissions
+
         //Result
         protected override async void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                switch (requestCode)
+                if (requestCode == 0)
                 {
-                    case 0:
-                    {
-                        var task = await GoogleSignIn.GetSignedInAccountFromIntentAsync(data);
-                        SetContentGoogle(task);
-                        break;
-                    }
-                    default:
-                        // Logins Facebook
-                        MFbCallManager.OnActivityResult(requestCode, (int) resultCode, data);
-                        break;
+                    var task = await GoogleSignIn.GetSignedInAccountFromIntentAsync(data);
+                    SetContentGoogle(task);
+                }
+                else
+                {
+                    // Logins Facebook
+                    MFbCallManager.OnActivityResult(requestCode, (int)resultCode, data);
                 }
             }
             catch (Exception e)
@@ -670,6 +915,7 @@ namespace WoWonder.Activities.Default
                 {
                     case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         LoadConfigSettings();
+                        CheckCrossAppAuthentication();
                         break;
                     case 101:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
@@ -685,242 +931,87 @@ namespace WoWonder.Activities.Default
 
         #endregion
 
-        #region Social Logins
-
-        private string FbAccessToken,GAccessToken,GServerCode;
-
-        #region Facebook
-
-        public void OnCancel()
+        #region Cross App Authentication
+         
+        private void CheckCrossAppAuthentication()
         {
             try
             {
-                ProgressBar.Visibility = ViewStates.Gone;
-                MButtonViewSignIn.Visibility = ViewStates.Visible;
-
-                SetResult(Result.Canceled);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        public void OnError(FacebookException error)
-        {
-            try
-            {
-
-                ProgressBar.Visibility = ViewStates.Gone;
-                MButtonViewSignIn.Visibility = ViewStates.Visible;
-
-                // Handle exception
-                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), error.Message, GetText(Resource.String.Lbl_Ok));
-
-                SetResult(Result.Canceled);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        public void OnSuccess(Object result)
-        {
-            try
-            {
-                //var loginResult = result as LoginResult;
-                //var id = AccessToken.CurrentAccessToken.UserId;
-
-                ProgressBar.Visibility = ViewStates.Visible;
-                MButtonViewSignIn.Visibility = ViewStates.Gone;
-
-                SetResult(Result.Ok);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        public async void OnCompleted(JSONObject json, GraphResponse response)
-        {
-            try
-            {
-                //var data = json.ToString();
-                //var result = JsonConvert.DeserializeObject<FacebookResult>(data);
-                //var FbEmail = result.Email;
-
-                var accessToken = AccessToken.CurrentAccessToken;
-                if (accessToken != null)
+                LoginTb = JsonConvert.DeserializeObject<DataTables.LoginTb>(Methods.ReadNoteOnSD());
+                if (LoginTb != null && !string.IsNullOrEmpty(LoginTb.AccessToken) && !string.IsNullOrEmpty(LoginTb.Username))
                 {
-                    FbAccessToken = accessToken.Token;
-
-                    var (apiStatus, respond) = await RequestsAsync.Global.Get_SocialLogin(FbAccessToken, "facebook", UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                    switch (apiStatus)
-                    {
-                        case 200:
-                        {
-                            switch (respond)
-                            {
-                                case AuthObject auth:
-                                {
-                                    SetDataLogin(auth);
-
-                                    switch (AppSettings.ShowWalkTroutPage)
-                                    {
-                                        case true:
-                                        {
-                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                            newIntent?.PutExtra("class", "login");
-                                            StartActivity(newIntent);
-                                            break;
-                                        }
-                                        default:
-                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                            break;
-                                    }
-                                    ProgressBar.Visibility = ViewStates.Gone;
-                                    MButtonViewSignIn.Visibility = ViewStates.Visible;
-                                    break;
-                                }
-                            }
-                            Finish();
-                            break;
-                        }
-                        case 400:
-                        {
-                            switch (respond)
-                            {
-                                case ErrorObject error:
-                                {
-                                    var errorText = error.Error.ErrorText;
-                             
-                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                        case 404:
-                        {
-                            var error = respond.ToString();
-                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), error, GetText(Resource.String.Lbl_Ok));
-                            break;
-                        }
-                    }
-
-                    ProgressBar.Visibility = ViewStates.Gone;
-                    MButtonViewSignIn.Visibility = ViewStates.Visible;
-                } 
+                    ContinueButton.Text = GetString(Resource.String.Lbl_ContinueAs) + " " + LoginTb.Username;
+                    ContinueButton.Visibility = ViewStates.Visible;
+                }
+                else
+                    ContinueButton.Visibility = ViewStates.Gone;
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                ProgressBar.Visibility = ViewStates.Gone;
-                MButtonViewSignIn.Visibility = ViewStates.Visible;
-                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message, GetText(Resource.String.Lbl_Ok));
-                Methods.DisplayReportResultTrack(exception);
+                Methods.DisplayReportResultTrack(e);
             }
         }
          
-        #endregion
-
-        //======================================================
-
-        #region Google
-            
-        private async void SetContentGoogle(GoogleSignInAccount acct)
+        private void CrossAppAuthentication()
         {
             try
             {
-                //Successful log in hooray!!
-                if (acct != null)
+                if (LoginTb != null && !string.IsNullOrEmpty(LoginTb.AccessToken) && !string.IsNullOrEmpty(LoginTb.Username))
                 {
-                    ProgressBar.Visibility = ViewStates.Visible;
-                    MButtonViewSignIn.Visibility = ViewStates.Gone;
+                    Current.AccessToken = LoginTb.AccessToken;
 
-                    GAccessToken = acct.IdToken;
-                    GServerCode = acct.ServerAuthCode;
-                    Console.WriteLine(GServerCode);
+                    UserDetails.Username = LoginTb.Username;
+                    UserDetails.FullName = LoginTb.Username;
+                    UserDetails.Password = LoginTb.Password;
+                    UserDetails.AccessToken = LoginTb.AccessToken;
+                    UserDetails.UserId = LoginTb.UserId;
+                    UserDetails.Status = LoginTb.Status;
+                    UserDetails.Cookie = LoginTb.AccessToken;
+                    UserDetails.Email = LoginTb.Email;
 
-                    switch (string.IsNullOrEmpty(GAccessToken))
+                    //Insert user data to database
+                    var user = new DataTables.LoginTb
                     {
-                        case false:
-                            var (apiStatus, respond) = await RequestsAsync.Global.Get_SocialLogin(GAccessToken, "google", UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                            switch (apiStatus)
+                        UserId = UserDetails.UserId,
+                        AccessToken = UserDetails.AccessToken,
+                        Cookie = UserDetails.Cookie,
+                        Username = UserDetails.Username,
+                        Password = UserDetails.Password,
+                        Status = UserDetails.Status,
+                        DeviceId = UserDetails.DeviceId,
+                        Email = UserDetails.Email,
+                    };
+                    ListUtils.DataUserLoginList.Clear();
+                    ListUtils.DataUserLoginList.Add(user);
+
+                    var dbDatabase = new SqLiteDatabase();
+                    dbDatabase.InsertOrUpdateLogin_Credentials(user);
+
+
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
+
+                    switch (AppSettings.ShowWalkTroutPage)
+                    {
+                        case true:
                             {
-                                case 200:
-                                {
-                                    switch (respond)
-                                    {
-                                        case AuthObject auth:
-                                        {
-                                            SetDataLogin(auth);
-
-                                            switch (AppSettings.ShowWalkTroutPage)
-                                            {
-                                                case true:
-                                                {
-                                                    Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                                    newIntent?.PutExtra("class", "login");
-                                                    StartActivity(newIntent);
-                                                    break;
-                                                }
-                                                default:
-                                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                                    break;
-                                            }
-                                            ProgressBar.Visibility = ViewStates.Gone;
-                                            MButtonViewSignIn.Visibility = ViewStates.Visible;
-                                            break;
-                                        }
-                                    }
-                                    Finish();
-                                    break;
-                                }
-                                case 400:
-                                {
-                                    switch (respond)
-                                    {
-                                        case ErrorObject error:
-                                        {
-                                            var errorText = error.Error.ErrorText;
-
-                                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
-                                            break;
-                                        }
-                                    }
-
-                                    break;
-                                }
-                                case 404:
-                                {
-                                    var error = respond.ToString();
-                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), error, GetText(Resource.String.Lbl_Ok));
-                                    break;
-                                }
+                                Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                newIntent?.PutExtra("class", "login");
+                                StartActivity(newIntent);
+                                break;
                             }
-
-                            ProgressBar.Visibility = ViewStates.Gone;
-                            MButtonViewSignIn.Visibility = ViewStates.Visible;
+                        default:
+                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
                             break;
                     }
+
+                    Finish();
                 }
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                ProgressBar.Visibility = ViewStates.Gone;
-                MButtonViewSignIn.Visibility = ViewStates.Visible;
-                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message,GetText(Resource.String.Lbl_Ok));
-                Methods.DisplayReportResultTrack(exception);
+                Methods.DisplayReportResultTrack(e);
             }
         }
-
-      
-        #endregion
-
-        //======================================================
 
         #endregion
 
@@ -937,6 +1028,62 @@ namespace WoWonder.Activities.Default
             }
         }
 
+        private void ToggleVisibility(bool isLoginProgress)
+        {
+            try
+            {
+                ProgressBar.Visibility = isLoginProgress ? ViewStates.Visible : ViewStates.Gone;
+                BtnLogin.Visibility = isLoginProgress ? ViewStates.Invisible : ViewStates.Visible;
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void SetDataLogin(AuthObject auth)
+        {
+            try
+            {
+                Current.AccessToken = auth.AccessToken;
+
+                UserDetails.Username = TxtEmail.Text;
+                UserDetails.FullName = TxtEmail.Text;
+                UserDetails.Password = TxtPassword.Text;
+                UserDetails.AccessToken = auth.AccessToken;
+                UserDetails.UserId = auth.UserId;
+                UserDetails.Status = "Pending";
+                UserDetails.Cookie = auth.AccessToken;
+                UserDetails.Email = TxtEmail.Text;
+
+                //Insert user data to database
+                var user = new DataTables.LoginTb
+                {
+                    UserId = UserDetails.UserId,
+                    AccessToken = UserDetails.AccessToken,
+                    Cookie = UserDetails.Cookie,
+                    Username = UserDetails.Email,
+                    Password = UserDetails.Password,
+                    Status = "Pending",
+                    Lang = "",
+                    DeviceId = UserDetails.DeviceId,
+                    Email = UserDetails.Email,
+                };
+
+                ListUtils.DataUserLoginList.Clear();
+                ListUtils.DataUserLoginList.Add(user);
+
+                var dbDatabase = new SqLiteDatabase();
+                dbDatabase.InsertOrUpdateLogin_Credentials(user);
+
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
         private async void GetTimezone()
         {
             try
@@ -949,44 +1096,44 @@ namespace WoWonder.Activities.Default
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-        
+
         private async Task<bool> CheckIsActiveUser(string userId)
         {
             try
             {
-                var (apiStatus, respond) = await RequestsAsync.Global.IsActiveUser(userId);
+                var (apiStatus, respond) = await RequestsAsync.Auth.IsActiveUserAsync(userId);
                 switch (apiStatus)
                 {
                     case 200 when respond is MessageObject auth:
                         Console.WriteLine(auth);
                         return true;
                     case 400:
-                    {
-                        switch (respond)
                         {
-                            case ErrorObject error:
+                            switch (respond)
                             {
-                                var errorText = error.Error.ErrorText;
-                                var errorId = error.Error.ErrorId;
-                                switch (errorId)
-                                {
-                                    case "5":
-                                        Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_ThisUserNotActive), GetText(Resource.String.Lbl_Ok));
-                                        break;
-                                    case "4":
-                                        Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_UserNotFound), GetText(Resource.String.Lbl_Ok));
-                                        break;
-                                    default:
-                                        Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security), errorText,GetText(Resource.String.Lbl_Ok));
-                                        break;
-                                }
+                                case ErrorObject error:
+                                    {
+                                        var errorText = error.Error.ErrorText;
+                                        var errorId = error.Error.ErrorId;
+                                        switch (errorId)
+                                        {
+                                            case "5":
+                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ThisUserNotActive), GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                            case "4":
+                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_UserNotFound), GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                            default:
+                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                        }
 
-                                break;
+                                        break;
+                                    }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     case 404:
                         Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), respond.ToString(), GetText(Resource.String.Lbl_Ok));
                         break;
@@ -1001,48 +1148,6 @@ namespace WoWonder.Activities.Default
             }
         }
 
-        private void SetDataLogin(AuthObject auth)
-        {
-            try
-            {
-                Current.AccessToken = auth.AccessToken;
-
-                UserDetails.Username = MEditTextEmail.Text;
-                UserDetails.FullName = MEditTextEmail.Text;
-                UserDetails.Password = MEditTextPassword.Text;
-                UserDetails.AccessToken = auth.AccessToken;
-                UserDetails.UserId = auth.UserId;
-                UserDetails.Status = "Pending";
-                UserDetails.Cookie = auth.AccessToken;
-                UserDetails.Email = MEditTextEmail.Text;
-                
-                //Insert user data to database
-                var user = new DataTables.LoginTb
-                {
-                    UserId = UserDetails.UserId,
-                    AccessToken = UserDetails.AccessToken,
-                    Cookie = UserDetails.Cookie,
-                    Username = MEditTextEmail.Text,
-                    Password = MEditTextPassword.Text,
-                    Status = "Pending",
-                    Lang = "",
-                    DeviceId = UserDetails.DeviceId,
-                    Email = UserDetails.Email,
-                };
-                ListUtils.DataUserLoginList.Clear();
-                ListUtils.DataUserLoginList.Add(user);
-
-                var dbDatabase = new SqLiteDatabase();
-                dbDatabase.InsertOrUpdateLogin_Credentials(user);
-                
-
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
 
         private void LoadConfigSettings()
         {
@@ -1053,9 +1158,8 @@ namespace WoWonder.Activities.Default
                 if (settingsData != null)
                     ListUtils.SettingsSiteList = settingsData;
 
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.GetSettings_Api(this) });
-
-                
+                if (Methods.CheckConnectivity())
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.GetSettings_Api(this) });
             }
             catch (Exception e)
             {
@@ -1063,5 +1167,56 @@ namespace WoWonder.Activities.Default
             }
         }
 
+        private void BlurBackground(BlurView view, float radius)
+        {
+            try
+            { 
+                //float radius = 10f; 
+                View decorView = Window.DecorView;
+                //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
+                ViewGroup rootView = decorView.FindViewById<ViewGroup>(Android.Resource.Id.Content);
+                //Set drawable to draw in the beginning of each blurred frame (Optional). 
+                //Can be used in case your layout has a lot of transparent space and your content
+                //gets kinda lost after after blur is applied.
+                Drawable windowBackground = decorView.Background;
+
+                view.SetupWith(rootView)
+                    .SetFrameClearDrawable(windowBackground)
+                    .SetBlurAlgorithm(new RenderScriptBlur(this))
+                    .SetBlurRadius(radius)
+                    .SetBlurAutoUpdate(true)
+                    .SetHasFixedTransformationMatrix(true);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void SetHighLight(bool state , RelativeLayout layout , EditText editText , TextView textView)
+        {
+            try
+            {
+                Color txtcolor, borderColor;
+                if (state)
+                {
+                    textView.Visibility = ViewStates.Visible;
+                    txtcolor = new Color(GetColor(Resource.Color.colorLoginHighlightText));
+                    borderColor = new Color(GetColor(Resource.Color.colorLoginHighlightText));
+                }
+                else
+                {
+                    textView.Visibility = ViewStates.Gone;
+                    txtcolor = new Color(GetColor(Resource.Color.gnt_white));
+                    borderColor = new Color(GetColor(Resource.Color.transparent_border));
+                }
+                editText.SetHintTextColor(txtcolor);
+                layout.Background.SetTint(borderColor);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            } 
+        } 
     }
 }

@@ -40,12 +40,8 @@
 	<string name="image">Image</string>
 	<string name="text">Text</string>
 	<string name="retry">Retry</string>
-	<string name="Terms_of_service">
-		<u>Terms of service</u> and
-	</string>
-	<string name="Privacy_Policy">
-		<u>Privacy Policy</u>
-	</string>
+	<string name="Terms_of_service">Terms of service</string>
+	<string name="Privacy_Policy">Privacy Policy</string>
 	<string name="Lbl_Username">Username</string>
 	<string name="Lbl_Email">Email</string>
 	<string name="Lbl_Password">Password</string>
@@ -105,7 +101,7 @@
 
 	<!-- Password-->
 	<string name="Lbl_ConfirmPassword">Confirm Password</string>
-	<string name="Lbl_Forget_password">Forgot password ?</string>
+	<string name="Lbl_Forget_password">Forgot password</string>
 	<string name="Lbl_Forgot_your_password">Forgot your password</string>
 	<string name="Lbl_Forgot_your_password_DontWorry">"Don&apos;t worry type your email here and we will recover it for you."</string>
 	<string name="Lbl_Change_Password">Change Password</string>
@@ -381,18 +377,18 @@
 	<!--===============================================================-->
 
 	<!--Time-->
-	<string name="Lbl_hours">Hours ago</string>
-	<string name="Lbl_days">Days ago</string>
-	<string name="Lbl_month">Month ago</string>
-	<string name="Lbl_minutes">Minutes ago</string>
-	<string name="Lbl_seconds">Seconds ago</string>
-	<string name="Lbl_year">Year ago</string>
+  <string name="Lbl_hours">Hours ago</string>
+  <string name="Lbl_days">Days ago</string>
+  <string name="Lbl_month">Month ago</string>
+  <string name="Lbl_minutes">Minutes ago</string>
+  <string name="Lbl_seconds">Seconds ago</string>
+  <string name="Lbl_year">Year ago</string>
 
-	<string name="Lbl_about_minute">About a minute ago</string>
-	<string name="Lbl_about_hour">About a hour ago</string>
-	<string name="Lbl_yesterday">Yesterday</string>
-	<string name="Lbl_about_month">About a month ago</string>
-	<string name="Lbl_about_year">About a year ago</string>
+  <string name="Lbl_about_minute">About a minute ago</string>
+  <string name="Lbl_about_hour">About a hour ago</string>
+  <string name="Lbl_yesterday">Yesterday</string>
+  <string name="Lbl_about_month">About a month ago</string>
+  <string name="Lbl_about_year">About a year ago</string> 
 	<!--===============================================================-->
 
 	<!--NearBy-->
@@ -443,8 +439,8 @@
 	<string name="Lbl_Refresh">Refresh</string>
 	<string name="Lbl_Blocked_User_List">Blocked User List</string>
 	<string name="Lbl_Settings">Settings</string>
-	<string name="Lbl_CopeLink">Copy Link</string>
-	<string name="Lbl_ViewPrivacy">View Privacy Shortcuts</string>
+  <string name="Lbl_CopeLink">Copy Link</string>
+  <string name="Lbl_ViewPrivacy">View Privacy Shortcuts</string>
 	<string name="Lbl_SettingsAccount">Account Settings</string>
 	<!--===============================================================-->
 
@@ -554,7 +550,7 @@
 	<string name="Lbl_Title_DeletePost">Delete Post</string>
 	<string name="Lbl_Content_DeletePost">Would You like to delete this post</string>
 	<string name="Lbl_leave_comment">Leave a comment</string>
-	<string name="Lbl_Write_comment">Write a Comment</string>
+	<string name="Lbl_Write_comment">Write a Comment...</string>
 	<string name="Lbl_No_more_users">No more users to display</string>
 	<!--===============================================================-->
 
@@ -703,11 +699,14 @@
 	<string name="Lbl_UnBoostPost">UnBoost Post</string>
 	<string name="Lbl_ReportPost">Report Post</string>
 	<string name="Lbl_ReportThisPost">Report this post</string>
-	<string name="Lbl_postSuccessfullyDeleted">The post successfully deleted</string>
-	<string name="Lbl_postSuccessfullySaved">The post successfully saved</string>
-	<string name="Lbl_postSuccessfullyBoosted">The post successfully boosted</string>
+  <string name="Lbl_TextCopied">Text copied to clipboard</string>
+  <string name="Lbl_LinkCopied">Link copied to clipboard</string>
+  <string name="Lbl_postSuccessfullyDeleted">Post deleted successfully </string>
+	<string name="Lbl_postSuccessfullySaved">Post saved successfully</string>
+  <string name="Lbl_postSuccessfullyUnSaved">Post unsaved successfully</string>
+  <string name="Lbl_postSuccessfullyBoosted">Post boosted successfully</string>
 	<string name="Lbl_AreYouSureDeletePost">Are you sure you want to delete this post</string>
-	<string name="Lbl_YourReportPost">Your report has been sent</string>
+	<string name="Lbl_YourReportPost">Post reported</string>
 	<string name="Lbl_DeletePost">Delete post</string>
 	<string name="Lbl_SavePost">Save post</string>
 	<string name="Lbl_FileExists">File Exists</string>
@@ -819,8 +818,8 @@
 	<string name="Lbl_DeleteComment">Delete Comment</string>
 	<string name="Lbl_AreYouSureDeleteComment">Are you sure that you want to delete this comment ?</string>
 	<string name="Lbl_CommentSuccessfullyDeleted">The comment successfully deleted</string>
-	<string name="Lbl_CopeText">Copy Text</string>
-	<string name="Lbl_Sponsored">Sponsored</string>
+  <string name="Lbl_CopeText">Copy Text</string>
+  <string name="Lbl_Sponsored">Sponsored</string>
 
 	<string name="Lbl_Error_MaxCharacters">You have exceeded the text limit, must be less than</string>
 	<string name="Lbl_sharedYourPost">shared your post</string>
@@ -1397,13 +1396,46 @@
 	<string name="Lbl_LastUpdated">Last Updated</string> 
 
 	<string name="Lbl_CoronaVirus_HeadText">Help prevent the spread of coronavirus.</string> 
-	<string name="Lbl_CoronaVirus_SubText">See the latest info from the world health organization so you can help prevent the spread of covid-19.</string>
+	<string name="Lbl_CoronaVirus_SubText">See the latest info from the world health organization so you can help prevent the spread of covid-19.</string> 
 
-  <!-- V4.0 String translate -->
-  <!--===============================================================-->
 	<string name="Lbl_NoPageManaged">"You don&apos;t have any page managed"</string> 
 	<string name="Lbl_NoGroupManaged">"You don&apos;t have any group"</string>
+
+  <string name="login_description">Stay login to your account to be \nupdated with your network</string>
+  <string name="no_account">"Don&apos;t Have an Account?"</string>
+  <string name="field_required">This field is required</string>
+  <string name="register_description">Register to Wowonder using your \nemail or social accounts</string>
+  <string name="register_using_google">Register using Google</string>
+  <string name="register_using_facebook">Register using Facebook</string>
+  <string name="register_using_email">Register using Email</string>
+  <string name="already_account">Already Have An Account?</string>
+  <string name="create_account">Create an account</string>
+  <string name="request_password_link">Request Password Link</string>
+  <string name="link_sent_successfully">Link Sent Successfully</string>
  
+  <string name="Lbl_FeaturedPosts">Featured Posts</string>
+  <string name="Lbl_PagesLiked">Pages Liked</string>
+
+
+  <!-- V4.1 String translate -->
+  <!--===============================================================-->
+  <string name="Lbl_Or">Or</string>
+  <string name="Lbl_ByCreatingAnAccountYou">By creating an account you</string>
+  <string name="Lbl_Forgot_password">Forgot password</string>
+  <string name="Lbl_Forgot_password_Des">Please enter your email address. You will \nreceive a link to create a new password.</string>
+  <string name="Lbl_AddStory">Add Story</string>
+  <string name="Lbl_EditAvatar">Edit Avatar</string>
+  <string name="Lbl_EditCover">Edit Cover</string> 
+  <string name="Lbl_Wallet">Wallet</string> 
+  <string name="Lbl_ICurrentlyWork">I currently work here</string> 
+  <string name="Lbl_FilterByCategory">Filter by Category</string>
+  <string name="Lbl_Comments">Comments</string>
+  <string name="Lbl_Shares">Shares</string>
+  <string name="Lbl_Unlimited">Unlimited</string>
+  <string name="Lbl_ProfileDetails">Profile Details</string>
+  <string name="Lbl_TypeSomethingsHere">Type something here</string>
+
+
   <!--Chat Messanger-->
   <string name="Lbl_Clear_chat">Clear chat</string>
   <string name="Lbl_Uploading">Uploading</string>

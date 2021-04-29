@@ -268,10 +268,10 @@ namespace WoWonder.Library.Anjo
                         {
                             case PostButtonSystem.ReactionDefault:
                             case PostButtonSystem.ReactionSubShine:
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction") });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction") });
                                 break;
                             default:
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "like") });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "like") });
                                 break;
                         }
                         break;
@@ -376,11 +376,11 @@ namespace WoWonder.Library.Anjo
                             case PostButtonSystem.ReactionSubShine:
                             {
                                 string like = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Like").Value?.Id ?? "1";
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", like) });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", like) });
                                 break;
                             }
                             default:
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "like") });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "like") });
                                 break;
                         }
 
@@ -598,37 +598,37 @@ namespace WoWonder.Library.Anjo
                 {
                     PostData.NewsFeedClass.Reaction.Type = "1";
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Like").Value?.Id ?? "1";
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", react) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", react) });
                 }
                 else if (data.GetReactText() == ReactConstants.Love)
                 {
                     PostData.NewsFeedClass.Reaction.Type = "2";
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Love").Value?.Id ?? "2";
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", react) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", react) });
                 }
                 else if (data.GetReactText() == ReactConstants.HaHa)
                 {
                     PostData.NewsFeedClass.Reaction.Type = "3";
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "HaHa").Value?.Id ?? "3";
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", react) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", react) });
                 }
                 else if (data.GetReactText() == ReactConstants.Wow)
                 {
                     PostData.NewsFeedClass.Reaction.Type = "4";
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Wow").Value?.Id ?? "4";
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", react) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", react) });
                 }
                 else if (data.GetReactText() == ReactConstants.Sad)
                 {
                     PostData.NewsFeedClass.Reaction.Type = "5";
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Sad").Value?.Id ?? "5";
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", react) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", react) });
                 }
                 else if (data.GetReactText() == ReactConstants.Angry)
                 {
                     PostData.NewsFeedClass.Reaction.Type = "6";
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Angry").Value?.Id ?? "6";
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.NewsFeedClass.PostId, "reaction", react) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", react) });
                 }
 
                 if (PostData.NewsFeedClass.Reaction.IsReacted != null && !PostData.NewsFeedClass.Reaction.IsReacted.Value)

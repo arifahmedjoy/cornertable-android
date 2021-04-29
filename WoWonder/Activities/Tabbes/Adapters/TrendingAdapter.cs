@@ -24,6 +24,9 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonderClient.Classes.Global;
+using ImageViews.Rounded;
+using Android.Graphics.Drawables;
+using WoWonder.Helpers.Controller;
 
 namespace WoWonder.Activities.Tabbes.Adapters
 {
@@ -31,6 +34,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
     {
         public event EventHandler<TrendingAdapterClickEventArgs> ItemClick;
         public event EventHandler<TrendingAdapterClickEventArgs> ItemLongClick;
+        public event EventHandler<TrendingAdapterClickEventArgs> ItemUserClick;
 
         public readonly Activity ActivityContext; 
         
@@ -40,7 +44,6 @@ namespace WoWonder.Activities.Tabbes.Adapters
         private ProUsersAdapter ProUsersAdapter;
         private ProPagesAdapter ProPagesAdapter; 
         private ShortcutsAdapter ShortcutsAdapter; 
-        private WeatherAdapter WeatherAdapter; 
          
         public TrendingAdapter(Activity context)
         {
@@ -54,7 +57,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         // Create new views (invoked by the layout manager)
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
@@ -122,8 +125,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     }
                     case (int)Classes.ItemType.LastBlogs:
                     {
-                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_TrendingView, parent, false);
-                        var vh = new TrendingAdapterViewHolder(itemView, OnClick, OnLongClick, this);
+                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Article_View, parent, false);
+                        var vh = new ArticlesAdapterViewHolder(itemView, onUserClick, OnClick, OnLongClick);
                         return vh;
                     }
                     case (int)Classes.ItemType.ExchangeCurrency:
@@ -183,10 +186,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             var preLoader = new RecyclerViewPreloader<UserDataObject>(ActivityContext, ProUsersAdapter, sizeProvider, 10);
                                             holder.MRecycler.AddOnScrollListener(preLoader);
                                             holder.MRecycler.SetAdapter(ProUsersAdapter);
+                                            holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, TabbedMainActivity.GetInstance()?.ViewPager));
                                             ProUsersAdapter.ItemClick += ProUsersAdapterOnItemClick;
                                          
                                             holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Users);
-                                            holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                             holder.MoreText.Visibility = ViewStates.Invisible;
 
                                             var isPro = ListUtils.MyProfileList?.FirstOrDefault()?.IsPro ?? "0";
@@ -265,10 +268,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, ProPagesAdapter, sizeProvider, 10);
                                             holder.MRecycler.AddOnScrollListener(preLoader);
                                             holder.MRecycler.SetAdapter(ProPagesAdapter);
+                                            holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, TabbedMainActivity.GetInstance()?.ViewPager));
                                             ProPagesAdapter.ItemClick += ProPagesAdapterOnItemClick;
                                          
                                             holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Pages);
-                                            holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                             holder.MoreText.Visibility = ViewStates.Invisible;
                                             break;
                                         }
@@ -334,10 +337,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             var preLoader = new RecyclerViewPreloader<Classes.ShortCuts>(ActivityContext, ShortcutsAdapter, sizeProvider, 10);
                                             holder.MRecycler.AddOnScrollListener(preLoader);
                                             holder.MRecycler.SetAdapter(ShortcutsAdapter);
+                                            holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, TabbedMainActivity.GetInstance()?.ViewPager));
                                             ShortcutsAdapter.ItemClick += ShortcutsAdapterOnItemClick;
                                          
                                             holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_AllShortcuts);
-                                            holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                             holder.MoreText.Visibility = ViewStates.Invisible;
                                             break;
                                         }
@@ -372,15 +375,29 @@ namespace WoWonder.Activities.Tabbes.Adapters
                         {
                             switch (viewHolder)
                             {
-                                case TrendingAdapterViewHolder holder:
-                                {
-                                    GlideImageLoader.LoadImage(ActivityContext, item.LastBlogs.Thumbnail, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                case ArticlesAdapterViewHolder holder:
+                                    var colorImage = Color.ParseColor(Methods.FunString.RandomColor());
 
-                                    GlideImageLoader.LoadImage(ActivityContext, item.LastBlogs.Author.Avatar, holder.UserImageProfile, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    Glide.With(ActivityContext)
+                                        .Load(item.LastBlogs.Thumbnail)
+                                        .Apply(RequestOptions.CenterCropTransform().Placeholder(new ColorDrawable(colorImage)).Fallback(new ColorDrawable(colorImage)).SetPriority(Priority.High))
+                                        .Into(holder.Image);
 
-                                    holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_LastBlogs);
+                                    Glide.With(ActivityContext)
+                                        .Load(item.LastBlogs.Author.Avatar)
+                                        .Apply(RequestOptions.CircleCropTransform())
+                                        .Into(holder.UserImageProfile);
+
+                                    holder.Category.Background.SetTint(colorImage);
+
+                                    CategoriesController cat = new CategoriesController();
+                                    string id = item.LastBlogs.CategoryLink.Split('/').Last();
+
+                                    holder.Category.Text = cat.Get_Translate_Categories_Communities(id, item.LastBlogs.CategoryName, "Blog");
 
                                     holder.Title.Text = Methods.FunString.DecodeString(item.LastBlogs.Title);
+
+                                    holder.Description.Text = Methods.FunString.DecodeString(item.LastBlogs.Description);
 
                                     holder.Username.Text = WoWonderTools.GetNameFinal(item.LastBlogs.Author);
 
@@ -390,10 +407,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             holder.Username.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
                                             break;
                                     }
-
+                                         
                                     holder.Time.Text = item.LastBlogs.Posted;
+
                                     break;
-                                }
                             }
 
                             break;
@@ -471,24 +488,52 @@ namespace WoWonder.Activities.Tabbes.Adapters
                             {
                                 case WeatherViewHolder holder:
                                 {
-                                    item.Weather.Current.Condition.Icon =
-                                        item.Weather.Current.Condition.Icon.Contains("http") switch
-                                        {
-                                            false => "http://" + item.Weather.Current.Condition.Icon,
-                                            _ => item.Weather.Current.Condition.Icon
-                                        };
+                                    switch (item.Weather.Current.Condition.Text)
+                                    {
+                                        case "Cloudy":
+                                            holder.Image.SetImageResource(Resource.Drawable.ic_weather_large_cloudy);
+                                            break;
+                                        case "Sunny":
+                                            holder.Image.SetImageResource(Resource.Drawable.ic_weather_large_sunny);
+                                            break;
+                                        case "Partly cloudy":
+                                            holder.Image.SetImageResource(Resource.Drawable.ic_weather_large_party_cloudy);
+                                            break;
+                                        case "Rain":
+                                            holder.Image.SetImageResource(Resource.Drawable.ic_weather_large_rain);
+                                            break;
+                                        case "Snow":
+                                            holder.Image.SetImageResource(Resource.Drawable.ic_weather_large_snow);
+                                            break;
+                                        default:
+                                            item.Weather.Current.Condition.Icon =
+                                            item.Weather.Current.Condition.Icon.Contains("http") switch
+                                            {
+                                                false => "http://" + item.Weather.Current.Condition.Icon,
+                                                _ => item.Weather.Current.Condition.Icon
+                                            };
 
-                                    Glide.With(ActivityContext).Load(item.Weather.Current.Condition.Icon).Apply(new RequestOptions()).Into(holder.Image);
+                                            Glide.With(ActivityContext).Load(item.Weather.Current.Condition.Icon).Apply(new RequestOptions()).Into(holder.Image);
+                                            break;
+                                    }
+
+                                    /*var current = Methods.Time.CurrentTimeMillis();
+                                    string time = String.Format("%d:%d", Methods.Time.ConvertMillisecondsToHours(current),
+                                        Methods.Time.ConvertMillisecondsToMinutes(current) - Methods.Time.ConvertMillisecondsToHours(current));*/
 
                                     holder.PlaceText.Text = string.IsNullOrEmpty(item.Weather.Location.Region) switch
                                     {
-                                        false => item.Weather.Location.Country + "/" + item.Weather.Location.Region,
+                                        false => item.Weather.Location.Region + ", " + item.Weather.Location.Country + "  ",
                                         _ => item.Weather.Location.Country
                                     };
 
                                     holder.HeadText.Text = item.Weather.Current.Condition.Text;
                                     holder.SubText.Text = item.Weather.Current.TempC + "°";
-                                      
+
+                                    holder.MphText.Text = item.Weather.Current.WindMph.ToString();
+                                    holder.RainText.Text = item.Weather.Current.PrecipIn.ToString();
+                                    holder.HumidityText.Text = item.Weather.Current.Humidity.ToString();
+
                                     List<HourObject> list = item.Weather.Forecast.ForecastDays.FirstOrDefault()?.Hour.Where(
                                         hourObject => hourObject.Time.Contains("03:00") ||
                                                       hourObject.Time.Contains("07:00") ||
@@ -496,27 +541,44 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                                       hourObject.Time.Contains("15:00") ||
                                                       hourObject.Time.Contains("19:00") ||
                                                       hourObject.Time.Contains("22:00")).ToList();
-                                    switch (list?.Count)
+                                  
+                                    holder.WeatherItems.RemoveAllViews();
+                                    foreach (var ho in list)
                                     {
-                                        case > 0:
-                                        {
-                                            switch (WeatherAdapter)
-                                            {
-                                                case null:
-                                                {
-                                                    WeatherAdapter = new WeatherAdapter(ActivityContext) {WeatherHourList = new ObservableCollection<HourObject>()};
-                                                    LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
-                                                    holder.MRecycler.SetLayoutManager(layoutManager);
-                                                    holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true; 
-                                                    holder.MRecycler.SetAdapter(WeatherAdapter);
-                                                    break;
-                                                }
-                                            }
+                                        View layout2 = LayoutInflater.From(ActivityContext)?.Inflate(Resource.Layout.Style_WeatherHourView, holder.WeatherItems, false);
+                                        TextView temp = layout2.FindViewById<TextView>(Resource.Id.temp);
+                                        ImageView icon = layout2.FindViewById<ImageView>(Resource.Id.Icon);
+                                        TextView time = layout2.FindViewById<TextView>(Resource.Id.time);
 
-                                            WeatherAdapter.WeatherHourList = new ObservableCollection<HourObject>(list);
-                                            WeatherAdapter.NotifyDataSetChanged();
-                                            break;
+                                        switch (ho.Condition.Text)
+                                        {
+                                            case "Cloudy":
+                                                icon.SetImageResource(Resource.Drawable.ic_weather_small_cloudy);
+                                                break;
+                                            case "Sunny":
+                                                icon.SetImageResource(Resource.Drawable.ic_weather_small_sunny);
+                                                break;
+                                            case "Partly cloudy":
+                                                icon.SetImageResource(Resource.Drawable.ic_weather_small_party_cloudy);
+                                                break;
+                                            case "Rain":
+                                                icon.SetImageResource(Resource.Drawable.ic_weather_small_rain);
+                                                break;
+                                            case "Snow":
+                                                icon.SetImageResource(Resource.Drawable.ic_weather_small_snow);
+                                                break;
+                                            default:
+                                                ho.Condition.Icon = ho.Condition.Icon.Contains("http") switch
+                                                {
+                                                    false => "http://" + ho.Condition.Icon,
+                                                    _ => ho.Condition.Icon
+                                                };
+                                                Glide.With(ActivityContext).Load(ho.Condition.Icon).Apply(new RequestOptions()).Into(icon);
+                                                break;
                                         }
+                                        temp.Text = Methods.Time.TimeAgo(ho.TimeEpoch);
+                                        time.Text = ho.TempC + "°";
+                                        holder.WeatherItems.AddView(layout2);
                                     }
 
                                     break;
@@ -576,14 +638,16 @@ namespace WoWonder.Activities.Tabbes.Adapters
                             {
                                 case SectionViewHolder holder:
                                 {
-                                    holder.AboutHead.Text = item.Title;
-                                    holder.AboutHead.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                    holder.AboutHead.Text = item.Title; 
 
                                     switch (item.SectionType)
                                     {
                                         case Classes.ItemType.LastActivities:
+                                        case Classes.ItemType.HashTag:
+                                        case Classes.ItemType.LastBlogs:
                                             holder.AboutMore.Visibility = ViewStates.Visible;
                                             holder.AboutMore.Text = ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                                            holder.AboutMore.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                             break;
                                         default:
                                             holder.AboutMore.Visibility = ViewStates.Gone;
@@ -696,7 +760,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     }
                     case "liked_post":
                     {
-                        holder.Icon.SetImageResource(Resource.Drawable.emoji_like);
+                        holder.Icon.SetImageResource(Resource.Drawable.emoji_likes);
 
                         if (UserDetails.LangName.Contains("fr"))
                         {
@@ -753,10 +817,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     }
                     case "commented_post":
                     {
-                        holder.Icon.SetImageResource(Resource.Drawable.ic_action_comment);
+                        holder.Icon.SetImageResource(Resource.Drawable.ic_action_comments);
                         // holder.Icon.SetColorFilter(Color.ParseColor("#333333"), PorterDuff.Mode.Multiply);
 
-                        if (UserDetails.LangName.Contains("fr"))
+                                if (UserDetails.LangName.Contains("fr"))
                         {
                             var split = item.ActivityText.Split("commented on").Last().Replace("post", "");
                             replace = item.Activator.Name + " " + ActivityContext.GetString(Resource.String.Lbl_CommentedOn) + " " + ActivityContext.GetString(Resource.String.Lbl_Post) + " " + split;
@@ -946,6 +1010,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
         void OnClick(TrendingAdapterClickEventArgs args) => ItemClick?.Invoke(ActivityContext, args);
         void OnLongClick(TrendingAdapterClickEventArgs args) => ItemLongClick?.Invoke(ActivityContext, args);
+        void onUserClick(TrendingAdapterClickEventArgs args) => ItemUserClick?.Invoke(ActivityContext, args);
     }
 
     public class TemplateRecyclerViewHolder : RecyclerView.ViewHolder
@@ -1097,8 +1162,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 MainView = itemView;
 
                 Text = MainView.FindViewById<TextView>(Resource.Id.text);
-                CountPosts = MainView.FindViewById<TextView>(Resource.Id.countPosts); 
-                 
+                CountPosts = MainView.FindViewById<TextView>(Resource.Id.countPosts);
+
                 //Create an Event
                 itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
                 itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
@@ -1293,7 +1358,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
         public TextView SubText { get; private set; }
         public TextView PlaceText { get; private set; }
         public RecyclerView MRecycler { get; private set; }
-
+        public TextView MphText { get; private set; }
+        public TextView RainText { get; private set; }
+        public TextView HumidityText { get; private set; }
+        public LinearLayout WeatherItems { get; private set; }
         #endregion 
 
         public WeatherViewHolder(View itemView, Action<TrendingAdapterClickEventArgs> clickListener, Action<TrendingAdapterClickEventArgs> longClickListener) : base(itemView)
@@ -1308,6 +1376,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 SubText = (TextView)itemView.FindViewById(Resource.Id.subText);
                 PlaceText = (TextView)itemView.FindViewById(Resource.Id.PlaceText);
                 MRecycler = (RecyclerView)itemView.FindViewById(Resource.Id.Recyler);
+                MphText = itemView.FindViewById<TextView>(Resource.Id.tv_mph);
+                RainText = itemView.FindViewById<TextView>(Resource.Id.tv_rain_percent);
+                HumidityText = itemView.FindViewById<TextView>(Resource.Id.tv_humidity);
+                WeatherItems = itemView.FindViewById<LinearLayout>(Resource.Id.LLWeatherItem);
 
                 //Create an Event
                 itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
@@ -1354,6 +1426,53 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 Methods.DisplayReportResultTrack(exception);
             }
         }
+    }
+
+    public class ArticlesAdapterViewHolder : RecyclerView.ViewHolder
+    {
+        public ArticlesAdapterViewHolder(View itemView, Action<TrendingAdapterClickEventArgs> userClickListener, Action<TrendingAdapterClickEventArgs> clickListener, Action<TrendingAdapterClickEventArgs> longClickListener) : base(itemView)
+        {
+            try
+            {
+                MainView = itemView;
+
+                UserItem = MainView.FindViewById<RelativeLayout>(Resource.Id.UserItem_Layout);
+
+                Image = MainView.FindViewById<RoundedImageView>(Resource.Id.Image);
+                Category = MainView.FindViewById<TextView>(Resource.Id.Category);
+                Title = MainView.FindViewById<TextView>(Resource.Id.Title);
+                Description = MainView.FindViewById<TextView>(Resource.Id.description);
+                UserImageProfile = MainView.FindViewById<ImageView>(Resource.Id.UserImageProfile);
+                Username = MainView.FindViewById<TextView>(Resource.Id.Username);
+                Time = MainView.FindViewById<TextView>(Resource.Id.card_dist);
+                ViewMore = MainView.FindViewById<TextView>(Resource.Id.View_more);
+                 
+                //Event
+                UserItem.Click += (sender, e) => userClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        #region Variables Basic
+
+        private View MainView { get; }
+
+        public RoundedImageView Image { get; private set; }
+        public TextView Title { get; private set; }
+        public TextView Description { get; private set; }
+        public ImageView UserImageProfile { get; private set; }
+        public TextView Category { get; private set; }
+        public TextView Username { get; private set; }
+        public TextView Time { get; private set; }
+        public TextView ViewMore { get; private set; }
+        public RelativeLayout UserItem { get; private set; } 
+
+        #endregion
     }
 
     public class TrendingAdapterClickEventArgs : EventArgs

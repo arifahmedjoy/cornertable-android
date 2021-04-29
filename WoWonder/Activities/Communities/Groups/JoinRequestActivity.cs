@@ -14,6 +14,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -191,16 +192,18 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_joinRequest);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_joinRequest);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -331,7 +334,7 @@ namespace WoWonder.Activities.Communities.Groups
                     ItemJoinRequests = item;
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_joinRequest);
+                    dialog.Title(Resource.String.Lbl_joinRequest).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_Do_you_want_approve_join));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Accept)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_Delete)).OnNegative(this);
@@ -370,7 +373,7 @@ namespace WoWonder.Activities.Communities.Groups
                 MainScrollEvent.IsLoading = true;
 
                 var countList = MAdapter.JoinList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Group.GetGroupJoinRequests(GroupId, "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Group.GetGroupJoinRequestsAsync(GroupId, "10", offset);
                 if (apiStatus != 200 || respond is not GetGroupJoinRequestsObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
@@ -508,7 +511,7 @@ namespace WoWonder.Activities.Communities.Groups
 
                     Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyAccepted), ToastLength.Short)?.Show();
 
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.JoinRequestAction(GroupId, ItemJoinRequests?.UserData?.UserId, true) });// true >> Accept 
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.JoinRequestActionAsync(GroupId, ItemJoinRequests?.UserData?.UserId, true) });// true >> Accept 
                 }
                 else if (p1 == DialogAction.Negative)
                 {
@@ -528,7 +531,7 @@ namespace WoWonder.Activities.Communities.Groups
 
                     Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyDeleted), ToastLength.Short)?.Show();
 
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.JoinRequestAction(GroupId, ItemJoinRequests?.UserData?.UserId, false) }); // false >> Delete 
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.JoinRequestActionAsync(GroupId, ItemJoinRequests?.UserData?.UserId, false) }); // false >> Delete 
 
                     p0.Dismiss();
                 }

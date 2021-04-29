@@ -443,7 +443,7 @@ namespace WoWonder.Activities.Market
                     {
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(Resource.String.Lbl_Warning);
+                        dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                         dialog.Content(GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
                         dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
                         {
@@ -483,7 +483,7 @@ namespace WoWonder.Activities.Market
                         var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                         var time = unixTimestamp.ToString();
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.Send_Message(ProductData.Seller.UserId, time, "", "", "", "", "", "", ProductData.Id) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.SendMessageAsync(ProductData.Seller.UserId, time, "", "", "", "", "", "", ProductData.Id) });
                         Toast.MakeText(this, GetString(Resource.String.Lbl_MessageSentSuccessfully), ToastLength.Short)?.Show();
                         break;
                     }
@@ -538,7 +538,7 @@ namespace WoWonder.Activities.Market
                 arrayAdapter.Add(GetString(Resource.String.Lbl_CopeLink));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_Share));
                  
-                dialogList.Title(GetString(Resource.String.Lbl_More));
+                dialogList.Title(GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -601,7 +601,7 @@ namespace WoWonder.Activities.Market
                    TypeDialog = "DeletePost";
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(GetText(Resource.String.Lbl_DeletePost));
+                    dialog.Title(GetText(Resource.String.Lbl_DeletePost)).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_AreYouSureDeletePost));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
@@ -697,10 +697,10 @@ namespace WoWonder.Activities.Market
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.Wonder:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.PostId, "wonder") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "wonder") });
                         break;
                     case PostButtonSystem.DisLike:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.PostId, "dislike") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "dislike") });
                         break;
                 }
             }
@@ -791,7 +791,7 @@ namespace WoWonder.Activities.Market
                             }
                          
                             Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(ProductData.PostId, "delete") }); 
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(ProductData.PostId, "delete") }); 
 
                             Finish();
                         }
@@ -953,7 +953,7 @@ namespace WoWonder.Activities.Market
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(PostId, "post_data");
+                var (apiStatus, respond) = await RequestsAsync.Posts.GetPostDataAsync(PostId, "post_data");
                 switch (apiStatus)
                 {
                     case 200:
@@ -1088,7 +1088,7 @@ namespace WoWonder.Activities.Market
             if (Methods.CheckConnectivity())
             {
                 var countList = MAdapter.CommentList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostComments(PostId, "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostCommentsAsync(PostId, "10", offset);
                 if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
                 {
                     Methods.DisplayReportResult(this, respond);

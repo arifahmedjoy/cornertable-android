@@ -14,12 +14,14 @@ using Android.Graphics.Drawables;
 using Android.Locations;
 using Android.Media;
 using Android.OS;
+using Android.Views;
 using Android.Widget;
 using AndroidX.Core.Content;
 using Bumptech.Glide;
 using Bumptech.Glide.Request.Target;
 using Bumptech.Glide.Request.Transition;
 using Java.Lang;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using WoWonder.Activities.Chat.ChatWindow;
 using WoWonder.Activities.MyProfile;
@@ -1376,7 +1378,7 @@ namespace WoWonder.Helpers.Utils
 
                         SetAddFriendCondition(isFollowing, btnAddUser);
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_User(item.UserId) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.FollowUserAsync(item.UserId) });
 
                         break;
                     case "1": // Remove friends
@@ -1389,7 +1391,7 @@ namespace WoWonder.Helpers.Utils
 
                         SetAddFriendCondition(isFollowing, btnAddUser);
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_User(item.UserId) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.FollowUserAsync(item.UserId) });
 
                         break;
                     case "2": // Remove request friends
@@ -1408,7 +1410,7 @@ namespace WoWonder.Helpers.Utils
 
                                 SetAddFriendCondition(isFollowing, btnAddUser);
 
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_User(item.UserId) }); 
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.FollowUserAsync(item.UserId) }); 
                             }
                             catch (Exception e)
                             {
@@ -1480,7 +1482,7 @@ namespace WoWonder.Helpers.Utils
                     return;
                 }
 
-                var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(groupId);
+                var (apiStatus, respond) = await RequestsAsync.Group.JoinGroupAsync(groupId);
                 switch (apiStatus)
                 {
                     case 200:
@@ -1553,14 +1555,14 @@ namespace WoWonder.Helpers.Utils
                         break;
                 }
 
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.Like_Page(pageId) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.LikePageAsync(pageId) });
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             } 
         }
-         
+
         public static PageClass FilterDataLastChatPage(PageClass item)
         {
             try
@@ -1680,6 +1682,30 @@ namespace WoWonder.Helpers.Utils
             {
                 Methods.DisplayReportResultTrack(e);
                 return item;
+            }
+        }
+
+        public static void ChangeMenuIconColor(IMenu menu, Color color)
+        {
+            try
+            {
+                for (int i = 0; i < menu.Size(); i++)
+                {
+                    var drawable = menu.GetItem(i)?.Icon;
+                    switch (drawable)
+                    {
+                        case null:
+                            continue;
+                        default:
+                            drawable.Mutate();
+                            drawable.SetColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SrcAtop));
+                            break;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -2102,8 +2128,10 @@ namespace WoWonder.Helpers.Utils
 
         #region Location >> BindMap
 
-        public static async Task<Address> ReverseGeocodeCurrentLocation(LatLng latLng)
+        public static async Task<Address> ReverseGeocodeCurrentLocation([NotNull] LatLng latLng)
         {
+            if (latLng == null)
+                return null;
             try
             {
 #pragma warning disable 618
@@ -2434,8 +2462,8 @@ namespace WoWonder.Helpers.Utils
                 }
             }
         }
-         
+
         #endregion
 
     }
-} 
+}

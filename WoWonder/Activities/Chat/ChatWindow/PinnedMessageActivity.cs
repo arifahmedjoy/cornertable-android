@@ -518,7 +518,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         SqLiteDatabase dbDatabase = new SqLiteDatabase();
                         dbDatabase.Delete_OneMessageUser(SelectedItemPositions.Id.ToString());
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessage(SelectedItemPositions.Id.ToString()) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessageAsync(SelectedItemPositions.Id.ToString()) });
                     }
                 }
             }

@@ -15,6 +15,7 @@ using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -208,17 +209,19 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Members);
+                    toolBar.Title = GetText(Resource.String.Lbl_Members);
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -397,7 +400,7 @@ namespace WoWonder.Activities.Communities.Groups
                     arrayAdapter.Add(GetText(Resource.String.Lbl_BlockMember));
                     arrayAdapter.Add(GetText(Resource.String.Lbl_ViewProfile));
 
-                    dialogList.Title(Resource.String.Lbl_More);
+                    dialogList.Title(Resource.String.Lbl_More).TitleColorRes(Resource.Color.primary);
                     dialogList.Items(arrayAdapter);
                     dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                     dialogList.AlwaysCallSingleChoiceCallback();
@@ -435,7 +438,7 @@ namespace WoWonder.Activities.Communities.Groups
                 MainScrollEvent.IsLoading = true;
 
                 var countList = MAdapter.UserList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Group.GetGroupMembers(GroupId, "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Group.GetGroupMembersAsync(GroupId, "10", offset);
                 if (apiStatus != 200 || respond is not GetGroupMembersObject result || result.Users == null)
                 {
                     MainScrollEvent.IsLoading = false;
@@ -563,7 +566,7 @@ namespace WoWonder.Activities.Communities.Groups
 
                 if (itemString.ToString() == GetText(Resource.String.Lbl_MakeAdmin))
                 { 
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Group.MakeGroupAdmin(GroupId, ItemUser.UserId)});
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Group.MakeGroupAdminAsync(GroupId, ItemUser.UserId)});
 
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)
@@ -574,7 +577,7 @@ namespace WoWonder.Activities.Communities.Groups
                 }
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_RemoveAdmin))
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.MakeGroupAdmin(GroupId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.MakeGroupAdminAsync(GroupId, ItemUser.UserId) });
                      
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)
@@ -585,7 +588,7 @@ namespace WoWonder.Activities.Communities.Groups
                 }  
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_RemoveMember))
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.RemoveGroupMembers(GroupId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.RemoveGroupMembersAsync(GroupId, ItemUser.UserId) });
                     
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)
@@ -596,7 +599,7 @@ namespace WoWonder.Activities.Communities.Groups
                 }  
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_BlockMember))
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.RemoveGroupMembers(GroupId, ItemUser.UserId) , () => RequestsAsync.Global.Block_User(GroupId, true) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.RemoveGroupMembersAsync(GroupId, ItemUser.UserId) , () => RequestsAsync.Global.BlockUserAsync(GroupId, true) });
 
                     var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == ItemUser.UserId);
                     if (local != null)

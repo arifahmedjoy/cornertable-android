@@ -10,6 +10,7 @@ using Android.OS;
 
 
 using Android.Views;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.AppCompat.Widget;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
@@ -192,12 +193,14 @@ namespace WoWonder.Activities.Album
                 if (Toolbar != null)
                 {
                     Toolbar.Title = " ";
-                    Toolbar.SetTitleTextColor(Color.White);
+                    Toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(Toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)

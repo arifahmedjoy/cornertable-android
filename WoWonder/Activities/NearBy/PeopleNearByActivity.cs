@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using Android;
 using Android.Gms.Ads;
 using Android.Locations;
-
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Google.Android.Material.FloatingActionButton;
@@ -208,17 +208,19 @@ namespace WoWonder.Activities.NearBy
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_FindFriends);
+                    toolBar.Title = GetText(Resource.String.Lbl_FindFriends);
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -490,7 +492,7 @@ namespace WoWonder.Activities.NearBy
                 };
 
                 var countList = MAdapter.UserList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Nearby.Get_Nearby_Users(dictionary);
+                var (apiStatus, respond) = await RequestsAsync.Nearby.GetNearbyUsersAsync(dictionary);
                 switch (apiStatus)
                 {
                     case 200:

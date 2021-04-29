@@ -28,6 +28,8 @@ using WoWonderClient.Requests;
 using Xamarin.Facebook.Ads;
 using AdView = Android.Gms.Ads.AdView;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
+using AndroidX.Core.Content;
+using AndroidX.AppCompat.Content.Res;
 
 namespace WoWonder.Activities.Tabbes
 {
@@ -194,13 +196,13 @@ namespace WoWonder.Activities.Tabbes
                 if (toolBar != null)
                 {
                     toolBar.Title = GetText(Resource.String.Lbl_LastActivities);
-
-                    toolBar.SetTitleTextColor(Color.White);
+                    toolBar.SetTitleTextColor(ContextCompat.GetColor(this, Resource.Color.primary));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -222,6 +224,7 @@ namespace WoWonder.Activities.Tabbes
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
+                MRecycler.AddItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.Vertical));
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<ActivityDataObject>(this, MAdapter, sizeProvider, 10);
@@ -384,7 +387,7 @@ namespace WoWonder.Activities.Tabbes
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.LastActivitiesList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Global.Get_Activities("10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Global.GetActivitiesAsync("10", offset);
                 switch (apiStatus)
                 {
                     case 200:

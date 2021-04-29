@@ -10,7 +10,8 @@ using Android.Graphics;
 using Android.OS; 
 using Android.Views;
 using Android.Widget;
-using AndroidX.ViewPager.Widget;
+using AndroidX.AppCompat.Content.Res;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
 using WoWonder.Activities.Base;
@@ -28,11 +29,12 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Fundings
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class FundingActivity : BaseActivity
+    public class FundingActivity : BaseActivity, TabLayoutMediator.ITabConfigurationStrategy
     {
         #region Variables Basic
 
-        private ViewPager ViewPager;
+        private MainTabAdapter Adapter;
+        private ViewPager2 ViewPager;
         public FundingFragment FundingTab;
         public MyFundingFragment MyFundingTab;
         private TabLayout TabLayout;
@@ -159,16 +161,16 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                ViewPager = FindViewById<ViewPager>(Resource.Id.viewpager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
 
                 ActionButton = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
                 ActionButton.Visibility = ViewStates.Visible;
                 ActionButton.SetImageResource(Resource.Drawable.ic_add);
-                 
+
                 ViewPager.OffscreenPageLimit = 2;
                 SetUpViewPager(ViewPager);
-                TabLayout.SetupWithViewPager(ViewPager);
+                new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
             }
             catch (Exception e)
             {
@@ -184,12 +186,14 @@ namespace WoWonder.Activities.Fundings
                 if (ToolBar != null)
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_Funding);
-                    ToolBar.SetTitleTextColor(Color.White);
+                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -252,19 +256,35 @@ namespace WoWonder.Activities.Fundings
 
         #region Set Tap
 
-        private void SetUpViewPager(ViewPager viewPager)
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
                 FundingTab = new FundingFragment();
                 MyFundingTab = new MyFundingFragment();
 
-                var adapter = new MainTabAdapter(SupportFragmentManager);
-                adapter.AddFragment(FundingTab, GetText(Resource.String.Lbl_BrowseFunding));
-                adapter.AddFragment(MyFundingTab, GetText(Resource.String.Lbl_MyFunding));
+                Adapter = new MainTabAdapter(this);
+                Adapter.AddFragment(FundingTab, GetText(Resource.String.Lbl_BrowseFunding));
+                Adapter.AddFragment(MyFundingTab, GetText(Resource.String.Lbl_MyFunding));
 
-                viewPager.CurrentItem = 2;
-                viewPager.Adapter = adapter;
+                viewPager.CurrentItem = Adapter.ItemCount;
+                viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                viewPager.Adapter = Adapter;
+                viewPager.Adapter.NotifyDataSetChanged();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
             }
             catch (Exception exception)
             {
@@ -272,10 +292,11 @@ namespace WoWonder.Activities.Fundings
             }
         }
 
+
         #endregion
-           
+
         #region Events
-         
+
         //Add Funding
         private void ActionButtonOnClick(object sender, EventArgs e)
         {
@@ -314,7 +335,7 @@ namespace WoWonder.Activities.Fundings
                 FundingTab.MainScrollEvent.IsLoading = true;
                 var countList = FundingTab.MAdapter.FundingList.Count;
 
-                var (respondCode, respondString) = await RequestsAsync.Funding.FetchFunding("10", offset);
+                var (respondCode, respondString) = await RequestsAsync.Funding.FetchFundingAsync("10", offset);
                 switch (respondCode)
                 {
                     case 200:
@@ -397,7 +418,7 @@ namespace WoWonder.Activities.Fundings
                 MyFundingTab.MainScrollEvent.IsLoading = true;
                 var countList = MyFundingTab.MAdapter.FundingList.Count;
 
-                var (respondCode, respondString) = await RequestsAsync.Funding.FetchMyFunding(UserDetails.UserId , "10", offset);
+                var (respondCode, respondString) = await RequestsAsync.Funding.FetchMyFundingAsync(UserDetails.UserId , "10", offset);
                 switch (respondCode)
                 {
                     case 200:

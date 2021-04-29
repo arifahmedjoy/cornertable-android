@@ -244,7 +244,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             MainScrollEvent.IsLoading = true;
 
             var countList = MAdapter.LastChatsList.Count;
-            var (apiStatus, respond) = await RequestsAsync.PageChat.GetPageChatList("20", offset);
+            var (apiStatus, respond) = await RequestsAsync.PageChat.GetPageChatListAsync("20", offset);
             if (apiStatus.Equals(200))
             {
                 if (respond is PageListObject result)

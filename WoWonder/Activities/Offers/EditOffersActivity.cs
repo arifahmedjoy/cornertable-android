@@ -12,6 +12,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Java.Lang;
 using Newtonsoft.Json;
@@ -220,16 +221,18 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_EditOffers);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_EditOffers);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -329,7 +332,7 @@ namespace WoWonder.Activities.Offers
                         {
                             var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                            dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
+                            dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency)).TitleColorRes(Resource.Color.primary);
                             dialogList.Items(arrayAdapter);
                             dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                             dialogList.AlwaysCallSingleChoiceCallback();
@@ -359,7 +362,7 @@ namespace WoWonder.Activities.Offers
 
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
                 var arrayAdapter = WoWonderTools.GetAddDiscountList(this).Select(pair => pair.Value).ToList();
-                dialogList.Title(GetText(Resource.String.Lbl_DiscountType));
+                dialogList.Title(GetText(Resource.String.Lbl_DiscountType)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -460,7 +463,7 @@ namespace WoWonder.Activities.Offers
                         }
                     }
 
-                    var (apiStatus, respond) = await RequestsAsync.Offers.EditOffer(dictionary);
+                    var (apiStatus, respond) = await RequestsAsync.Offers.EditOfferAsync(dictionary);
                     switch (apiStatus)
                     {
                         case 200:

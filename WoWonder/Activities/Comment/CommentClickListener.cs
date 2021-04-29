@@ -76,7 +76,7 @@ namespace WoWonder.Activities.Comment
                         arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_Delete));
                     }
 
-                    dialogList.Title(MainContext.GetString(Resource.String.Lbl_More));
+                    dialogList.Title(MainContext.GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                     dialogList.Items(arrayAdapter);
                     dialogList.PositiveText(MainContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
                     dialogList.AlwaysCallSingleChoiceCallback();
@@ -104,7 +104,7 @@ namespace WoWonder.Activities.Comment
                     CommentObject = item;
 
                     var dialog = new MaterialDialog.Builder(MainContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                    dialog.Title(MainContext.GetText(Resource.String.Lbl_DeleteComment));
+                    dialog.Title(MainContext.GetText(Resource.String.Lbl_DeleteComment)).TitleColorRes(Resource.Color.primary);
                     dialog.Content(MainContext.GetText(Resource.String.Lbl_AreYouSureDeleteComment));
                     dialog.PositiveText(MainContext.GetText(Resource.String.Lbl_Yes)).OnPositive(this);
                     dialog.NegativeText(MainContext.GetText(Resource.String.Lbl_No)).OnNegative(this);
@@ -134,7 +134,7 @@ namespace WoWonder.Activities.Comment
 
                     var dialog = new MaterialDialog.Builder(MainContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                    dialog.Title(Resource.String.Lbl_Edit);
+                    dialog.Title(Resource.String.Lbl_Edit).TitleColorRes(Resource.Color.primary);
                     dialog.Input(MainContext.GetString(Resource.String.Lbl_Write_comment), Methods.FunString.DecodeString(item.Text), this);
                     
                     dialog.InputType(InputTypes.TextFlagImeMultiLine);
@@ -202,7 +202,8 @@ namespace WoWonder.Activities.Comment
                     case "Liked":
                     {
                         e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                        //e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                         e.Holder.LikeTextView.Tag = "Like";
 
                         switch (AppSettings.PostButton)
@@ -328,7 +329,8 @@ namespace WoWonder.Activities.Comment
                         e.CommentObject.IsCommentLiked = false;
 
                         e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                        //e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                         e.Holder.LikeTextView.Tag = "Like";
                         break;
                 } 

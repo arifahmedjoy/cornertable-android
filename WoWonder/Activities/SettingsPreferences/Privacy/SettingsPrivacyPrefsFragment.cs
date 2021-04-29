@@ -252,7 +252,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                                 {"confirm_followers", SConfirmRequestFollowsPref}
                             };
 
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -320,7 +320,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                                 {"show_activities_privacy", SShowMyActivitiesPref}
                             };
 
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -391,7 +391,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                                 {"status", SOnlineUsersPref}
                             };
 
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -460,7 +460,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                                 {"share_my_location", SShareMyLocationPref}
                             };
 
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -668,7 +668,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         var arrayAdapter = new List<string>();
                         var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                        dialogList.Title(Resource.String.Lbl_Who_can_follow_me);
+                        dialogList.Title(Resource.String.Lbl_Who_can_follow_me).TitleColorRes(Resource.Color.primary);
 
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Everyone)); //>> value = 0
                         arrayAdapter.Add(GetText(Resource.String.Lbl_People_i_Follow)); //>> value = 1
@@ -686,7 +686,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         var arrayAdapter = new List<string>();
                         var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                        dialogList.Title(Resource.String.Lbl_Who_can_message_me);
+                        dialogList.Title(Resource.String.Lbl_Who_can_message_me).TitleColorRes(Resource.Color.primary);
 
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Everyone)); //>> value = 0
                         arrayAdapter.Add(GetText(Resource.String.Lbl_People_i_Follow)); //>> value = 1
@@ -705,7 +705,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         var arrayAdapter = new List<string>();
                         var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                        dialogList.Title(Resource.String.Lbl_CanSeeMyfriends);
+                        dialogList.Title(Resource.String.Lbl_CanSeeMyfriends).TitleColorRes(Resource.Color.primary);
 
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Everyone)); //>> value = 0
                         arrayAdapter.Add(GetText(Resource.String.Lbl_People_i_Follow)); //>> value = 1
@@ -725,7 +725,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         var arrayAdapter = new List<string>();
                         var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                        dialogList.Title(Resource.String.Lbl_CanPostOnMyTimeline);
+                        dialogList.Title(Resource.String.Lbl_CanPostOnMyTimeline).TitleColorRes(Resource.Color.primary);
 
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Everyone)); //>> value = 0
                         arrayAdapter.Add(GetText(Resource.String.Lbl_People_i_Follow)); //>> value = 1
@@ -744,7 +744,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         var arrayAdapter = new List<string>();
                         var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                        dialogList.Title(Resource.String.Lbl_Who_can_see_my_birthday);
+                        dialogList.Title(Resource.String.Lbl_Who_can_see_my_birthday).TitleColorRes(Resource.Color.primary);
 
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Everyone)); //>> value = 0
                         arrayAdapter.Add(GetText(Resource.String.Lbl_People_i_Follow)); //>> value = 1
@@ -824,7 +824,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                             {
                                 {"follow_privacy", SCanFollowPref}
                             };
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -865,7 +865,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                             {
                                 {"message_privacy", SCanMessagePref}
                             };
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -912,7 +912,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                             {
                                 {"friend_privacy", SCanSeeMyFriendsPref}
                             };
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -953,7 +953,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                             {
                                 {"post_privacy", SCanPostOnMyTimelinePref}
                             };
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
@@ -994,7 +994,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                             {
                                 {"birth_privacy", SCanSeeMyBirthdayPref}
                             };
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {

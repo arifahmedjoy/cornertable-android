@@ -12,7 +12,8 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
-using AndroidX.ViewPager.Widget;
+using AndroidX.AppCompat.Content.Res;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
 using WoWonder.Activities.Base;
@@ -28,12 +29,13 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Events
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class EventMainActivity : BaseActivity
+    public class EventMainActivity : BaseActivity, TabLayoutMediator.ITabConfigurationStrategy
     {
         #region Variables Basic
 
         private static EventMainActivity Instance;
-        private ViewPager ViewPager;
+        private MainTabAdapter Adapter;
+        private ViewPager2 ViewPager;
         public EventFragment EventTab;
         public MyEventFragment MyEventTab;
         private GoingFragment GoingTab;
@@ -42,8 +44,7 @@ namespace WoWonder.Activities.Events
         private PastFragment PastTab;
         private TabLayout TabLayout;
         private FloatingActionButton FloatingActionButtonView;
-        
-
+         
         #endregion
 
         #region General
@@ -163,13 +164,13 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                ViewPager = FindViewById<ViewPager>(Resource.Id.viewpager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
 
                 FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
 
                 SetUpViewPager(ViewPager);
-                TabLayout.SetupWithViewPager(ViewPager);
+                new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
             }
             catch (Exception e)
             {
@@ -181,16 +182,18 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Events);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Events);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -223,9 +226,7 @@ namespace WoWonder.Activities.Events
         private void DestroyBasic()
         {
             try
-            {
-                
-
+            { 
                 ViewPager = null!;
                 EventTab = null!;
                 MyEventTab = null!;
@@ -277,7 +278,7 @@ namespace WoWonder.Activities.Events
 
         #region Set Tap
 
-        private void SetUpViewPager(ViewPager viewPager)
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
@@ -288,43 +289,58 @@ namespace WoWonder.Activities.Events
                 PastTab = new PastFragment();
                 MyEventTab = new MyEventFragment();
 
-                var adapter = new MainTabAdapter(SupportFragmentManager);
+                Adapter = new MainTabAdapter(this);
 
-                adapter.AddFragment(EventTab, GetText(Resource.String.Lbl_All_Events));
+                Adapter.AddFragment(EventTab, GetText(Resource.String.Lbl_All_Events));
 
                 switch (AppSettings.ShowEventGoing)
                 {
                     case true:
-                        adapter.AddFragment(GoingTab, GetText(Resource.String.Lbl_Going));
+                        Adapter.AddFragment(GoingTab, GetText(Resource.String.Lbl_Going));
                         break;
                 }
 
                 switch (AppSettings.ShowEventInvited)
                 {
                     case true:
-                        adapter.AddFragment(InvitedTab, GetText(Resource.String.Lbl_Invited));
+                        Adapter.AddFragment(InvitedTab, GetText(Resource.String.Lbl_Invited));
                         break;
                 }
 
                 switch (AppSettings.ShowEventInterested)
                 {
                     case true:
-                        adapter.AddFragment(InterestedTab, GetText(Resource.String.Lbl_Interested));
+                        Adapter.AddFragment(InterestedTab, GetText(Resource.String.Lbl_Interested));
                         break;
                 }
 
                 switch (AppSettings.ShowEventPast)
                 {
                     case true:
-                        adapter.AddFragment(PastTab, GetText(Resource.String.Lbl_Past));
+                        Adapter.AddFragment(PastTab, GetText(Resource.String.Lbl_Past));
                         break;
                 }
 
-                adapter.AddFragment(MyEventTab, GetText(Resource.String.Lbl_My_Events));
-                
-                viewPager.CurrentItem = adapter.Count;
-                viewPager.OffscreenPageLimit = adapter.Count;
-                viewPager.Adapter = adapter;
+                Adapter.AddFragment(MyEventTab, GetText(Resource.String.Lbl_My_Events));
+
+                viewPager.CurrentItem = Adapter.ItemCount;
+                viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                viewPager.Adapter = Adapter;
+                viewPager.Adapter.NotifyDataSetChanged();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
             }
             catch (Exception exception)
             {
@@ -407,7 +423,7 @@ namespace WoWonder.Activities.Events
                         break;
                 }
                  
-                var (apiStatus, respond) = await RequestsAsync.Event.Get_Events(dictionary);
+                var (apiStatus, respond) = await RequestsAsync.Event.GetEventsAsync(dictionary);
                 switch (apiStatus)
                 {
                     case 200:

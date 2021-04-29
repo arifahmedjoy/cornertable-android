@@ -22,7 +22,6 @@
       android:id="@+id/cat"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="Science and Technology"
       android:textSize="15sp"
       android:layout_gravity="start|bottom|center"
       android:textStyle="bold"

@@ -540,7 +540,7 @@ namespace WoWonder.Activities.Communities.Pages
                     arrayAdapter.Add(GetString(Resource.String.Lbl_Settings)); 
                 }
 
-                dialogList.Title(GetString(Resource.String.Lbl_More));
+                dialogList.Title(GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -575,7 +575,7 @@ namespace WoWonder.Activities.Communities.Pages
                             BtnLike.Text = GetText(isLiked == "yes" || isLiked == "true" ? Resource.String.Btn_Liked : Resource.String.Btn_Like);
                             BtnLike.SetTextColor(isLiked == "yes" || isLiked == "true" ? Color.Black : Color.White);
 
-                            var (apiStatus, respond) = await RequestsAsync.Page.Like_Page(PageId);
+                            var (apiStatus, respond) = await RequestsAsync.Page.LikePageAsync(PageId);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -619,7 +619,7 @@ namespace WoWonder.Activities.Communities.Pages
                     {
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(Resource.String.Lbl_Warning);
+                        dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                         dialog.Content(GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
                         dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
                         {
@@ -658,7 +658,7 @@ namespace WoWonder.Activities.Communities.Pages
 
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(GetString(Resource.String.Lbl_SendMessageTo) + " " + Methods.FunString.DecodeString(PageData.Name));
+                        dialog.Title(GetString(Resource.String.Lbl_SendMessageTo) + " " + Methods.FunString.DecodeString(PageData.Name)).TitleColorRes(Resource.Color.primary);
                         dialog.Input(Resource.String.Lbl_WriteMessage, 0, false, this);
                         dialog.InputType(InputTypes.TextFlagImeMultiLine);
                         dialog.PositiveText(GetText(Resource.String.Btn_Send)).OnPositive(this);
@@ -1042,7 +1042,7 @@ namespace WoWonder.Activities.Communities.Pages
                     {
                         case "Avatar":
                         {
-                            var (apiStatus, respond) = await RequestsAsync.Page.Update_Page_Avatar(PageId, path).ConfigureAwait(false);
+                            var (apiStatus, respond) = await RequestsAsync.Page.UpdatePageAvatarAsync(PageId, path).ConfigureAwait(false);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -1067,7 +1067,7 @@ namespace WoWonder.Activities.Communities.Pages
                         }
                         case "Cover":
                         {
-                            var (apiStatus, respond) = await RequestsAsync.Page.Update_Page_Cover(PageId, path).ConfigureAwait(false);
+                            var (apiStatus, respond) = await RequestsAsync.Page.UpdatePageCoverAsync(PageId, path).ConfigureAwait(false);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -1335,7 +1335,7 @@ namespace WoWonder.Activities.Communities.Pages
 
         private async Task GetPageDataApi()
         {
-            var (apiStatus, respond) = await RequestsAsync.Page.Get_Page_Data(PageId);
+            var (apiStatus, respond) = await RequestsAsync.Page.GetPageDataAsync(PageId);
 
             if (apiStatus != 200 || respond is not GetPageDataObject result || result.PageData == null)
                 Methods.DisplayReportResult(this, respond);
@@ -1421,7 +1421,7 @@ namespace WoWonder.Activities.Communities.Pages
                         var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                         var time = unixTimestamp.ToString();
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.Send_MessageToPageChat(PageId, UserId, time, strName) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.SendMessageToPageChatAsync(PageId, UserId, time, strName) });
                         Toast.MakeText(this, GetString(Resource.String.Lbl_MessageSentSuccessfully), ToastLength.Short)?.Show();
                     }
                     else
@@ -1507,7 +1507,7 @@ namespace WoWonder.Activities.Communities.Pages
                 {
                     PageData.Boosted = "1";
                     //Sent Api 
-                    var (apiStatus, respond) = await RequestsAsync.Page.BoostPage(PageId);
+                    var (apiStatus, respond) = await RequestsAsync.Page.BoostPageAsync(PageId);
                     switch (apiStatus)
                     {
                         case 200:

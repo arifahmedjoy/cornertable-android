@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Android.Content;
 using Android.Graphics;
 
 
@@ -14,20 +15,25 @@ using Com.Tuyenmonkey.Textdecorator;
 using Java.IO;
 using Java.Util;
 using WoWonder.Activities.Comment.Fragment;
+using WoWonder.Activities.MyProfile;
+using WoWonder.Activities.NativePost.Pages;
 using WoWonder.Activities.NativePost.Post;
+using WoWonder.Activities.UserProfile;
 using WoWonder.Helpers.CacheLoaders;
+using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.Anjo;
 using WoWonder.Library.Anjo.SuperTextLibrary;
+using WoWonder.SQLite;
 using WoWonderClient;
 using IList = System.Collections.IList;
 using Object = Java.Lang.Object;
 
 namespace WoWonder.Activities.Comment.Adapters
 { 
-    public class ReplyCommentAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider
+    public class ReplyCommentAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider, StTools.IXAutoLinkOnClickListener
     { 
         public string EmptyState = "Wo_Empty_State"; 
         private readonly ReplyCommentActivity ActivityContext; 
@@ -123,7 +129,8 @@ namespace WoWonder.Activities.Comment.Adapters
                 if (!string.IsNullOrEmpty(item.Orginaltext) || !string.IsNullOrWhiteSpace(item.Orginaltext))
                 {
                     var text = Methods.FunString.DecodeString(item.Orginaltext);
-                    ReadMoreOption.AddReadMoreTo(holder.CommentText, new Java.Lang.String(text)); 
+                    ReadMoreOption.AddReadMoreTo(holder.CommentText, new Java.Lang.String(text));
+                    holder.CommentText.SetAutoLinkOnClickListener(this, new Dictionary<string, string>());
                 }
                 else
                 {
@@ -136,7 +143,7 @@ namespace WoWonder.Activities.Comment.Adapters
                         return;
                 }
 
-                holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
+                holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
                 holder.UserName.Text = item.Publisher.Name;
                 GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Color);
                  
@@ -252,7 +259,8 @@ namespace WoWonder.Activities.Comment.Adapters
                                             break;
                                         default:
                                             holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                            //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                                             holder.LikeTextView.Tag = "Like";
 
                                             switch (item.Reaction.Count)
@@ -271,7 +279,8 @@ namespace WoWonder.Activities.Comment.Adapters
                         else
                         {
                             holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                            //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                             holder.LikeTextView.Tag = "Like";
 
                             switch (item.Reaction.Count)
@@ -344,7 +353,8 @@ namespace WoWonder.Activities.Comment.Adapters
                                 break;
                             default:
                                 holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                                 holder.LikeTextView.Tag = "Like";
                                 break;
                         }
@@ -443,6 +453,149 @@ namespace WoWonder.Activities.Comment.Adapters
         public RequestBuilder GetPreloadRequestBuilder(Object p0)
         {
             return GlideImageLoader.GetPreLoadRequestBuilder(ActivityContext, p0.ToString(), ImageStyle.CenterCrop);
-        } 
-    }  
+        }
+
+        public void AutoLinkTextClick(StTools.XAutoLinkMode p0, string p1, Dictionary<string, string> userData)
+        {
+            try
+            {
+                p1 = p1.Replace(" ", "").Replace("\n", "");
+                var typeText = Methods.FunString.Check_Regex(p1);
+                switch (typeText)
+                {
+                    case "Email":
+                        Methods.App.SendEmail(ActivityContext, p1);
+                        break;
+                    case "Website":
+                        {
+                            string url = p1.Contains("http") switch
+                            {
+                                false => "http://" + p1,
+                                _ => p1
+                            };
+
+                            //var intent = new Intent(MainContext, typeof(LocalWebViewActivity));
+                            //intent.PutExtra("URL", url);
+                            //intent.PutExtra("Type", url);
+                            //MainContext.StartActivity(intent);
+                            new IntentController(ActivityContext).OpenBrowserFromApp(url);
+                            break;
+                        }
+                    case "Hashtag":
+                        {
+                            var intent = new Intent(ActivityContext, typeof(HashTagPostsActivity));
+                            intent.PutExtra("Id", p1);
+                            intent.PutExtra("Tag", p1);
+                            ActivityContext.StartActivity(intent);
+                            break;
+                        }
+                    case "Mention":
+                        {
+                            var dataUSer = ListUtils.MyProfileList?.FirstOrDefault();
+                            string name = p1.Replace("@", "");
+
+                            var sqlEntity = new SqLiteDatabase();
+                            var user = sqlEntity.Get_DataOneUser(name);
+
+
+                            if (user != null)
+                            {
+                                WoWonderTools.OpenProfile(ActivityContext, user.UserId, user);
+                            }
+                            else switch (userData?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            var data = userData.FirstOrDefault(a => a.Value == name);
+                                            if (data.Key != null && data.Key == UserDetails.UserId)
+                                            {
+                                                switch (PostClickListener.OpenMyProfile)
+                                                {
+                                                    case true:
+                                                        return;
+                                                    default:
+                                                        {
+                                                            var intent = new Intent(ActivityContext, typeof(MyProfileActivity));
+                                                            ActivityContext.StartActivity(intent);
+                                                            break;
+                                                        }
+                                                }
+                                            }
+                                            else if (data.Key != null)
+                                            {
+                                                var intent = new Intent(ActivityContext, typeof(UserProfileActivity));
+                                                //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
+                                                intent.PutExtra("UserId", data.Key);
+                                                ActivityContext.StartActivity(intent);
+                                            }
+                                            else
+                                            {
+                                                if (name == dataUSer?.Name || name == dataUSer?.Username)
+                                                {
+                                                    switch (PostClickListener.OpenMyProfile)
+                                                    {
+                                                        case true:
+                                                            return;
+                                                        default:
+                                                            {
+                                                                var intent = new Intent(ActivityContext, typeof(MyProfileActivity));
+                                                                ActivityContext.StartActivity(intent);
+                                                                break;
+                                                            }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    var intent = new Intent(ActivityContext, typeof(UserProfileActivity));
+                                                    //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
+                                                    intent.PutExtra("name", name);
+                                                    ActivityContext.StartActivity(intent);
+                                                }
+                                            }
+
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            if (name == dataUSer?.Name || name == dataUSer?.Username)
+                                            {
+                                                switch (PostClickListener.OpenMyProfile)
+                                                {
+                                                    case true:
+                                                        return;
+                                                    default:
+                                                        {
+                                                            var intent = new Intent(ActivityContext, typeof(MyProfileActivity));
+                                                            ActivityContext.StartActivity(intent);
+                                                            break;
+                                                        }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                var intent = new Intent(ActivityContext, typeof(UserProfileActivity));
+                                                //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
+                                                intent.PutExtra("name", name);
+                                                ActivityContext.StartActivity(intent);
+                                            }
+
+                                            break;
+                                        }
+                                }
+
+                            break;
+                        }
+                    case "Number":
+                        Methods.App.SaveContacts(ActivityContext, p1, "", "2");
+                        break;
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+
+    }
 }

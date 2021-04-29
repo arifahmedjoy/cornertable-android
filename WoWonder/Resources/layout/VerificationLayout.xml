@@ -12,6 +12,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_gravity="top"
@@ -219,7 +220,7 @@
         android:layout_gravity="center"
         android:padding="30dp"
         android:id="@+id/verified"
-        android:background="?attr/colorFill"
+        android:background="?attr/colorPrimary"
         android:gravity="center_horizontal"
         android:orientation="vertical">
         <TextView

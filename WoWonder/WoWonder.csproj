@@ -18,6 +18,7 @@
     <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
     <AndroidResgenClass>Resource</AndroidResgenClass>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
     <TargetFrameworkVersion>v11.0</TargetFrameworkVersion>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
@@ -25,9 +26,6 @@
     <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
-    <AndroidLinkSkip>SQLite.Net;WoWonderClient;AutoMapper;</AndroidLinkSkip>
-    <AndroidSupportedAbis>armeabi-v7a;arm64-v8a</AndroidSupportedAbis>
-    <JavaMaximumHeapSize>3G</JavaMaximumHeapSize>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -41,14 +39,22 @@
     <AndroidLinkMode>Full</AndroidLinkMode>
     <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
     <LangVersion>latest</LangVersion>
+    <AndroidLinkSkip>SQLite.Net;WoWonderClient;AutoMapper;</AndroidLinkSkip>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <BundleAssemblies>true</BundleAssemblies>
-    <JavaMaximumHeapSize>3G</JavaMaximumHeapSize>
-    <AndroidKeyStore>True</AndroidKeyStore>
+    <BundleAssemblies>false</BundleAssemblies>
+    <AndroidSupportedAbis>armeabi-v7a;arm64-v8a</AndroidSupportedAbis>
+    <JavaMaximumHeapSize>4G</JavaMaximumHeapSize>
+    <AndroidKeyStore>false</AndroidKeyStore>
     <AndroidSigningKeyStore>KeyApk\CornerTable.keystore</AndroidSigningKeyStore>
-    <AndroidSigningKeyAlias>CornerTable</AndroidSigningKeyAlias>
+    <AndroidSigningKeyAlias>cornertable</AndroidSigningKeyAlias>
     <AndroidSigningStorePass>aaaaaaaa</AndroidSigningStorePass>
     <AndroidSigningKeyPass>aaaaaaaa</AndroidSigningKeyPass>
+    <AndroidTlsProvider>
+    </AndroidTlsProvider>
+    <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+    <AotAssemblies>false</AotAssemblies>
+    <EnableLLVM>false</EnableLLVM>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -63,18 +69,22 @@
     <AndroidLinkMode>Full</AndroidLinkMode>
     <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
     <LangVersion>latest</LangVersion>
-    <AndroidPackageFormat>aab</AndroidPackageFormat>
-    <JavaMaximumHeapSize>3G</JavaMaximumHeapSize>
-    <AndroidKeyStore>True</AndroidKeyStore>
-    <AndroidSigningKeyStore>KeyApk\CornerTable.keystore</AndroidSigningKeyStore>
-    <AndroidSigningKeyAlias>CornerTable</AndroidSigningKeyAlias>
-    <AndroidSigningStorePass>aaaaaaaa</AndroidSigningStorePass>
-    <AndroidSigningKeyPass>aaaaaaaa</AndroidSigningKeyPass>
-    <BundleAssemblies>true</BundleAssemblies>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidLinkSkip>SQLite.Net;WoWonderClient;AutoMapper;</AndroidLinkSkip>
+    <JavaMaximumHeapSize>4G</JavaMaximumHeapSize>
+    <AndroidSupportedAbis>armeabi-v7a;arm64-v8a</AndroidSupportedAbis>
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyStore>KeyApk\release.keystore</AndroidSigningKeyStore>
+    <AndroidSigningKeyAlias>release</AndroidSigningKeyAlias>
+    <AndroidSigningStorePass>cornertable</AndroidSigningStorePass>
+    <AndroidSigningKeyPass>cornertable</AndroidSigningKeyPass>
+    <BundleAssemblies>false</BundleAssemblies>
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <AndroidUseDefaultAotProfile>false</AndroidUseDefaultAotProfile>
+    <AotAssemblies>false</AotAssemblies>
+    <EnableLLVM>false</EnableLLVM>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AppIntro">
@@ -136,9 +146,77 @@
     <Compile Include="Activities\Articles\ArticlesCommentClickListener.cs" />
     <Compile Include="Activities\Articles\ArticlesViewActivity.cs" />
     <Compile Include="Activities\Articles\CreateBlogActivity.cs" />
+    <Compile Include="Activities\Articles\FilterCategoriesActivity.cs" />
     <Compile Include="Activities\Base\BaseActivity.cs" />
     <Compile Include="Activities\BlockedUsers\Adapter\BlockedUsersAdapter.cs" />
     <Compile Include="Activities\BlockedUsers\BlockedUsersActivity.cs" />
+    <Compile Include="Activities\Chat\Adapters\Holders.cs" />
+    <Compile Include="Activities\Chat\Call\Adapters\AddNewCallAdapter.cs" />
+    <Compile Include="Activities\Chat\Call\AddNewCallActivity.cs" />
+    <Compile Include="Activities\Chat\Call\Agora\AgoraAudioCallActivity.cs" />
+    <Compile Include="Activities\Chat\Call\Agora\AgoraRtcAudioCallHandler.cs" />
+    <Compile Include="Activities\Chat\Call\Agora\AgoraRtcHandler.cs" />
+    <Compile Include="Activities\Chat\Call\Agora\AgoraSettings.cs" />
+    <Compile Include="Activities\Chat\Call\Agora\AgoraVideoCallActivity.cs" />
+    <Compile Include="Activities\Chat\Call\Agora\AgoraVideoResolutions.cs" />
+    <Compile Include="Activities\Chat\Call\Twilio\TwilioAudioCallActivity.cs" />
+    <Compile Include="Activities\Chat\Call\Twilio\TwilioVideoCallActivity.cs" />
+    <Compile Include="Activities\Chat\Call\Twilio\TwilioVideoHelper.cs" />
+    <Compile Include="Activities\Chat\Call\VideoAudioComingCallActivity.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Adapters\EmptySuggetionRecylerAdapter.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Adapters\MessageAdapter.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Adapters\StickerRecylerAdapter.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Adapters\StickersTabAdapter.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\ChatWindowActivity.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\ForwardMessagesActivity.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Fragment\ChatColorsFragment.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Fragment\ChatRecordSoundFragment.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\Fragment\ChatStickersTabFragment.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\MessageInfoActivity.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\PinnedMessageActivity.cs" />
+    <Compile Include="Activities\Chat\ChatWindow\StartedMessagesActivity.cs" />
+    <Compile Include="Activities\Chat\Editor\Adapters\ColorPickerAdapter.cs" />
+    <Compile Include="Activities\Chat\Editor\Adapters\FontTypeFaceAdapter.cs" />
+    <Compile Include="Activities\Chat\Editor\EditColorActivity.cs" />
+    <Compile Include="Activities\Chat\Editor\Tools\ColorFragment.cs" />
+    <Compile Include="Activities\Chat\Editor\Tools\TextEditorFragment.cs" />
+    <Compile Include="Activities\Chat\Floating\ChatHeadService.cs" />
+    <Compile Include="Activities\Chat\Floating\InitFloating.cs" />
+    <Compile Include="Activities\Chat\GroupChat\Adapter\GroupRequestsAdapter.cs" />
+    <Compile Include="Activities\Chat\GroupChat\CreateGroupChatActivity.cs" />
+    <Compile Include="Activities\Chat\GroupChat\EditGroupChatActivity.cs" />
+    <Compile Include="Activities\Chat\GroupChat\Fragment\GroupChatRecordSoundFragment.cs" />
+    <Compile Include="Activities\Chat\GroupChat\Fragment\GroupChatStickersTabFragment.cs" />
+    <Compile Include="Activities\Chat\GroupChat\GroupChatWindowActivity.cs" />
+    <Compile Include="Activities\Chat\GroupChat\GroupRequestActivity.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Adapter\LastCallsAdapter.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Adapter\LastChatsAdapter.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\ArchivedActivity.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastCallsFragment.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastChatFragment.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastGroupChatsFragment.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastPageChatsFragment.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\MsgTabbedMainActivity.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\OptionsLastMessagesBottomSheet.cs" />
+    <Compile Include="Activities\Chat\MsgTabbes\Services\ChatApiService.cs" />
+    <Compile Include="Activities\Chat\PageChat\Fragment\PageChatRecordSoundFragment.cs" />
+    <Compile Include="Activities\Chat\PageChat\Fragment\PageChatStickersTabFragment.cs" />
+    <Compile Include="Activities\Chat\PageChat\PageChatWindowActivity.cs" />
+    <Compile Include="Activities\Chat\ReceivingSharingActivity.cs" />
+    <Compile Include="Activities\Chat\SharedFiles\Adapter\HSharedFilesAdapter.cs" />
+    <Compile Include="Activities\Chat\SharedFiles\Adapter\SharedFilesAdapter.cs" />
+    <Compile Include="Activities\Chat\SharedFiles\SharedFilesActivity.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment1.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment2.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment3.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment4.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment5.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment6.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerFragment7.cs" />
+    <Compile Include="Activities\Chat\StickersFragments\StickerItemClickListener.cs" />
+    <Compile Include="Activities\Chat\Viewer\ImageViewerActivity.cs" />
+    <Compile Include="Activities\Chat\Viewer\VideoFullScreenActivity.cs" />
+    <Compile Include="Activities\Chat\WallpaperActivity.cs" />
     <Compile Include="Activities\Comment\Adapters\CommentAdapter.cs" />
     <Compile Include="Activities\Comment\Adapters\CommentAdapterViewHolder.cs" />
     <Compile Include="Activities\Comment\Adapters\ReplyCommentAdapter.cs" />
@@ -185,10 +263,10 @@
     <Compile Include="Activities\Contacts\MyContactsActivity.cs" />
     <Compile Include="Activities\Contacts\SelectContactsActivity.cs" />
     <Compile Include="Activities\Covid19\Covid19Activity.cs" />
-    <Compile Include="Activities\Default\FirstActivity.cs" />
     <Compile Include="Activities\Default\ForgetPasswordActivity.cs" />
     <Compile Include="Activities\Default\LoginActivity.cs" />
     <Compile Include="Activities\Default\RegisterActivity.cs" />
+    <Compile Include="Activities\Default\SelectRegisterActivity.cs" />
     <Compile Include="Activities\Default\VerificationCodeActivity.cs" />
     <Compile Include="Activities\EditPost\EditPostActivity.cs" />
     <Compile Include="Activities\Events\Adapters\EventAdapter.cs" />
@@ -240,6 +318,7 @@
     <Compile Include="Activities\Live\Rtc\AgoraEventHandler.cs" />
     <Compile Include="Activities\Live\Rtc\EngineConfig.cs" />
     <Compile Include="Activities\Live\Rtc\IEventHandler.cs" />
+    <Compile Include="Activities\Live\Stats\AgoraRecordObject.cs" />
     <Compile Include="Activities\Live\Stats\LocalStatsData.cs" />
     <Compile Include="Activities\Live\Stats\RemoteStatsData.cs" />
     <Compile Include="Activities\Live\Stats\StatsData.cs" />
@@ -278,6 +357,7 @@
     <Compile Include="Activities\NativePost\Extra\PostModelResolver.cs" />
     <Compile Include="Activities\NativePost\Extra\TextLayoutView.cs" />
     <Compile Include="Activities\NativePost\Extra\WRecyclerView.cs" />
+    <Compile Include="Activities\NativePost\MoreBottomDialogFragment.cs" />
     <Compile Include="Activities\NativePost\Pages\YoutubePlayerActivity.cs" />
     <Compile Include="Activities\NativePost\Pages\HashTagPostsActivity.cs" />
     <Compile Include="Activities\NativePost\Pages\SavedPostsActivity.cs" />
@@ -293,6 +373,8 @@
     <Compile Include="Activities\NativePost\Post\SingleTonClickEvents.cs" />
     <Compile Include="Activities\NativePost\Services\PostApiService.cs" />
     <Compile Include="Activities\NativePost\Share\ShareBottomDialogFragment.cs" />
+    <Compile Include="Activities\NativePost\Share\ShareGroupActivity.cs" />
+    <Compile Include="Activities\NativePost\Share\SharePageActivity.cs" />
     <Compile Include="Activities\NativePost\Share\SharePostActivity.cs" />
     <Compile Include="Activities\NearbyBusiness\Adapters\NearbyBusinessAdapter.cs" />
     <Compile Include="Activities\NearbyBusiness\NearbyBusinessActivity.cs" />
@@ -372,7 +454,6 @@
     <Compile Include="Activities\Tabbes\Adapters\ProUsersAdapter.cs" />
     <Compile Include="Activities\Tabbes\Adapters\ShortcutsAdapter.cs" />
     <Compile Include="Activities\Tabbes\Adapters\TrendingAdapter.cs" />
-    <Compile Include="Activities\Tabbes\Adapters\WeatherAdapter.cs" />
     <Compile Include="Activities\Tabbes\Fragment\MoreFragment.cs" />
     <Compile Include="Activities\Tabbes\Fragment\NewsFeedNative.cs" />
     <Compile Include="Activities\Tabbes\Fragment\NotificationsFragment.cs" />
@@ -405,73 +486,6 @@
     <Compile Include="Adapters\GendersAdapter.cs" />
     <Compile Include="Adapters\MainTabAdapter.cs" />
     <Compile Include="AppSettings.cs" />
-    <Compile Include="Activities\Chat\Adapters\Holders.cs" />
-    <Compile Include="Activities\Chat\Call\Adapters\AddNewCallAdapter.cs" />
-    <Compile Include="Activities\Chat\Call\AddNewCallActivity.cs" />
-    <Compile Include="Activities\Chat\Call\Agora\AgoraAudioCallActivity.cs" />
-    <Compile Include="Activities\Chat\Call\Agora\AgoraRtcAudioCallHandler.cs" />
-    <Compile Include="Activities\Chat\Call\Agora\AgoraRtcHandler.cs" />
-    <Compile Include="Activities\Chat\Call\Agora\AgoraSettings.cs" />
-    <Compile Include="Activities\Chat\Call\Agora\AgoraVideoCallActivity.cs" />
-    <Compile Include="Activities\Chat\Call\Agora\AgoraVideoResolutions.cs" />
-    <Compile Include="Activities\Chat\Call\Twilio\TwilioAudioCallActivity.cs" />
-    <Compile Include="Activities\Chat\Call\Twilio\TwilioVideoCallActivity.cs" />
-    <Compile Include="Activities\Chat\Call\Twilio\TwilioVideoHelper.cs" />
-    <Compile Include="Activities\Chat\Call\VideoAudioComingCallActivity.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Adapters\EmptySuggetionRecylerAdapter.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Adapters\MessageAdapter.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Adapters\StickerRecylerAdapter.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Adapters\StickersTabAdapter.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\ChatWindowActivity.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\ForwardMessagesActivity.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Fragment\ChatColorsFragment.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Fragment\ChatRecordSoundFragment.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\Fragment\ChatStickersTabFragment.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\MessageInfoActivity.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\PinnedMessageActivity.cs" />
-    <Compile Include="Activities\Chat\ChatWindow\StartedMessagesActivity.cs" />
-    <Compile Include="Activities\Chat\Editor\Adapters\ColorPickerAdapter.cs" />
-    <Compile Include="Activities\Chat\Editor\Adapters\FontTypeFaceAdapter.cs" />
-    <Compile Include="Activities\Chat\Editor\EditColorActivity.cs" />
-    <Compile Include="Activities\Chat\Editor\Tools\ColorFragment.cs" />
-    <Compile Include="Activities\Chat\Editor\Tools\TextEditorFragment.cs" />
-    <Compile Include="Activities\Chat\Floating\ChatHeadService.cs" />
-    <Compile Include="Activities\Chat\Floating\InitFloating.cs" />
-    <Compile Include="Activities\Chat\GroupChat\Adapter\GroupRequestsAdapter.cs" />
-    <Compile Include="Activities\Chat\GroupChat\CreateGroupChatActivity.cs" />
-    <Compile Include="Activities\Chat\GroupChat\EditGroupChatActivity.cs" />
-    <Compile Include="Activities\Chat\GroupChat\Fragment\GroupChatRecordSoundFragment.cs" />
-    <Compile Include="Activities\Chat\GroupChat\Fragment\GroupChatStickersTabFragment.cs" />
-    <Compile Include="Activities\Chat\GroupChat\GroupChatWindowActivity.cs" />
-    <Compile Include="Activities\Chat\GroupChat\GroupRequestActivity.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Adapter\LastCallsAdapter.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Adapter\LastChatsAdapter.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\ArchivedActivity.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastCallsFragment.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastChatFragment.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastGroupChatsFragment.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Fragment\LastPageChatsFragment.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\MsgTabbedMainActivity.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\OptionsLastMessagesBottomSheet.cs" />
-    <Compile Include="Activities\Chat\MsgTabbes\Services\ChatApiService.cs" />
-    <Compile Include="Activities\Chat\PageChat\Fragment\PageChatRecordSoundFragment.cs" />
-    <Compile Include="Activities\Chat\PageChat\Fragment\PageChatStickersTabFragment.cs" />
-    <Compile Include="Activities\Chat\PageChat\PageChatWindowActivity.cs" />
-    <Compile Include="Activities\Chat\ReceivingSharingActivity.cs" />
-    <Compile Include="Activities\Chat\SharedFiles\Adapter\HSharedFilesAdapter.cs" />
-    <Compile Include="Activities\Chat\SharedFiles\Adapter\SharedFilesAdapter.cs" />
-    <Compile Include="Activities\Chat\SharedFiles\SharedFilesActivity.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment1.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment2.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment3.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment4.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment5.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment6.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerFragment7.cs" />
-    <Compile Include="Activities\Chat\StickersFragments\StickerItemClickListener.cs" />
-    <Compile Include="Activities\Chat\Viewer\ImageViewerActivity.cs" />
-    <Compile Include="Activities\Chat\Viewer\VideoFullScreenActivity.cs" />
-    <Compile Include="Activities\Chat\WallpaperActivity.cs" />
     <Compile Include="Helpers\Ads\AdsFacebook.cs" />
     <Compile Include="Helpers\Ads\AdsGoogle.cs" />
     <Compile Include="Helpers\Ads\NativeTemplateStyle.cs" />
@@ -524,6 +538,7 @@
     <Compile Include="Helpers\Utils\ListUtils.cs" />
     <Compile Include="Helpers\Utils\Methods.cs" />
     <Compile Include="Helpers\Utils\MySpanSizeLookup.cs" />
+    <Compile Include="Helpers\Utils\RecyclerViewOnItemTouch.cs" />
     <Compile Include="Helpers\Utils\RecyclerViewOnScrollListener.cs" />
     <Compile Include="Helpers\Utils\ShareFileImplementation.cs" />
     <Compile Include="Helpers\Utils\StoreReviewApp.cs" />
@@ -645,36 +660,11 @@
     <AndroidAsset Include="Assets\Photo.json" />
     <AndroidAsset Include="Assets\Recourd.json" />
     <GoogleServicesJson Include="google-services.json" />
-    <AndroidAsset Include="Assets\beyond_wonderland.ttf" />
-    <AndroidAsset Include="Assets\BoutrosMBCDinkum-Medium.ttf" />
-    <AndroidAsset Include="Assets\Bryndan-Write.ttf" />
-    <AndroidAsset Include="Assets\emojione-android.ttf" />
-    <AndroidAsset Include="Assets\FavAnim.json" />
-    <AndroidAsset Include="Assets\fontawesome-v3.1.ttf" />
-    <AndroidAsset Include="Assets\fontawesome-webfont.ttf" />
-    <AndroidAsset Include="Assets\Hacen Sudan.ttf" />
-    <AndroidAsset Include="Assets\Harmattan-Regular.ttf" />
-    <AndroidAsset Include="Assets\Norican-Regular.ttf" />
-    <AndroidAsset Include="Assets\Oswald-Heavy.ttf" />
-    <AndroidAsset Include="Assets\Roboto-Medium.ttf" />
-    <AndroidAsset Include="Assets\RobotoMono-Regular.ttf" />
     <AndroidResource Include="Resources\drawable\Covid19.webp" />
-    <AndroidResource Include="Resources\font\facebolf.ttf" />
-    <AndroidResource Include="Resources\font\poppins_semibold.ttf" />
-    <AndroidResource Include="Resources\font\poppins_regular.ttf" />
-    <AndroidResource Include="Resources\drawable\Sticker1.webp" />
-    <AndroidResource Include="Resources\drawable\sticker2.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker3.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker4.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker5.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker6.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker7.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker8.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker9.webp" />
-    <AndroidResource Include="Resources\drawable\Sticker10.webp" />
-    <AndroidResource Include="Resources\drawable\sticker11.webp" />
-    <AndroidResource Include="Resources\drawable\attach.webp" />
-    <AndroidResource Include="Resources\drawable\ChatHeads.webp" />
+    <AndroidResource Include="Resources\font\avenir_book.ttf" />
+    <AndroidResource Include="Resources\font\avenir_heavy.ttf" />
+    <AndroidResource Include="Resources\font\roboto_medium.ttf" />
+    <AndroidResource Include="Resources\font\roboto_regular.ttf" />
     <AndroidResource Include="Resources\drawable\Email.webp" />
     <AndroidResource Include="Resources\drawable\Green_Online.webp" />
     <AndroidResource Include="Resources\drawable\Group_icon.webp" />
@@ -710,152 +700,190 @@
     <AndroidResource Include="Resources\drawable\map.webp" />
     <AndroidResource Include="Resources\drawable\msg_round_load_m.webp" />
     <AndroidResource Include="Resources\drawable\SendLetter.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker8.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker7.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker6.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker5.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker4.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker3.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\sticker2.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\sticker11.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker10.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Sticker1.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\SendLetter.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\msg_round_load_m.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\map.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Image_Map.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_uplodeimage.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_trash_fixed.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_trash_action.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_send_up_arrow.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_search_white_24dp.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_msg_panel_stickers.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_media_pause_light.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_media_pause_dark.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_masks_msk.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_filter.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_edit.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_close_black_24dp.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_call_reply.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_call_answer.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_action_menu.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_action_keyboard.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_action_icon_edit.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_action_delete.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\IconGoogle.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Group_icon.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\Email.webp" />
+    <AndroidResource Include="Resources\drawable\attach.webp" />
+    <AndroidResource Include="Resources\drawable\ChatHeads.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker1.webp" />
+    <AndroidResource Include="Resources\drawable\sticker2.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker3.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker4.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker5.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker6.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker7.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker8.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker9.webp" />
+    <AndroidResource Include="Resources\drawable\Sticker10.webp" />
+    <AndroidResource Include="Resources\drawable\sticker11.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\attach.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Email.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Group_icon.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_delete.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_ic_fullscreen_expand.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_ic_fullscreen_skrink.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_icon_edit.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_keyboard.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_menu.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_call_answer.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_call_reply.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_close_black_24dp.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_edit.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_filter.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_masks_msk.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_media_pause_dark.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_media_pause_light.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_msg_panel_stickers.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_post_desert.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_post_park.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_post_sea.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_search_white_24dp.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_send_up_arrow.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_trash_action.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_trash_fixed.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_uplodeimage.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\IconGoogle.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Image_Map.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\map.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\msg_round_load_m.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\SendLetter.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker1.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker10.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\sticker11.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\sticker2.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker3.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker4.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker5.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker6.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker7.webp" />
+    <AndroidResource Include="Resources\drawable-hdpi\Sticker8.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\Sticker9.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker8.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker7.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker6.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker5.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker4.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker3.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\sticker2.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\sticker11.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker10.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Sticker1.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\SendLetter.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\msg_round_load_m.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\map.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Image_Map.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Image_File.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_youtube_logo.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_uplodeimage.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_trash_fixed.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_trash_action.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_story_camera.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_speaker_up.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_speaker_close.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_send_up_arrow.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_search_white_24dp.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_phone_user.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_msg_panel_stickers.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_media_pause_light.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_media_pause_dark.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_masks_msk.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_filter.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_edit.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_contacts.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_close_black_24dp.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_video_open.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_video_mute.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_mic_open.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_mic_mute.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_call_reply.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_call_end.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_call_answer.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_menu.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_keyboard.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_icon_edit.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_delete.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\IconGoogle.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Group_icon.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Grey_Offline.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Email.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\default_group.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\colorAttach.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\Audio_File.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\attach.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Audio_File.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\colorAttach.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\default_group.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Email.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Grey_Offline.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Group_icon.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_delete.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_ic_fullscreen_expand.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_ic_fullscreen_skrink.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_icon_edit.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_keyboard.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_menu.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_call_answer.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_call_end.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_call_reply.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_mic_mute.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_mic_open.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_video_mute.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_camera_video_open.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_close_black_24dp.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_contacts.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_edit.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_filter.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_masks_msk.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_media_pause_dark.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_media_pause_light.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_msg_panel_stickers.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_phone_user.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_desert.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_park.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_sea.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_search_white_24dp.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_send_up_arrow.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_speaker_close.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_speaker_up.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_story_camera.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_trash_action.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_trash_fixed.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_uplodeimage.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_youtube_logo.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\IconGoogle.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Image_File.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Image_Map.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\map.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\msg_round_load_m.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\SendLetter.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker1.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker10.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\sticker11.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\sticker2.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker3.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker4.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker5.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker6.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker7.webp" />
+    <AndroidResource Include="Resources\drawable-xhdpi\Sticker8.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\Sticker9.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker9.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker8.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker7.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker6.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker5.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker4.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker3.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\sticker2.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\sticker11.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker10.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker1.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\SendLetter.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\msg_round_load_m.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\map.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Image_Map.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Image_File.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_youtube_logo.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_uplodeimage.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_trash_fixed.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_trash_action.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_story_camera.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_speaker_up.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_speaker_close.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_send_up_arrow.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_search_white_24dp.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_phone_user.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_msg_panel_stickers.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_media_pause_light.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_media_pause_dark.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_masks_msk.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_filter.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_edit.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_contacts.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_close_padded.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_close_black_24dp.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_video_open.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_video_mute.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_mic_open.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_mic_mute.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_call_reply.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_call_end.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_call_answer.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_menu.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_keyboard.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_icon_edit.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_delete.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\IconGoogle.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Group_icon.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Grey_Offline.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Email.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\default_group.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\colorAttach.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ChatHeads.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\Audio_File.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\attach.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Audio_File.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ChatHeads.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\colorAttach.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\default_group.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Email.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Grey_Offline.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Group_icon.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_delete.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_ic_fullscreen_expand.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_icon_edit.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_keyboard.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_menu.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_call_answer.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_call_end.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_call_reply.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_mic_mute.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_mic_open.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_video_mute.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_camera_video_open.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_close_black_24dp.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_close_padded.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_contacts.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_edit.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_filter.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_masks_msk.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_media_pause_dark.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_media_pause_light.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_msg_panel_stickers.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_phone_user.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_post_desert.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_search_white_24dp.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_send_up_arrow.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_speaker_close.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_speaker_up.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_story_camera.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_trash_action.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_trash_fixed.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_uplodeimage.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_youtube_logo.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\IconGoogle.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Image_File.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Image_Map.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\map.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\msg_round_load_m.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\SendLetter.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker1.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker10.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\sticker11.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\sticker2.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker3.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker4.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker5.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker6.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker7.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker8.webp" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\Sticker9.webp" />
     <ProguardConfiguration Include="Proguard.cfg" />
+    <AndroidAsset Include="Assets\RobotoMono-Regular.ttf" />
+    <AndroidAsset Include="Assets\beyond_wonderland.ttf" />
+    <AndroidAsset Include="Assets\BoutrosMBCDinkum-Medium.ttf" />
+    <AndroidAsset Include="Assets\Bryndan-Write.ttf" />
+    <AndroidAsset Include="Assets\emojione-android.ttf" />
+    <AndroidAsset Include="Assets\fontawesome-v3.1.ttf" />
+    <AndroidAsset Include="Assets\fontawesome-webfont.ttf" />
+    <AndroidAsset Include="Assets\Hacen Sudan.ttf" />
+    <AndroidAsset Include="Assets\Harmattan-Regular.ttf" />
+    <AndroidAsset Include="Assets\Norican-Regular.ttf" />
+    <AndroidAsset Include="Assets\Oswald-Heavy.ttf" />
+    <AndroidAsset Include="Assets\Roboto-Medium.ttf" />
+    <AndroidAsset Include="Assets\FavAnim.json" />
     <None Include="KeyApk\wowondertimelinechat.keyInfo" />
     <None Include="KeyApk\wowondertimelinechat.keystore" />
     <None Include="Resources\AboutResources.txt" />
@@ -896,8 +924,6 @@
     <AndroidResource Include="Resources\drawable\ic_action_filter.webp" />
     <AndroidResource Include="Resources\drawable\ic_action_ic_back.webp" />
     <AndroidResource Include="Resources\drawable\ic_action_ic_back_rtl.webp" />
-    <AndroidResource Include="Resources\drawable\ic_action_ic_fullscreen_expand.webp" />
-    <AndroidResource Include="Resources\drawable\ic_action_ic_fullscreen_skrink.webp" />
     <AndroidResource Include="Resources\drawable\ic_action_like_2.webp" />
     <AndroidResource Include="Resources\drawable\ic_action_nearby.webp" />
     <AndroidResource Include="Resources\drawable\ic_action_pinned.webp" />
@@ -1011,8 +1037,6 @@
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_filter.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_ic_back.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_ic_back_rtl.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_action_ic_fullscreen_expand.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_action_ic_fullscreen_skrink.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_like_2.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_nearby.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_pinned.webp" />
@@ -1043,9 +1067,6 @@
     <AndroidResource Include="Resources\drawable-hdpi\ic_more_dots_horizntal.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_play_arrow.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_play_dark_arrow.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_post_desert.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_post_park.webp" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_post_sea.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\Ic_Post_videoPlay.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_private.webp" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_requestAdd.webp" />
@@ -1108,8 +1129,6 @@
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_filter.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_ic_back.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_ic_back_rtl.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_ic_fullscreen_expand.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_ic_fullscreen_skrink.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_like_2.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_nearby.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_pinned.webp" />
@@ -1135,9 +1154,6 @@
     <AndroidResource Include="Resources\drawable-xhdpi\ic_more_dots_horizntal.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_play_arrow.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_play_dark_arrow.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_desert.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_park.webp" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_sea.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_requestAdd.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_stop_dark_arrow.webp" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_stop_white_24dp.webp" />
@@ -1182,7 +1198,6 @@
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_filter.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_ic_back.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_ic_back_rtl.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_ic_fullscreen_expand.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_like_2.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_nearby.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_pinned.webp" />
@@ -1208,7 +1223,6 @@
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_more_dots_horizntal.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_play_arrow.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_play_dark_arrow.webp" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_post_desert.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_requestAdd.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_stop_dark_arrow.webp" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_stop_white_24dp.webp" />
@@ -1239,8 +1253,6 @@
     <AndroidResource Include="Resources\font\wo_sans_medium.ttf" />
     <AndroidResource Include="Resources\font\wo_sans_regular.ttf" />
     <AndroidResource Include="Resources\raw\map_dark.json" />
-    <None Include="KeyApk\CornerTable.keyInfo" />
-    <None Include="KeyApk\CornerTable.keystore" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\anim\indicator_animator.xml" />
@@ -1298,7 +1310,7 @@
       <Version>1.2.2.1</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.3</Version>
+      <Version>13.0.1</Version>
     </PackageReference>
     <PackageReference Include="PlayCore">
       <Version>1.8.0</Version>
@@ -1364,10 +1376,10 @@
       <Version>3.4.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Agora.Full.Android">
-      <Version>3.2.1</Version>
+      <Version>3.3.2</Version>
     </PackageReference>
     <PackageReference Include="Twilio.Video.Android.XamarinBinding">
-      <Version>5.10.2</Version>
+      <Version>6.2.1</Version>
     </PackageReference>
     <PackageReference Include="Xam.Plugin.Connectivity">
       <Version>3.2.0</Version>
@@ -1392,6 +1404,9 @@
     </PackageReference>
     <PackageReference Include="Xamarin.BadgeView">
       <Version>1.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.BlurView">
+      <Version>1.6.5</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Facebook.Android">
       <Version>7.1.0</Version>
@@ -1460,68 +1475,68 @@
     <PackageReference Include="Xamarin.Google.Android.DataTransport.TransportApi" Version="2.2.1" />
     <PackageReference Include="Xamarin.Google.Android.DataTransport.TransportBackendCct" Version="2.3.3" />
     <PackageReference Include="Xamarin.Google.Android.DataTransport.TransportRuntime" Version="2.2.5" />
-    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.2.1.1" />
+    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.3.0.1" />
     <PackageReference Include="Xamarin.Build.Download" Version="0.10.0" />
-    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.2.0-alpha05" />
+    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.2.1" />
     <PackageReference Include="Xamarin.AndroidX.Annotation" Version="1.2.0-alpha01" />
-    <PackageReference Include="Xamarin.AndroidX.Annotation.Experimental" Version="1.0.0.8" />
-    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.2.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.AppCompat.AppCompatResources" Version="1.2.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Arch.Core.Common" Version="2.1.0.7" />
-    <PackageReference Include="Xamarin.AndroidX.Arch.Core.Runtime" Version="2.1.0.7" />
-    <PackageReference Include="Xamarin.AndroidX.AsyncLayoutInflater" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.3.0.4" />
-    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Collection" Version="1.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.ConstraintLayout" Version="2.0.4.1" />
-    <PackageReference Include="Xamarin.AndroidX.ConstraintLayout.Solver" Version="2.0.4.1" />
-    <PackageReference Include="Xamarin.AndroidX.CoordinatorLayout" Version="1.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.3.2.1" />
-    <PackageReference Include="Xamarin.AndroidX.CursorAdapter" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.CustomView" Version="1.1.0.4" />
-    <PackageReference Include="Xamarin.AndroidX.DocumentFile" Version="1.0.1.6" />
-    <PackageReference Include="Xamarin.AndroidX.DrawerLayout" Version="1.1.1.1" />
-    <PackageReference Include="Xamarin.AndroidX.DynamicAnimation" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.ExifInterface" Version="1.3.2.1" />
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.2.5.5" />
-    <PackageReference Include="Xamarin.AndroidX.GridLayout" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Interpolator" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Leanback" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.7" />
-    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.Utils" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.V13" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.V4" Version="1.0.0.6" />
+    <PackageReference Include="Xamarin.AndroidX.Annotation.Experimental" Version="1.0.0.9" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.2.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat.AppCompatResources" Version="1.2.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Arch.Core.Common" Version="2.1.0.8" />
+    <PackageReference Include="Xamarin.AndroidX.Arch.Core.Runtime" Version="2.1.0.8" />
+    <PackageReference Include="Xamarin.AndroidX.AsyncLayoutInflater" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.3.0.5" />
+    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.8" />
+    <PackageReference Include="Xamarin.AndroidX.Collection" Version="1.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.ConstraintLayout" Version="2.0.4.2" />
+    <PackageReference Include="Xamarin.AndroidX.ConstraintLayout.Solver" Version="2.0.4.2" />
+    <PackageReference Include="Xamarin.AndroidX.CoordinatorLayout" Version="1.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.3.2.3" />
+    <PackageReference Include="Xamarin.AndroidX.CursorAdapter" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.CustomView" Version="1.1.0.6" />
+    <PackageReference Include="Xamarin.AndroidX.DocumentFile" Version="1.0.1.7" />
+    <PackageReference Include="Xamarin.AndroidX.DrawerLayout" Version="1.1.1.2" />
+    <PackageReference Include="Xamarin.AndroidX.DynamicAnimation" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.ExifInterface" Version="1.3.2.2" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.3.1" />
+    <PackageReference Include="Xamarin.AndroidX.GridLayout" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Interpolator" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Leanback" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.8" />
+    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.Utils" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.V13" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.V4" Version="1.0.0.7" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.3.0.2-alpha03" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Extensions" Version="2.2.0.6" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Extensions" Version="2.2.0.7" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.3.0.2-alpha03" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.3.0.2-alpha03" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.2.0.4" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.3.0.1" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.3.0.2-alpha03" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Service" Version="2.3.0.2-alpha03" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.3.0.2-alpha03" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.3.0-alpha03" />
-    <PackageReference Include="Xamarin.AndroidX.Loader" Version="1.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.LocalBroadcastManager" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Media" Version="1.2.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.3.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Loader" Version="1.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.LocalBroadcastManager" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Media" Version="1.2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.Migration" Version="1.0.8" />
-    <PackageReference Include="Xamarin.AndroidX.MultiDex" Version="2.0.1.6" />
-    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.1.1.6" />
-    <PackageReference Include="Xamarin.AndroidX.Print" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Room.Common" Version="2.2.6" />
-    <PackageReference Include="Xamarin.AndroidX.Room.Runtime" Version="2.2.6" />
+    <PackageReference Include="Xamarin.AndroidX.MultiDex" Version="2.0.1.7" />
+    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.1.1.8" />
+    <PackageReference Include="Xamarin.AndroidX.Print" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.1.0.8" />
+    <PackageReference Include="Xamarin.AndroidX.Room.Common" Version="2.2.6.1" />
+    <PackageReference Include="Xamarin.AndroidX.Room.Runtime" Version="2.2.6.1" />
     <PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.1.0.4-alpha01" />
-    <PackageReference Include="Xamarin.AndroidX.SlidingPaneLayout" Version="1.1.0.1" />
-    <PackageReference Include="Xamarin.AndroidX.Sqlite" Version="2.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.Sqlite.Framework" Version="2.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.SwipeRefreshLayout" Version="1.1.0.1" />
-    <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.4.0" />
-    <PackageReference Include="Xamarin.AndroidX.VectorDrawable" Version="1.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.VectorDrawable.Animated" Version="1.1.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.VersionedParcelable" Version="1.1.1.6" />
-    <PackageReference Include="Xamarin.AndroidX.ViewPager" Version="1.0.0.6" />
-    <PackageReference Include="Xamarin.AndroidX.ViewPager2" Version="1.0.0.8" />
-    <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.5.0" />
+    <PackageReference Include="Xamarin.AndroidX.SlidingPaneLayout" Version="1.1.0.2" />
+    <PackageReference Include="Xamarin.AndroidX.Sqlite" Version="2.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.Sqlite.Framework" Version="2.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.SwipeRefreshLayout" Version="1.1.0.2" />
+    <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.4.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.VectorDrawable" Version="1.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.VectorDrawable.Animated" Version="1.1.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.VersionedParcelable" Version="1.1.1.7" />
+    <PackageReference Include="Xamarin.AndroidX.ViewPager" Version="1.0.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.ViewPager2" Version="1.0.0.9" />
+    <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.5.0.1" />
     <PackageReference Include="Xamarin.Firebase.Annotations" Version="116.0.0" />
     <PackageReference Include="Xamarin.Firebase.Common" Version="119.5.0" />
     <PackageReference Include="Xamarin.Firebase.Components" Version="116.1.0" />
@@ -1754,9 +1769,6 @@
     <AndroidResource Include="Resources\drawable\ic_attach_microphone.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\ic_comment.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\ic_credit_card.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -1794,12 +1806,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\ic_video_camera_vector.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\ic_volume_off_grey_24dp.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\ic_volume_up_grey_24dp.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\icon_add_vector.xml" />
@@ -2546,9 +2552,6 @@
     <AndroidResource Include="Resources\layout\fb_native_ad_unit.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\First_Layout.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\follow_button_profile_friends.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -3176,9 +3179,6 @@
     <AndroidResource Include="Resources\mipmap-xxxhdpi\icon_round.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\raw\MainVideo.mp4" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\values\analytic.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -3311,10 +3311,13 @@
     <AndroidAsset Include="Assets\RecourdVoiceButton.mp3" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="Assets\alert_announcement.mp3" />
-    <AndroidAsset Include="Assets\mystic_call.mp3" />
-    <AndroidAsset Include="Assets\Popup_GetMesseges.mp3" />
-    <AndroidAsset Include="Assets\Popup_SendMesseges.mp3" />
+    <AndroidAsset Include="Assets\long_click_onLike.mp3" />
+    <AndroidAsset Include="Assets\appear.mp3" />
+    <AndroidAsset Include="Assets\cancel.mp3" />
+    <AndroidAsset Include="Assets\down.mp3" />
+    <AndroidAsset Include="Assets\leave.mp3" />
+    <AndroidAsset Include="Assets\select.mp3" />
+    <AndroidAsset Include="Assets\up.mp3" />
     <Content Include="environment.txt" />
     <AndroidResource Include="Resources\layout\Style_TrendingHashTagView.xml">
       <SubType>Designer</SubType>
@@ -3462,79 +3465,162 @@
     <AndroidResource Include="Resources\drawable-hdpi\ic_post_shares.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_post_shares.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_post_shares.png" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_video_pause.png" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_video_pause.png" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_video_pause.png" />
-    <AndroidResource Include="Resources\drawable-hdpi\ic_video_players.png" />
-    <AndroidResource Include="Resources\drawable-xhdpi\ic_video_plays.png" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\ic_video_plays.png" />
     <AndroidResource Include="Resources\drawable\linear_shadow.xml" />
     <AndroidResource Include="Resources\drawable\custom_ripple.xml" />
-    <AndroidResource Include="Resources\font\fbolf.xml" />
     <AndroidResource Include="Resources\xml\network_security_config.xml" />
     <AndroidResource Include="Resources\drawable\icon_views_vectors.xml" />
-    <AndroidResource Include="Resources\drawable\social_ic_add.xml" />
-    <AndroidResource Include="Resources\drawable\social_ic_forward_call.xml" />
-    <AndroidResource Include="Resources\drawable\social_ic_phone_call_arrow.xml" />
-    <AndroidResource Include="Resources\drawable\social_ic_phone_calls.xml" />
-    <AndroidResource Include="Resources\drawable\background_signup.xml" />
-    <AndroidResource Include="Resources\drawable\bg_item_round_ripple.xml" />
-    <AndroidResource Include="Resources\drawable\bg_replied_msg.xml" />
-    <AndroidResource Include="Resources\drawable\chat_rounded_left_layout.xml" />
-    <AndroidResource Include="Resources\drawable\chat_rounded_right_layout.xml" />
-    <AndroidResource Include="Resources\drawable\chat_toolbar_bg_shadow.xml" />
-    <AndroidResource Include="Resources\drawable\circle.xml" />
-    <AndroidResource Include="Resources\drawable\custom_ripple_yellow.xml" />
-    <AndroidResource Include="Resources\drawable\first_activity_image.jpg" />
-    <AndroidResource Include="Resources\drawable\gradientVideoView.xml" />
-    <AndroidResource Include="Resources\drawable\ic_document_vector.xml" />
-    <AndroidResource Include="Resources\drawable\ic_gif_vector.xml" />
-    <AndroidResource Include="Resources\drawable\ic_next.xml" />
-    <AndroidResource Include="Resources\drawable\ic_radios_vector.xml" />
-    <AndroidResource Include="Resources\drawable\ic_tick_vector.xml" />
-    <AndroidResource Include="Resources\drawable\ic_video_player_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_chat_reply.xml" />
-    <AndroidResource Include="Resources\drawable\icon_expand_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_gender_vector.xml" />
-    <AndroidResource Include="Resources\drawable\Icon_google_button.xml" />
-    <AndroidResource Include="Resources\drawable\icon_handshake_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_list_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_lock_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_mic_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_more_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_mute_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_pin_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_profile_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_share_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_slider_vector.xml" />
-    <AndroidResource Include="Resources\drawable\icon_star_filled_post_vector.xml" />
-    <AndroidResource Include="Resources\drawable\img.xml" />
-    <AndroidResource Include="Resources\drawable\recv_basket_animated.xml" />
-    <AndroidResource Include="Resources\drawable\recv_bg_mic.xml" />
-    <AndroidResource Include="Resources\drawable\recv_ic_arrow.xml" />
-    <AndroidResource Include="Resources\drawable\recv_ic_delete.xml" />
-    <AndroidResource Include="Resources\drawable\shape_circle_with_shadow.xml" />
-    <AndroidResource Include="Resources\drawable\Shape_Radius_Btn_Light.xml" />
-    <AndroidResource Include="Resources\drawable\social_bg_radius.xml" />
-    <AndroidResource Include="Resources\drawable\social_bg_shadow.xml" />
-    <AndroidResource Include="Resources\layout\TLastMessagesLayout.xml" />
-    <AndroidResource Include="Resources\layout\ChatWindowLayout.xml" />
-    <AndroidResource Include="Resources\layout\ChatColorsFragment.xml" />
+    <AndroidResource Include="Resources\drawable-hdpi\login_background.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\login_background.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\login_background.png" />
+    <AndroidResource Include="Resources\drawable\login_round.xml" />
+    <AndroidResource Include="Resources\drawable\round_stroke_trans.xml" />
+    <AndroidResource Include="Resources\drawable\icon_eye.xml" />
+    <AndroidResource Include="Resources\drawable\button_background.xml" />
+    <AndroidResource Include="Resources\drawable\ic_facebook.xml" />
+    <AndroidResource Include="Resources\drawable\ic_google.xml" />
+    <AndroidResource Include="Resources\drawable\ic_eye_hide.xml" />
+    <AndroidResource Include="Resources\layout\SelectRegisterLayout.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\ic_email2.xml" />
+    <AndroidResource Include="Resources\drawable\ic_circle_check.xml" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_message.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_message.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_message.png" />
+    <AndroidResource Include="Resources\drawable\icon_friends.xml" />
+    <AndroidResource Include="Resources\drawable\icon_photo.xml" />
+    <AndroidResource Include="Resources\drawable\icon_video_camera.xml" />
+    <AndroidResource Include="Resources\drawable\circle_stroke_transparent.xml" />
+    <AndroidResource Include="Resources\drawable\round_gradient.xml" />
+    <AndroidResource Include="Resources\drawable\ic_mic_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_send_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_comment.xml" />
+    <AndroidResource Include="Resources\drawable\ic_share.xml" />
+    <AndroidResource Include="Resources\drawable\ic_world_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_more_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_ic_fullscreen_expand.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_ic_fullscreen_skrink.xml" />
+    <AndroidResource Include="Resources\drawable\ic_volume_off_grey_24dp.xml" />
+    <AndroidResource Include="Resources\drawable\ic_volume_up_grey_24dp.xml" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_post_sea.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_sea.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_post_sea.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_post_desert.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_post_park.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_desert.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_post_park.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_post_desert.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_post_park.png" />
+    <AndroidResource Include="Resources\drawable\round_trans.xml" />
+    <AndroidResource Include="Resources\drawable\ic_video_pause.xml" />
+    <AndroidResource Include="Resources\drawable\ic_video_players.xml" />
+    <AndroidResource Include="Resources\drawable\ic_go_link.xml" />
+    <AndroidResource Include="Resources\drawable\ic_calendar.xml" />
+    <AndroidResource Include="Resources\drawable\ic_pin.xml" />
+    <AndroidResource Include="Resources\drawable\primary_progress.xml" />
+    <AndroidResource Include="Resources\drawable\secondary_progress.xml" />
+    <AndroidResource Include="Resources\drawable\ic_download.xml" />
+    <AndroidResource Include="Resources\drawable\ic_file.xml" />
+    <AndroidResource Include="Resources\drawable\ic_share_flag.xml" />
+    <AndroidResource Include="Resources\drawable\ic_share_group.xml" />
+    <AndroidResource Include="Resources\drawable\ic_share_more.xml" />
+    <AndroidResource Include="Resources\drawable\ic_share_timeline.xml" />
+    <AndroidResource Include="Resources\drawable\bottom_sheet_background.xml" />
+    <AndroidResource Include="Resources\drawable\ic_bookmark.xml" />
+    <AndroidResource Include="Resources\drawable\ic_copy.xml" />
+    <AndroidResource Include="Resources\drawable\ic_delete.xml" />
+    <AndroidResource Include="Resources\drawable\ic_disable.xml" />
+    <AndroidResource Include="Resources\drawable\ic_link.xml" />
+    <AndroidResource Include="Resources\drawable\ic_pen.xml" />
+    <AndroidResource Include="Resources\drawable\ic_trend.xml" />
+    <AndroidResource Include="Resources\drawable\ic_warning.xml" />
+    <AndroidResource Include="Resources\layout\post_more_bottom.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\ic_warning_fill.xml" />
+    <AndroidResource Include="Resources\layout\toast_row.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\share_group_sheet.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\ic_cancel.xml" />
+    <AndroidResource Include="Resources\layout\share_group_row.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\ic_detective.xml" />
+    <AndroidResource Include="Resources\drawable\ic_friend.xml" />
+    <AndroidResource Include="Resources\drawable\ic_lock.xml" />
+    <AndroidResource Include="Resources\drawable\ic_users.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_circle_more.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_cirle_download.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_left_arrow2.xml" />
+    <AndroidResource Include="Resources\layout\custom_controller.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\ic_exo_forward.xml" />
+    <AndroidResource Include="Resources\drawable\ic_exo_pause.xml" />
+    <AndroidResource Include="Resources\drawable\ic_exo_play.xml" />
+    <AndroidResource Include="Resources\drawable\ic_exo_rewind.xml" />
+    <AndroidResource Include="Resources\drawable\ic_arrow_right_small.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_left_arrow_color.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_comments.xml" />
+    <AndroidResource Include="Resources\drawable\emoji_likes.xml" />
+    <AndroidResource Include="Resources\drawable\weather_background.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_humidity.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_mph.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_rain.xml" />
+    <AndroidResource Include="Resources\drawable\article_circle_filter.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_funnels.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_plus_2.xml" />
+    <AndroidResource Include="Resources\drawable\article_circle_plus.xml" />
+    <AndroidResource Include="Resources\menu\Articles_menu.xml" />
+    <AndroidResource Include="Resources\layout\filter_articles_activity.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\filter_category_row.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\EditText_Background.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_heart.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_home.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_pin.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_smartphone.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_user.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_website.xml" />
+    <AndroidResource Include="Resources\drawable\ic_profile_suitcase.xml" />
+    <AndroidResource Include="Resources\drawable\icon_more2.xml" />
+    <AndroidResource Include="Resources\drawable\follow_colored_button.xml" />
+    <AndroidResource Include="Resources\drawable\message_outline_button.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_search_color.xml" />
+    <AndroidResource Include="Resources\layout\ViewModel_ProfileHeaderSection.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+    <AndroidResource Include="Resources\drawable\ic_action_birthday.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_genders.xml" />
+    <AndroidResource Include="Resources\drawable-hdpi\circle_filter.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\circle_filter.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\circle_filter.png" />
+    <AndroidResource Include="Resources\drawable\icon_layers.xml" />
+    <AndroidResource Include="Resources\drawable\icon_product_border.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_large_cloudy.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_large_party_cloudy.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_large_rain.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_large_snow.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_large_sunny.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_small_cloudy.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_small_party_cloudy.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_small_rain.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_small_snow.xml" />
+    <AndroidResource Include="Resources\drawable\ic_weather_small_sunny.xml" />
+    <AndroidResource Include="Resources\drawable\ic_action_right_arrow_color.xml" />
+    <AndroidResource Include="Resources\anim\emoji_default_in_animation.xml" />
+    <AndroidResource Include="Resources\anim\emoji_default_out_animation.xml" />
+    <AndroidResource Include="Resources\drawable\emoji_default_background_drawable.xml" />
     <AndroidResource Include="Resources\layout\ChatRecourdSoundFragment.xml" />
-    <AndroidResource Include="Resources\layout\ChatStickersTabFragment.xml" />
-    <AndroidResource Include="Resources\layout\InfoMessagesLayout.xml" />
-    <AndroidResource Include="Resources\layout\StickerFragment.xml" />
-    <AndroidResource Include="Resources\layout\WallpaperLayout.xml" />
-    <AndroidResource Include="Resources\layout\MsgTabbedMainPage.xml" />
-    <AndroidResource Include="Resources\layout\FilterLastChatDialog.xml" />
-    <AndroidResource Include="Resources\layout\Style_LastMessageView.xml" />
-    <AndroidResource Include="Resources\layout\AgoraVideoCallActivityLayout.xml" />
-    <AndroidResource Include="Resources\layout\ChatHeadDialogLayout.xml" />
-    <AndroidResource Include="Resources\layout\CreateGroupChatLayout.xml" />
-    <AndroidResource Include="Resources\layout\DialogAddText.xml" />
-    <AndroidResource Include="Resources\layout\toolbar.xml" />
     <AndroidResource Include="Resources\layout\AgoraAudioCallActivityLayout.xml" />
     <AndroidResource Include="Resources\layout\BottomSheetLastMessagesLayout.xml" />
+    <AndroidResource Include="Resources\layout\DialogAddText.xml" />
     <AndroidResource Include="Resources\layout\DialogStickerEmoji.xml" />
     <AndroidResource Include="Resources\layout\EditColorLayout.xml" />
     <AndroidResource Include="Resources\layout\ImageViewerLayout.xml" />
@@ -3571,26 +3657,91 @@
     <AndroidResource Include="Resources\layout\Style_SharedFilesView.xml" />
     <AndroidResource Include="Resources\layout\Style_ShopStickersView.xml" />
     <AndroidResource Include="Resources\layout\Style_StickerView.xml" />
+    <AndroidResource Include="Resources\layout\toolbar.xml" />
     <AndroidResource Include="Resources\layout\TwilioAudioCallActivityLayout.xml" />
     <AndroidResource Include="Resources\layout\TwilioCommingVideoCallLayout.xml" />
     <AndroidResource Include="Resources\layout\TwilioVideoCallActivityLayout.xml" />
     <AndroidResource Include="Resources\layout\ViewModel_Archive.xml" />
     <AndroidResource Include="Resources\layout\WidgetChatHeadLayout.xml" />
+    <AndroidResource Include="Resources\layout\AgoraVideoCallActivityLayout.xml" />
+    <AndroidResource Include="Resources\layout\ChatHeadDialogLayout.xml" />
+    <AndroidResource Include="Resources\layout\CreateGroupChatLayout.xml" />
+    <AndroidResource Include="Resources\layout\Style_LastMessageView.xml" />
+    <AndroidResource Include="Resources\layout\FilterLastChatDialog.xml" />
+    <AndroidResource Include="Resources\layout\MsgTabbedMainPage.xml" />
+    <AndroidResource Include="Resources\layout\StickerFragment.xml" />
+    <AndroidResource Include="Resources\layout\WallpaperLayout.xml" />
+    <AndroidResource Include="Resources\layout\ChatStickersTabFragment.xml" />
+    <AndroidResource Include="Resources\layout\InfoMessagesLayout.xml" />
+    <AndroidResource Include="Resources\layout\ChatColorsFragment.xml" />
+    <AndroidResource Include="Resources\layout\ChatWindowLayout.xml" />
+    <AndroidResource Include="Resources\layout\TLastMessagesLayout.xml" />
+    <AndroidResource Include="Resources\raw\record_error.wav" />
+    <AndroidResource Include="Resources\raw\record_finished.wav" />
+    <AndroidResource Include="Resources\raw\record_start.wav" />
+    <AndroidResource Include="Resources\animator\basket_path.xml" />
+    <AndroidResource Include="Resources\animator\delete_mic_animation.xml" />
+    <AndroidResource Include="Resources\anim\appear.xml" />
+    <AndroidResource Include="Resources\anim\disappear.xml" />
+    <AndroidResource Include="Resources\anim\fade_out.xml" />
+    <AndroidResource Include="Resources\drawable\Shape_Radius_Btn_Light.xml" />
+    <AndroidResource Include="Resources\drawable\social_bg_radius.xml" />
+    <AndroidResource Include="Resources\drawable\social_bg_shadow.xml" />
+    <AndroidResource Include="Resources\drawable\custom_ripple_yellow.xml" />
+    <AndroidResource Include="Resources\drawable\first_activity_image.jpg" />
+    <AndroidResource Include="Resources\drawable\gradientVideoView.xml" />
+    <AndroidResource Include="Resources\drawable\ic_document_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_gif_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_next.xml" />
+    <AndroidResource Include="Resources\drawable\ic_radios_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_tick_vector.xml" />
+    <AndroidResource Include="Resources\drawable\ic_video_player_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_chat_reply.xml" />
+    <AndroidResource Include="Resources\drawable\icon_expand_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_gender_vector.xml" />
+    <AndroidResource Include="Resources\drawable\Icon_google_button.xml" />
+    <AndroidResource Include="Resources\drawable\icon_handshake_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_list_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_lock_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_mic_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_more_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_mute_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_pin_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_profile_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_share_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_slider_vector.xml" />
+    <AndroidResource Include="Resources\drawable\icon_star_filled_post_vector.xml" />
+    <AndroidResource Include="Resources\drawable\img.xml" />
+    <AndroidResource Include="Resources\drawable\recv_basket_animated.xml" />
+    <AndroidResource Include="Resources\drawable\recv_bg_mic.xml" />
+    <AndroidResource Include="Resources\drawable\recv_ic_arrow.xml" />
+    <AndroidResource Include="Resources\drawable\recv_ic_delete.xml" />
+    <AndroidResource Include="Resources\drawable\shape_circle_with_shadow.xml" />
+    <AndroidResource Include="Resources\drawable\background_signup.xml" />
+    <AndroidResource Include="Resources\drawable\bg_item_round_ripple.xml" />
+    <AndroidResource Include="Resources\drawable\bg_replied_msg.xml" />
+    <AndroidResource Include="Resources\drawable\chat_rounded_left_layout.xml" />
+    <AndroidResource Include="Resources\drawable\chat_rounded_right_layout.xml" />
+    <AndroidResource Include="Resources\drawable\chat_toolbar_bg_shadow.xml" />
+    <AndroidResource Include="Resources\drawable\circle.xml" />
+    <AndroidResource Include="Resources\drawable\social_ic_add.xml" />
+    <AndroidResource Include="Resources\drawable\social_ic_forward_call.xml" />
+    <AndroidResource Include="Resources\drawable\social_ic_phone_call_arrow.xml" />
+    <AndroidResource Include="Resources\drawable\social_ic_phone_calls.xml" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_video_pause.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_video_players.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_video_pause.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_video_plays.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_video_pause.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_video_plays.png" />
     <AndroidResource Include="Resources\xml\radius_corner_shape.xml" />
     <AndroidResource Include="Resources\xml\round_shape.xml" />
     <AndroidResource Include="Resources\xml\rounded_border_tv.xml" />
     <AndroidResource Include="Resources\xml\rounded_shadow_shape.xml" />
     <AndroidResource Include="Resources\xml\rounded_video_shape.xml" />
     <AndroidResource Include="Resources\xml\rounded_video_shape_opaque.xml" />
-    <AndroidResource Include="Resources\animator\basket_path.xml" />
-    <AndroidResource Include="Resources\animator\delete_mic_animation.xml" />
-    <AndroidResource Include="Resources\raw\record_error.wav" />
-    <AndroidResource Include="Resources\raw\record_finished.wav" />
-    <AndroidResource Include="Resources\raw\record_start.wav" />
-    <AndroidResource Include="Resources\anim\appear.xml" />
-    <AndroidResource Include="Resources\anim\disappear.xml" />
-    <AndroidResource Include="Resources\anim\fade_out.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

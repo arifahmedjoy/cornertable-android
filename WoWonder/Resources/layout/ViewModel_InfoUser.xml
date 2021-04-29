@@ -3,31 +3,37 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="10dp">
+    android:padding="15dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Lbl_ProfileDetails"
+        android:textSize="15sp"
+        android:textColor="@color/gnt_black"/>
     <!--Time Section -->
     <LinearLayout
         android:id="@+id/LayoutTime"
-        android:paddingTop="5dp"
+        android:paddingTop="10dp"
         android:layout_marginTop="1dp"
         android:layout_width="match_parent"
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconTime"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_profile_user"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/TimeText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -41,21 +47,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconWebsite"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_profile_website"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/WebsiteText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -69,21 +75,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconGander"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_genders"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/GanderText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -97,21 +103,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconBirthday"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_birthday"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/BirthdayText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -125,21 +131,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconWork"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_profile_suitcase"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/WorkText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -153,21 +159,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconLive"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_profile_home"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/LiveText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -181,21 +187,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconStudy"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/icon_layers"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/StudyText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
@@ -209,21 +215,21 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/IconRelationship"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="#"
-            android:gravity="top|center"
-            android:layout_gravity="top|center"
-            android:textSize="20sp"
-            android:layout_marginStart="0dp" />
+        <RelativeLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_profile_heart"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/RelationshipText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
+            android:textColor="@color/colorCommentText"
             android:gravity="start|center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />

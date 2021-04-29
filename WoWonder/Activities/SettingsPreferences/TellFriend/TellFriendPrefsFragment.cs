@@ -6,7 +6,6 @@ using Android.Content.PM;
 using Android.OS;
 
 using Android.Views;
-using Android.Widget;
 using AndroidX.Preference;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
@@ -349,32 +348,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         }
 
         #endregion
-
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-        {
-            try
-            {
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-                switch (requestCode)
-                {
-                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
-                    {
-                        var intent = new Intent(ActivityContext, typeof(InviteFriendsActivity));
-                        ActivityContext.StartActivity(intent);
-                        break;
-                    }
-                    case 101:
-                        Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
+         
         //On Change 
         public void OnSharedPreferenceChanged(ISharedPreferences sharedPreferences, string key)
         {

@@ -663,6 +663,9 @@ namespace WoWonder.Activities.NativePost.Extra
 
         private async Task<LatLng> GetLocationFromAddress(string strAddress)
         {
+            if (string.IsNullOrEmpty(strAddress))
+                return null;
+
             #pragma warning disable 618
             var locale = (int)Build.VERSION.SdkInt < 25 ? MainContext.Resources?.Configuration?.Locale : MainContext.Resources?.Configuration?.Locales.Get(0) ?? MainContext.Resources?.Configuration?.Locale;
             #pragma warning restore 618
@@ -705,7 +708,7 @@ namespace WoWonder.Activities.NativePost.Extra
 
                     item.Location = Methods.FunString.DecodeString(item.Location);
                     item.Headline = Methods.FunString.DecodeString(item.Headline);
-                    item.Url = item.Url?.Replace("https://", "").Replace("http://", "").Split('/').FirstOrDefault();
+                    item.Url = item.Url?.Replace("https://", "")?.Replace("http://", "")?.Split('/')?.FirstOrDefault() ?? "";
                 }
             }
             catch (Exception e)

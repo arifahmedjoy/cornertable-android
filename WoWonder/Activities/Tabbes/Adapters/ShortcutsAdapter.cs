@@ -71,14 +71,14 @@ namespace WoWonder.Activities.Tabbes.Adapters
                             switch (item.Type)
                             {
                                 case "Page":
-                                    GlideImageLoader.LoadImage(ActivityContext, item.PageClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    GlideImageLoader.LoadImage(ActivityContext, item.PageClass.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
                                     holder.Name.Text = item.PageClass.Name;
 
                                     holder.ImageCircle.SetImageResource(Resource.Drawable.Orange_Color);
                                     FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosFlag);
                                     break;
                                 case "Group":
-                                    GlideImageLoader.LoadImage(ActivityContext, item.GroupClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    GlideImageLoader.LoadImage(ActivityContext, item.GroupClass.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
                                     holder.Name.Text = item.GroupClass.Name;
 
                                     holder.ImageCircle.SetImageResource(Resource.Drawable.Blue_Color);

@@ -534,7 +534,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Global.Block_User(UserId, true); //true >> "block" 
+                    var (apiStatus, respond) = await RequestsAsync.Global.BlockUserAsync(UserId, true); //true >> "block" 
                     if (apiStatus == 200)
                     {
                         Methods.DisplayReportResultTrack(respond);
@@ -603,7 +603,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                         if (Methods.CheckConnectivity())
                         {
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Delete_Conversation(UserId) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(UserId) });
                         }
                     }
                     catch (Exception e)
@@ -1377,7 +1377,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                         EditTextClose();
 
-                        RequestsAsync.Message.Set_Chat_Typing_Status(UserId, "stopped").ConfigureAwait(false);
+                        RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "stopped").ConfigureAwait(false);
                     }
                 }
                 else
@@ -1430,7 +1430,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 layoutParams.Height = 42;
                 ChatMediaButton.LayoutParameters = layoutParams;
 
-                RequestsAsync.Message.Set_Chat_Typing_Status(UserId, "typing").ConfigureAwait(false);
+                RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "typing").ConfigureAwait(false);
             }
             catch (Exception exception)
             {
@@ -3053,7 +3053,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 if (Methods.CheckConnectivity())
                 {
                     RunLoadMore = true;
-                    var (apiStatus, respond) = await RequestsAsync.Message.FetchUserMessages(UserId);
+                    var (apiStatus, respond) = await RequestsAsync.Message.FetchUserMessagesAsync(UserId);
                     if (apiStatus == 200)
                     {
                         if (respond is UserMessagesObject result)
@@ -3129,7 +3129,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     {
                         //var data = MAdapter.DifferList.LastOrDefault();
                         //var lastMessageId = data?.MesData?.Id ?? "0";
-                        var (apiStatus, respond) = await RequestsAsync.Message.FetchUserMessages(UserId, "0", "0", "35");
+                        var (apiStatus, respond) = await RequestsAsync.Message.FetchUserMessagesAsync(UserId, "0", "0", "35");
                         if (apiStatus == 200)
                         {
                             if (respond is UserMessagesObject result)
@@ -3429,7 +3429,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     var data = MAdapter.DifferList.FirstOrDefault();
                     var firstMessageId = data?.MesData?.Id;
 
-                    var (apiStatus, respond) = await RequestsAsync.Message.FetchUserMessages(UserId, firstMessageId);
+                    var (apiStatus, respond) = await RequestsAsync.Message.FetchUserMessagesAsync(UserId, firstMessageId);
                     if (apiStatus == 200)
                     {
                         if (respond is UserMessagesObject result)
@@ -4082,7 +4082,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         SqLiteDatabase dbDatabase = new SqLiteDatabase();
                         dbDatabase.Delete_OneMessageUser(SelectedItemPositions.Id.ToString());
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessage(SelectedItemPositions.Id.ToString()) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessageAsync(SelectedItemPositions.Id.ToString()) });
 
                         if (Timer != null)
                         {
@@ -4246,7 +4246,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         private async Task GetProfileApi()
         {
-            var (apiStatus, respond) = await RequestsAsync.Global.Get_User_Data(UserId, "user_data");
+            var (apiStatus, respond) = await RequestsAsync.Global.GetUserDataAsync(UserId, "user_data");
             if (apiStatus != 200 || respond is not GetUserDataObject result || result.UserData == null)
             {
                 Methods.DisplayReportResult(this, respond);
@@ -4842,7 +4842,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                                 var time = unixTimestamp.ToString();
 
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.Send_Message(UserId, time, "", "", "", "", "", "", productId) });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.SendMessageAsync(UserId, time, "", "", "", "", "", "", productId) });
                                 //Toast.MakeText(this, GetString(Resource.String.Lbl_MessageSentSuccessfully),ToastLength.Short)?.Show();
                             }
                         }

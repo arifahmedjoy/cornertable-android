@@ -14,6 +14,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide.Util;
@@ -141,6 +142,7 @@ namespace WoWonder.Activities.Chat
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
 
             IMenuItem item = menu.FindItem(Resource.Id.searchUserBar);
             SearchView searchItem = (SearchView)item.ActionView;
@@ -149,6 +151,15 @@ namespace WoWonder.Activities.Chat
             SearchView.SetIconifiedByDefault(true);
             SearchView.QueryTextChange += SearchView_OnTextChange;
             SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
+
+            //Change text colors
+            var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
+            editText.SetHintTextColor(Color.Black);
+            editText.SetTextColor(Color.ParseColor("#888888"));
+
+            //Change Color Icon Search
+            ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
+            searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -227,12 +238,13 @@ namespace WoWonder.Activities.Chat
                 if (ToolBar != null)
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_Select_contact);
-                    ToolBar.SetTitleTextColor(Color.White);
+                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -758,7 +770,7 @@ namespace WoWonder.Activities.Chat
                     {"search_key", SearchText},
                 };
 
-            var (apiStatus, respond) = await RequestsAsync.Global.Get_Search(dictionary);
+            var (apiStatus, respond) = await RequestsAsync.Global.SearchAsync(dictionary);
             if (apiStatus == 200)
             {
                 if (respond is GetSearchObject result)
@@ -1212,7 +1224,7 @@ namespace WoWonder.Activities.Chat
                     var time2 = unixTimestamp.ToString();
 
                     //Here on This function will send Selected audio file to the user 
-                    var (apiStatus, respond) = await RequestsAsync.Message.Send_Message(userId, time2, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+                    var (apiStatus, respond) = await RequestsAsync.Message.SendMessageAsync(userId, time2, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
                     if (apiStatus == 200)
                     {
                         if (respond is SendMessageObject result)

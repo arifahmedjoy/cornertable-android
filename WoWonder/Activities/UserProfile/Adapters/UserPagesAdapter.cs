@@ -71,9 +71,9 @@ namespace WoWonder.Activities.UserProfile.Adapters
                         if (item != null)
                         {
                             if (item.Avatar.Contains("http"))
-                                GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
                             else
-                                Glide.With(ActivityContext).Load(new File(item.Avatar)).Apply(new RequestOptions().CircleCrop().Placeholder(Resource.Drawable.ImagePlacholder).Error(Resource.Drawable.ImagePlacholder)).Into(holder.Image);
+                                Glide.With(ActivityContext).Load(new File(item.Avatar)).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder).Error(Resource.Drawable.ImagePlacholder)).Into(holder.Image);
 
                             string name = Methods.FunString.DecodeString(item.PageName);
                             holder.Name.Text = name;

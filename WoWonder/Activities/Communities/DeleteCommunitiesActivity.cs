@@ -9,6 +9,7 @@ using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
@@ -173,22 +174,24 @@ namespace WoWonder.Activities.Communities
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = CommunitiesType switch
+                    toolBar.Title = CommunitiesType switch
                     {
                         "Page" => GetText(Resource.String.Lbl_DeletePage),
                         "Group" => GetText(Resource.String.Lbl_DeleteGroup),
                         _ => GetText(Resource.String.Lbl_Delete)
                     };
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -262,11 +265,11 @@ namespace WoWonder.Activities.Communities
                         switch (CommunitiesType)
                         {
                             case "Page":
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.DeletePage(CommunitiesId, TxtPassword.Text) });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.DeletePageAsync(CommunitiesId, TxtPassword.Text) });
                                 Toast.MakeText(this, GetText(Resource.String.Lbl_PageSuccessfullyDeleted),ToastLength.Short)?.Show();
                                 break;
                             case "Group":
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.DeleteGroup(CommunitiesId, TxtPassword.Text) });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.DeleteGroupAsync(CommunitiesId, TxtPassword.Text) });
                                 Toast.MakeText(this, GetText(Resource.String.Lbl_GroupSuccessfullyDeleted), ToastLength.Short)?.Show();
                                 break;
                         }

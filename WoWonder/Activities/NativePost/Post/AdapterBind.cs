@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Android.App;
+using Android.Content;
 using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
 using AndroidX.AppCompat.Content.Res;
+using AndroidX.Core.Content;
 using AndroidX.Core.Graphics.Drawable;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
@@ -16,6 +18,8 @@ using Com.Tuyenmonkey.Textdecorator;
 using Java.Lang;
 using WoWonder.Activities.Comment.Adapters;
 using WoWonder.Activities.Comment.Fragment;
+using WoWonder.Activities.Contacts;
+using WoWonder.Activities.SettingsPreferences.TellFriend;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
@@ -35,6 +39,7 @@ namespace WoWonder.Activities.NativePost.Post
     {
         private readonly Activity ActivityContext;
         private readonly NativePostAdapter NativePostAdapter;
+        private string UserId;
 
         public AdapterBind(NativePostAdapter adapter)
         {
@@ -99,21 +104,21 @@ namespace WoWonder.Activities.NativePost.Post
                         {
                             if (item.PostData.PostPrivacy.Contains("ifollow") || item.PostData.PostPrivacy == "2") //People_i_Follow
                             {
-                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_user);
+                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_friend);
                             }
                             else if (item.PostData.PostPrivacy.Contains("me") || item.PostData.PostPrivacy == "1") //People_Follow_Me
                             {
-                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_user_friends);
+                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_users);
                             }
                             else switch (item.PostData.PostPrivacy)
                             {
                                 //Anonymous
                                 case "4":
-                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_user_secret);
+                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_detective);
                                     break;
                                 //No_body) 
                                 default:
-                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_lock);
+                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_lock);
                                     break;
                             }
 
@@ -169,21 +174,21 @@ namespace WoWonder.Activities.NativePost.Post
                         {
                             if (itemPost.PostPrivacy.Contains("ifollow") || itemPost.PostPrivacy == "2") //People_i_Follow
                             {
-                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_user);
+                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_friend);
                             }
                             else if (itemPost.PostPrivacy.Contains("me") || itemPost.PostPrivacy == "1") //People_Follow_Me
                             {
-                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_user_friends);
+                                holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_users);
                             }
                             else switch (itemPost.PostPrivacy)
                             {
                                 //Anonymous
                                 case "4":
-                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_user_secret);
+                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_detective);
                                     break;
                                 //No_body) 
                                 default:
-                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_lock);
+                                    holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_lock);
                                     break;
                             }
 
@@ -206,10 +211,12 @@ namespace WoWonder.Activities.NativePost.Post
             try
             { 
                 if (holder.CommentCount != null)
-                    holder.CommentCount.Text = item.PostData.PostComments;
+                    holder.CommentCount.Text = item.PostData.PostComments + " " + ActivityContext.GetString(Resource.String.Lbl_Comments);
 
                 if (holder.ShareCount != null)
-                    holder.ShareCount.Text = item.PostData.PostShares;
+                    holder.ShareCount.Text = item.PostData.PostShares + " " + ActivityContext.GetString(Resource.String.Lbl_Shares);
+
+                holder.ViewCount.Text = item.PostData.PrevButtonViewText;
 
                 if (holder.LikeCount != null)
                 {
@@ -232,7 +239,11 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         item.PostData.Reaction ??= new Reaction();
 
-                        holder.ImageCountLike.Visibility = item.PostData.Reaction.Count > 0 ? ViewStates.Visible : ViewStates.Invisible;
+                        //holder.ImageCountLike.Visibility = item.PostData.Reaction.Count > 0 ? ViewStates.Visible : ViewStates.Invisible;
+                        if(item.PostData.Reaction.Count > 0)
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                        else
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
 
                         if (item.PostData.Reaction.IsReacted != null && item.PostData.Reaction.IsReacted.Value)
                         {
@@ -288,11 +299,11 @@ namespace WoWonder.Activities.NativePost.Post
                         break;
                     }
                     default:
-                        holder.ImageCountLike.Visibility = ViewStates.Invisible;
+                        //holder.ImageCountLike.Visibility = ViewStates.Invisible;
+                        holder.ImageCountLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
                         break;
                 }
 
-                holder.ViewCount.Text = item.PostData.PrevButtonViewText;
             }
             catch (Exception e)
             {
@@ -564,7 +575,7 @@ namespace WoWonder.Activities.NativePost.Post
                     holder.CommentText.Visibility = ViewStates.Gone;
                 }
 
-                holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
+                holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
                 holder.UserName.Text = item.Publisher.Name;
 
                 GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
@@ -694,7 +705,8 @@ namespace WoWonder.Activities.NativePost.Post
                                             break;
                                         default:
                                             holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                            //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                                             holder.LikeTextView.Tag = "Like";
 
                                             switch (item.Reaction.Count)
@@ -713,7 +725,8 @@ namespace WoWonder.Activities.NativePost.Post
                         else
                         {
                             holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                            //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                             holder.LikeTextView.Tag = "Like";
 
                             switch (item.Reaction.Count)
@@ -737,7 +750,8 @@ namespace WoWonder.Activities.NativePost.Post
                                 break;
                             default:
                                 holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                                 holder.LikeTextView.Tag = "Like";
                                 break;
                         }
@@ -855,8 +869,36 @@ namespace WoWonder.Activities.NativePost.Post
                     NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[0].Image).Into(holder.Image);
                     NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[1].Image).Into(holder.Image2);
                     NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[2].Image).Into(holder.Image3);
+                    NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[3].Image).Into(holder.Image4);
 
-                    holder.CountImageLabel.Text = "+" + (imagesList?.Count - 2);
+                    if (imagesList?.Count >= 5)
+                    {
+                        NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[4].Image).Into(holder.Image5);
+                        if (imagesList?.Count == 5)
+                        {
+                            holder.CountImageLabel.Visibility = ViewStates.Gone;
+                            holder.Image6.Visibility = ViewStates.Gone;
+                            holder.Image7.Visibility = ViewStates.Gone;
+                            holder.ViewImage7.Visibility = ViewStates.Gone;
+                            return;
+                        }
+                        NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[5].Image).Into(holder.Image6);
+                        if (imagesList?.Count == 6)
+                        {
+                            holder.CountImageLabel.Visibility = ViewStates.Gone;
+                            holder.Image7.Visibility = ViewStates.Gone;
+                            holder.ViewImage7.Visibility = ViewStates.Gone;
+                            return;
+                        }
+                        NativePostAdapter.FullGlideRequestBuilder.Load(imagesList[6].Image).Into(holder.Image7);
+                        if (imagesList?.Count == 7)
+                        {
+                            holder.CountImageLabel.Visibility = ViewStates.Gone;
+                            holder.ViewImage7.Visibility = ViewStates.Gone;
+                            return;
+                        }
+                        holder.CountImageLabel.Text = "+" + (imagesList?.Count - 7);
+                    }
                 }
 
             }
@@ -951,6 +993,7 @@ namespace WoWonder.Activities.NativePost.Post
                     holder.TxtEventTitle.Text = item.PostData?.Event?.EventClass?.Name;
                     holder.TxtEventDescription.Text = item.PostData?.Event?.EventClass?.Description;
                     holder.TxtEventLocation.Text = item.PostData?.Event?.EventClass?.Location;
+                    holder.TxtEventTime.Text = item.PostData?.Event?.EventClass?.EndDate;
                 }
             }
             catch (Exception e)
@@ -1437,6 +1480,8 @@ namespace WoWonder.Activities.NativePost.Post
                         {
                             holder.CheckIcon.SetImageResource(Resource.Drawable.icon_checkmark_filled_vector);
                             holder.CheckIcon.ClearColorFilter();
+                                holder.ProgressText.SetTextColor(new Color(ContextCompat.GetColor(holder.VoteText.Context, Resource.Color.primary)));
+                                holder.ProgressBarView.ProgressDrawable = ContextCompat.GetDrawable(holder.ProgressBarView.Context, Resource.Drawable.primary_progress);
                         }
                         else
                         {
@@ -1633,6 +1678,96 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
          
+        public void ProfileHeaderSeltionBind(AdapterHolders.ProfileHeaderSectionHolder holder, AdapterModelsClass item)
+        {
+            try
+            {
+                if (item.headerSectionClass.UserData != null)
+                {
+                    string followers = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.FollowersCount));
+                    string following = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.FollowingCount));
+                    string post = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.PostCount));
+                    string likes = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.LikesCount));
+                    string points = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Points));
+
+                    holder.CountFollowers.Text = followers;
+                    holder.CountFollowings.Text = following;
+                    holder.CountLikes.Text = likes;
+                    holder.CountPoints.Text = points;
+
+                    UserId = item.headerSectionClass.UserData.UserId;
+                     
+                    switch (AppSettings.ConnectivitySystem)
+                    {
+                        // Following
+                        case 1:
+                            holder.CountFollowers.Text = followers;
+                            holder.CountFollowings.Text = following;
+
+                            holder.LlCountFollowing.Click += LlCountFollowing_Click;
+
+                            break;
+                        // Friend
+                        default: 
+                            holder.CountFollowers.Text = followers;
+                            holder.CountFollowings.Text = post; 
+                            break;
+                    }
+                     
+                    holder.LlCountFollowers.Click += LlCountFollowers_Click;
+                    holder.LlPoint.Click +=  LlPointOnClick; 
+                } 
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void LlPointOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var intent = new Intent(ActivityContext, typeof(MyPointsActivity)); 
+                ActivityContext.StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void LlCountFollowing_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var intent = new Intent(ActivityContext, typeof(MyContactsActivity));
+                intent.PutExtra("ContactsType", "Following");
+                intent.PutExtra("UserId", UserId);
+                ActivityContext.StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void LlCountFollowers_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var intent = new Intent(ActivityContext, typeof(MyContactsActivity));
+                intent.PutExtra("ContactsType", "Followers");
+                intent.PutExtra("UserId", UserId);
+
+                ActivityContext.StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
         public void InfoUserBoxBind(AdapterHolders.InfoUserBoxViewHolder holder, AdapterModelsClass item)
         {
             try
@@ -1778,10 +1913,13 @@ namespace WoWonder.Activities.NativePost.Post
             try
             {
                 if (item.PrivacyModelClass?.GroupClass != null)
-                { 
+                {
                     holder.CategoryText.Text = Methods.FunString.DecodeString(item.PrivacyModelClass?.GroupClass.Category);
                     holder.PrivacyText.Text = ActivityContext.GetText(item.PrivacyModelClass?.GroupClass.Privacy == "1" ? Resource.String.Radio_Public : Resource.String.Radio_Private);
                     holder.IconPrivacy.SetImageResource(item.PrivacyModelClass?.GroupClass.Privacy == "1" ? Resource.Drawable.ic_global_earth : Resource.Drawable.ic_private);
+
+                    if (item.PrivacyModelClass.GroupClass.Members != 0)
+                        holder.TxtMembers.Text = Methods.FunString.FormatPriceValue(item.PrivacyModelClass.GroupClass.Members) + " " + ActivityContext.GetString(Resource.String.Lbl_Members);
                 }
             }
             catch (Exception e)
@@ -1834,7 +1972,7 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 holder.StoryAdapter.StoryList = item.StoryList.Count switch
                 {
-                    > 0 => new ObservableCollection<GetUserStoriesObject.StoryObject>(item.StoryList),
+                    > 0 => new ObservableCollection<StoryDataObject>(item.StoryList),
                     _ => holder.StoryAdapter.StoryList
                 };
 
@@ -1842,14 +1980,14 @@ namespace WoWonder.Activities.NativePost.Post
                 switch (dataOwner)
                 {
                     case null:
-                        holder.StoryAdapter.StoryList.Insert(0, new GetUserStoriesObject.StoryObject
+                        holder.StoryAdapter.StoryList.Insert(0, new StoryDataObject
                         {
                             Avatar = UserDetails.Avatar,
                             Type = "Your",
                             Username = ActivityContext.GetText(Resource.String.Lbl_YourStory),
-                            Stories = new List<GetUserStoriesObject.StoryObject.Story>
+                            Stories = new List<StoryDataObject.Story>
                             {
-                                new GetUserStoriesObject.StoryObject.Story
+                                new StoryDataObject.Story
                                 {
                                     Thumbnail = UserDetails.Avatar,
                                 }
@@ -2009,8 +2147,38 @@ namespace WoWonder.Activities.NativePost.Post
                 Methods.DisplayReportResultTrack(e);
             }
         }
-        
+
         public void PagesBoxBind(AdapterHolders.PagesViewHolder holder, AdapterModelsClass item)
+        {
+            try
+            {
+                switch (holder.PagesAdapter?.PageList?.Count)
+                {
+                    case 0:
+                        holder.PagesAdapter.PageList = new ObservableCollection<PageClass>(item.PagesModel.PagesList);
+                        holder.PagesAdapter.NotifyDataSetChanged();
+                        break;
+                }
+
+                holder.AboutHead.Text = string.IsNullOrEmpty(item.PagesModel?.TitleHead) switch
+                {
+                    false => item.PagesModel?.TitleHead,
+                    _ => holder.AboutHead.Text
+                };
+
+                holder.AboutMore.Text = item.PagesModel?.More;
+
+                if (holder.PagesAdapter != null)
+                {
+                    holder.AboutMore.Visibility = holder.PagesAdapter?.PageList?.Count > 4 ? ViewStates.Visible : ViewStates.Invisible;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+        /*public void PagesBoxBind(AdapterHolders.PagesViewHolder holder, AdapterModelsClass item)
         {
             try
             {
@@ -2061,8 +2229,8 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        }
-        
+        }*/
+
         public void AdsPostBind(AdapterHolders.AdsPostViewHolder holder, AdapterModelsClass item)
         {
             try

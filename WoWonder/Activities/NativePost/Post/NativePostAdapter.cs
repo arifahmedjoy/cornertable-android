@@ -52,7 +52,7 @@ namespace WoWonder.Activities.NativePost.Post
         public readonly RequestBuilder CircleGlideRequestBuilder;
 
         public List<AdapterModelsClass> ListDiffer { get; set; }
-        public List<PostDataObject> NewPostList = new List<PostDataObject>(); 
+        public readonly List<PostDataObject> NewPostList = new List<PostDataObject>(); 
         private PreCachingLayoutManager PreCachingLayout { get; set; }
 
         private RecyclerView.RecycledViewPool RecycledViewPool { get; set; }
@@ -66,6 +66,7 @@ namespace WoWonder.Activities.NativePost.Post
         //private bool Loading;
         public int PositionSound;
         private readonly AdapterBind AdapterBind;
+        private int headerCount=0;
 
         public NativePostAdapter(Activity context, string apiIdParameter, RecyclerView recyclerView, NativeFeedType nativePostType)
         {
@@ -492,7 +493,8 @@ namespace WoWonder.Activities.NativePost.Post
                         }
                     case (int)PostModelType.PagesBox:
                         {
-                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_Pages, parent, false);
+                            //itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_Pages, parent, false);
+                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
                             var vh = new AdapterHolders.PagesViewHolder(itemView, this, PostClickListener);
                             Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType =  PagesBox" + viewType);
                             return vh;
@@ -544,6 +546,12 @@ namespace WoWonder.Activities.NativePost.Post
                             itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ItemProgressView, parent, false);
                             var vh = new AdapterHolders.ProgressViewHolder(itemView);
                             Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = ViewProgress " + viewType);
+                            return vh;
+                        }
+                    case (int)PostModelType.ProfileHeaderSection:
+                        {
+                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_ProfileHeaderSection, parent, false);
+                            var vh = new AdapterHolders.ProfileHeaderSectionHolder(itemView);
                             return vh;
                         }
                     default:
@@ -1099,7 +1107,6 @@ namespace WoWonder.Activities.NativePost.Post
 
                             HolderStory = holder; 
                             AdapterBind.StoryBind(holder, item);
-                            
                             break;
                         }
                     case (int)PostModelType.FollowersBox:
@@ -1114,8 +1121,7 @@ namespace WoWonder.Activities.NativePost.Post
                         {
                             if (viewHolder is not AdapterHolders.GroupsViewHolder holder)
                                 return;
-
-
+                             
                             AdapterBind.GroupsBoxBind(holder, item);
                             break;
                         }
@@ -1150,7 +1156,8 @@ namespace WoWonder.Activities.NativePost.Post
                                 return;
 
                             AdapterBind.PagesBoxBind(holder, item);
-                            
+                            //AdapterBind.GroupsBoxBind(holder, item);
+
                             break;
                         }
                     case (int)PostModelType.AdsPost:
@@ -1181,6 +1188,16 @@ namespace WoWonder.Activities.NativePost.Post
                             if (viewHolder is not AdapterHolders.ProgressViewHolder holder)
                                 return;
                             Console.WriteLine(holder);
+                            break;
+                        }
+                    case (int)PostModelType.ProfileHeaderSection:
+                        {
+                            if (viewHolder is not AdapterHolders.ProfileHeaderSectionHolder holder)
+                                return;
+                            if (headerCount > 0)
+                                return;
+                            headerCount++;
+                            AdapterBind.ProfileHeaderSeltionBind(holder, item);
                             break;
                         }
                     default:
@@ -1458,6 +1475,7 @@ namespace WoWonder.Activities.NativePost.Post
                         PostModelType.InfoPageBox => (int) PostModelType.InfoPageBox,
                         PostModelType.InfoGroupBox => (int) PostModelType.InfoGroupBox,
                         PostModelType.TikTokPost => (int) PostModelType.TikTokPost,
+                        PostModelType.ProfileHeaderSection=> (int)PostModelType.ProfileHeaderSection,
                         _ => (int) PostModelType.NormalPost
                     }
                 };

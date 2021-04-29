@@ -71,7 +71,7 @@ namespace WoWonder.Helpers.Controller
 
         private static async Task SendMessage(string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
         {
-            var (apiStatus, respond) = await RequestsAsync.GroupChat.Send_MessageToGroupChat(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+            var (apiStatus, respond) = await RequestsAsync.GroupChat.Send_MessageToGroupChatAsync(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
             if (apiStatus == 200)
             {
                 if (respond is GroupSendMessageObject result)

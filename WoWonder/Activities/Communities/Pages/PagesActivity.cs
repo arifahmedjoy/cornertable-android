@@ -12,10 +12,11 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
-using Bumptech.Glide.Util;
+using Bumptech.Glide.Util; 
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Adapters;
@@ -45,7 +46,7 @@ namespace WoWonder.Activities.Communities.Pages
         private View Inflated;
         private TextView TxtCreate;  
         private AdView MAdView;
-        private static PagesActivity Instance;
+        private static PagesActivity Instance; 
         private RecyclerViewOnScrollListener MainScrollEvent;
 
         #endregion
@@ -191,7 +192,7 @@ namespace WoWonder.Activities.Communities.Pages
                     TxtCreate.Text = GetString(Resource.String.Lbl_Create);
                     TxtCreate.Visibility = ViewStates.Visible;
                 }
-
+                 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, MRecycler);
             }
@@ -205,16 +206,18 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_ExplorePage);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_ExplorePage);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true); 
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -481,7 +484,7 @@ namespace WoWonder.Activities.Communities.Pages
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Page.GetMyPages("0", "7");
+                var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync("0", "7");
                 if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                 {
                     Methods.DisplayReportResult(this, respond);
@@ -585,7 +588,7 @@ namespace WoWonder.Activities.Communities.Pages
             {
                 MainScrollEvent.IsLoading = true; 
 
-                var (apiStatus, respond) = await RequestsAsync.Page.GetLikedPages(UserDetails.UserId, offset, "10");
+                var (apiStatus, respond) = await RequestsAsync.Page.GetLikedPagesAsync(UserDetails.UserId, offset, "10");
                 if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

@@ -105,9 +105,12 @@ namespace WoWonder.Activities.Comment.Adapters
                         break;
                 }
 
-                ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                /*ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);*/
+                ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
 
                 MainView.SetOnLongClickListener(this);
                 Image.SetOnClickListener(this);

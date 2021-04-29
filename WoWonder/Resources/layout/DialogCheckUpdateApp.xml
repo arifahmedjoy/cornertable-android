@@ -14,24 +14,21 @@
 		android:id="@+id/text_app_name"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="10dp"
-		android:text="wowonder"
+		android:layout_marginTop="10dp" 
 		android:textSize="18sp"
 		android:textStyle="bold" />
 	<TextView
 		android:id="@+id/tv_new_version"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="5dp"
-		android:text="Discover new version V2.0"
+		android:layout_marginTop="5dp" 
 		android:textSize="15sp" />
 	<TextView
 		android:id="@+id/tv_version"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="5dp"
-		android:layout_marginBottom="15dp"
-		android:text="Curent V1.0"
+		android:layout_marginBottom="15dp" 
 		android:textSize="13sp"
 		android:textColor="?attr/colorReact" />
 </LinearLayout>

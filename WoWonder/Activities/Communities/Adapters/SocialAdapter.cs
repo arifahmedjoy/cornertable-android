@@ -549,7 +549,7 @@ namespace WoWonder.Activities.Communities.Adapters
                             return;
                         }
 
-                        var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(item.GroupData.GroupId);
+                        var (apiStatus, respond) = await RequestsAsync.Group.JoinGroupAsync(item.GroupData.GroupId);
                         switch (apiStatus)
                         {
                             case 200:
@@ -674,7 +674,7 @@ namespace WoWonder.Activities.Communities.Adapters
                                 break;
                         }
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.Like_Page(item.PageData.PageId) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.LikePageAsync(item.PageData.PageId) });
                     }
                 } 
             }

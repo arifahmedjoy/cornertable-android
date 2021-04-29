@@ -10,6 +10,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
@@ -195,17 +196,19 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_NewFunding);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolBar.Title = GetString(Resource.String.Lbl_NewFunding);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     
-                    SetSupportActionBar(toolbar);
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -341,7 +344,7 @@ namespace WoWonder.Activities.Fundings
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                    var (apiStatus, respond) = await RequestsAsync.Funding.CreateFunding(TxtTitle.Text, TxtDescription.Text, TxtAmount.Text, PathImage);
+                    var (apiStatus, respond) = await RequestsAsync.Funding.CreateFundingAsync(TxtTitle.Text, TxtDescription.Text, TxtAmount.Text, PathImage);
                     switch (apiStatus)
                     {
                         case 200:

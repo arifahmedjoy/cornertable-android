@@ -121,8 +121,9 @@
 
               <LinearLayout
                 android:id="@+id/LayoutEditText"
-				android:orientation="horizontal"
+				        android:orientation="horizontal"
                 android:background="@drawable/Shape_Radius_Btn"
+                android:backgroundTint="?attr/colorBubble" 
                 android:layout_weight="10"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="12dp"

@@ -13,6 +13,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.Core.View;
 using AndroidX.RecyclerView.Widget;
@@ -207,13 +208,14 @@ namespace WoWonder.Activities.Chat.GroupChat
                 var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolbar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_CreateGroup);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.Title = GetString(Resource.String.Lbl_Edit);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
                 }
             }
@@ -341,7 +343,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                    var (apiStatus, respond) = await RequestsAsync.GroupChat.EditGroupChat(GroupId, TxtGroupName.Text, GroupPathImage);
+                    var (apiStatus, respond) = await RequestsAsync.GroupChat.EditGroupChatAsync(GroupId, TxtGroupName.Text, GroupPathImage);
                     if (apiStatus == 200)
                     {
                         if (respond is CreateGroupChatObject result)
@@ -581,8 +583,7 @@ namespace WoWonder.Activities.Chat.GroupChat
 
                             MAdapter.NotifyDataSetChanged();
 
-                            var (apiStatus, respond) = await RequestsAsync.GroupChat
-                                .AddOrRemoveUserToGroup(GroupData.GroupId, UsersIds, "add_user").ConfigureAwait(false);
+                            var (apiStatus, respond) = await RequestsAsync.GroupChat.AddOrRemoveUserToGroupAsync(GroupData.GroupId, UsersIds, "add_user").ConfigureAwait(false);
                             if (apiStatus == 200)
                             {
 
@@ -747,7 +748,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     //Show a progress
                                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                                    var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChat(GroupId);
+                                    var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChatAsync(GroupId);
                                     if (apiStatus == 200)
                                     {
                                         if (respond is AddOrRemoveUserToGroupObject result)
@@ -794,7 +795,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     //Show a progress
                                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                                    var (apiStatus, respond) = await RequestsAsync.GroupChat.DeleteGroupChat(GroupId);
+                                    var (apiStatus, respond) = await RequestsAsync.GroupChat.DeleteGroupChatAsync(GroupId);
                                     if (apiStatus == 200)
                                     {
                                         AndHUD.Shared.ShowSuccess(this);
@@ -843,7 +844,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                         MAdapter.UserList.Remove(itemUser);
                                         MAdapter.NotifyItemRemoved(Position);
 
-                                        var (apiStatus, respond) = await RequestsAsync.GroupChat.AddOrRemoveUserToGroup(GroupId, itemUser.UserId, "remove_user").ConfigureAwait(false);
+                                        var (apiStatus, respond) = await RequestsAsync.GroupChat.AddOrRemoveUserToGroupAsync(GroupId, itemUser.UserId, "remove_user").ConfigureAwait(false);
                                         if (apiStatus == 200)
                                         {
 

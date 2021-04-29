@@ -2334,7 +2334,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 //Show a progress
                                 AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                                var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChat(GroupId);
+                                var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChatAsync(GroupId);
                                 if (apiStatus == 200)
                                 {
                                     AndHUD.Shared.ShowSuccess(this);
@@ -2530,7 +2530,7 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessages(GroupId);
+                    var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId);
                     if (apiStatus == 200)
                     {
                         if (respond is GroupMessagesObject result)
@@ -2594,7 +2594,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     if (Methods.CheckConnectivity())
                     {
                         //var lastMessageId = MAdapter.DifferList.LastOrDefault()?.MesData?.Id;
-                        var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessages(GroupId, "0", "0");
+                        var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId, "0", "0");
                         if (apiStatus == 200)
                         {
                             var countList = MAdapter.DifferList.Count;
@@ -2689,7 +2689,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     var index = MAdapter.DifferList.IndexOf(data);
                     Console.WriteLine(index);
 
-                    var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessages(GroupId, firstMessageId, "0", "15");
+                    var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId, firstMessageId, "0", "15");
                     if (apiStatus == 200)
                     {
                         if (respond is GroupMessagesObject result)
@@ -3345,7 +3345,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                             MAdapter.NotifyItemRangeChanged(index, MAdapter.DifferList.Count);
                         }
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessage(SelectedItemPositions.Id.ToString()) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessageAsync(SelectedItemPositions.Id.ToString()) });
 
                         if (Timer != null)
                         {

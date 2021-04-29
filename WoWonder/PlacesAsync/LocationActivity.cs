@@ -188,13 +188,13 @@ namespace WoWonder.PlacesAsync
 
                 //Change text colors
                 var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
-                editText.SetHintTextColor(Color.White);
-                editText.SetTextColor(Color.White);
+                editText.SetHintTextColor(Color.Black);
+                editText.SetTextColor(Color.ParseColor("#888888"));
                 editText.Hint = GetText(Resource.String.Lbl_SearchForPlace);
 
                 //Change Color Icon Search
                 ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon); 
-                searchViewIcon.SetColorFilter(Color.White);
+                searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
                  
                 BtnSelect = FindViewById<FloatingActionButton>(Resource.Id.add_button);
 
@@ -514,7 +514,10 @@ namespace WoWonder.PlacesAsync
         {
             try
             {
-                #pragma warning disable 618
+                if (latLng == null)
+                    return null;
+
+#pragma warning disable 618
                 var locale = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale : Resources?.Configuration?.Locales?.Get(0) ?? Resources?.Configuration?.Locale;
                 #pragma warning restore 618
                 Geocoder geocode = new Geocoder(this, locale);
@@ -547,6 +550,9 @@ namespace WoWonder.PlacesAsync
 
         private async Task<LatLng> GetLocationFromAddress(string strAddress)
         {
+            if (string.IsNullOrEmpty(strAddress))
+                return null;
+
 #pragma warning disable 618
             var locale = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale : Resources?.Configuration?.Locales.Get(0) ?? Resources?.Configuration?.Locale;
 #pragma warning restore 618
@@ -813,7 +819,7 @@ namespace WoWonder.PlacesAsync
                 MAdapter.NotifyDataSetChanged();
 
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                dialogList.Title(Resource.String.Lbl_NearBy); 
+                dialogList.Title(Resource.String.Lbl_NearBy).TitleColorRes(Resource.Color.primary); 
                 dialogList.Adapter(MAdapter,new LinearLayoutManager(this));
                 dialogList.AutoDismiss(true);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);

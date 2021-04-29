@@ -11,6 +11,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
@@ -214,16 +215,18 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                Toolbar toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Withdrawals);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Withdrawals);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -305,7 +308,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
 
-                dialogList.Title(GetText(Resource.String.Lbl_Country));
+                dialogList.Title(GetText(Resource.String.Lbl_Country)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -332,7 +335,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                     GetText(Resource.String.Btn_Paypal), GetText(Resource.String.Lbl_Bank)
                 };
 
-                dialogList.Title(GetText(Resource.String.Lbl_WithdrawMethod));
+                dialogList.Title(GetText(Resource.String.Lbl_WithdrawMethod)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

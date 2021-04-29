@@ -150,7 +150,7 @@ namespace WoWonder.Payment
                             break;
                     } 
                       
-                    var (apiStatus, respond) = await RequestsAsync.Global.PayStack(request , keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.PayStackAsync(request , keyValues);
                     switch (apiStatus)
                     {
                         case 200:

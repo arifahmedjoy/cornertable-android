@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AFollestad.MaterialDialogs;
-using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.OS;
-
+using Android.Text;
+using Android.Text.Method;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using Com.EightbitLab.BlurViewBinding;
 using Java.Lang;
 using WoWonder.Activities.General;
 using WoWonder.Activities.Suggested.User;
@@ -32,20 +35,26 @@ using Exception = System.Exception;
 namespace WoWonder.Activities.Default
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class RegisterActivity : AppCompatActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
+    public class RegisterActivity : AppCompatActivity, MaterialDialog.IListCallback
     {
         #region Variables Basic
 
-        private Button RegisterButton;
-        private EditText EmailEditText, UsernameEditText, PasswordEditText, PasswordRepeatEditText, FirstNameEditText, LastNameEditText, GenderEditText, PhoneEditText;
-        private LinearLayout MainLinearLayout;
-
-        private ProgressBar ProgressBar; 
-        private CheckBox ChkAgree;
-        private TextView SecPrivacyTextView;
-        private TextView SecTermTextView;
+        private ImageView ImageBack;
+        private RelativeLayout UsernameLayout, FirstNameLayout, LastNameLayout, EmailLayout, GenderLayout, PhoneNumLayout, PasswordLayout, ConfirmPasswordLayout;
+        private EditText TxtUsername, TxtFirstName, TxtLastName , TxtEmail, TxtGender, TxtPhoneNum, TxtPassword, TxtConfirmPassword;
+        private TextView TxtUsernameRequired, TxtFirstNameRequired, TxtLastNameRequired, TxtEmailRequired, TxtGenderRequired, TxtPhoneNumRequired, TxtPasswordRequired, TxtConfirmPasswordRequired;
+        private LinearLayout PhoneLayout;
+        private CheckBox ChkTermsOfUse;
+        private TextView TxtTermsOfService;
+        private Button BtnSignUp;
+        private ProgressBar ProgressBar;
+        private ImageView ImageShowPass, ImageShowConPass;
         private string GenderStatus = "male";
+        private BlurView BlurView;
+
         #endregion
+
+        #region General
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -53,82 +62,24 @@ namespace WoWonder.Activities.Default
             {
                 base.OnCreate(savedInstanceState);
 
-                //Set Full screen 
-                Methods.App.FullScreenApp(this, true);
+                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
+                Window?.SetSoftInputMode(SoftInput.AdjustResize);
 
+                Methods.App.FullScreenApp(this);
+
+                // Create your application here
                 SetContentView(Resource.Layout.Register_Layout);
 
-                try
-                {
-                    Window?.SetBackgroundDrawableResource(Resource.Drawable.RegisterScreen);
-                }
-                catch (Exception exception)
-                {
-                    Methods.DisplayReportResultTrack(exception);
-                }
-
-                EmailEditText = FindViewById<EditText>(Resource.Id.emailfield);
-                UsernameEditText = FindViewById<EditText>(Resource.Id.usernamefield);
-                PasswordEditText = FindViewById<EditText>(Resource.Id.passwordfield);
-                PasswordRepeatEditText = FindViewById<EditText>(Resource.Id.ConfirmPasswordfield);
-                FirstNameEditText = FindViewById<EditText>(Resource.Id.firstNamefield);
-                LastNameEditText = FindViewById<EditText>(Resource.Id.lastNamefield);
-                GenderEditText = FindViewById<EditText>(Resource.Id.Genderfield);
-                PhoneEditText = FindViewById<EditText>(Resource.Id.Phonefield);
-
-                GenderEditText.Visibility = AppSettings.ShowGenderOnRegister ? ViewStates.Visible : ViewStates.Gone;
-                Methods.SetFocusable(GenderEditText);
-
-                MainLinearLayout = FindViewById<LinearLayout>(Resource.Id.mainLinearLayout);
-                ProgressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
-                RegisterButton = FindViewById<Button>(Resource.Id.signUpButton);
-
-                ProgressBar.Visibility = ViewStates.Invisible;
-
-                ChkAgree = FindViewById<CheckBox>(Resource.Id.termCheckBox);
-                SecTermTextView = FindViewById<TextView>(Resource.Id.secTermTextView);
-                SecPrivacyTextView = FindViewById<TextView>(Resource.Id.secPrivacyTextView);
-                 
-                var smsOrEmail = ListUtils.SettingsSiteList?.SmsOrEmail;
-                PhoneEditText.Visibility = smsOrEmail switch
-                {
-                    "sms" => ViewStates.Visible,
-                    _ => PhoneEditText.Visibility
-                };
-
-                switch ((int)Build.VERSION.SdkInt)
-                {
-                    // Check if we're running on Android 5.0 or higher
-                    case < 23:
-                        LoadConfigSettings();
-                        break;
-                    default:
-                    {
-                        if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                        {
-                            LoadConfigSettings();
-                        }
-                        else
-                        {
-                            RequestPermissions(new[]
-                            {
-                                Manifest.Permission.ReadExternalStorage,
-                                Manifest.Permission.WriteExternalStorage
-                            }, 101);
-                        }
-
-                        break;
-                    }
-                }
+                //Get Value  
+                InitComponent();
+                LoadConfigSettings();
 
                 if (string.IsNullOrEmpty(UserDetails.DeviceId))
-                {
                     OneSignalNotification.RegisterNotificationDevice();
-                }
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(exception);
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -137,13 +88,7 @@ namespace WoWonder.Activities.Default
             try
             {
                 base.OnResume();
-
-                //Add Event
-                MainLinearLayout.Click += MainLinearLayoutOnClick;
-                RegisterButton.Click += RegisterButtonOnClick;
-                SecTermTextView.Click += SecTermTextView_Click;
-                SecPrivacyTextView.Click += SecPrivacyTextView_Click;
-                GenderEditText.Touch += GenderEditTextOnTouch;
+                AddOrRemoveEvent(true);
             }
             catch (Exception e)
             {
@@ -156,426 +101,7 @@ namespace WoWonder.Activities.Default
             try
             {
                 base.OnPause();
-
-                //Close Event
-                MainLinearLayout.Click -= MainLinearLayoutOnClick;
-                RegisterButton.Click -= RegisterButtonOnClick;
-                SecTermTextView.Click -= SecTermTextView_Click;
-                SecPrivacyTextView.Click -= SecPrivacyTextView_Click;
-                GenderEditText.Touch -= GenderEditTextOnTouch;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        protected override void OnDestroy()
-        {
-            try
-            {
-                DestroyBasic();
-                base.OnDestroy();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void DestroyBasic()
-        {
-            try
-            {
-                RegisterButton = null!;
-                EmailEditText = null!;
-                UsernameEditText = null!;
-                PasswordEditText = null!;
-                PasswordRepeatEditText = null!;
-                FirstNameEditText = null!;
-                LastNameEditText = null!;
-                GenderEditText = null!;
-                PhoneEditText = null!;
-                MainLinearLayout = null!;
-                ProgressBar = null!;
-                SecPrivacyTextView = null!;
-                ChkAgree = null!;
-                SecTermTextView = null!;
-                GenderStatus = null!;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        private void SecPrivacyTextView_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                var url = Client.WebsiteUrl + "/terms/privacy-policy";
-                new IntentController(this).OpenBrowserFromApp(url);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void SecTermTextView_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                var url = Client.WebsiteUrl + "/terms/terms";
-                new IntentController(this).OpenBrowserFromApp(url);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-         
-        private void GenderEditTextOnTouch(object sender, View.TouchEventArgs e)
-        {
-            try
-            {
-                if (e?.Event?.Action != MotionEventActions.Down) return;
-
-                var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                switch (ListUtils.SettingsSiteList?.Genders?.Count)
-                {
-                    case > 0:
-                        arrayAdapter.AddRange(from item in ListUtils.SettingsSiteList?.Genders select item.Value);
-                        break;
-                    default:
-                        arrayAdapter.Add(GetText(Resource.String.Radio_Male));
-                        arrayAdapter.Add(GetText(Resource.String.Radio_Female));
-                        break;
-                }
-               
-                dialogList.Title(GetText(Resource.String.Lbl_Gender));
-                dialogList.Items(arrayAdapter);
-                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                dialogList.AlwaysCallSingleChoiceCallback();
-                dialogList.ItemsCallback(this).Build().Show(); 
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-         
-        private async void RegisterButtonOnClick(object sender, EventArgs eventArgs)
-        {
-            try
-            {
-                switch (ChkAgree.Checked)
-                {
-                    case true when Methods.CheckConnectivity():
-                    {
-                        if (!string.IsNullOrEmpty(UsernameEditText.Text.Replace(" ", "")) ||!string.IsNullOrEmpty(FirstNameEditText.Text.Replace(" ", "")) ||!string.IsNullOrEmpty(LastNameEditText.Text.Replace(" ", "")) ||
-                            !string.IsNullOrEmpty(PasswordEditText.Text) ||
-                            !string.IsNullOrEmpty(PasswordRepeatEditText.Text) ||
-                            !string.IsNullOrEmpty(EmailEditText.Text.Replace(" ", "")))
-                        {
-                            switch (AppSettings.ShowGenderOnRegister)
-                            {
-                                case true when string.IsNullOrEmpty(GenderStatus):
-                                    ProgressBar.Visibility = ViewStates.Invisible;
-                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
-                                    return;
-                            }
-
-                            var smsOrEmail = ListUtils.SettingsSiteList?.SmsOrEmail;
-                            switch (smsOrEmail)
-                            {
-                                case "sms" when string.IsNullOrEmpty(PhoneEditText.Text):
-                                    ProgressBar.Visibility = ViewStates.Invisible;
-                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
-                                    return;
-                            }
-                             
-                            var check = Methods.FunString.IsEmailValid(EmailEditText.Text.Replace(" ", ""));
-                            switch (check)
-                            {
-                                case false:
-                                    Methods.DialogPopup.InvokeAndShowDialog(this,
-                                        GetText(Resource.String.Lbl_VerificationFailed),
-                                        GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
-                                    break;
-                                default:
-                                {
-                                    if (PasswordRepeatEditText.Text == PasswordEditText.Text)
-                                    {
-                                        HideKeyboard();
-
-                                        ProgressBar.Visibility = ViewStates.Visible;
-
-                                        var (apiStatus, respond) = await RequestsAsync.Global.Get_Create_Account(UsernameEditText.Text.Replace(" ", ""), PasswordEditText.Text,PasswordRepeatEditText.Text, EmailEditText.Text.Replace(" ", ""),
-                                            GenderStatus, PhoneEditText.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                                        switch (apiStatus)
-                                        {
-                                            case 200:
-                                            {
-                                                switch (respond)
-                                                {
-                                                    case CreatAccountObject result:
-                                                    {
-                                                        SetDataLogin(result);
-                                              
-                                                        var dataPrivacy = new Dictionary<string, string>
-                                                        {
-                                                            {"first_name", FirstNameEditText.Text},
-                                                            {"last_name", LastNameEditText.Text},
-                                                        };
-                                             
-                                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
-                                             
-                                                        switch (AppSettings.ShowWalkTroutPage)
-                                                        {
-                                                            case true:
-                                                            {
-                                                                Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                                                newIntent?.PutExtra("class", "register");
-                                                                StartActivity(newIntent);
-                                                                break;
-                                                            }
-                                                            default:
-                                                            {
-                                                                switch (ListUtils.SettingsSiteList?.MembershipSystem)
-                                                                {
-                                                                    case "1":
-                                                                    {
-                                                                        var intent = new Intent(this, typeof(GoProActivity));
-                                                                        intent.PutExtra("class", "register");
-                                                                        StartActivity(intent);
-                                                                        break;
-                                                                    }
-                                                                    default:
-                                                                    {
-                                                                        switch (AppSettings.ShowSuggestedUsersOnRegister)
-                                                                        {
-                                                                            case true:
-                                                                            {
-                                                                                Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
-                                                                                newIntent?.PutExtra("class", "register");
-                                                                                StartActivity(newIntent);
-                                                                                break;
-                                                                            }
-                                                                            default:
-                                                                                StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                                                                break;
-                                                                        }
-
-                                                                        break;
-                                                                    }
-                                                                }
-
-                                                                break;
-                                                            }
-                                                        }
-
-                                                        break;
-                                                    }
-                                                }
-                                       
-                                                ProgressBar.Visibility = ViewStates.Invisible;
-                                                Finish();
-                                                break;
-                                            }
-                                            case 220:
-                                            {
-                                                switch (respond)
-                                                {
-                                                    case AuthMessageObject messageObject:
-                                                        switch (smsOrEmail)
-                                                        {
-                                                            case "sms":
-                                                            {
-                                                                UserDetails.Username = UsernameEditText.Text;
-                                                                UserDetails.FullName = FirstNameEditText.Text + " " + LastNameEditText.Text;
-                                                                UserDetails.Password = PasswordEditText.Text;
-                                                                UserDetails.UserId = messageObject.UserId;
-                                                                UserDetails.Status = "Pending";
-                                                                UserDetails.Email = EmailEditText.Text;
-
-                                                                //Insert user data to database
-                                                                var user = new DataTables.LoginTb
-                                                                {
-                                                                    UserId = UserDetails.UserId,
-                                                                    AccessToken = UserDetails.AccessToken,
-                                                                    Cookie = UserDetails.Cookie,
-                                                                    Username = UserDetails.Username,
-                                                                    Password = UserDetails.Password,
-                                                                    Status = "Pending",
-                                                                    Lang = "",
-                                                                    DeviceId = UserDetails.DeviceId,
-                                                                    Email = UserDetails.Email,
-                                                                };
-
-                                                                ListUtils.DataUserLoginList.Clear();
-                                                                ListUtils.DataUserLoginList.Add(user);
-
-                                                                var dbDatabase = new SqLiteDatabase();
-                                                                dbDatabase.InsertOrUpdateLogin_Credentials(user);
-                                                
-
-                                                                Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
-                                                                newIntent?.PutExtra("TypeCode", "AccountSms");
-                                                                StartActivity(newIntent);
-                                                                break;
-                                                            }
-                                                            case "mail":
-                                                            {
-                                                                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                                                                dialog.Title(GetText(Resource.String.Lbl_ActivationSent));
-                                                                dialog.Content(GetText(Resource.String.Lbl_ActivationDetails).Replace("@", EmailEditText.Text));
-                                                                dialog.PositiveText(GetText(Resource.String.Lbl_Ok)).OnPositive(this);
-                                                                dialog.AlwaysCallSingleChoiceCallback();
-                                                                dialog.Build().Show();
-                                                                break;
-                                                            }
-                                                            default:
-                                                                ProgressBar.Visibility = ViewStates.Invisible;
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), messageObject.Message, GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                        }
-
-                                                        break;
-                                                }
-
-                                                break;
-                                            }
-                                            case 400:
-                                            {
-                                                switch (respond)
-                                                {
-                                                    case ErrorObject error:
-                                                    {
-                                                        var errorText = error.Error.ErrorText;
-
-                                                        var errorId = error.Error.ErrorId;
-                                                        switch (errorId)
-                                                        {
-                                                            case "3":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_3), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "4":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_4), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "5":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_something_went_wrong), GetText(Resource.String.Lbl_Ok)); break;
-                                                            case "6":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_6), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "7":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_7), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "8":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_8), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "9":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_9), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "10":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_10), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            case "11":
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_11), GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                            default:
-                                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
-                                                                break;
-                                                        }
-
-                                                        break;
-                                                    }
-                                                }
-
-                                                ProgressBar.Visibility = ViewStates.Invisible;
-                                                break;
-                                            }
-                                            case 404:
-                                                ProgressBar.Visibility = ViewStates.Invisible;
-                                                Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),respond.ToString(), GetText(Resource.String.Lbl_Ok));
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        ProgressBar.Visibility = ViewStates.Invisible;
-
-                                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Error_Register_password), GetText(Resource.String.Lbl_Ok));
-                                    }
-
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            ProgressBar.Visibility = ViewStates.Invisible;
-                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
-                        }
-
-                        break;
-                    }
-                    case true:
-                        ProgressBar.Visibility = ViewStates.Invisible;
-                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CheckYourInternetConnection), GetText(Resource.String.Lbl_Ok));
-                        break;
-                    default:
-                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Warning), GetText(Resource.String.Lbl_You_can_not_access_your_disapproval), GetText(Resource.String.Lbl_Ok));
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-                ProgressBar.Visibility = ViewStates.Invisible;
-                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message, GetText(Resource.String.Lbl_Ok));
-            }
-        }
-
-        private void MainLinearLayoutOnClick(object sender, EventArgs eventArgs)
-        {
-            HideKeyboard();
-        }
-
-        private void HideKeyboard()
-        {
-            try
-            {
-                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
-                inputManager?.HideSoftInputFromWindow(CurrentFocus?.WindowToken, HideSoftInputFlags.None);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-
-        //Permissions
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-        {
-            try
-            {
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-                switch (requestCode)
-                {
-                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
-                        LoadConfigSettings();
-                        break;
-                    case 101:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        Finish();
-                        break;
-                }
+                AddOrRemoveEvent(false);
             }
             catch (Exception e)
             {
@@ -609,71 +135,607 @@ namespace WoWonder.Activities.Default
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
-        private void SetDataLogin(CreatAccountObject auth)
+
+        protected override void OnDestroy()
         {
             try
             {
-                Current.AccessToken = auth.AccessToken;
+                DestroyBasic();
+                base.OnDestroy();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
 
-                UserDetails.Username = UsernameEditText.Text;
-                UserDetails.FullName = FirstNameEditText.Text + " " + LastNameEditText.Text;
-                UserDetails.Password = PasswordEditText.Text;
-                UserDetails.AccessToken = auth.AccessToken;
-                UserDetails.UserId = auth.UserId;
-                UserDetails.Status = "Pending";
-                UserDetails.Cookie = auth.AccessToken;
-                UserDetails.Email = EmailEditText.Text;
+        #endregion
+         
+        #region Functions
 
-                //Insert user data to database
-                var user = new DataTables.LoginTb
-                {
-                    UserId = UserDetails.UserId,
-                    AccessToken = UserDetails.AccessToken,
-                    Cookie = UserDetails.Cookie,
-                    Username = UserDetails.Username,
-                    Password = UserDetails.Password,
-                    Status = "Pending",
-                    Lang = "",
-                    DeviceId = UserDetails.DeviceId, 
-                    Email = UserDetails.Email,  
-                };
+        private void InitComponent()
+        {
+            try
+            {
+                ImageBack = FindViewById<ImageView>(Resource.Id.iv_back);
 
-                ListUtils.DataUserLoginList.Clear();
-                ListUtils.DataUserLoginList.Add(user);
+                UsernameLayout = FindViewById<RelativeLayout>(Resource.Id.rl_username); 
+                TxtUsername = FindViewById<EditText>(Resource.Id.etUsername);
+                TxtUsernameRequired = FindViewById<TextView>(Resource.Id.tv_username_required);
 
-                var dbDatabase = new SqLiteDatabase();
-                dbDatabase.InsertOrUpdateLogin_Credentials(user);
-                
+                FirstNameLayout = FindViewById<RelativeLayout>(Resource.Id.rl_firstname);
+                TxtFirstName = FindViewById<EditText>(Resource.Id.etFirstName);
+                TxtFirstNameRequired = FindViewById<TextView>(Resource.Id.tv_firstname_required);
 
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
+                LastNameLayout = FindViewById<RelativeLayout>(Resource.Id.rl_lastname);
+                TxtLastName = FindViewById<EditText>(Resource.Id.etLastName);
+                TxtLastNameRequired = FindViewById<TextView>(Resource.Id.tv_lastname_required);
+                 
+                EmailLayout = FindViewById<RelativeLayout>(Resource.Id.rl_email);
+                TxtEmail = FindViewById<EditText>(Resource.Id.etEmail);
+                TxtEmailRequired = FindViewById<TextView>(Resource.Id.tv_email_required);
+
+                PasswordLayout = FindViewById<RelativeLayout>(Resource.Id.rl_password);
+                TxtPassword = FindViewById<EditText>(Resource.Id.etPassword);
+                TxtPasswordRequired = FindViewById<TextView>(Resource.Id.tv_password_required);
+
+                ConfirmPasswordLayout = FindViewById<RelativeLayout>(Resource.Id.rl_confirm_password);
+                TxtConfirmPassword = FindViewById<EditText>(Resource.Id.etConfirmPassword);
+                TxtConfirmPasswordRequired = FindViewById<TextView>(Resource.Id.tv_confirm_password_required);
+
+                GenderLayout = FindViewById<RelativeLayout>(Resource.Id.rl_gender);
+                TxtGender = FindViewById<EditText>(Resource.Id.etGender);
+                TxtGenderRequired = FindViewById<TextView>(Resource.Id.tv_gender_required);
+
+                PhoneLayout = FindViewById<LinearLayout>(Resource.Id.phoneNumLayout);
+                PhoneNumLayout = FindViewById<RelativeLayout>(Resource.Id.rl_phoneNum);
+                TxtPhoneNum = FindViewById<EditText>(Resource.Id.etPhoneNum);
+                TxtPhoneNumRequired = FindViewById<TextView>(Resource.Id.tv_phoneNum_required);
+                  
+                ImageShowPass = FindViewById<ImageView>(Resource.Id.imageShowPass);
+                ImageShowConPass = FindViewById<ImageView>(Resource.Id.imageShowConPass);
+
+                ChkTermsOfUse = FindViewById<CheckBox>(Resource.Id.terms_of_use);
+                TxtTermsOfService = FindViewById<TextView>(Resource.Id.terms_of_service);
+
+                ProgressBar = FindViewById<ProgressBar>(Resource.Id.progressBar); 
+                BtnSignUp = FindViewById<Button>(Resource.Id.btn_create_account);
+
+                BlurView = FindViewById<BlurView>(Resource.Id.bv_create_account); 
+                //BlurBackground(BlurView, 10f);
+
+                ToggleVisibility(false);
+                Methods.SetFocusable(TxtGender); 
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
+         
+        private void AddOrRemoveEvent(bool addEvent)
+        {
+            try
+            {
+                // true +=  // false -=
+                if (addEvent)
+                {
+                    ImageBack.Click += ImageBackOnClick;
+                    BtnSignUp.Click += BtnSignUpOnClick;
+                    ImageShowPass.Touch += ImageShowPassOnTouch;
+                    ImageShowConPass.Touch += ImageShowConPassOnTouch;
+                    TxtGender.Touch += TxtGenderOnTouch;
+                    TxtTermsOfService.Click += TxtTermsOfServiceOnClick;
+                    TxtUsername.TextChanged += TxtUsernameOnTextChanged;
+                    TxtFirstName.TextChanged += TxtFirstNameOnTextChanged;
+                    TxtLastName.TextChanged += TxtLastNameOnTextChanged;
+                    TxtEmail.TextChanged += TxtEmailOnTextChanged;
+                    TxtGender.TextChanged += TxtGenderOnTextChanged;
+                    TxtPhoneNum.TextChanged += TxtPhoneNumOnTextChanged; 
+                    TxtPassword.TextChanged += TxtPasswordOnTextChanged;  
+                }
+                else
+                {
+                    ImageBack.Click -= ImageBackOnClick;
+                    BtnSignUp.Click -= BtnSignUpOnClick;
+                    ImageShowPass.Touch -= ImageShowPassOnTouch;
+                    ImageShowConPass.Touch -= ImageShowConPassOnTouch;
+                    TxtGender.Touch -= TxtGenderOnTouch;
+                    TxtTermsOfService.Click -= TxtTermsOfServiceOnClick;
+                    TxtUsername.TextChanged -= TxtUsernameOnTextChanged;
+                    TxtFirstName.TextChanged -= TxtFirstNameOnTextChanged;
+                    TxtLastName.TextChanged -= TxtLastNameOnTextChanged;
+                    TxtEmail.TextChanged -= TxtEmailOnTextChanged;
+                    TxtGender.TextChanged -= TxtGenderOnTextChanged;
+                    TxtPhoneNum.TextChanged -= TxtPhoneNumOnTextChanged;
+                    TxtPassword.TextChanged -= TxtPasswordOnTextChanged;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+
+        private void DestroyBasic()
+        {
+            try
+            {
+                TxtUsername = null!;
+                TxtEmail = null!;
+                TxtGender = null!;
+                TxtPassword = null!;
+                TxtConfirmPassword = null!;
+                ChkTermsOfUse = null!;
+                TxtTermsOfService = null!;
+                BtnSignUp = null!;
+                GenderStatus = "male";
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        #endregion
+
+        #region Events
+
+        //Back
+        private void ImageBackOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                Finish();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //Show Con Password 
+        private void ImageShowConPassOnTouch(object sender, View.TouchEventArgs e)
+        {
+            try
+            {
+                switch (e.Event?.Action)
+                {
+                    case MotionEventActions.Up: // hide password
+                        TxtPassword.TransformationMethod = PasswordTransformationMethod.Instance;
+                        ImageShowPass.SetImageResource(Resource.Drawable.ic_eye_hide);
+                        break;
+                    case MotionEventActions.Down: // show password
+                        TxtPassword.TransformationMethod = HideReturnsTransformationMethod.Instance;
+                        ImageShowPass.SetImageResource(Resource.Drawable.icon_eye);
+                        break;
+                    default:
+                        return;
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //Show Password 
+        private void ImageShowPassOnTouch(object sender, View.TouchEventArgs e)
+        {
+            try
+            {
+                switch (e.Event?.Action)
+                {
+                    case MotionEventActions.Up: // hide password
+                        TxtPassword.TransformationMethod = PasswordTransformationMethod.Instance;
+                        ImageShowConPass.SetImageResource(Resource.Drawable.ic_eye_hide);
+                        break;
+                    case MotionEventActions.Down: // show password
+                        TxtPassword.TransformationMethod = HideReturnsTransformationMethod.Instance;
+                        ImageShowConPass.SetImageResource(Resource.Drawable.icon_eye);
+                        break;
+                    default:
+                        return;
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //start Create account 
+        private async void BtnSignUpOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!Methods.CheckConnectivity())
+                { 
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CheckYourInternetConnection), GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                  
+                if (!ChkTermsOfUse.Checked)
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_You_can_not_access_your_disapproval), GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(TxtUsername.Text.Replace(" ", "")))
+                {
+                    SetHighLight(true, UsernameLayout, TxtUsername, TxtUsernameRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, UsernameLayout, TxtUsername, TxtUsernameRequired);
+                 
+                if (string.IsNullOrEmpty(TxtFirstName.Text.Replace(" ", "")))
+                {
+                    SetHighLight(true, FirstNameLayout, TxtFirstName, TxtFirstNameRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, FirstNameLayout, TxtFirstName, TxtFirstNameRequired);
+                 
+                if (string.IsNullOrEmpty(TxtLastName.Text.Replace(" ", "")))
+                {
+                    SetHighLight(true, LastNameLayout, TxtLastName, TxtLastNameRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, LastNameLayout, TxtLastName, TxtLastNameRequired);
+                 
+                if (string.IsNullOrEmpty(TxtEmail.Text.Replace(" ", "")))
+                {
+                    SetHighLight(true, EmailLayout, TxtEmail, TxtEmailRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, EmailLayout, TxtEmail, TxtEmailRequired);
+                 
+                if (string.IsNullOrEmpty(GenderStatus))
+                {
+                    SetHighLight(true, GenderLayout, TxtGender, TxtGenderRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, GenderLayout, TxtGender, TxtGenderRequired);
+
+
+                if (string.IsNullOrEmpty(TxtPassword.Text))
+                {
+                    SetHighLight(true, PasswordLayout, TxtPassword, TxtPasswordRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, PasswordLayout, TxtPassword, TxtPasswordRequired);
+                 
+                if (string.IsNullOrEmpty(TxtConfirmPassword.Text))
+                {
+                    SetHighLight(true, ConfirmPasswordLayout, TxtConfirmPassword, TxtConfirmPasswordRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, ConfirmPasswordLayout, TxtConfirmPassword, TxtConfirmPasswordRequired);
+                 
+                var smsOrEmail = ListUtils.SettingsSiteList?.SmsOrEmail;
+                if (smsOrEmail == "sms" && string.IsNullOrEmpty(TxtPhoneNum.Text))
+                {
+                    SetHighLight(true , PhoneNumLayout , TxtPhoneNum , TxtPhoneNumRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, PhoneNumLayout, TxtPhoneNum, TxtPhoneNumRequired);
+
+                var check = Methods.FunString.IsEmailValid(TxtEmail.Text.Replace(" ", ""));
+                if (!check)
+                { 
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+
+                if (TxtPassword.Text != TxtConfirmPassword.Text)
+                { 
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Your_password_dont_match), GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+
+                HideKeyboard();
+
+                ToggleVisibility(true);
+
+                var (apiStatus, respond) = await RequestsAsync.Auth.CreateAccountAsync(TxtUsername.Text.Replace(" ", ""), TxtPassword.Text, TxtConfirmPassword.Text, TxtEmail.Text.Replace(" ", ""), GenderStatus, TxtPhoneNum.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                if (apiStatus == 200 && respond is CreatAccountObject result)
+                {
+                    SetDataLogin(result);
+
+                    var dataPrivacy = new Dictionary<string, string> {{"first_name", TxtFirstName.Text}, {"last_name", TxtLastName.Text},};
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy)});
+
+                    if (AppSettings.ShowWalkTroutPage)
+                    {
+                        Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                        newIntent?.PutExtra("class", "register");
+                        StartActivity(newIntent);
+                    }
+                    else
+                    {
+                        if (ListUtils.SettingsSiteList?.MembershipSystem == "1")
+                        {
+                            var intent = new Intent(this, typeof(GoProActivity));
+                            intent.PutExtra("class", "register");
+                            StartActivity(intent);
+                        }
+                        else
+                        {
+                            if (AppSettings.ShowSuggestedUsersOnRegister)
+                            {
+                                Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
+                                newIntent?.PutExtra("class", "register");
+                                StartActivity(newIntent);
+                            }
+                            else
+                            {
+                                StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                            }
+                        }
+                    }
+                     
+                    ToggleVisibility(false);
+                    FinishAffinity();
+                }
+                else if (apiStatus == 220)
+                {
+                    if (respond is AuthMessageObject message)
+                    {
+                        if (smsOrEmail == "sms")
+                        {
+                            UserDetails.Username = TxtUsername.Text;
+                            UserDetails.FullName = TxtFirstName.Text + " " + TxtLastName.Text;
+                            UserDetails.Password = TxtPassword.Text;
+                            UserDetails.UserId = message.UserId;
+                            UserDetails.Status = "Pending";
+                            UserDetails.Email = TxtEmail.Text;
+                             
+                            //Insert user data to database
+                            var user = new DataTables.LoginTb
+                            {
+                                UserId = UserDetails.UserId,
+                                AccessToken = UserDetails.AccessToken,
+                                Cookie = UserDetails.Cookie,
+                                Username = UserDetails.Username,
+                                Password = UserDetails.Password,
+                                Status = "Pending",
+                                Lang = "",
+                                DeviceId = UserDetails.DeviceId,
+                                Email = UserDetails.Email,
+                            };
+
+                            ListUtils.DataUserLoginList.Clear();
+                            ListUtils.DataUserLoginList.Add(user);
+
+                            var dbDatabase = new SqLiteDatabase();
+                            dbDatabase.InsertOrUpdateLogin_Credentials(user);
+                              
+                            Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
+                            newIntent?.PutExtra("TypeCode", "AccountSms");
+                            StartActivity(newIntent);
+                        }
+                        else if (smsOrEmail == "mail")
+                        {
+                            var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            dialog.Title(GetText(Resource.String.Lbl_ActivationSent)).TitleColorRes(Resource.Color.primary);
+                            dialog.Content(GetText(Resource.String.Lbl_ActivationDetails).Replace("@", TxtEmail.Text));
+                            dialog.PositiveText(GetText(Resource.String.Lbl_Ok)).OnPositive(new WoWonderTools.MyMaterialDialog());
+                            dialog.AlwaysCallSingleChoiceCallback();
+                            dialog.Build().Show();
+                        }
+                        else
+                        {
+                            ProgressBar.Visibility = ViewStates.Invisible;
+                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), message.Message, GetText(Resource.String.Lbl_Ok));
+                        } 
+                        
+                        ToggleVisibility(false); 
+                    }
+                }
+                else if (apiStatus == 400)
+                {
+                    if (respond is ErrorObject error)
+                    {
+                        ToggleVisibility(false);
+                        var errorText = error.Error.ErrorText;  
+                        var errorId = error.Error.ErrorId;
+                        switch (errorId)
+                        {
+                            case "3":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_3), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "4":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_4), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "5":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_something_went_wrong), GetText(Resource.String.Lbl_Ok)); break;
+                            case "6":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_6), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "7":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_7), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "8":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_8), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "9":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_9), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "10":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_10), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            case "11":
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_ErrorRegister_11), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            default:
+                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+                    ToggleVisibility(false);
+                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), respond.ToString(), GetText(Resource.String.Lbl_Ok));
+                }
+            }
+            catch (Exception exception)
+            {
+                ToggleVisibility(false);
+                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), exception.Message, GetText(Resource.String.Lbl_Ok));
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        //Open Terms Of Service
+        private void TxtTermsOfServiceOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var url = Client.WebsiteUrl + "/terms/terms";
+                new IntentController(this).OpenBrowserFromApp(url);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtGenderOnTouch(object sender, View.TouchEventArgs e)
+        {
+            try
+            {
+                if (e?.Event?.Action != MotionEventActions.Down) return;
+
+                var arrayAdapter = new List<string>();
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+
+                switch (ListUtils.SettingsSiteList?.Genders?.Count)
+                {
+                    case > 0:
+                        arrayAdapter.AddRange(from item in ListUtils.SettingsSiteList?.Genders select item.Value);
+                        break;
+                    default:
+                        arrayAdapter.Add(GetText(Resource.String.Radio_Male));
+                        arrayAdapter.Add(GetText(Resource.String.Radio_Female));
+                        break;
+                }
+
+                dialogList.Title(GetText(Resource.String.Lbl_Gender)).TitleColorRes(Resource.Color.primary);
+                dialogList.Items(arrayAdapter);
+                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                dialogList.AlwaysCallSingleChoiceCallback();
+                dialogList.ItemsCallback(this).Build().Show();
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        }
+
+
+        private void TxtPasswordOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtPassword.Text.Length > 0)
+                    SetHighLight(false, PasswordLayout, TxtPassword, TxtPasswordRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtPhoneNumOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtPhoneNum.Text.Length > 0)
+                    SetHighLight(false, PhoneNumLayout, TxtPhoneNum, TxtPhoneNumRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtGenderOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtGender.Text.Length > 0)
+                    SetHighLight(false, GenderLayout, TxtGender, TxtGenderRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtEmailOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtEmail.Text.Length > 0)
+                    SetHighLight(false, EmailLayout, TxtEmail, TxtEmailRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtLastNameOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtLastName.Text.Length > 0)
+                    SetHighLight(false, LastNameLayout, TxtLastName, TxtLastNameRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtFirstNameOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtFirstName.Text.Length > 0)
+                    SetHighLight(false, FirstNameLayout, TxtFirstName, TxtFirstNameRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TxtUsernameOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtUsername.Text.Length > 0)
+                    SetHighLight(false, UsernameLayout, TxtUsername, TxtUsernameRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        #endregion
 
         #region MaterialDialog
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                    Finish();
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
 
         public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
         {
@@ -683,7 +745,7 @@ namespace WoWonder.Activities.Default
                 {
                     case > 0:
                     {
-                        GenderEditText.Text = itemString.ToString();
+                        TxtGender.Text = itemString.ToString();
 
                         var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString.ToString()).Key;
                         GenderStatus = key ?? "male";
@@ -693,17 +755,17 @@ namespace WoWonder.Activities.Default
                     {
                         if (itemString.ToString() == GetText(Resource.String.Radio_Male))
                         {
-                            GenderEditText.Text = GetText(Resource.String.Radio_Male);
+                            TxtGender.Text = GetText(Resource.String.Radio_Male);
                             GenderStatus = "male";
                         }
                         else if (itemString.ToString() == GetText(Resource.String.Radio_Female))
                         {
-                            GenderEditText.Text = GetText(Resource.String.Radio_Female);
+                            TxtGender.Text = GetText(Resource.String.Radio_Female);
                             GenderStatus = "female";
                         }
                         else
                         {
-                            GenderEditText.Text = GetText(Resource.String.Radio_Male);
+                            TxtGender.Text = GetText(Resource.String.Radio_Male);
                             GenderStatus = "male";
                         }
 
@@ -719,7 +781,76 @@ namespace WoWonder.Activities.Default
 
         #endregion
 
+        private void HideKeyboard()
+        {
+            try
+            {
+                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+                inputManager?.HideSoftInputFromWindow(CurrentFocus?.WindowToken, HideSoftInputFlags.None);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
 
+        private void ToggleVisibility(bool isLoginProgress)
+        {
+            try
+            {
+                ProgressBar.Visibility = isLoginProgress ? ViewStates.Visible : ViewStates.Gone;
+                BtnSignUp.Visibility = isLoginProgress ? ViewStates.Invisible : ViewStates.Visible;
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void SetDataLogin(CreatAccountObject auth)
+        {
+            try
+            {
+                Current.AccessToken = auth.AccessToken;
+
+                UserDetails.Username = TxtUsername.Text;
+                UserDetails.FullName = TxtFirstName.Text + " " + TxtLastName.Text;
+                UserDetails.Password = TxtPassword.Text;
+                UserDetails.AccessToken = auth.AccessToken;
+                UserDetails.UserId = auth.UserId;
+                UserDetails.Status = "Pending";
+                UserDetails.Cookie = auth.AccessToken;
+                UserDetails.Email = TxtEmail.Text;
+
+                //Insert user data to database
+                var user = new DataTables.LoginTb
+                {
+                    UserId = UserDetails.UserId,
+                    AccessToken = UserDetails.AccessToken,
+                    Cookie = UserDetails.Cookie,
+                    Username = UserDetails.Username,
+                    Password = UserDetails.Password,
+                    Status = "Pending",
+                    Lang = "",
+                    DeviceId = UserDetails.DeviceId,
+                    Email = UserDetails.Email,
+                };
+
+                ListUtils.DataUserLoginList.Clear();
+                ListUtils.DataUserLoginList.Add(user);
+
+                var dbDatabase = new SqLiteDatabase();
+                dbDatabase.InsertOrUpdateLogin_Credentials(user);
+
+                if (Methods.CheckConnectivity())
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+         
         private void LoadConfigSettings()
         {
             try
@@ -729,9 +860,63 @@ namespace WoWonder.Activities.Default
                 if (settingsData != null)
                     ListUtils.SettingsSiteList = settingsData;
 
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.GetSettings_Api(this) });
+                if (Methods.CheckConnectivity())
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.GetSettings_Api(this) });
+                 
+                var smsOrEmail = ListUtils.SettingsSiteList?.SmsOrEmail;
+                PhoneLayout.Visibility = smsOrEmail == "sms" ? ViewStates.Visible : ViewStates.Gone;
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
 
-                
+        private void BlurBackground(BlurView blurView, float radius)
+        {
+            try
+            {
+                //float radius = 10f; 
+                View decorView = Window.DecorView;
+                //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
+                ViewGroup rootView = decorView.FindViewById<ViewGroup>(Android.Resource.Id.Content);
+                //Set drawable to draw in the beginning of each blurred frame (Optional). 
+                //Can be used in case your layout has a lot of transparent space and your content
+                //gets kinda lost after after blur is applied.
+                Drawable windowBackground = decorView.Background;
+
+                blurView.SetupWith(rootView)
+                    .SetFrameClearDrawable(windowBackground)
+                    .SetBlurAlgorithm(new RenderScriptBlur(this))
+                    .SetBlurRadius(radius)
+                    .SetBlurAutoUpdate(true)
+                    .SetHasFixedTransformationMatrix(true);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void SetHighLight(bool state, RelativeLayout layout, EditText editText, TextView textView)
+        {
+            try
+            {
+                Color txtcolor, borderColor;
+                if (state)
+                {
+                    textView.Visibility = ViewStates.Visible;
+                    txtcolor = new Color(GetColor(Resource.Color.colorLoginHighlightText));
+                    borderColor = new Color(GetColor(Resource.Color.colorLoginHighlightText));
+                }
+                else
+                {
+                    textView.Visibility = ViewStates.Gone;
+                    txtcolor = new Color(GetColor(Resource.Color.gnt_white));
+                    borderColor = new Color(GetColor(Resource.Color.transparent_border));
+                }
+                editText.SetHintTextColor(txtcolor);
+                layout.Background.SetTint(borderColor);
             }
             catch (Exception e)
             {
@@ -740,4 +925,4 @@ namespace WoWonder.Activities.Default
         }
 
     }
-}
+} 

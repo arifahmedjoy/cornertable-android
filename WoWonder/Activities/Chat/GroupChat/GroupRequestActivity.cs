@@ -10,6 +10,7 @@ using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
@@ -140,12 +141,13 @@ namespace WoWonder.Activities.Chat.GroupChat
                 if (toolbar != null)
                 {
                     toolbar.Title = GetText(Resource.String.Lbl_GroupRequest);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
                 }
             }
@@ -212,7 +214,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 {
                     if (Methods.CheckConnectivity())
                     {
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.AcceptGroupChatRequest(item.GroupId) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.AcceptGroupChatRequestAsync(item.GroupId) });
 
                         var index = MAdapter.GroupList.IndexOf(item);
                         if (index != -1)
@@ -248,7 +250,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 {
                     if (Methods.CheckConnectivity())
                     {
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.RejectGroupChatRequest(item.GroupId) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.RejectGroupChatRequestAsync(item.GroupId) });
 
                         var index = MAdapter.GroupList.IndexOf(item);
                         if (index != -1)

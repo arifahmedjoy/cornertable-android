@@ -5,8 +5,8 @@
     android:layout_height="wrap_content">
     <refractored.controls.CircleImageView
         android:id="@+id/card_pro_pic"
-        android:layout_width="41dp"
-        android:layout_height="41dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginStart="5dp"
         android:layout_marginTop="5dp"
         app:civ_border_width="1dp"
@@ -16,12 +16,12 @@
         android:orientation="vertical"
         android:layout_marginBottom="2dp"
         android:layout_marginTop="10dp"
-        android:minWidth="150dp"
+        android:minWidth="220dp"
 		android:background="@drawable/comment_rounded_left_layout"
         android:layout_toEndOf="@id/card_pro_pic" 
         android:id="@+id/bubble_layout"
         android:layout_marginEnd="15dp"
-        android:layout_marginStart="4dp" 
+        android:layout_marginStart="10dp" 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
@@ -46,17 +46,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textIsSelectable="false" />
-        <TextView
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:id="@+id/time"
-            android:textSize="9dp"
-            android:gravity="bottom|end"
-            android:layout_gravity="bottom|end"
-            android:layout_below="@+id/active"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="18dp"
-            android:paddingBottom="3dp" />
+<!--    <TextView-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:id="@+id/time"-->
+<!--        android:textSize="9dp"-->
+<!--        android:gravity="bottom|end"-->
+<!--        android:layout_gravity="bottom|end"-->
+<!--        android:layout_below="@+id/active"-->
+<!--        android:layout_marginEnd="8dp"-->
+<!--        android:layout_marginStart="18dp"-->
+<!--        android:paddingBottom="3dp" />-->
     </LinearLayout>
     <TextView
         android:layout_below="@+id/bubble_layout"
@@ -66,11 +66,11 @@
         android:textSize="12dp"
         android:gravity="top"
         android:text="@string/Btn_Like"
+        android:textColor="?attr/colorReact"
         android:translationX="8dp"
-        android:textStyle="bold"
-        android:layout_marginTop="1dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="10dp"
-        android:layout_marginStart="15dp"
+        android:layout_marginStart="10dp"
         android:layout_width="wrap_content" />
     <TextView
         android:layout_below="@+id/bubble_layout"
@@ -82,8 +82,9 @@
         android:gravity="top"
         android:visibility="gone"
         android:text="@string/Btn_Dislike"
+        android:textColor="?attr/colorReact"
         android:textStyle="bold"
-        android:layout_marginTop="1dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="10dp"
         android:layout_marginStart="5dp"
         android:layout_marginBottom="5dp"
@@ -96,10 +97,24 @@
         android:translationX="7dp"
         android:textSize="12dp"
         android:text="@string/Lbl_Reply"
-        android:textStyle="bold"
-        android:layout_marginTop="1dp"
+        android:textColor="?attr/colorReact"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="10dp"
         android:layout_marginStart="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_width="wrap_content" />
+    <TextView
+        android:layout_below="@+id/bubble_layout"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/reply"
+        android:id="@+id/time"
+        android:translationX="7dp"
+        android:textSize="12dp"
+        android:text=""
+        android:textColor="?attr/colorReact"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
         android:layout_marginBottom="5dp"
         android:layout_width="wrap_content" />
     <LinearLayout
@@ -115,6 +130,13 @@
 	    android:backgroundTint="@android:color/transparent"
 	    android:background="@drawable/shape_radius_btn"
 	    android:layout_height="wrap_content">
+	    <TextView
+		    android:id="@+id/countLike"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:gravity="start"
+		    android:textSize="12sp"
+            android:textColor="?attr/colorReact"/>
 	    <ImageView
 		    android:id="@+id/ImagecountLike"
 		    android:layout_width="16dp"
@@ -123,11 +145,5 @@
 		    android:layout_marginEnd="5dp"
 		    android:layout_marginStart="7dp"
 		    android:scaleType="centerCrop" />
-	    <TextView
-		    android:id="@+id/countLike"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:gravity="start"
-		    android:textSize="12sp" />
     </LinearLayout> 
 </RelativeLayout>

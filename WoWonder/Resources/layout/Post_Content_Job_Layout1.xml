@@ -2,7 +2,9 @@
     android:orientation="vertical"
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
-    android:layout_height="345dp">
+    android:layout_height="345dp"
+    	android:paddingStart="15dp"
+    android:paddingEnd="15dp">
     <ImageView
         android:id="@+id/JobCoverImage"
         android:layout_width="match_parent"

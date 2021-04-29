@@ -76,8 +76,8 @@ namespace WoWonder.Helpers.Utils
                         case UpdateAvailability.UpdateAvailable:
                         case UpdateAvailability.DeveloperTriggeredUpdateInProgress:
                         {
-                            var dialog = new MaterialDialog.Builder(MainActivity).Theme(Theme.Light)
-                                .Title(MainActivity.GetText(Resource.String.Lbl_ThereIsNewUpdate))
+                            var dialog = new MaterialDialog.Builder(MainActivity).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light)
+                                .Title(MainActivity.GetText(Resource.String.Lbl_ThereIsNewUpdate)).TitleColorRes(Resource.Color.primary)
                                 .CustomView(Resource.Layout.DialogCheckUpdateApp, true)
                                 .PositiveText(MainActivity.GetText(Resource.String.Lbl_Update)).OnPositive((materialDialog, action) =>
                                 {

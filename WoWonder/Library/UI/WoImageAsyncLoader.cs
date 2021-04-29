@@ -6,6 +6,7 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AsyncLayoutInflater.View;
+using ImageViews.Rounded;
 using WoWonder.Activities.NativePost.Post;
 
 namespace WoWonder.Library.UI
@@ -64,7 +65,7 @@ namespace WoWonder.Library.UI
 
             public void SetupViews(AdapterHolders.PostImageSectionViewHolder postImageSectionViewHolder)
             {
-                postImageSectionViewHolder.Image = MainView.FindViewById<ImageView>(Resource.Id.Image);
+                postImageSectionViewHolder.Image = MainView.FindViewById<RoundedImageView>(Resource.Id.Image);
             }
         }
 

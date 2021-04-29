@@ -200,7 +200,7 @@ namespace WoWonder.Activities.Jobs
 
                         var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
                         dialogList.Items(arrayAdapter);
                         dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                         dialogList.AlwaysCallSingleChoiceCallback();
@@ -234,7 +234,7 @@ namespace WoWonder.Activities.Jobs
                 arrayAdapter.Add(GetText(Resource.String.Lbl_volunteer));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_contract)); 
 
-                dialogList.Title(GetText(Resource.String.Lbl_JobType));
+                dialogList.Title(GetText(Resource.String.Lbl_JobType)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

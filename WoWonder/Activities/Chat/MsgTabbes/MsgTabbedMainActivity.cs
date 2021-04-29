@@ -10,8 +10,7 @@ using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using AndroidX.Fragment.App;
-using AndroidX.ViewPager.Widget;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.Tabs;
 using Java.Lang;
 using Newtonsoft.Json;
@@ -25,7 +24,6 @@ using WoWonder.Activities.Chat.MsgTabbes.Services;
 using WoWonder.Activities.Contacts;
 using WoWonder.Activities.NearBy;
 using WoWonder.Activities.Search;
-using WoWonder.Activities.SettingsPreferences;
 using WoWonder.Activities.SettingsPreferences.General;
 using WoWonder.Activities.Tabbes;
 using WoWonder.Adapters;
@@ -40,13 +38,13 @@ using Exception = System.Exception;
 namespace WoWonder.Activities.Chat.MsgTabbes
 {
     //[Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.UiMode)]
-    public class MsgTabbedMainActivity : AndroidX.Fragment.App.Fragment, MaterialDialog.IListCallback
+    public class MsgTabbedMainActivity : AndroidX.Fragment.App.Fragment, MaterialDialog.IListCallback, TabLayoutMediator.ITabConfigurationStrategy
     {
         #region Variables
 
+        private MainTabAdapter Adapter;
         public TabLayout Tabs;
-
-        private ViewPager ViewPager;
+        private ViewPager2 ViewPager;
 
         //private FloatingActionButton FloatingActionFilter;
         //private FrameLayout FloatingActionButtonView;
@@ -236,10 +234,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 //FloatingActionTag = "lastMessages";
                 //FloatingActionButtonView.Visibility = ViewStates.Visible;
                 Tabs = view.FindViewById<TabLayout>(Resource.Id.tabsLayout);
-                ViewPager = view.FindViewById<ViewPager>(Resource.Id.viewpager);
+                ViewPager = view.FindViewById<ViewPager2>(Resource.Id.viewpager);
 
                 SetUpViewPager(ViewPager);
-                if (ViewPager != null) Tabs.SetupWithViewPager(ViewPager);
+                new TabLayoutMediator(Tabs, ViewPager, this).Attach();
 
                 //var tab = Tabs.GetTabAt(0); //Lbl_Tab_Chats 
                 ////set custom view
@@ -447,358 +445,340 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         }
 
         #endregion
-
-        #region Permissions && Result
-
-        //Result
-        public override void OnActivityResult(int requestCode, int resultCode, Intent data)
-        {
-            try
-            {
-                base.OnActivityResult(requestCode, resultCode, data);
-
-                if (requestCode == InitFloating.ChatHeadDataRequestCode && InitFloating.CanDrawOverlays(Activity))
-                {
-                    Floating.FloatingShow(InitFloating.FloatingObject);
-
-                    UserDetails.ChatHead = true;
-                    MainSettings.SharedData?.Edit()?.PutBoolean("chatheads_key", UserDetails.ChatHead)?.Commit();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        //Permissions
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-        {
-            try
-            {
-                Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-                if (requestCode == 110)
-                {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
-                        Activity?.Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                    }
-                    else
-                    {
-                        Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        #endregion
-
+         
         #region Set Tab
-
-        private void ViewPagerOnPageSelected(object sender, ViewPager.PageSelectedEventArgs e)
-        {
-            try
-            {
-                var position = e.Position;
-                if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
-                {
-                    switch (position)
-                    {
-                        // lastMessages
-                        case 0:
-                            AdsGoogle.Ad_AppOpenManager(Activity);
-                            break;
-                        // Story
-                        case 1:
-                            AdsGoogle.Ad_RewardedVideo(Activity);
-                            //LastStoriesTab.StartApiService(); 
-                            break;
-                        // Call
-                        case 2:
-                            AdsGoogle.Ad_Interstitial(Activity);
-                            //LastCallsTab.Get_CallUser();
-                            break;
-                    }
-                }
-                else
-                {
-                    switch (position)
-                    {
-                        // lastMessages
-                        case 0:
-                            AdsGoogle.Ad_AppOpenManager(Activity);
-                            break;
-                        // GroupChats
-                        case 1:
-                            AdsGoogle.Ad_RewardedVideo(Activity);
-                            //if (AppSettings.EnableChatGroup)
-                            //{
-                            //    LastGroupChatsTab.StartApiService();
-                            //}
-                            //else if (AppSettings.EnableChatPage)
-                            //{
-                            //    LastPageChatsTab.StartApiService();
-                            //}
-                            //else
-                            //{
-                            //    LastStoriesTab.StartApiService();
-                            //}
-                            break;
-                        // PageChats
-                        case 2:
-                            AdsGoogle.Ad_Interstitial(Activity);
-                            //if (AppSettings.EnableChatPage)
-                            //{
-                            //    LastPageChatsTab.StartApiService();
-                            //}
-                            //else
-                            //{
-                            //    LastStoriesTab.StartApiService();
-                            //}
-                            break;
-                        // Story
-                        case 3:
-                            AdsGoogle.Ad_AppOpenManager(Activity);
-                            //if (AppSettings.EnableChatGroup)
-                            //{
-                            //    LastStoriesTab.StartApiService();
-                            //}
-                            //else
-                            //{
-                            //    LastCallsTab.Get_CallUser();
-                            //} 
-                            break;
-                        // Call
-                        case 4:
-                            AdsGoogle.Ad_Interstitial(Activity);
-                            //LastCallsTab.Get_CallUser();
-                            break;
-                    }
-                } 
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void ViewPagerOnPageScrolled(object sender, ViewPager.PageScrolledEventArgs e)
-        {
-            try
-            {
-                if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
-                {
-                    switch (e.Position)
-                    {
-                        // lastMessages
-                        case 0:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "lastMessages")
-                            {
-                                GlobalContext.FloatingActionButton.Tag = "lastMessages";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.icon_profile_vector);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                                //FloatingActionFilter.Visibility = ViewStates.Visible;
-                            }
-
-                            break;
-                        } 
-                        // Call
-                        case 1:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
-                            {
-                                GlobalContext.FloatingActionButton.Tag = "Call";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                                //FloatingActionFilter.Visibility = ViewStates.Invisible;
-
-                                //if (Tabs != null)
-                                //{
-                                //    var tab = Tabs.GetTabAt(0); //Lbl_Tab_Chats
-
-                                //    var textView = (TextView)tab.CustomView.FindViewById(Resource.Id.text);
-                                //    textView.Visibility = ViewStates.Gone;
-                                //}
-                            }
-
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    switch (e.Position)
-                    {
-                        //FloatingActionFilter.Visibility = ViewStates.Invisible;
-                        // lastMessages
-                        case 0:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "lastMessages")
-                            {
-                                FloatingActionTag = "lastMessages";
-                                GlobalContext.FloatingActionButton.Tag = "lastMessages";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            }
-
-                            break;
-                        }
-                        // GroupChats
-                        case 1 when AppSettings.EnableChatGroup:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "GroupChats")
-                            {
-                                FloatingActionTag = "GroupChats";
-                                GlobalContext.FloatingActionButton.Tag = "GroupChats";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            }
-
-                            break;
-                        }
-                        case 1 when AppSettings.EnableChatPage:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "PageChats")
-                            {
-                                FloatingActionTag = "PageChats";
-                                GlobalContext.FloatingActionButton.Tag = "PageChats";
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Invisible;
-                            }
-
-                            break;
-                        }
-                        case 1:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
-                            {
-                                FloatingActionTag = "Call";
-                                GlobalContext.FloatingActionButton.Tag = "Call";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            } 
-                            break;
-                        }
-                        // PageChats
-                        case 2 when AppSettings.EnableChatPage:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "PageChats")
-                            {
-                                FloatingActionTag = "PageChats";
-                                GlobalContext.FloatingActionButton.Tag = "PageChats";
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Invisible;
-                            }
-
-                                break;
-                        }
-                        case 2:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
-                            {
-                                FloatingActionTag = "Call";
-                                GlobalContext.FloatingActionButton.Tag = "Call";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            }
-
-                                break;
-                        }
-                        // Story
-                        case 3 when AppSettings.EnableChatPage:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
-                            {
-                                FloatingActionTag = "Call";
-                                GlobalContext.FloatingActionButton.Tag = "Call";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            }
-
-                                break;
-                        }
-                        case 3:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
-                            {
-                                FloatingActionTag = "Call";
-                                GlobalContext.FloatingActionButton.Tag = "Call";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            }
-
-                                break;
-                        }
-                        // Call
-                        case 4:
-                        {
-                            if (GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
-                            {
-                                FloatingActionTag = "Call";
-                                GlobalContext.FloatingActionButton.Tag = "Call";
-                                GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
-                                GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
-                            }
-
-                                break;
-                        }
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void SetUpViewPager(ViewPager viewPager)
+         
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
                 LastChatTab = new LastChatFragment(); 
                 LastCallsTab = new LastCallsFragment();
 
-                MainTabAdapter adapter = new MainTabAdapter(ChildFragmentManager, FragmentStatePagerAdapter.BehaviorResumeOnlyCurrentFragment);
+                Adapter = new MainTabAdapter(this);
                 switch (AppSettings.LastChatSystem)
                 {
                     case SystemApiGetLastChat.New:
-                        adapter.AddFragment(LastChatTab, GetText(Resource.String.Lbl_Tab_Chats));
+                        Adapter.AddFragment(LastChatTab, GetText(Resource.String.Lbl_Tab_Chats));
                         break;
                     case SystemApiGetLastChat.Old:
                     {
                         LastGroupChatsTab = new LastGroupChatsFragment();
                         LastPageChatsTab = new LastPageChatsFragment();
 
-                        adapter.AddFragment(LastChatTab, GetText(Resource.String.Lbl_Tab_Chats));
+                        Adapter.AddFragment(LastChatTab, GetText(Resource.String.Lbl_Tab_Chats));
                         if (AppSettings.EnableChatGroup)
-                            adapter.AddFragment(LastGroupChatsTab, GetText(Resource.String.Lbl_Tab_GroupChats));
+                            Adapter.AddFragment(LastGroupChatsTab, GetText(Resource.String.Lbl_Tab_GroupChats));
 
                         if (AppSettings.EnableChatPage)
-                            adapter.AddFragment(LastPageChatsTab, GetText(Resource.String.Lbl_Tab_PageChats));
+                            Adapter.AddFragment(LastPageChatsTab, GetText(Resource.String.Lbl_Tab_PageChats));
 
                         break;
                     }
                 }
                  
                 if (AppSettings.EnableAudioVideoCall)
-                    adapter.AddFragment(LastCallsTab, GetText(Resource.String.Lbl_Tab_Calls));
+                    Adapter.AddFragment(LastCallsTab, GetText(Resource.String.Lbl_Tab_Calls));
 
-                viewPager.CurrentItem = adapter.Count;
-                viewPager.OffscreenPageLimit = adapter.Count;
-                viewPager.Adapter = adapter;
+                viewPager.CurrentItem = Adapter.ItemCount;
+                viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                viewPager.Adapter = Adapter;
                 viewPager.Adapter.NotifyDataSetChanged();
 
-                ViewPager.PageScrolled += ViewPagerOnPageScrolled;
-                ViewPager.PageSelected += ViewPagerOnPageSelected;
+                viewPager.RegisterOnPageChangeCallback(new MyOnPageChangeCallback(this));
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private class MyOnPageChangeCallback : ViewPager2.OnPageChangeCallback
+        {
+            private readonly MsgTabbedMainActivity Activity;
+
+            public MyOnPageChangeCallback(MsgTabbedMainActivity activity)
+            {
+                try
+                {
+                    Activity = activity;
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            public override void OnPageSelected(int position)
+            {
+                try
+                {
+                    base.OnPageSelected(position);
+
+                    if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+                    {
+                        switch (position)
+                        {
+                            // lastMessages
+                            case 0:
+                                AdsGoogle.Ad_AppOpenManager(Activity.Activity);
+                                break;
+                            // Story
+                            case 1:
+                                AdsGoogle.Ad_RewardedVideo(Activity.Activity);
+                                //LastStoriesTab.StartApiService(); 
+                                break;
+                            // Call
+                            case 2:
+                                AdsGoogle.Ad_Interstitial(Activity.Activity);
+                                //LastCallsTab.Get_CallUser();
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (position)
+                        {
+                            // lastMessages
+                            case 0:
+                                AdsGoogle.Ad_AppOpenManager(Activity.Activity);
+                                break;
+                            // GroupChats
+                            case 1:
+                                AdsGoogle.Ad_RewardedVideo(Activity.Activity);
+                                //if (AppSettings.EnableChatGroup)
+                                //{
+                                //    LastGroupChatsTab.StartApiService();
+                                //}
+                                //else if (AppSettings.EnableChatPage)
+                                //{
+                                //    LastPageChatsTab.StartApiService();
+                                //}
+                                //else
+                                //{
+                                //    LastStoriesTab.StartApiService();
+                                //}
+                                break;
+                            // PageChats
+                            case 2:
+                                AdsGoogle.Ad_Interstitial(Activity.Activity);
+                                //if (AppSettings.EnableChatPage)
+                                //{
+                                //    LastPageChatsTab.StartApiService();
+                                //}
+                                //else
+                                //{
+                                //    LastStoriesTab.StartApiService();
+                                //}
+                                break;
+                            // Story
+                            case 3:
+                                AdsGoogle.Ad_AppOpenManager(Activity.Activity);
+                                //if (AppSettings.EnableChatGroup)
+                                //{
+                                //    LastStoriesTab.StartApiService();
+                                //}
+                                //else
+                                //{
+                                //    LastCallsTab.Get_CallUser();
+                                //} 
+                                break;
+                            // Call
+                            case 4:
+                                AdsGoogle.Ad_Interstitial(Activity.Activity);
+                                //LastCallsTab.Get_CallUser();
+                                break;
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            public override void OnPageScrolled(int position, float positionOffset, int positionOffsetPixels)
+            {
+                try
+                {
+                    base.OnPageScrolled(position, positionOffset, positionOffsetPixels);
+
+                    if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+                    {
+                        switch (position)
+                        {
+                            // lastMessages
+                            case 0:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "lastMessages")
+                                    {
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "lastMessages";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.icon_profile_vector);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                        //Activity.FloatingActionFilter.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                            // Call
+                            case 1:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
+                                    {
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                        //FloatingActionFilter.Visibility = ViewStates.Invisible;
+
+                                        //if (Tabs != null)
+                                        //{
+                                        //    var tab = Tabs.GetTabAt(0); //Lbl_Tab_Chats
+
+                                        //    var textView = (TextView)tab.CustomView.FindViewById(Resource.Id.text);
+                                        //    textView.Visibility = ViewStates.Gone;
+                                        //}
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        switch (position)
+                        {
+                            //FloatingActionFilter.Visibility = ViewStates.Invisible;
+                            // lastMessages
+                            case 0:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "lastMessages")
+                                    {
+                                        Activity.FloatingActionTag = "lastMessages";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "lastMessages";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                            // GroupChats
+                            case 1 when AppSettings.EnableChatGroup:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "GroupChats")
+                                    {
+                                        Activity.FloatingActionTag = "GroupChats";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "GroupChats";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                            case 1 when AppSettings.EnableChatPage:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "PageChats")
+                                    {
+                                        Activity.FloatingActionTag = "PageChats";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "PageChats";
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Invisible;
+                                    }
+
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
+                                    {
+                                        Activity.FloatingActionTag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+                                    break;
+                                }
+                            // PageChats
+                            case 2 when AppSettings.EnableChatPage:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "PageChats")
+                                    {
+                                        Activity.FloatingActionTag = "PageChats";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "PageChats";
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Invisible;
+                                    }
+
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
+                                    {
+                                        Activity.FloatingActionTag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                            // Story
+                            case 3 when AppSettings.EnableChatPage:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
+                                    {
+                                        Activity.FloatingActionTag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                            case 3:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
+                                    {
+                                        Activity.FloatingActionTag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                            // Call
+                            case 4:
+                                {
+                                    if (Activity.GlobalContext.FloatingActionButton.Tag?.ToString() != "Call")
+                                    {
+                                        Activity.FloatingActionTag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.Tag = "Call";
+                                        Activity.GlobalContext.FloatingActionButton.SetImageResource(Resource.Drawable.ic_phone_user);
+                                        Activity.GlobalContext.FloatingActionButton.Visibility = ViewStates.Visible;
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
             }
         }
 
@@ -1080,7 +1060,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         { 
             try
             {
-                Activity.RunOnUiThread(() =>
+                Activity?.RunOnUiThread(() =>
                 {
                     try
                     {

@@ -76,7 +76,7 @@ namespace WoWonder.Helpers.Controller
 
         private static async Task SendMessage(string pageId ,string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
         {
-            var (apiStatus, respond) = await RequestsAsync.PageChat.Send_MessageToPageChat(pageId ,id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+            var (apiStatus, respond) = await RequestsAsync.PageChat.SendMessageToPageChatAsync(pageId ,id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
             if (apiStatus == 200)
             {
                 if (respond is PageSendMessageObject result)

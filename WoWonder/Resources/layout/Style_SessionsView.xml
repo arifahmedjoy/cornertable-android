@@ -26,25 +26,21 @@
       android:id="@+id/card_name"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="Windows"
       android:textSize="15sp" />
     <TextView
       android:id="@+id/card_Browser"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="Browser: Google Chrome"
       android:textSize="12sp" /> 
     <TextView
       android:id="@+id/card_Seen"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="Last Seen: 1 second ago"
       android:textSize="12sp" /> 
     <TextView
       android:id="@+id/card_Address"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="IP Address: 95.12.11.21"
       android:textSize="12sp" />  
 	<View
 		android:layout_width="match_parent"

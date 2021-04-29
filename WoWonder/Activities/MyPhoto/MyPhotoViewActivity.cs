@@ -7,9 +7,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
-using Android.OS;
-
-
+using Android.OS; 
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
@@ -39,15 +37,14 @@ namespace WoWonder.Activities.MyPhoto
         private ViewPager ViewPager;
         private ImageView ImgLike, ImgWoWonder, ImgWonder;
         private SuperTextView TxtDescription;
-        private TextView TxtCountLike, TxtCountWoWonder, TxtWonder, ShareText;
+        private TextView TxtCountLike, TxtCountWoWonder, TxtWonder, ShareText, CommentCount, ShareCount;
         private LinearLayout MainSectionButton, BtnCountLike, BtnCountWoWonder, BtnLike, BtnComment, BtnShare, BtnWonder, InfoImageLiner;
         private RelativeLayout MainLayout;
         private PostDataObject PostData;
         private ReactButton LikeButton;
         private PostClickListener ClickListener;
         private int IndexImage;
-        
-
+         
         #endregion
 
         #region General
@@ -153,8 +150,7 @@ namespace WoWonder.Activities.MyPhoto
 
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
-            MenuInflater.Inflate(Resource.Menu.ImagePost, menu);
-
+            MenuInflater.Inflate(Resource.Menu.ImagePost, menu); 
             return base.OnCreateOptionsMenu(menu);
         }
 
@@ -170,9 +166,9 @@ namespace WoWonder.Activities.MyPhoto
                     Download_OnClick();
                     break;
 
-                case Resource.Id.ic_action_comment:
+                /*case Resource.Id.ic_action_comment:
                     Copy_OnClick();
-                    break;
+                    break;*/
               
                 case Resource.Id.action_More:
                     More_OnClick();
@@ -255,6 +251,9 @@ namespace WoWonder.Activities.MyPhoto
                 InfoImageLiner = FindViewById<LinearLayout>(Resource.Id.infoImageLiner);
                 InfoImageLiner.Visibility = ViewStates.Visible;
 
+                ShareCount = FindViewById<TextView>(Resource.Id.Sharecount);
+                CommentCount = FindViewById<TextView>(Resource.Id.Commentcount);
+
                 BtnCountLike = FindViewById<LinearLayout>(Resource.Id.linerlikeCount);
                 BtnCountWoWonder = FindViewById<LinearLayout>(Resource.Id.linerwowonderCount);
 
@@ -331,17 +330,16 @@ namespace WoWonder.Activities.MyPhoto
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = " ";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = " ";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
-
                 }
             }
             catch (Exception e)
@@ -546,10 +544,10 @@ namespace WoWonder.Activities.MyPhoto
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.Wonder:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.PostId, "wonder") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "wonder") });
                         break;
                     case PostButtonSystem.DisLike:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.PostId, "dislike") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "dislike") });
                         break;
                 }
             }
@@ -711,6 +709,9 @@ namespace WoWonder.Activities.MyPhoto
                         .Build();
                     readMoreOption.AddReadMoreTo(TxtDescription, new Java.Lang.String(description));
                 }
+
+                CommentCount.Text = PostData.PostComments + " " + GetString(Resource.String.Lbl_Comments);
+                ShareCount.Text = PostData.PostShares + " " + GetString(Resource.String.Lbl_Shares);
 
                 switch (AppSettings.PostButton)
                 {

@@ -10,6 +10,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
@@ -176,16 +177,18 @@ namespace WoWonder.Activities.EditPost
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_EditPost);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_EditPost);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -258,7 +261,7 @@ namespace WoWonder.Activities.EditPost
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.Post_Actions(IdPost, "edit","", TxtContentPost.Text, PostPrivacy);
+                    var (apiStatus, respond) = await RequestsAsync.Posts.PostActionsAsync(IdPost, "edit","", TxtContentPost.Text, PostPrivacy);
                     switch (apiStatus)
                     {
                         case 200:
@@ -505,7 +508,7 @@ namespace WoWonder.Activities.EditPost
                 arrayAdapter.Add(GetText(Resource.String.Lbl_People_Follow_Me));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_No_body));
 
-                dialogList.Title(GetText(Resource.String.Lbl_PostPrivacy));
+                dialogList.Title(GetText(Resource.String.Lbl_PostPrivacy)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.ItemsCallback(this).Build().Show();

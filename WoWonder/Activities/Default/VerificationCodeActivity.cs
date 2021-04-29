@@ -9,6 +9,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Tabbes;
 using WoWonder.Activities.WalkTroutPage;
@@ -87,32 +88,7 @@ namespace WoWonder.Activities.Default
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        public override void OnTrimMemory(TrimMemory level)
-        {
-            try
-            {
-                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
-                base.OnTrimMemory(level);
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public override void OnLowMemory()
-        {
-            try
-            {
-                GC.Collect(GC.MaxGeneration);
-                base.OnLowMemory();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
+         
         protected override void OnDestroy()
         {
             try
@@ -163,16 +139,18 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = " ";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = " ";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -236,7 +214,7 @@ namespace WoWonder.Activities.Default
                             {
                                 case "TwoFactor":
                                 {
-                                    var (apiStatus, respond) = await RequestsAsync.Global.TwoFactorAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                                    var (apiStatus, respond) = await RequestsAsync.Auth.TwoFactorAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
                                     switch (apiStatus)
                                     {
                                         case 200:
@@ -294,7 +272,7 @@ namespace WoWonder.Activities.Default
                                 }
                                 case "AccountSms":
                                 {
-                                    var (apiStatus, respond) = await RequestsAsync.Global.ActiveAccountSmsAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                                    var (apiStatus, respond) = await RequestsAsync.Auth.ActiveAccountSmsAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
                                     switch (apiStatus)
                                     {
                                         case 200:

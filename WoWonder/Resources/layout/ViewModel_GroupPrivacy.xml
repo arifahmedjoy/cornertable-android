@@ -80,7 +80,6 @@
         android:layout_weight="15"
         android:layout_marginTop="-1dp"
         android:padding="2dp"
-        android:text="sport and more"
         app:layout_columnWeight="1"
         android:foregroundGravity="center_vertical"
         android:gravity="start|center"

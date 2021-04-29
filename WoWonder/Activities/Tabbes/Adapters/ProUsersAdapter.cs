@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Android.App;
-
+using Android.Content.Res;
+using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
@@ -73,11 +74,12 @@ namespace WoWonder.Activities.Tabbes.Adapters
                             switch (item.Type)
                             {
                                 case "Your":
-                                    //holder.ViewIcon.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor("#444444"));
-                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient5);
+                                    holder.ViewIcon.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor("#1B4AFF"));
+                                    //holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient5);
+                                  //  holder.ViewIcon.Background.SetTint(Color.ParseColor("#1B4AFF"));
                                     holder.ImageIcon.SetImageResource(Resource.Drawable.ic_add);
                                     holder.Name.Text = ActivityContext.GetText(Resource.String.Lbl_AddMe);
-                                    holder.Name.Visibility = ViewStates.Visible;
+                                    holder.Name.Visibility = ViewStates.Gone;
                                     break;
                                 default:
                                     switch (item.ProType)
@@ -235,7 +237,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 ImageIcon = MainView.FindViewById<ImageView>(Resource.Id.ImageIcon);
                 UserImage = MainView.FindViewById<ImageView>(Resource.Id.ImageUser);
                 ViewIcon = MainView.FindViewById<CircleImageView>(Resource.Id.viewIcon);
-                Name.Visibility = ViewStates.Invisible;
+                Name.Visibility = ViewStates.Gone;
 
                 //Create an Event
                 itemView.Click += (sender, e) => clickListener(new ProUsersAdapterClickEventArgs {View = itemView, Position = AdapterPosition});

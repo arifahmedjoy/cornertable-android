@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using AFollestad.MaterialDialogs;
@@ -41,6 +44,7 @@ using WoWonderClient.Classes.Comments;
 using WoWonderClient.Classes.Posts;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
+using Object = Java.Lang.Object;
 
 namespace WoWonder.Activities.Live.Page
 {
@@ -92,6 +96,9 @@ namespace WoWonder.Activities.Live.Page
         private long TimeInMilliseconds;
         private long TimeSwapBuff;
         private long UpdatedTime;
+
+        ////////////////////////////////
+        private string UidLive ,ResourceId, SId, FileListLive;
 
         #endregion
 
@@ -263,11 +270,11 @@ namespace WoWonder.Activities.Live.Page
                 switch (isStreamer)
                 {
                     case true:
-                        dialog.Title(Resource.String.Lbl_LiveStreamer_alert_title);
+                        dialog.Title(Resource.String.Lbl_LiveStreamer_alert_title).TitleColorRes(Resource.Color.primary);
                         dialog.Content(GetText(Resource.String.Lbl_LiveStreamer_alert_message));
                         break;
                     default:
-                        dialog.Title(Resource.String.Lbl_LiveViewer_alert_title);
+                        dialog.Title(Resource.String.Lbl_LiveViewer_alert_title).TitleColorRes(Resource.Color.primary);
                         dialog.Content(GetText(Resource.String.Lbl_LiveViewer_alert_message));
                         break;
                 }
@@ -293,7 +300,7 @@ namespace WoWonder.Activities.Live.Page
             }
         }
 
-        private void FinishStreaming(bool isStreamer)
+        private async void FinishStreaming(bool isStreamer)
         { 
             try
             {
@@ -304,15 +311,17 @@ namespace WoWonder.Activities.Live.Page
                 StopTimer();
                 DestroyTimerComment();
 
-                switch (isStreamer)
+                if (isStreamer)
                 {
-                    //send api delete live video
-                    case true when ListUtils.SettingsSiteList.LiveVideoSave != null && ListUtils.SettingsSiteList.LiveVideoSave.Value == 0:
+                    if (ListUtils.SettingsSiteList?.LiveVideoSave != null && ListUtils.SettingsSiteList?.LiveVideoSave.Value == 0) 
                         DeleteLiveStream();
-                        break;
+                    else
+                    {
+                       await AgoraStop(AppSettings.AppIdAgoraLive, ListUtils.SettingsSiteList?.AgoraCustomerId, ListUtils.SettingsSiteList?.AgoraCustomerCertificate, ResourceId, SId, Config().GetChannelName(), UidLive); 
+                    }
                 }
-                 
-                StatsManager().ClearAllData();
+
+                StatsManager()?.ClearAllData();
 
                 //add end page
                 LiveStreamEnded();
@@ -400,7 +409,7 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                var streamName = "Live_" + Methods.Time.CurrentTimeMillis();
+                var streamName = "live" + Methods.Time.CurrentTimeMillis();
                 if (string.IsNullOrEmpty(streamName) || string.IsNullOrWhiteSpace(streamName))
                 {
                     Toast.MakeText(this, GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short)?.Show();
@@ -854,7 +863,7 @@ namespace WoWonder.Activities.Live.Page
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostComments(PostId, text);
+                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(PostId, text);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1122,6 +1131,8 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
+                UidLive = uid.ToString().Replace("-", ""); 
+                  
                 RunOnUiThread(async () =>
                 {
                     try
@@ -1140,8 +1151,16 @@ namespace WoWonder.Activities.Live.Page
                                 break;
                         }
 
-                        await Task.Delay(TimeSpan.FromSeconds(3));
+                        if (IsOwner)
+                        {
+                            await AgoraAcquire(AppSettings.AppIdAgoraLive, ListUtils.SettingsSiteList?.AgoraCustomerId, ListUtils.SettingsSiteList?.AgoraCustomerCertificate, channel, UidLive);
+                        }
+                        else
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(3));
+                        }
                         LoadMessages();
+
                         //CreateLiveThumbnail(); 
                     }
                     catch (Exception e)
@@ -1336,35 +1355,197 @@ namespace WoWonder.Activities.Live.Page
 
         private async Task CreateLive()
         {
-            var (apiStatus, respond) = await RequestsAsync.Posts.CreateLive(Config().GetChannelName());
-            switch (apiStatus)
+             
+            var (apiStatus, respond) = await RequestsAsync.Posts.CreateLiveAsync(Config().GetChannelName());
+            if (apiStatus == 200)
             {
-                case 200:
+                if (respond is AddPostObject result)
                 {
-                    switch (respond)
-                    {
-                        case AddPostObject result:
-                            PostObject = result.PostData;
-                            PostId = result.PostData.PostId;
-                     
-                            JoinChannel();
-                            break;
-                    }
+                    PostObject = result.PostData;
+                    PostId = result.PostData.PostId;
 
-                    break;
+                    JoinChannel(); 
                 }
-                default:
-                    Methods.DisplayReportResult(this, respond);
-                    break;
             }
-        } 
-        
+            else
+                Methods.DisplayReportResult(this, respond);
+        }
+         
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
+            return Convert.ToBase64String(plainTextBytes);
+        }
+
+        #region Agora Record
+
+        private async Task AgoraAcquire(string appid, string customerId, string customerCertificate, string channel, string uid)
+        {
+            try
+            {
+                var url = "https://api.agora.io/v1/apps/" + appid + "/cloud_recording/acquire";
+
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Authorization", "Basic " + Base64Encode(customerId + ":" + customerCertificate));
+                //httpClient.DefaultRequestHeaders.TryAddWithoutValidation("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.Timeout = TimeSpan.FromMinutes(3.0);
+                try { httpClient.BaseAddress = new Uri(url); } catch (Exception) { }
+
+                using var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(url),
+                    Content = new StringContent("{\n  \"cname\": \"" + channel + "\",\n  \"uid\": \"" + uid + "\",\n  \"clientRequest\":{\n  }\n}", Encoding.UTF8, "application/json"),
+                };
+                
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                request.Headers.Add("Connection", new[] { "Keep-Alive" });
+
+                var response = await httpClient.SendAsync(request);
+
+                string json = await response.Content.ReadAsStringAsync(); 
+                var data = JsonConvert.DeserializeObject<AgoraRecordObject>(json);
+                if (data?.ResourceId != null)
+                {
+                    ResourceId = data.ResourceId;
+                    await AgoraStart(appid, customerId, customerCertificate, ResourceId, channel, uid);
+                } 
+            }
+            catch (NotSupportedException e) // When content type is not valid => The content type is not supported
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+            catch (JsonException e) // Invalid JSON
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+            catch (Exception e)
+            { 
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private async Task AgoraStart(string appid, string customerId, string customerCertificate, string resourceId, string channel, string uid)
+        {
+            try
+            { 
+                var url = "https://api.agora.io/v1/apps/" + appid + "/cloud_recording/resourceid/"+ resourceId + "/mode/mix/start";
+
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Authorization", "Basic " + Base64Encode(customerId + ":" + customerCertificate));
+                //httpClient.DefaultRequestHeaders.TryAddWithoutValidation("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.Timeout = TimeSpan.FromMinutes(3.0);
+                try { httpClient.BaseAddress = new Uri(url); }
+                catch (Exception) { // ignored
+                }
+
+                var StorageVendor = "1";
+                var region = GetRegion(ListUtils.SettingsSiteList.Region2);
+                var bucket = ListUtils.SettingsSiteList.BucketName2; 
+                var accessKey = ListUtils.SettingsSiteList.AmazoneS3Key2;
+                var secretKey = ListUtils.SettingsSiteList.AmazoneS3SKey2; 
+
+                var jsonBody = "{\n\t\"cname\":\"" + channel + "\",\n\t\"uid\":\"" + uid + "\"," +
+                               "\n\t\"clientRequest\":{\n\t\t\"recordingConfig\":{\n\t\t\t\"channelType\":1,\n\t\t\t\"streamTypes\":2,\n\t\t\t\"audioProfile\":1,\n\t\t\t\"videoStreamType\":1,\n\t\t\t\"maxIdleTime\":120,\n\t\t\t\"transcodingConfig\":{\n\t\t\t\t\"width\":480,\n\t\t\t\t\"height\":480,\n\t\t\t\t\"fps\":24,\n\t\t\t\t\"bitrate\":800,\n\t\t\t\t\"maxResolutionUid\":\"1\"," +
+                               "\n\t\t\t\t\"mixedVideoLayout\":1\n\t\t\t\t}\n\t\t\t},\n\t\t\"storageConfig\":" +
+                               "{\n\t\t\t\"vendor\":" + StorageVendor + ",\n\t\t\t\"region\":" + region + "," +
+                               "\n\t\t\t\"bucket\":\"" + bucket + "\",\n\t\t\t\"accessKey\":\"" + accessKey + "\"," +
+                               "\n\t\t\t\"secretKey\":\"" + secretKey + "\"\n\t\t}\t\n\t}\n} \n";
+
+                using var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(url),
+                    Content = new StringContent(jsonBody, Encoding.UTF8, "application/json"),
+                };
+                 
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                request.Headers.Add("Connection", new[] { "Keep-Alive" });
+
+                var response = await httpClient.SendAsync(request);
+
+                string json = await response.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<AgoraRecordObject>(json);
+                if (data?.Sid != null)
+                {
+                    SId = data.Sid;
+                    await LoadDataComment(resourceId, SId);
+                } 
+            }
+            catch (NotSupportedException e) // When content type is not valid => The content type is not supported
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+            catch (JsonException e) // Invalid JSON
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private async Task AgoraStop(string appid, string customerId, string customerCertificate, string resourceId,  string sid, string channel, string uid)
+        {
+            try
+            {
+                var url = "https://api.agora.io/v1/apps/" + appid + "/cloud_recording/resourceid/" + resourceId + "/sid/"+ sid + "/mode/mix/stop";
+                   
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Authorization", "Basic " + Base64Encode(customerId + ":" + customerCertificate));
+               // httpClient.DefaultRequestHeaders.TryAddWithoutValidation("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.Timeout = TimeSpan.FromMinutes(3.0);
+                try { httpClient.BaseAddress = new Uri(url); } catch (Exception) { }
+
+                using var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(url),
+                    Content = new StringContent("{\n  \"cname\": \"" + channel + "\",\n  \"uid\": \"" + uid + "\",\n  \"clientRequest\":{\n  }\n}", Encoding.UTF8, "application/json"),
+                };
+
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                request.Headers.Add("Connection", new[] { "Keep-Alive" });
+
+                var response = await httpClient.SendAsync(request);
+
+                string json = await response.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<AgoraRecordObject>(json);
+                if (data?.ServerResponse?.FileList != null)
+                {
+                    FileListLive = data.ServerResponse?.FileList;
+                    await LoadDataComment("", "", FileListLive);
+                } 
+            }
+            catch (NotSupportedException e) // When content type is not valid => The content type is not supported
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+            catch (JsonException e) // Invalid JSON
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        #endregion
+
         private void DeleteLiveStream()
         {
             if (!Methods.CheckConnectivity())
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> {async () => await RequestsAsync.Posts.DeleteLive(PostId)});
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> {async () => await RequestsAsync.Posts.DeleteLiveAsync(PostId)});
         }
 
         #region CreateLiveThumbnail
@@ -1438,8 +1619,7 @@ namespace WoWonder.Activities.Live.Page
         //        Console.WriteLine(e);
         //    }
         //}
-
-
+         
         #endregion
 
         private void LoadMessages()
@@ -1450,12 +1630,12 @@ namespace WoWonder.Activities.Live.Page
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { async () => await LoadDataComment() });
         }
 
-        private async Task LoadDataComment()
+        private async Task LoadDataComment(string resourceId = "", string sid = "", string fileList = "")
         { 
             if (Methods.CheckConnectivity())
             {
                 var offset = MAdapter.CommentList.LastOrDefault()?.Id ?? "0";
-                var (apiStatus, respond) = await RequestsAsync.Posts.CheckCommentsLive(PostId, IsOwner ? "live" : "story", "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Posts.CheckCommentsLiveAsync(PostId, IsOwner ? "live" : "story", "10", offset, resourceId, sid, fileList);
                 if (apiStatus != 200 || respond is not CheckCommentsLiveObject result || result.Comments == null)
                 { 
                     Methods.DisplayReportResult(this, respond);
@@ -1575,7 +1755,7 @@ namespace WoWonder.Activities.Live.Page
             }
         }
 
-        private class MyRunnable : Java.Lang.Object, IRunnable
+        private class MyRunnable : Object, IRunnable
         {
             private readonly LiveStreamingActivity Activity;
             public MyRunnable(LiveStreamingActivity activity)
@@ -1721,6 +1901,38 @@ namespace WoWonder.Activities.Live.Page
         }
 
         #endregion
-          
+         
+        private string GetRegion(string region)
+        {
+            try
+            { 
+                return region switch
+                {
+                    "us-east-1" => "0",
+                    "us-east-2" => "1",
+                    "us-west-1" => "2",
+                    "us-west-2" => "3",
+                    "eu-west-1" => "4",
+                    "eu-west-2" => "5",
+                    "eu-west-3" => "6",
+                    "eu-central-1" => "7",
+                    "ap-southeast-1" => "8",
+                    "ap-southeast-2" => "9",
+                    "ap-northeast-1" => "10",
+                    "ap-northeast-2" => "11",
+                    "sa-east-1" => "12",
+                    "ca-central-1" => "13",
+                    "ap-south-1" => "14",
+                    "cn-north-1" => "15",
+                    "us-gov-west-1" => "17",
+                    _ => "" 
+                };
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+                return "";
+            }
+        } 
     } 
 } 

@@ -12,11 +12,12 @@
       android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
       <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_gravity="top"
-        app:titleTextAppearance="@style/Toolbar.TitleText"
-        android:background="@drawable/linear_gradient_drawable">
+		android:background="?attr/colorFill"
+        app:titleTextAppearance="@style/Toolbar.TitleText">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -24,9 +25,8 @@
                 android:layout_gravity="end"
                 android:textSize="14sp"
                 android:textStyle="bold"
-			        	android:gravity="center_vertical"
-			        	android:visibility="gone"
-                android:textColor="@color/textLight_color"
+			    android:gravity="center_vertical"
+			    android:visibility="gone" 
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:layout_marginEnd="10dp"
@@ -92,5 +92,5 @@
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="20dp"
         app:backgroundTint="@color/accent"
-        android:layout_marginBottom="55dp" />
+        android:layout_marginBottom="55dp"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

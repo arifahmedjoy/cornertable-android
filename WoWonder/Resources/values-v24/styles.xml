@@ -4,7 +4,7 @@
   <style name="SplashScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">
     <!--drawable/splashscreen >> from image | drawable/splash From xml logo -->
     <!--<item name="android:windowBackground">@drawable/splashscreen</item>-->
-    <item name="android:windowBackground">@drawable/splashscreen</item>
+    <item name="android:windowBackground">@drawable/splash</item>
     <item name="android:windowNoTitle">true</item>
     <item name="android:windowFullscreen">true</item>
     <item name="android:windowContentOverlay">@null</item>
@@ -33,8 +33,9 @@
     <item name="android:actionMenuTextAppearance">@style/MenuTextStyle</item>
     <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
     <item name="android:textViewStyle">@style/AppTextView</item>
-    <item name="colorDivider">#E0E0E0</item>
-    <item name="colorBubble">#efefef</item>
+    <item name="colorDivider">#F7F8FA</item>
+    <!--    <item name="colorBubble">#efefef</item>-->
+    <item name="colorBubble">#f7f8fa</item>
     <item name="colorFill">#FFFEFE</item>
     <item name="colorReact">#888888</item>
     <item name="android:fontFamily">@font/wowonder</item>
@@ -106,7 +107,8 @@
     <item name="windowActionBar">false</item>
     <item name="android:colorBackgroundCacheHint">@null</item>
     <item name="colorDivider">#efefef</item>
-    <item name="colorBubble">#efefef</item>
+    <!--    <item name="colorBubble">#efefef</item>-->
+    <item name="colorBubble">#f7f8fa</item>
     <item name="colorFill">#FFFEFE</item>
     <item name="colorReact">#282828</item>
   </style>
@@ -382,32 +384,34 @@
     <item name="android:textColorHint">@color/textLight_color</item>
   </style>
 
-	<style name="MyDialogTheme" parent="android:Theme.Dialog">
-	  <!-- Fill the screen -->
-	  <item name="android:layout_width">wrap_content</item>
-	  <item name="android:layout_height">wrap_content</item>
+  <style name="MyDialogTheme" parent="android:Theme.Dialog">
+    <!-- Fill the screen -->
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
 
-	  <!-- No backgrounds, titles or window float -->
-	  <item name="android:windowBackground">@null</item>
-	  <item name="android:windowNoTitle">true</item>
-	  <item name="android:windowIsFloating">false</item>
- 
-	  <!-- Just to prove it's working -->
-	  <item name="android:background">#f7f7f7</item>
+    <!-- No backgrounds, titles or window float -->
+    <item name="android:windowBackground">@null</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowIsFloating">false</item>
+
+    <!-- Just to prove it's working -->
+    <item name="android:background">#f7f7f7</item>
+    <item name="colorFill">#FFFEFE</item>
   </style>
 
   <style name="MyDialogThemeDark" parent="android:Theme.Dialog">
-	  <!-- Fill the screen -->
-	  <item name="android:layout_width">wrap_content</item>
-	  <item name="android:layout_height">wrap_content</item>
+    <!-- Fill the screen -->
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
 
-	  <!-- No backgrounds, titles or window float -->
-	  <item name="android:windowBackground">@null</item>
-	  <item name="android:windowNoTitle">true</item>
-	  <item name="android:windowIsFloating">false</item>
+    <!-- No backgrounds, titles or window float -->
+    <item name="android:windowBackground">@null</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowIsFloating">false</item>
 
-	  <!-- Just to prove it's working -->
-	  <item name="android:background">#444444</item>
+    <!-- Just to prove it's working -->
+    <item name="android:background">#444444</item>
+    <item name="colorFill">#282828</item>
   </style>
 
   <style name="MySeekBar" parent="Theme.AppCompat.Light">
@@ -454,7 +458,11 @@
     <item name="colorAccent">#666666</item>
   </style>
 
-
+  <style name="Animation">
+    <item name="android:windowEnterAnimation">@anim/emoji_default_in_animation</item>
+    <item name="android:windowExitAnimation">@anim/emoji_default_out_animation</item>
+  </style>
+ 
   <style name="Chatththemeb582af" parent="Theme.AppCompat.Light.DarkActionBar">
     <item name="colorPrimary">#b582af</item>
     <item name="colorAccent">#b582af</item>

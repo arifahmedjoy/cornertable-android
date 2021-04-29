@@ -836,7 +836,7 @@ namespace WoWonder.Activities.NativePost.Extra
                         var story = new AdapterModelsClass
                         {
                             TypeView = PostModelType.Story,
-                            StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>(),
+                            StoryList = new ObservableCollection<StoryDataObject>(),
                             Id = 545454545
                         };
 
@@ -1161,7 +1161,7 @@ namespace WoWonder.Activities.NativePost.Extra
                         {
                             case -1:
                                 PostList.Add(item);
-                                //AddPostDivider();
+                                AddPostDivider();
                                 break;
                             default:
                                 PostList.Insert(index, item);
@@ -2128,6 +2128,35 @@ namespace WoWonder.Activities.NativePost.Extra
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e); 
+            }
+        }
+
+        public void ProfileHeaderView(UserDataObject userData, int index)
+        {
+            try
+            {
+                var item = new AdapterModelsClass
+                {
+                    TypeView = PostModelType.ProfileHeaderSection,
+                    Id = 0000,
+                    headerSectionClass = new InfoUserModelClass { UserData = userData }
+                };
+
+                switch (index)
+                {
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
             }
         }
 

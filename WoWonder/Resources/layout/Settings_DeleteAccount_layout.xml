@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-	android:background="?attr/colorFill"
+    android:background="?attr/colorBubble"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 	 <com.google.android.material.appbar.AppBarLayout
@@ -10,10 +10,11 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
-            android:background="@drawable/linear_gradient_drawable"> 
+            android:background="?attr/colorFill"> 
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
    <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -22,8 +23,7 @@
         <androidx.core.widget.NestedScrollView
             android:id="@+id/nested_scroll_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?attr/colorFill"
+            android:layout_height="match_parent" 
             android:clipToPadding="false"
             android:scrollbars="none"
             android:scrollingCache="true"

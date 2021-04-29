@@ -12,6 +12,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -203,16 +204,18 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Post);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Post);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -344,7 +347,7 @@ namespace WoWonder.Activities.NativePost.Pages
 
         private async Task LoadPostDataAsync()
         {
-            var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(PostId, "post_data");
+            var (apiStatus, respond) = await RequestsAsync.Posts.GetPostDataAsync(PostId, "post_data");
             switch (apiStatus)
             {
                 case 200:
@@ -434,7 +437,7 @@ namespace WoWonder.Activities.NativePost.Pages
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
-                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostComments(PostId, "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostCommentsAsync(PostId, "10", offset);
                 if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
                 {
                     MainScrollEvent.IsLoading = false;

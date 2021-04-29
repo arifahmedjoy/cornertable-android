@@ -41,8 +41,8 @@
   <string name="image">صورة</string>
   <string name="text">نص</string>
   <string name="retry">إعادة المحاولة</string>
-  <string name="Terms_of_service"><u>شروط الخدمة</u> و</string>
-  <string name="Privacy_Policy"><u>سياسة الخصوصية</u></string>
+  <string name="Terms_of_service">شروط الخدمة</string>
+  <string name="Privacy_Policy">سياسة الخصوصية</string>
   <string name="Lbl_Username">اسم المستخدم</string>
   <string name="Lbl_Email">البريد الإلكتروني</string>
   <string name="Lbl_Password">كلمه السر</string>
@@ -174,6 +174,9 @@
   <string name="Lbl_File">ملف</string>
   <string name="Lbl_Music">موسيقى</string>
   <string name="Lbl_Whats_Going_On">ماذا يحصل الآن؟</string>
+  <string name="Lbl_Gallery">المعرض</string>
+  <string name="Lbl_Friend">علامة الأصدقاء</string>
+  <string name="Lbl_PostLive">بث مباشر</string>
   <!--===============================================================-->
 
   <!--Type Activity-->
@@ -402,7 +405,7 @@
   <!--Categories-->
   <string name="Lbl_Category">الفئة</string>
   <string name="Lbl_SelectCategories">اختر فئات</string>
- 
+
   <!--===============================================================-->
 
   <!--Button-->
@@ -819,13 +822,13 @@
   <string name="Lbl_NoPost_TitleText_hashtag">لا يوجد منشور هنا لهذا الهاشتاج</string>
   <string name="Lbl_NoPost_TitleText_saved">لا يوجد منشورات محفوظة</string>
 
-   <!-- V2.6 String translate -->
+  <!-- V2.6 String translate -->
   <!--===============================================================-->
   <string name="Lbl_SelectVideoFrom">اختر فيديو من</string>
   <string name="Lbl_RecordVideoFromCamera">تسجيل الفيديو من الكاميرا</string>
   <string name="Lbl_Select">تحديد</string>
   <string name="Lbl_RemoveLocation">إزالة الموقع</string>
-  <string name="Lbl_ChangeLocation">تغيير الموقع</string> 
+  <string name="Lbl_ChangeLocation">تغيير الموقع</string>
   <string name="Lbl_Text_copied">نسخ النص إلى الحافظة</string>
   <string name="Lbl_Currency">دقة</string>
   <string name="Lbl_SelectCurrency">اختر العملة</string>
@@ -835,7 +838,7 @@
   <string name="Lbl_NoMoreVideo">لم يتم العثور على المزيد من الفيديو</string>
   <string name="Lbl_Empty_Video">لا فيديو !!</string>
   <string name="Lbl_Start_Video">ابدأ في تحميل مقاطع الفيديو الخاصة بك</string>
- 
+
   <string name="Lbl_DeleteJobs">هل أنت متأكد أنك تريد حذف هذا المنشور</string>
   <string name="press_again_exit">اضغط مرة أخرى للخروج</string>
   <string name="Lbl_MyLocation">موقعي</string>
@@ -863,13 +866,13 @@
   <string name="Lbl_NoMoreGames">لم يتم العثور على المزيد من الألعاب</string>
   <string name="Lbl_Empty_Games">لا ألعاب !!</string>
   <string name="Lbl_Play">لعب</string>
- 
+
   <string name="Lbl_ConfirmRequestGroup">تأكيد الطلب عند انضمام شخص ما إلى هذه المجموعة؟</string>
   <string name="Lbl_CallToAction">دعوة إلى العمل</string>
   <string name="Lbl_CallToTargetUrl">دعوة لاستهداف رابط</string>
   <string name="Lbl_PageInformation">معلومات الصفحة</string>
   <string name="Lbl_Company">شركة</string>
- 
+
   <string name="Lbl_JobTitle">عنوان وظيفي</string>
   <string name="Lbl_votesPost">الأصوات</string>
   <string name="Lbl_jobs">وظائف</string>
@@ -948,10 +951,10 @@
   <string name="Lbl_go_pro_4">إظهار / إخفاء آخر مشاهدة</string>
   <string name="Lbl_go_pro_5">شارة التحقق</string>
   <string name="Lbl_go_pro_6">المشاركات الترويج</string>
-  
+
   <string name="Lbl_upgrade_now">تحديث الآن</string>
   <string name="Lbl_Go_Pro">جو برو</string>
- 
+
   <string name="Lbl_TwoFactor">المصادقة الثنائية</string>
   <string name="Lbl_Describe_TwoFactor">قم بتشغيل تسجيل الدخول من خطوتين لتحسين مستوى أمان حسابك ، وبمجرد تشغيله ، ستستخدم كل من كلمة المرور ورمز الحماية المكون من 6 أرقام الذي تم إرساله إلى هاتفك أو البريد الإلكتروني لتسجيل الدخول.</string>
   <string name="Lbl_ConfirmationEmail_TwoFactor">لقد أرسلنا رسالة بريد إلكتروني تحتوي على رمز التأكيد لتمكين المصادقة الثنائية.</string>
@@ -961,7 +964,7 @@
   <string name="Lbl_TwoFactorOn">حالة المصادقة</string>
   <string name="Lbl_Enable">تمكن</string>
   <string name="Lbl_Disable">تعطيل</string>
-  
+
   <string name="Lbl_Relationship">علاقة</string>
   <string name="Lbl_Single">أعزب</string>
   <string name="Lbl_InRelationship">في علاقة</string>
@@ -974,7 +977,7 @@
   <string name="Lbl_Reviews">استعراض</string>
   <string name="Lbl_changeImage">تغيير الصورة</string>
   <string name="Lbl_upgrade">تطوير</string>
-  
+
   <string name="Lbl_Funding">التمويل</string>
   <string name="Lbl_FundingRequests">طلبات التمويل</string>
   <string name="Lbl_NewFunding">تمويل جديد</string>
@@ -993,7 +996,7 @@
 
   <string name="Lbl_AddMe">أضفني</string>
   <string name="Lbl_SendMessageTo">إرسال رسالة إلى</string>
-  <string name="Lbl_WriteMessage">اكتب رسالة</string> 
+  <string name="Lbl_WriteMessage">اكتب رسالة</string>
   <string name="Lbl_BoostPage">الصفحة دفعة</string>
   <string name="Lbl_UnBoostPage">إلغاء تثبيت الصفحة</string>
   <string name="Lbl_PageSuccessfullyBoosted">عززت الصفحة بنجاح</string>
@@ -1013,7 +1016,7 @@
   <string name="Lbl_Night_Mode">وضع الليل</string>
   <string name="Lbl_Default">افتراضي</string>
 
-  <string name="Lbl_ManageSessions">إدارة الجلسات</string> 
+  <string name="Lbl_ManageSessions">إدارة الجلسات</string>
   <string name="Lbl_Empty_Sessions">لا جلسات !!</string>
   <string name="Lbl_Browser">المتصفح</string>
   <string name="Lbl_IpAddress">عنوان IP</string>
@@ -1025,7 +1028,7 @@
   <string name="Lbl_AreYouSureToDelete">هل انت متأكد من الحذف؟</string>
   <string name="Lbl_GroupSuccessfullyDeleted">تم حذف المجموعة بنجاح</string>
   <string name="Lbl_PageSuccessfullyDeleted">تم حذف الصفحة بنجاح</string>
- 
+
   <string name="Lbl_Members">أفراد</string>
   <string name="Lbl_MakeAdmin">جعل المسؤول</string>
   <string name="Lbl_RemoveAdmin">إزالة المسؤول</string>
@@ -1053,9 +1056,9 @@
 
   <!-- V2.6.4 String translate -->
   <!--===============================================================-->
-  <string name="Lbl_ContinueAs">متابعة مع</string> 
+  <string name="Lbl_ContinueAs">متابعة مع</string>
   <string name="Lbl_Collected">جمع</string>
- 
+
   <!-- V2.7 String translate -->
   <!--===============================================================-->
   <string name="Lbl_Light">فاتح</string>
@@ -1077,149 +1080,351 @@
   <string name="Lbl_EmailOrUserName">البريد الإلكتروني أو اسم المستخدم</string>
   <string name="Lbl_SendMoneyToFriends">إرسال الأموال إلى الأصدقاء</string>
   <string name="Lbl_YouCanSendMoney">يمكنك إرسال الأموال إلى أصدقائك أو معارفك أو أي شخص آخر</string>
-  <string name="Lbl_AddFunds">Add Funds</string>
-  <string name="Lbl_SendMoney">Send Money</string>
-  <string name="Lbl_Home">Home</string>
-  <string name="Lbl_Continue">Continue</string>
-  <string name="Lbl_ReplenishMyBalance">Replenish my balance</string>
-  <string name="Lbl_WalletCredits">Wallet &amp; Credits</string>
-  <string name="Lbl_CurrentBalance">Current Balance</string>
-  <string name="Lbl_Please_enter_name_email">Error, Please enter name or email</string>
-  <string name="Lbl_ThisPostContainsSensitive">This post contains sensitive content which some people may find offensive or disturbing</string>
-  <string name="Lbl_SeePost">See Post</string>
-  <string name="Lbl_SelectUser">Select User</string>
-  <string name="Lbl_NoPost_TitleText_Group">No posts to show</string>
-  <string name="Lbl_MyArticle">My Article</string>
-  <string name="Lbl_ContentAskOPenAppMessenger">We are taking you to another app, Do you want to continue ?</string>
+  <string name="Lbl_AddFunds">إضافة أموال</string>
+  <string name="Lbl_SendMoney">إرسال الأموال</string>
+  <string name="Lbl_Home">الصفحة الرئيسية</string>
+  <string name="Lbl_Continue">متابعة</string>
+  <string name="Lbl_ReplenishMyBalance">تجديد رصيدي</string>
+  <string name="Lbl_WalletCredits">المحفظة &amp; الاعتمادات</string>
+  <string name="Lbl_CurrentBalance">الرصيد الحالي</string>
+  <string name="Lbl_Please_enter_name_email">خطأ ، الرجاء إدخال الاسم أو البريد الإلكتروني</string>
+  <string name="Lbl_ThisPostContainsSensitive">تحتوي هذه المشاركة على محتوى حساس قد يجده بعض الأشخاص مسيئًا أو مزعجًا</string>
+  <string name="Lbl_SeePost">انظر النشر</string>
+  <string name="Lbl_SelectUser">حدد مستخدمًا</string>
+  <string name="Lbl_NoPost_TitleText_Group">لا توجد أية مشاركات لعرضها</string>
+  <string name="Lbl_MyArticle">مقالتي</string>
+  <string name="Lbl_ContentAskOPenAppMessenger">سنأخذك إلى تطبيق آخر ، هل تريد المتابعة؟</string>
 
   <!--Follow Request-->
-  <string name="Lbl_FollowRequest">follow Requests</string>
-  <string name="Lbl_View_All_FollowRequest">View all follow Requests</string>
+  <string name="Lbl_FollowRequest">متابعة الطلبات</string>
+  <string name="Lbl_View_All_FollowRequest">عرض جميع طلبات المتابعة</string>
 
-  <string name="Lbl_AddPicturesToAlbum">Do you want to add pictures to an album?</string>
-  <string name="Lbl_Earnings">Earnings</string>
-  <string name="Lbl_ChooseRelationshipStatus">Choose your Relationship status</string>
-  <string name="Lbl_Theme">Theme</string>
-  <string name="Lbl_CreateAsAlbum">Create as album</string>
-  <string name="Lbl_Story_Added">Story Added</string>
-  <string name="Lbl_UploadingPost">Uploading Post</string>
-  <string name="Lbl_UploadingStory">Uploading Story</string>
+  <string name="Lbl_AddPicturesToAlbum">هل تريد إضافة صور إلى ألبوم؟</string>
+  <string name="Lbl_Earnings">الأرباح</string>
+  <string name="Lbl_ChooseRelationshipStatus">اختر حالة علاقتك</string>
+  <string name="Lbl_Theme">الموضوع</string>
+  <string name="Lbl_CreateAsAlbum">إنشاء كألبوم</string>
+  <string name="Lbl_Story_Added">تمت إضافة القصة</string>
+  <string name="Lbl_UploadingPost">تحميل المنشور</string>
+  <string name="Lbl_UploadingStory">تحميل القصة</string>
 
-  <!-- V2.8 String translate -->
-  <!--===============================================================-->
-  <string name="Lbl_Summary_OnlineUsers">Show when users are online</string>
-  <string name="Lbl_Display">Display</string>
-  <string name="Lbl_ShowOnlineUsers">Show Online Users</string>
-  <string name="Lbl_MyInformation">My Information</string>
-  <string name="Lbl_DownloadMyInformation">Download My Information</string>
-  <string name="Lbl_MyInformation_SubText">Please choose which information you would like to download</string>
-  <string name="Lbl_YourFileIsReady">Your file is ready to download</string>
-  <string name="Lbl_YourFileIsDownloaded">Your file has been successfully downloaded</string>
-  <string name="Lbl_DownloadAndView">Download &amp; View</string>
-  <string name="Lbl_Admin">Admin</string>
-  <string name="Lbl_MyFriends">My Friends</string>
-  <string name="Lbl_Anonymous">Anonymous</string>
+  <!--V2.8 String translate-->
+  <!--================================================================-->
+  <string name="Lbl_Summary_OnlineUsers">إظهار عندما يكون المستخدمون متصلين</string>
+  <string name="Lbl_Display">عرض</string>
+  <string name="Lbl_ShowOnlineUsers">إظهار المستخدمين المتصلين</string>
+  <string name="Lbl_MyInformation">معلوماتي</string>
+  <string name="Lbl_DownloadMyInformation">تنزيل معلوماتي</string>
+  <string name="Lbl_MyInformation_SubText">الرجاء اختيار المعلومات التي ترغب في تنزيلها</string>
+  <string name="Lbl_YourFileIsReady">ملفك جاهز للتنزيل</string>
+  <string name="Lbl_YourFileIsDownloaded">تم تنزيل ملفك بنجاح</string>
+  <string name="Lbl_DownloadAndView">تنزيل &amp; عرض</string>
+  <string name="Lbl_Admin">المسؤول</string>
+  <string name="Lbl_MyFriends">أصدقائي</string>
+  <string name="Lbl_Anonymous">مجهول</string>
 
-  <string name="Lbl_BankTransfer">Bank Transfer</string>
-  <string name="Lbl_YourWasReceiptSuccessfullyUploaded">Your Was Receipt Successfully Uploaded</string>
-  <string name="Lbl_Note">Note:</string>
-  <string name="Lbl_long_Note">In order to confirm the bank transfer, you will need to upload a receipt or take a ScreenShot of your transfer within 1 day from your payment date. If a bank transfer is made but no receipt is uploaded within this period, your order will be cancelled. We will verify and confirm your receipt within 3 working days from the date you upload it.</string>
-  <string name="Lbl_AccountNumber">Account Number / IBAN</string>
-  <string name="Lbl_AccountName">Account name</string>
-  <string name="Lbl_RoutingCode">Routing code</string>
-  <string name="Lbl_ErrorPleaseSelectImage">Error, please select image</string>
-  <string name="Lbl_Country">Country</string>
+  <string name="Lbl_BankTransfer">التحويل المصرفي</string>
+  <string name="Lbl_YourWasReceiptSuccessfullyUploaded">تم تحميل الإيصال بنجاح</string>
+  <string name="Lbl_Note">ملاحظة:</string>
+  <string name="Lbl_long_Note">لتأكيد التحويل المصرفي ، ستحتاج إلى تحميل إيصال أو التقاط لقطة شاشة من التحويل الخاص بك في غضون يوم واحد من تاريخ الدفع. إذا تم إجراء تحويل مصرفي ولكن لم يتم تحميل إيصال خلال هذه الفترة ، فسيتم إلغاء طلبك. سنتحقق من إيصالك ونؤكده في غضون 3 أيام عمل من تاريخ تحميله.</string>
+  <string name="Lbl_AccountNumber">رقم الحساب / IBAN</string>
+  <string name="Lbl_AccountName">اسم الحساب</string>
+  <string name="Lbl_RoutingCode">كود التوجيه</string>
+  <string name="Lbl_ErrorPleaseSelectImage">خطأ ، يرجى تحديد الصورة</string>
+  <string name="Lbl_Country">البلد</string>
   <string name="Btn_Paypal">Paypal</string>
   <string name="Btn_GooglePlay">Google Play</string>
 
-  <string name="Lbl_InvitationLinks">Invitation Links</string>
-  <string name="Lbl_AvailableLinks">Available Links</string>
-  <string name="Lbl_GeneratedLinks">Generated Links</string>
-  <string name="Lbl_UsedLinks">Used Links</string>
-  <string name="Lbl_GenerateLinks">Generate Links</string>
-  <string name="Lbl_Copy">Copy</string>
-  <string name="Lbl_InvitedUser">Invited User</string>
-  <string name="Lbl_Url">Url</string>
+  <string name="Lbl_InvitationLinks">روابط الدعوة</string>
+  <string name="Lbl_AvailableLinks">الروابط المتاحة</string>
+  <string name="Lbl_GeneratedLinks">الروابط المُنشأة</string>
+  <string name="Lbl_UsedLinks">الروابط المستخدمة</string>
+  <string name="Lbl_GenerateLinks">إنشاء الروابط</string>
+  <string name="Lbl_Copy">نسخ</string>
+  <string name="Lbl_InvitedUser">مستخدم تمت دعوته</string>
+  <string name="Lbl_Url">عنوان Url</string>
 
-  <string name="Lbl_Activities">Activities</string>
+  <string name="Lbl_Activities">الأنشطة</string>
 
-  <string name="Lbl_Offer">Offer</string>
-  <string name="Lbl_OfferPostAdded">Created new offer</string>
+  <string name="Lbl_Offer">عرض</string>
+  <string name="Lbl_OfferPostAdded">تم إنشاء عرض جديد</string>
 
-  <string name="Lbl_Memories">Memories</string>
-  <string name="Lbl_NoMoreMemories">No more memories found</string>
-  <string name="Lbl_Empty_Memories">"Oops! No any memories"</string>
-  <string name="Lbl_Friendversaries">Friendversaries</string>
+  <string name="Lbl_Memories">ذكريات</string>
+  <string name="Lbl_NoMoreMemories">لم يتم العثور على المزيد من الذكريات</string>
+  <string name="Lbl_Empty_Memories">"عفوًا! لا توجد أي ذكريات"</string>
+  <string name="Lbl_Friendversaries">أصدقاء الأصدقاء</string>
 
-  <string name="Lbl_Offers">Offers</string>
-  <string name="Lbl_NoMoreOffers">No available offers to show</string>
-  <string name="Lbl_Empty_Offers">No offers</string>
-  <string name="Lbl_DiscountType">Discount Type</string>
-  <string name="Lbl_DiscountItems">Discounted Items and/or Services</string>
-  <string name="Lbl_CreateOffers">Create Offers</string>
-  <string name="Lbl_EditOffers">Edit Offers</string>
-  <string name="Lbl_DiscountPercent">Discount Percent</string>
-  <string name="Lbl_DiscountAmount">Discount Amount</string>
-  <string name="Lbl_BuyGetDiscount">Buy X Get Y Discount</string>
-  <string name="Lbl_SpendGetOff">Spend X Get Y Off</string>
-  <string name="Lbl_FreeShipping">Free Shipping</string>
-  <string name="Lbl_Buy">Buy</string>
-  <string name="Lbl_Get">Get</string>
-  <string name="Lbl_Spend">Spend</string>
-  <string name="Lbl_AmountOff">Amount Off</string>
-  <string name="Lbl_Time">Time</string>
-  <string name="Lbl_Discount">Discount</string>
-  <string name="Lbl_OfferSuccessfullyEdited">Offer successfully edited</string>
-  <string name="Lbl_OfferSuccessfullyAdded">Offer successfully added</string>
-  <string name="Lbl_DeleteOffers">Are you sure that you want to delete this post</string>
+  <string name="Lbl_Offers">العروض</string>
+  <string name="Lbl_NoMoreOffers">لا توجد عروض متاحة للعرض</string>
+  <string name="Lbl_Empty_Offers">لا توجد عروض</string>
+  <string name="Lbl_DiscountType">نوع الخصم</string>
+  <string name="Lbl_DiscountItems">العناصر و / أو الخدمات المخفضة</string>
+  <string name="Lbl_CreateOffers">إنشاء عروض</string>
+  <string name="Lbl_EditOffers">تحرير العروض</string>
+  <string name="Lbl_DiscountPercent">نسبة الخصم</string>
+  <string name="Lbl_DiscountAmount">مبلغ الخصم</string>
+  <string name="Lbl_BuyGetDiscount">شراء X احصل على خصم Y</string>
+  <string name="Lbl_SpendGetOff">أنفق X واحصل على Y من</string>
+  <string name="Lbl_FreeShipping">شحن مجاني </string>
+  <string name="Lbl_Buy">شراء</string>
+  <string name="Lbl_Get">إحضار</string>
+  <string name="Lbl_Spend">الإنفاق</string>
+  <string name="Lbl_AmountOff">المبلغ معطّل</string>
+  <string name="Lbl_Time">الوقت</string>
+  <string name="Lbl_Discount">خصم</string>
+  <string name="Lbl_OfferSuccessfullyEdited">تم تحرير العرض بنجاح</string>
+  <string name="Lbl_OfferSuccessfullyAdded">تمت إضافة العرض بنجاح</string>
+  <string name="Lbl_DeleteOffers">هل أنت متأكد أنك تريد حذف هذه المشاركة</string>
 
-  <string name="Lbl_SearchForPosts">Search for posts</string>
+  <string name="Lbl_SearchForPosts">البحث عن المشاركات</string>
 
-  <string name="Lbl_NoMemoriesDescriptions">Thanks for stopping by. there arent any memories to see today, but we will let you know when we have something to look back on.</string>
-  <string name="Lbl_NoCommentThingsDescriptions">Thanks for stopping by. there arent any common things with users to be displayed for you.</string>
-  <string name="Lbl_NoJobsDescriptions">Sorry, there are no positions available at this time.</string>
-  <string name="Lbl_NoNotifcationsDescriptions">Stay tuned! notifications about your activity will show up here.</string>
+  <string name="Lbl_NoMemoriesDescriptions">شكرًا لزيارتكم. ليست هناك أي ذكريات نراها اليوم ، لكننا سنخبرك عندما يكون لدينا شيء نعيد النظر إليه.</string>
+  <string name="Lbl_NoCommentThingsDescriptions">شكرًا لزيارتكم. ليست هناك أي أشياء مشتركة مع المستخدمين ليتم عرضها لك.</string>
+  <string name="Lbl_NoJobsDescriptions">عذرًا ، لا توجد وظائف متاحة في هذا الوقت.</string>
+  <string name="Lbl_NoNotifcationsDescriptions">ابق على اتصال! ستظهر الإشعارات المتعلقة بنشاطك هنا.</string>
 
-  <string name="Lbl_Event">Event</string>
-  <string name="Lbl_CreatedNewEvent">Created new event</string>
-  <string name="Lbl_Invited">Invited</string>
-  <string name="Lbl_Past">Past</string>
+  <string name="Lbl_Event">الحدث</string>
+  <string name="Lbl_CreatedNewEvent">تم إنشاء حدث جديد</string>
+  <string name="Lbl_Invited">مدعو</string>
+  <string name="Lbl_Past">الماضي</string>
 
-  <string name="Lbl_CreditCard">Credit Card</string>
-  <string name="Btn_Continue">Continue</string>
+  <string name="Lbl_CreditCard">بطاقة الائتمان</string>
+  <string name="Btn_Continue">متابعة</string>
 
-  <string name="Lbl_NearbyShops">Nearby Shops</string>
-  <string name="Lbl_Empty_Shop">No shops found</string>
+  <string name="Lbl_NearbyShops">المتاجر المجاورة</string>
+  <string name="Lbl_Empty_Shop">لم يتم العثور على متاجر</string>
 
 
-  <string name="Lbl_NearbyBusiness">Nearby Business</string>
-  <string name="Lbl_Empty_Business">No business found</string>
+  <string name="Lbl_NearbyBusiness">أعمال قريبة</string>
+  <string name="Lbl_Empty_Business">لم يتم العثور على أعمال</string>
 
   <!--Withdrawals-->
-  <string name="Lbl_Withdrawals">Withdrawals</string>
-  <string name="Lbl_PayPalEmail">PayPal E-mail</string>
-  <string name="Lbl_CantRequestWithdrawals">You can not request this amount that is not commensurate with your current balance</string>
-  <string name="Lbl_RequestSentWithdrawals">Your withdrawal request has been successfully sent</string>
-  <string name="Lbl_Withdrawals_SubText1">Your balance is</string>
-  <string name="Lbl_Withdrawals_SubText2">minimum withdrawal request is</string>
-  <string name="Lbl_WithdrawMethod">Withdraw Method</string>
-  <string name="Lbl_SwiftCode">Swift Code</string>
-  <string name="Lbl_Address">Address</string>
-  <string name="Lbl_RequestWithdrawal">Request Withdrawal</string>
-  <string name="Lbl_Bank">Bank</string>
+  <string name="Lbl_Withdrawals">عمليات السحب</string>
+  <string name="Lbl_PayPalEmail">بريد PayPal الإلكتروني</string>
+  <string name="Lbl_CantRequestWithdrawals">لا يمكنك طلب هذا المبلغ الذي لا يتناسب مع رصيدك الحالي</string>
+  <string name="Lbl_RequestSentWithdrawals">تم إرسال طلب السحب بنجاح</string>
+  <string name="Lbl_Withdrawals_SubText1">رصيدك</string>
+  <string name="Lbl_Withdrawals_SubText2">الحد الأدنى لطلب السحب هو</string>
+  <string name="Lbl_WithdrawMethod">أسلوب السحب</string>
+  <string name="Lbl_SwiftCode">رمز Swift</string>
+  <string name="Lbl_Address">العنوان</string>
+  <string name="Lbl_RequestWithdrawal">طلب سحب</string>
+  <string name="Lbl_Bank">البنك</string>
 
-  <string name="Lbl_AddedNewPhoto">Added New Photo</string>
-  <string name="Lbl_Publish">Publish</string>
+  <string name="Lbl_addedNewPhoto">تمت إضافة صورة جديدة</string>
+  <string name="Lbl_Publish">نشر</string>
 
-  <string name="Lbl_CommentsAreDisabledBy">Comments are disabled by</string>
-  <string name="Lbl_EnableComments">Enable Comments</string>
-  <string name="Lbl_DisableComments">Disable comments</string>
-  <string name="Lbl_PostCommentsDisabled">Post comments disable</string>
-  <string name="Lbl_PostCommentsEnabled">Post comments enabled</string>
+  <string name="Lbl_CommentsAreDisabledBy">تم تعطيل التعليقات بواسطة</string>
+  <string name="Lbl_EnableComments">تمكين التعليقات</string>
+  <string name="Lbl_DisableComments">تعطيل التعليقات</string>
+  <string name="Lbl_PostCommentsDisabled">تعطيل نشر التعليقات</string>
+  <string name="Lbl_PostCommentsEnabled">تم تمكين نشر التعليقات</string>
 
-  <string name="Lbl_UsersCanPostOnMyPage">Users can post on my page</string>
-  <string name="Lbl_WasLive">Was live</string>
-  <string name="Lbl_UnSavePost">UnSave post</string>
-  <string name="Lbl_SorryUserIsAnonymous">Sorry, this user is anonymous</string>
+  <string name="Lbl_UsersCanPostOnMyPage">يمكن للمستخدمين النشر على صفحتي</string>
+  <string name="Lbl_WasLive">كان مباشرًا</string>
+  <string name="Lbl_UnSavePost">إلغاء حفظ المشاركة</string>
+  <string name="Lbl_SorryUserIsAnonymous">عذرًا ، هذا المستخدم مجهول</string>
+
+  <!--Verification-->
+  <string name="Lbl_YourPhoto">صورتك</string>
+  <string name="Lbl_Passport">جواز السفر</string>
+  <string name="Lbl_Please_enter_Messages">خطأ ، الرجاء إدخال الرسائل</string>
+  <string name="Lbl_WelcomeTo">مرحبًا بك في</string>
+  <string name="Lbl_Please_select_Image_passport">الرجاء تحديد صورة حديثة لجواز السفر أو المعرف الخاص بك.</string>
+  <string name="Lbl_SubmitRequest">إرسال الطلب</string>
+  <string name="Lbl_Congratulations_verified">تهانينا ، لقد تم التحقق منك. شكرا للتحقق من هويتك</string>
+  <string name="Lbl_Please_add_info">التحقق من الملف الشخصي!</string>
+  <string name="Lbl_Successfully_Verification">سيتم النظر في طلب التحقق قريبًا</string>
+
+  <string name="Lbl_SubCategories">الفئات الفرعية</string>
+  <string name="Lbl_NoMorePost">لم يتم العثور على أية مشاركة أخرى</string>
+  <string name="Lbl_DeleteFunding">هل أنت متأكد أنك تريد حذف طلب التمويل هذا؟</string>
+  <string name="Lbl_ThereIsNoBalance">لا يوجد رصيد</string>
+
+  <string name="Lbl_PostingAs">النشر كـ</string>
+  <string name="Lbl_PageUsername">اسم مستخدم الصفحة</string>
+  <string name="Lbl_GroupUsername">اسم مستخدم المجموعة</string>
+  <string name="Lbl_ThisUserNotActive">لم يتم تنشيط هذا المستخدم ، يرجى التحقق من بريدك الإلكتروني</string>
+  <string name="Lbl_UserNotFound">​​المستخدم غير موجود</string>
+  <string name="Lbl_ReactToThisComment">الرد على هذا التعليق</string>
+
+  <string name="Lbl_VoiceRecord">تسجيل صوتي</string>
+  <string name="Lbl_ErrorFileSharing">عذرًا ، لا يمكن إكمال عملية مشاركة الملف. يجب عليك تسجيل الدخول أولا</string>
+
+  <!--V3.2 String translate-->
+  <!--================================================================-->
+  <string name="Lbl_Sort">فرز</string>
+  <string name="Lbl_confirmationUnFriend">هل أنت متأكد أنك تريد إزالة علي كصديق لك؟</string>
+  <string name="Lbl_Confirm">تأكيد</string>
+  <string name="Lbl_WorkingAt">العمل في</string>
+  <string name="Lbl_LivingIn">العيش في</string>
+  <string name="Lbl_StudyingAt">الدراسة في</string>
+  <string name="Lbl_RateOurApp">قيم تطبيقنا</string>
+  <string name="Lbl_RateOurAppContent">إذا كنت تحب تطبيقنا ، فالرجاء تخصيص بعض الوقت لندرته.</string>
+  <string name="Lbl_CreatedSuccessfully">تم الإنشاء بنجاح</string>
+
+  <string name="Lbl_Live">مباشر</string>
+  <string name="Lbl_HeSentYouGift">أرسل إليك هدية</string>
+  <string name="Lbl_DonateCode">0.00</string>
+
+  <string name="Lbl_PayNow">الدفع الآن</string>
+  <string name="Lbl_PayWith">الدفع باستخدام</string>
+  <string name="Lbl_Upgraded">تمت ترقيته</string>
+  <string name="Lbl_added">مضاف</string>
+  <string name="Lbl_Rated">مصنّف</string>
+  <string name="Lbl_PaymentSuccessfully">الدفع بنجاح</string>
+  <string name="Lbl_RazorPay">RazorPay</string>
+  <string name="Lbl_PayStack">Paystack</string>
+  <string name="Lbl_CashFree">بدون نقود</string>
+  <string name="Lbl_PaySera">Paysera</string>
+  <string name="Lbl_MoneySentSuccessfully">تم إرسال الأموال بنجاح</string>
+  <string name="Lbl_CantDonate">"لا يمكنك التبرع بأكثر من"</string>
+  <string name="Lbl_HoldToRecord">احتفظ بالانتظار لتسجيل الإصدار للإرسال</string>
+  <string name="Lbl_Processing">معالجة</string>
+  <string name="Lbl_CreateArticle">إنشاء مقال</string>
+  <string name="Lbl_CommentReaction">رد فعل التعليق</string>
+  <string name="Lbl_BrowseFunding">تصفح التمويل</string>
+  <string name="Lbl_MyFunding">أموالي</string>
+  <string name="Lbl_PostLinkContentVideo">استضافة ومشاركة الفيديو.</string>
+  <string name="Lbl_PostLinkContentFacebook">Facebook هو أحد مواقع الشبكات الاجتماعية التي تسهل عليك الاتصال والمشاركة مع العائلة والأصدقاء عبر الإنترنت.</string>
+
+  <!--V3.5 String translate-->
+  <!--================================================================-->
+  <string name="Lbl_ThereIsNewUpdate">هناك تحديث جديد</string>
+  <string name="Lbl_DiscoverNewVersion">اكتشف الإصدار الجديد</string>
+  <string name="Lbl_Current">الحالي</string>
+  <string name="Lbl_Reactions">ردود الفعل</string>
+
+  <string name="Lbl_HeadTextGoPro">تمنحك الميزات الاحترافية تحكمًا كاملاً في ملفك الشخصي.</string>
+  <string name="Lbl_HeadSecondTextGoPro">اختر خطتك</string>
+  <string name="Lbl_RecentDonations">التبرعات الأخيرة</string>
+  <string name="Lbl_ReportThisUser">الإبلاغ عن هذا المستخدم</string>
+  <string name="Lbl_NewPost">منشور جديد</string>
+
+  <!--V3.6 String translate-->
+  <!--================================================================-->
+  <!--أعلن-->
+  <string name="Lbl_Create_Ad">إنشاء إعلان</string>
+  <string name="Lbl_Describe_Advertise">أضف إعلانك</string>
+  <string name="Lbl_Describe_Description_Advertise">أعلن عن عملك أو علامتك التجارية أو مؤسستك.</string>
+  <string name="Lbl_MediaFile">ملف الوسائط</string>
+  <string name="Lbl_CompanyName">اسم الشركة</string>
+  <string name="Lbl_ChooseImage">اختر صورة</string>
+  <string name="Lbl_Details">التفاصيل</string>
+  <string name="Lbl_CampaignTitle">عنوان الحملة</string>
+  <string name="Lbl_CampaignDescription">وصف الحملة</string>
+  <string name="Lbl_MyPages">صفحاتي</string>
+  <string name="Lbl_Targeting">الاستهداف</string>
+  <string name="Lbl_Audience">الجمهور</string>
+  <string name="Lbl_Placement">الموضع</string>
+  <string name="Lbl_CampaignBudget">ميزانية الحملة</string>
+  <string name="Lbl_Bidding">العطاء</string>
+  <string name="Lbl_Selected">محدد</string>
+  <string name="Lbl_PlacementPost">نشر (صورة بتنسيق الملف)</string>
+  <string name="Lbl_PlacementSidebar">الشريط الجانبي (صورة تنسيق الملف)</string>
+  <string name="Lbl_BiddingClick">الدفع لكل نقرة (0.05 دولار أمريكي)</string>
+  <string name="Lbl_BiddingViews">الدفع لكل ظهور (0.01 دولار أمريكي)</string>
+  <string name="Lbl_Please_enter_Website">خطأ ، الرجاء إدخال موقع الويب</string>
+  <string name="Lbl_Please_select_page">خطأ ، يرجى تحديد الصفحة</string>
+  <string name="Lbl_Please_select_Gender">خطأ ، يرجى تحديد الجنس</string>
+  <string name="Lbl_Please_select_Placement">خطأ ، يرجى تحديد الموضع</string>
+  <string name="Lbl_Please_select_Budget">خطأ ، الرجاء تحديد الميزانية</string>
+  <string name="Lbl_Please_select_Bidding">خطأ ، يرجى تحديد عروض التسعير</string>
+  <string name="Lbl_Please_select_Audience">خطأ ، يرجى تحديد الجمهور</string>
+
+  <string name="Lbl_SelectAll">تحديد الكل</string>
+
+  <!--V3.7 String translate-->
+  <!--================================================================-->
+  <!--Live Video Agora-->
+  <string name="Lbl_CreateLiveVideo">إنشاء فيديو مباشر</string>
+  <string name="Lbl_IsLiveNow">مباشر الآن</string>
+  <string name="Lbl_AddLiveVideoContext">إضافة سياق فيديو مباشر</string>
+  <string name="Lbl_PleaseEnterLiveStreamName">الرجاء إدخال اسم البث المباشر</string>
+  <string name="Lbl_Go_Live">البث المباشر</string>
+  <string name="Lbl_GetReady">استعد</string>
+  <string name="Lbl_JoiningStream">الانضمام إلى البث</string>
+  <string name="Lbl_LiveStreamHasEnded">انتهى البث المباشر الخاص بك</string>
+  <string name="Lbl_LiveStreamShareSuccess">شكرًا ، نتمنى رؤيتك مرة أخرى</string>
+  <string name="Lbl_Finish">إنهاء</string>
+  <string name="Lbl_StartedBroadcastingLive">بدأ البث المباشر</string>
+  <string name="Lbl_StreamHasEnded">انتهى الدفق.</string>
+  <string name="Lbl_LiveStreamer_alert_title">هل أنت جاهز لإيقاف البث المباشر؟</string>
+  <string name="Lbl_LiveStreamer_alert_message">"انقر فوق" نعم "لإنهاء البث أو" لا "للمتابعة"</string>
+  <string name="Lbl_LiveViewer_alert_title">هل أنت جاهز للتوقف عن المشاهدة؟</string>
+  <string name="Lbl_LiveViewer_alert_message">"انقر فوق" نعم "للخروج من البث المباشر أو" لا "لمواصلة المشاهدة"</string>
+
+  <!--Weather-->
+  <string name="Lbl_NoTrending_TitleText">لا يتوفر محتوى شائع</string>
+  <string name="Lbl_Weather">الطقس</string>
+
+  <string name="Lbl_TrendingHashTags">علامات التصنيف الشائعة</string>
+  <string name="Lbl_AllShortcuts">كافة الاختصارات</string>
+  <string name="Lbl_LastBlogs">آخر المدونات</string>
+
+  <!--V3.8 String translate-->
+  <!--================================================================-->
+  <string name="Lbl_SeenBy">مرئي من قبل</string>
+
+  <!--V3.9 String translate-->
+  <!--================================================================-->
+  <string name="Lbl_YourLiveStreamHasEnded">انتهى البث المباشر الخاص بك</string>
+  <string name="Lbl_LiveStreamer_End_title">شكرًا ، نأمل أن نراك مرة أخرى</string>
+  <string name="Lbl_LiveViewer_End_title">ابدأ البث المباشر الآن</string>
+  <string name="Lbl_LifeTime">مدى الحياة</string>
+  <string name="Lbl_BoostUpTo">زيادة تصل إلى</string>
+  <string name="Lbl_Posts">المشاركات</string>
+  <string name="Lbl_ExchangeCurrency">عملة الصرف</string>
+  <string name="Lbl_UpdatedAt">تم التحديث عند</string>
+
+  <string name="Lbl_CoronaVirus">فيروس كورونا</string>
+  <string name="Lbl_CoronaVirusInfo">مركز معلومات فيروس كورونا (COVID-19)</string>
+  <string name="Lbl_NewCases">حالات جديدة</string>
+  <string name="Lbl_NewDeaths">وفيات جديدة</string>
+  <string name="Lbl_ActiveCases">الحالات النشطة</string>
+  <string name="Lbl_Deaths">الوفيات</string>
+  <string name="Lbl_TotalCases">إجمالي الحالات</string>
+  <string name="Lbl_Recovered">مسترد</string>
+  <string name="Lbl_LastUpdated">آخر تحديث</string>
+
+  <string name="Lbl_CoronaVirus_HeadText">ساعد في منع انتشار فيروس كورونا.</string>
+  <string name="Lbl_CoronaVirus_SubText">اطلع على أحدث المعلومات من منظمة الصحة العالمية حتى تتمكن من المساعدة في منع انتشار covid-19.</string>
+
+  <string name="Lbl_NoPageManaged">"ليس لديك أي صفحة مُدارة"</string>
+  <string name="Lbl_NoGroupManaged">"ليس لديك أية مجموعة"</string>
+
+  <string name="login_description">استمر في تسجيل الدخول إلى حسابك ليتم تحديثه \ n مع شبكتك</string>
+  <string name="no_account">"أليس لديك حساب؟"</string>
+  <string name="field_required">هذا الحقل مطلوب</string>
+  <string name="register_description">سجل في Wowonder باستخدام \ n بريدك الإلكتروني أو حساباتك الاجتماعية</string>
+  <string name="register_using_google">التسجيل باستخدام Google</string>
+  <string name="register_using_facebook">التسجيل باستخدام Facebook</string>
+  <string name="register_using_email">التسجيل باستخدام البريد الإلكتروني</string>
+  <string name="already_account">هل لديك حساب بالفعل؟</string>
+  <string name="create_account">إنشاء حساب</string>
+  <string name="request_password_link">طلب ارتباط كلمة المرور</string>
+  <string name="link_sent_successfully">تم إرسال الرابط بنجاح</string>
+
+  <string name="Lbl_FeaturedPosts">المشاركات المميزة</string>
+  <string name="Lbl_PagesLiked">الصفحات التي تم الإعجاب بها</string>
+
+
+  <!--V4.1 String translate-->
+  <!--================================================================-->
+  <string name="Lbl_Or">أو</string>
+  <string name="Lbl_ByCreatingAnAccountYou">بإنشاء حساب أنت</string>
+  <string name="Lbl_Forgot_password">نسيت كلمة المرور</string>
+  <string name="Lbl_Forgot_password_Des">الرجاء إدخال عنوان بريدك الإلكتروني. سوف تتلقى \ n ارتباطًا لإنشاء كلمة مرور جديدة.</string>
+  <string name="Lbl_AddStory">إضافة قصة</string>
+  <string name="Lbl_EditAvatar">تحرير الصورة الرمزية</string>
+  <string name="Lbl_EditCover">تحرير الغلاف</string>
+  <string name="Lbl_Wallet">المحفظة</string>
+  <string name="Lbl_ICurrentlyWork">أعمل هنا حاليًا</string>
+  <string name="Lbl_FilterByCategory">تصفية حسب الفئة</string>
+  <string name="Lbl_Comments">التعليقات</string>
+  <string name="Lbl_Shares">المشاركات</string>
+  <string name="Lbl_Unlimited">غير محدود</string>
+  <string name="Lbl_ProfileDetails">تفاصيل الملف الشخصي</string>
+  <string name="Lbl_TypeSomethingsHere">اكتب شيئًا هنا</string>
 
 </resources>

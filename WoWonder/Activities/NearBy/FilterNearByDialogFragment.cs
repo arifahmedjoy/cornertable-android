@@ -494,7 +494,7 @@ namespace WoWonder.Activities.NearBy
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Married));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Engaged));
 
-                dialogList.Title(GetText(Resource.String.Lbl_Relationship));
+                dialogList.Title(GetText(Resource.String.Lbl_Relationship)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

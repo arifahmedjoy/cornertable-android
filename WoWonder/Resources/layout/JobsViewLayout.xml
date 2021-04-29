@@ -124,7 +124,6 @@
                     android:paddingEnd="10dp"
                     android:paddingTop="0dp"
                     android:textStyle="bold"
-                    android:text="Amazing Life"
                     android:textSize="18sp" />
                 <TextView
                     android:id="@+id/pageName"
@@ -136,7 +135,6 @@
                     android:paddingStart="13dp"
                     android:paddingEnd="10dp"
                     android:paddingTop="0dp"
-                    android:text="ExamplePage"
                     android:textSize="13sp" />
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/JobInfo"
@@ -149,7 +147,6 @@
                     android:paddingEnd="7dp"
                     android:paddingTop="0dp"
                     android:paddingBottom="2dp"
-                    android:text="Istanbul"
                     android:textSize="13sp" />
                 <Button
                     android:id="@+id/JobButton"
@@ -190,7 +187,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/minimum"
-                        android:text="$200 Per Month"
                         android:textSize="12dp" />
                     <TextView
                         android:id="@+id/maximum"
@@ -211,7 +207,6 @@
                         android:layout_toEndOf="@+id/minimum"
                         android:layout_below="@+id/maximum"
                         android:layout_centerHorizontal="true"
-                        android:text="$200 Per Month"
                         android:textSize="12dp" />
                     <WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView
                         android:layout_below="@+id/minimumNumber"
@@ -220,7 +215,6 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="start"
                         android:layout_alignParentBottom="true"
-                        android:text="Nice and good work in Istanbul"
                         android:gravity="center|start"
                         android:layout_marginStart="11dp"
                         android:layout_marginTop="6dp"

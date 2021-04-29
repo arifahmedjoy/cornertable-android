@@ -70,6 +70,7 @@
 					<!--Top Toolbar-->
 					<androidx.appcompat.widget.Toolbar
                         android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
                         android:layout_width="match_parent"
                         android:layout_height="?attr/actionBarSize"
                         android:layout_marginTop="5dp"

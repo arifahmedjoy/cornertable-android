@@ -14,7 +14,8 @@ using Android.Runtime;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
-using AndroidX.ViewPager.Widget;
+using AndroidX.AppCompat.Content.Res;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
 using WoWonder.Activities.Base;
@@ -31,11 +32,12 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Games
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class GamesActivity : BaseActivity
+    public class GamesActivity : BaseActivity, TabLayoutMediator.ITabConfigurationStrategy
     {
         #region Variables Basic
 
-        private ViewPager ViewPager;
+        private MainTabAdapter Adapter;
+        private ViewPager2 ViewPager;
         private GamesFragment GamesTab;
         private MyGamesFragment MyGamesTab;
         private TabLayout TabLayout;
@@ -168,7 +170,7 @@ namespace WoWonder.Activities.Games
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
-
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
             try
             {
                 var item = menu.FindItem(Resource.Id.searchUserBar);
@@ -185,13 +187,13 @@ namespace WoWonder.Activities.Games
 
                 //Change text colors
                 var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
-                editText.SetHintTextColor(Color.White);
-                editText.SetTextColor(Color.White);
+                editText.SetHintTextColor(Color.Black);
+                editText.SetTextColor(Color.ParseColor("#888888")); 
 
-                //Remove Icon Search
+                //Change Color Icon Search
                 ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
-                ViewGroup linearLayoutSearchView = (ViewGroup)searchViewIcon.Parent;
-                linearLayoutSearchView.RemoveView(searchViewIcon);
+                searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+
             }
             catch (Exception e)
             {
@@ -251,7 +253,7 @@ namespace WoWonder.Activities.Games
         {
             try
             {
-                ViewPager = FindViewById<ViewPager>(Resource.Id.viewpager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
 
                 FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
@@ -259,7 +261,7 @@ namespace WoWonder.Activities.Games
 
                 ViewPager.OffscreenPageLimit = 2;
                 SetUpViewPager(ViewPager);
-                TabLayout.SetupWithViewPager(ViewPager);
+                new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
             }
             catch (Exception e)
             {
@@ -275,12 +277,14 @@ namespace WoWonder.Activities.Games
                 if (ToolBar != null)
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_Games);
-                    ToolBar.SetTitleTextColor(Color.White);
+                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
 
                 }
             }
@@ -328,19 +332,35 @@ namespace WoWonder.Activities.Games
 
         #region Set Tap
 
-        private void SetUpViewPager(ViewPager viewPager)
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
                 GamesTab = new GamesFragment();
                 MyGamesTab = new MyGamesFragment();
 
-                var adapter = new MainTabAdapter(SupportFragmentManager);
-                adapter.AddFragment(GamesTab, GetText(Resource.String.Lbl_Games));
-                adapter.AddFragment(MyGamesTab, GetText(Resource.String.Lbl_MyGames));
+                Adapter = new MainTabAdapter(this);
+                Adapter.AddFragment(GamesTab, GetText(Resource.String.Lbl_Games));
+                Adapter.AddFragment(MyGamesTab, GetText(Resource.String.Lbl_MyGames));
 
-                viewPager.CurrentItem = 2;
-                viewPager.Adapter = adapter;
+                viewPager.CurrentItem = Adapter.ItemCount;
+                viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                viewPager.Adapter = Adapter;
+                viewPager.Adapter.NotifyDataSetChanged();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
             }
             catch (Exception exception)
             {
@@ -407,7 +427,7 @@ namespace WoWonder.Activities.Games
                 GamesTab.MainScrollEvent.IsLoading = true;
                 var countList = GamesTab.MAdapter.GamesList.Count;
 
-                var (respondCode, respondString) = await RequestsAsync.Games.FetchGames("6", offset);
+                var (respondCode, respondString) = await RequestsAsync.Games.FetchGamesAsync("6", offset);
                 switch (respondCode)
                 {
                     case 200:
@@ -490,7 +510,7 @@ namespace WoWonder.Activities.Games
                 MyGamesTab.MainScrollEvent.IsLoading = true;
                 var countList = MyGamesTab.MAdapter.GamesList.Count;
 
-                var (respondCode, respondString) = await RequestsAsync.Games.FetchMyhGames("6", offset);
+                var (respondCode, respondString) = await RequestsAsync.Games.FetchMyhGamesAsync("6", offset);
                 switch (respondCode)
                 {
                     case 200:
@@ -573,7 +593,7 @@ namespace WoWonder.Activities.Games
                 GamesTab.MainScrollEvent.IsLoading = true;
                 var countList = GamesTab.MAdapter.GamesList.Count;
 
-                var (respondCode, respondString) = await RequestsAsync.Games.SearchGames(SearchKey,"15", offset);
+                var (respondCode, respondString) = await RequestsAsync.Games.SearchGamesAsync(SearchKey,"15", offset);
                 switch (respondCode)
                 {
                     case 200:

@@ -28,6 +28,8 @@ using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.User;
 using WoWonderClient.Requests;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
+using AndroidX.Core.Content;
+using AndroidX.AppCompat.Content.Res;
 
 namespace WoWonder.Activities.Contacts
 {
@@ -218,17 +220,18 @@ namespace WoWonder.Activities.Contacts
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = AppSettings.ConnectivitySystem == 1 ? GetText(TypeContacts == "Following" ? Resource.String.Lbl_Following : Resource.String.Lbl_Followers) : GetText(Resource.String.Lbl_Friends);
+                    toolBar.Title = AppSettings.ConnectivitySystem == 1 ? GetText(TypeContacts == "Following" ? Resource.String.Lbl_Following : Resource.String.Lbl_Followers) : GetText(Resource.String.Lbl_Friends);
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(ContextCompat.GetColor(this, Resource.Color.primary));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)

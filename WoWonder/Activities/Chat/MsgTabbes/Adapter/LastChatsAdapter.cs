@@ -320,6 +320,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                                                 case false when item.LastChatPage.LastMessage.Media.Contains("image"):
                                                     holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                                                     Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
+                                                    holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                                                     break;
                                                 case false when item.LastChatPage.LastMessage.Media.Contains("video"):
                                                     holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -551,6 +552,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                     case false when item.LastMessage.Media.Contains("image"):
                         holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                         Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
+                        holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                         break;
                     case false when item.LastMessage.Media.Contains("video"):
                         holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -703,6 +705,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                             case false when lastMessage.Media.Contains("image"):
                                 holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                                 Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
+                                holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                                 break;
                             case false when lastMessage.Media.Contains("video"):
                                 holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -928,6 +931,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                         case false when item.LastMessage.Media.Contains("image"):
                             holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                             Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
+                            holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                             break;
                         case false when item.LastMessage.Media.Contains("video"):
                             holder.LastMessagesIcon.Visibility = ViewStates.Visible;

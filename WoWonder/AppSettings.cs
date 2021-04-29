@@ -21,29 +21,29 @@ namespace WoWonder
 
         //Main Settings >>>>>
         //*********************************************************
-        public static string Version = "1.0.5";
-        public static string ApplicationName = "The Corner Table Social Media App";
+        public static string Version = "2.0.4";
+        public static string ApplicationName = "The Corner Table Social Network";
         public static string DatabaseName = "CornerTable";
 
         // Friend system = 0 , follow system = 1
-        public static int ConnectivitySystem = 0;
+        public static int ConnectivitySystem = 1;
 
         public static PostButtonSystem PostButton = PostButtonSystem.ReactionDefault;
         public static bool ShowTextShareButton = true;
-        public static bool ShowShareButton = true;
+        public static bool ShowShareButton = true; 
 
         //Main Colors >>
         //*********************************************************
         public static string MainColor = "#a84849";
         public static string StoryReadColor = "#808080";
-
+         
         //Language Settings >> http://www.lingoes.net/en/translator/langcode.htm
         //*********************************************************
         public static bool FlowDirectionRightToLeft = false;
         public static string Lang = ""; //Default language ar
 
         //Set Language User on site from phone 
-        public static bool SetLangUser = true;
+        public static bool SetLangUser = true; 
 
         //Notification Settings >>
         //*********************************************************
@@ -91,40 +91,27 @@ namespace WoWonder
 
         //FaceBook Ads >> Please add the code ad in the Here and analytic.xml 
         //*********************************************************
-        public static bool ShowFbBannerAds = false;
-        public static bool ShowFbInterstitialAds = false;
-        public static bool ShowFbRewardVideoAds = false;
-        public static bool ShowFbNativeAds = false;
-
+        public static bool ShowFbBannerAds = false; 
+        public static bool ShowFbInterstitialAds = false;  
+        public static bool ShowFbRewardVideoAds = false; 
+        public static bool ShowFbNativeAds = false; 
+         
         //YOUR_PLACEMENT_ID
-        public static string AdsFbBannerKey = "250485588986218_554026418632132";
-        public static string AdsFbInterstitialKey = "250485588986218_554026125298828";
-        public static string AdsFbRewardVideoKey = "250485588986218_554072818627492";
-        public static string AdsFbNativeKey = "250485588986218_554706301897477";
+        public static string AdsFbBannerKey = "250485588986218_554026418632132"; 
+        public static string AdsFbInterstitialKey = "250485588986218_554026125298828";  
+        public static string AdsFbRewardVideoKey = "250485588986218_554072818627492"; 
+        public static string AdsFbNativeKey = "250485588986218_554706301897477"; 
 
         //Three times after entering the ad is displayed
-        public static int ShowFbNativeAdsCount = 40;
-
+        public static int ShowFbNativeAdsCount = 40;  
+         
         //********************************************************* 
-        public static bool EnableRegisterSystem = true;
-        public static bool ShowGenderOnRegister = true;
-
-        //Set Theme Welcome Pages 
-        //*********************************************************
-        //Types >> Gradient or Video or Image
-        /// <summary> 
-        /// if Gradient you can change color from  ../values/colors.xml
-        /// <color name="background_First_Layout_startColor">#777777</color>
-        /// <color name="background_First_Layout_centerColor">#888888</color>
-        /// <color name="background_First_Layout_endColor">#444444</color>
-        /// </summary>
-        public static string BackgroundScreenWelcomeType = "Image";
-
+        public static bool EnableRegisterSystem = true;   
+         
         //Set Theme Full Screen App
         //*********************************************************
         public static bool EnableFullScreenApp = false;
-
-
+            
         //Code Time Zone (true => Get from Internet , false => Get From #CodeTimeZone )
         //*********************************************************
         public static bool AutoCodeTimeZone = true;
@@ -145,7 +132,7 @@ namespace WoWonder
         public static readonly string ClientId = "430795656343-679a7fus3pfr1ani0nr0gosotgcvq2s8.apps.googleusercontent.com";
 
         //########################### 
-
+          
         //Main Slider settings
         //*********************************************************
         public static bool ShowAlbum = true;
@@ -157,31 +144,31 @@ namespace WoWonder
         public static bool ShowPopularPosts = true;
         public static bool ShowMovies = true;
         public static bool ShowNearBy = true;
-        public static bool ShowStory = true;
+        public static bool ShowStory = false;
         public static bool ShowSavedPost = true;
-        public static bool ShowUserContacts = true;
-        public static bool ShowJobs = true;
-        public static bool ShowCommonThings = true;
+        public static bool ShowUserContacts = true; 
+        public static bool ShowJobs = true; 
+        public static bool ShowCommonThings = true; 
         public static bool ShowFundings = true;
-        public static bool ShowMyPhoto = true;
-        public static bool ShowMyVideo = true;
+        public static bool ShowMyPhoto = true; 
+        public static bool ShowMyVideo = true; 
         public static bool ShowGames = true;
-        public static bool ShowMemories = true;
-        public static bool ShowOffers = true;
-        public static bool ShowNearbyShops = true;
+        public static bool ShowMemories = true;  
+        public static bool ShowOffers = true;  
+        public static bool ShowNearbyShops = true;   
 
         public static bool ShowSuggestedGroup = true;
         public static bool ShowSuggestedUser = true;
-
+         
         //count times after entering the Suggestion is displayed
-        public static int ShowSuggestedGroupCount = 70;
+        public static int ShowSuggestedGroupCount = 70; 
         public static int ShowSuggestedUserCount = 50;
 
         //allow download or not when share
-        public static bool AllowDownloadMedia = true;
+        public static bool AllowDownloadMedia = true; 
 
         public static bool ShowAdvertise = false; //New >> Next Version
-
+         
         /// <summary>
         /// https://rapidapi.com/api-sports/api/covid-193
         /// you can get api key and host from here https://prnt.sc/wngxfc 
@@ -189,17 +176,17 @@ namespace WoWonder
         public static bool ShowInfoCoronaVirus = false;//#New
         public static string KeyCoronaVirus = "164300ef98msh0911b69bed3814bp131c76jsneaca9364e61f";//#New
         public static string HostCoronaVirus = "covid-193.p.rapidapi.com";//#New
-
-        public static bool ShowLive = false;
-        public static string AppIdAgoraLive = "c55b9bda665042809b61dfeb3f3832e0";
+         
+        public static bool ShowLive = false;  
+        public static string AppIdAgoraLive = "c55b9bda665042809b61dfeb3f3832e0"; 
 
         //Events settings
         //*********************************************************  
-        public static bool ShowEvents = true;
-        public static bool ShowEventGoing = true;
-        public static bool ShowEventInvited = true;
-        public static bool ShowEventInterested = true;
-        public static bool ShowEventPast = true;
+        public static bool ShowEvents = true; 
+        public static bool ShowEventGoing = true; 
+        public static bool ShowEventInvited = true;  
+        public static bool ShowEventInterested = true;  
+        public static bool ShowEventPast = true; 
 
         //Set a story duration >> 7 Sec
         public static long StoryDuration = 7000L;
@@ -217,18 +204,18 @@ namespace WoWonder
         //Profile settings
         //*********************************************************
         public static bool ShowGift = true;
-        public static bool ShowWallet = true;
-        public static bool ShowGoPro = true;
+        public static bool ShowWallet = true; 
+        public static bool ShowGoPro = true;  
         public static bool ShowWithdrawals = true;
         public static bool ShowAddToFamily = true; //#New
 
         /// <summary>
         /// The default value comes from the site .. in case it is not available, it is taken from these values
         /// </summary>
-        public static string WeeklyPrice = "3";
-        public static string MonthlyPrice = "8";
-        public static string YearlyPrice = "89";
-        public static string LifetimePrice = "259";
+        public static string WeeklyPrice = "3"; 
+        public static string MonthlyPrice = "8"; 
+        public static string YearlyPrice = "89"; 
+        public static string LifetimePrice = "259"; 
 
         //Native Post settings
         //*********************************************************
@@ -237,40 +224,40 @@ namespace WoWonder
         public static string PostApiLimitOnScroll = "22";
 
         //Get post in background >> 1 Min = 60 Sec
-        public static long RefreshPostSeconds = 60000;
-        public static string PostApiLimitOnBackground = "12";
+        public static long RefreshPostSeconds = 60000;  
+        public static string PostApiLimitOnBackground = "12"; 
 
         public static bool AutoPlayVideo = true;
-
+         
         public static bool EmbedPlayTubePostType = true;
         public static bool EmbedDeepSoundPostType = true;
-        public static VideoPostTypeSystem EmbedFacebookVideoPostType = VideoPostTypeSystem.EmbedVideo;
-        public static VideoPostTypeSystem EmbedVimeoVideoPostType = VideoPostTypeSystem.EmbedVideo;
-        public static VideoPostTypeSystem EmbedPlayTubeVideoPostType = VideoPostTypeSystem.Link;
-        public static VideoPostTypeSystem EmbedTikTokVideoPostType = VideoPostTypeSystem.Link;
-        public static bool ShowSearchForPosts = true;
+        public static VideoPostTypeSystem EmbedFacebookVideoPostType = VideoPostTypeSystem.EmbedVideo; 
+        public static VideoPostTypeSystem EmbedVimeoVideoPostType = VideoPostTypeSystem.EmbedVideo; 
+        public static VideoPostTypeSystem EmbedPlayTubeVideoPostType = VideoPostTypeSystem.Link; 
+        public static VideoPostTypeSystem EmbedTikTokVideoPostType = VideoPostTypeSystem.Link; 
+        public static bool ShowSearchForPosts = true; 
         public static bool EmbedLivePostType = true;
-
+         
         //new posts users have to scroll back to top
-        public static bool ShowNewPostOnNewsFeed = true;
-        public static bool ShowAddPostOnNewsFeed = false;
-        public static bool ShowCountSharePost = true;
+        public static bool ShowNewPostOnNewsFeed = true; 
+        public static bool ShowAddPostOnNewsFeed = false; 
+        public static bool ShowCountSharePost = true; 
 
         /// <summary>
         /// Post Privacy
         /// ShowPostPrivacyForAllUser = true : all posts user have icon Privacy 
         /// ShowPostPrivacyForAllUser = false : just my posts have icon Privacy (default)
         /// </summary>
-        public static bool ShowPostPrivacyForAllUser = false;
+        public static bool ShowPostPrivacyForAllUser = false; 
 
         public static bool ShowFullScreenVideoPost = true;
 
-        public static bool EnableVideoCompress = true;
-
+        public static bool EnableVideoCompress = false; 
+         
         //Trending page
         //*********************************************************   
         public static bool ShowTrendingPage = true;
-
+         
         public static bool ShowProUsersMembers = true;
         public static bool ShowPromotedPages = true;
         public static bool ShowTrendingHashTags = true;
@@ -292,7 +279,7 @@ namespace WoWonder
         public static string KeyCurrencyApi = "644761ef2ba94ea5aa84767109d6cf7b";//#New
         public static string ExCurrency = "USD"; //#New
         public static string ExCurrencies = "EUR,GBP,TRY";//#New 
-        public static readonly List<string> ExCurrenciesIcons = new List<string>() { "€", "£", "₺" };//#New
+        public static readonly List<string> ExCurrenciesIcons = new List<string>() {"€", "£", "₺"};//#New
 
         //********************************************************* 
 
@@ -315,10 +302,10 @@ namespace WoWonder
         public static bool ShowPolls = true;
         public static bool ShowColor = true;
 
-        public static bool ShowAnonymousPrivacyPost = true;
+        public static bool ShowAnonymousPrivacyPost = true; 
 
         //Boost 
-        public static bool ShowAdvertisingPost = true;
+        public static bool ShowAdvertisingPost = true;  
 
         //Settings Page >> General Account
         public static bool ShowSettingsGeneralAccount = true;
@@ -327,17 +314,17 @@ namespace WoWonder
         public static bool ShowSettingsPassword = true;
         public static bool ShowSettingsBlockedUsers = true;
         public static bool ShowSettingsDeleteAccount = true;
-        public static bool ShowSettingsTwoFactor = true;
-        public static bool ShowSettingsManageSessions = true;
+        public static bool ShowSettingsTwoFactor = true; 
+        public static bool ShowSettingsManageSessions = true;  
         public static bool ShowSettingsVerification = true;
-
-        public static bool ShowSettingsSocialLinksFacebook = true;
-        public static bool ShowSettingsSocialLinksTwitter = true;
-        public static bool ShowSettingsSocialLinksGoogle = true;
-        public static bool ShowSettingsSocialLinksVkontakte = true;
-        public static bool ShowSettingsSocialLinksLinkedin = true;
-        public static bool ShowSettingsSocialLinksInstagram = true;
-        public static bool ShowSettingsSocialLinksYouTube = true;
+         
+        public static bool ShowSettingsSocialLinksFacebook = true; 
+        public static bool ShowSettingsSocialLinksTwitter = true; 
+        public static bool ShowSettingsSocialLinksGoogle = true; 
+        public static bool ShowSettingsSocialLinksVkontakte = true;  
+        public static bool ShowSettingsSocialLinksLinkedin = true;  
+        public static bool ShowSettingsSocialLinksInstagram = true;  
+        public static bool ShowSettingsSocialLinksYouTube = true;  
 
         //Settings Page >> Privacy
         public static bool ShowSettingsPrivacy = true;
@@ -348,7 +335,7 @@ namespace WoWonder
 
         public static bool ShowSettingsShare = true;
         public static bool ShowSettingsMyAffiliates = true;
-
+         
         /// <summary>
         /// if you want this feature enabled go to Properties -> AndroidManefist.xml and remove comments from below code
         /// Just replace it with this 5 lines of code
@@ -356,7 +343,7 @@ namespace WoWonder
         /// <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
         /// <uses-permission android:name="android.permission.SEND_SMS" />
         /// </summary>
-        public static bool InvitationSystem = false;
+        public static bool InvitationSystem = false; 
 
         public static int LimitGoProPlansCountsTo = 4;
 
@@ -369,13 +356,13 @@ namespace WoWonder
         public static bool ShowSettingsPrivacyPolicy = true;
         public static bool ShowSettingsTermsOfUse = true;
 
-        public static bool ShowSettingsRateApp = true;
-        public static int ShowRateAppCount = 5;
+        public static bool ShowSettingsRateApp = true; 
+        public static int ShowRateAppCount = 5; 
+         
+        public static bool ShowSettingsUpdateManagerApp = false; 
 
-        public static bool ShowSettingsUpdateManagerApp = false;
-
-        public static bool ShowSettingsInvitationLinks = true;
-        public static bool ShowSettingsMyInformation = true;
+        public static bool ShowSettingsInvitationLinks = true; 
+        public static bool ShowSettingsMyInformation = true; 
 
         public static bool ShowSuggestedUsersOnRegister = true;
 
@@ -384,7 +371,7 @@ namespace WoWonder
         //Set Theme Tab
         //*********************************************************
         public static bool SetTabDarkTheme = false;
-        public static MoreTheme MoreTheme = MoreTheme.BeautyTheme;
+        public static MoreTheme MoreTheme = MoreTheme.BeautyTheme; 
         public static bool SetTabOnButton = true;
 
         //Bypass Web Errors  
@@ -399,10 +386,10 @@ namespace WoWonder
         /// if you want this feature enabled go to Properties -> AndroidManefist.xml and remove comments from below code
         /// <uses-permission android:name="com.android.vending.BILLING" />
         /// </summary>
-        public static bool ShowInAppBilling = false;
+        public static bool ShowInAppBilling = true; 
 
-        public static bool ShowPaypal = true;
-        public static bool ShowBankTransfer = true;
+        public static bool ShowPaypal = true; 
+        public static bool ShowBankTransfer = false; 
         public static bool ShowCreditCard = true;
 
         //********************************************************* 
@@ -411,7 +398,7 @@ namespace WoWonder
         /// <summary>
         /// Currencies : http://prntscr.com/u600ok
         /// </summary>
-        public static string CashFreeCurrency = "INR";
+        public static string CashFreeCurrency = "INR";  
 
         //********************************************************* 
 

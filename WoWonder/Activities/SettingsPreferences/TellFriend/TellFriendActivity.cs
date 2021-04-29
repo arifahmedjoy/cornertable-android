@@ -6,7 +6,9 @@ using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using WoWonder.Activities.Base;
+using WoWonder.Activities.SettingsPreferences.InviteFriends;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Utils;
 using Xamarin.Facebook.Ads;
@@ -119,16 +121,18 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Earnings);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Earnings);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -136,7 +140,33 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
-        #endregion 
+
+        #endregion
+
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+        {
+            try
+            {
+                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+                switch (requestCode)
+                {
+                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    {
+                        var intent = new Intent(this, typeof(InviteFriendsActivity));
+                        StartActivity(intent);
+                        break;
+                    }
+                    case 101:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
     }
 }

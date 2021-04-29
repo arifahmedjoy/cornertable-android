@@ -54,7 +54,6 @@
             android:layout_marginEnd="6dp"
             android:layout_marginStart="10dp"
             android:textStyle="bold"
-            android:text="Sibel Can Ölurum"
             android:textSize="18sp" />
         <TextView
             android:id="@+id/fundDescription"
@@ -79,7 +78,6 @@
                 android:layout_alignParentStart="true"
                 android:maxLines="1"
                 android:textColor="@color/primary"
-                android:text="$12311"
                 android:textSize="16dp"
                 android:textStyle="bold"
                 android:layout_marginTop="6dp"
@@ -91,7 +89,6 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="none"
                 android:maxLines="1"
-                android:text="$12311"
                 android:layout_alignParentEnd="true"
                 android:textSize="16dp"
                 android:textStyle="bold"
@@ -131,7 +128,6 @@
                 android:padding="2dp"
                 android:layout_marginEnd="6dp"
                 android:layout_marginStart="10dp"
-                android:text="23 days ago"
                 android:textColor="@color/text_color_in_between"
                 android:textSize="14dp" />
             <TextView

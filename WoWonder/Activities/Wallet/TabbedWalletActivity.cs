@@ -7,6 +7,7 @@ using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using Com.Razorpay;
 using IAmMert.ReadableBottomBarLib;
 using Newtonsoft.Json;
@@ -23,7 +24,7 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Wallet
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class TabbedWalletActivity : BaseActivity, ReadableBottomBar.IItemSelectListener, IPaymentResultWithDataListener
+    public class TabbedWalletActivity : BaseActivity, ReadableBottomBar.IItemSelectListener, IPaymentResultListener
     { 
         #region Variables Basic
 
@@ -174,16 +175,18 @@ namespace WoWonder.Activities.Wallet
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_WalletCredits);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetString(Resource.String.Lbl_WalletCredits);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -367,7 +370,7 @@ namespace WoWonder.Activities.Wallet
             }
         }
  
-        public void OnPaymentError(int code, string response, PaymentData p2)
+        public void OnPaymentError(int code, string response)
         {
             try
             {
@@ -380,13 +383,13 @@ namespace WoWonder.Activities.Wallet
             }
         }
 
-        public async void OnPaymentSuccess(string razorpayPaymentId, PaymentData p1)
+        public async void OnPaymentSuccess(string razorpayPaymentId)
         {
             try
             {
                 Console.WriteLine("razorpay : Payment Successful:" + razorpayPaymentId);
 
-                switch (string.IsNullOrEmpty(p1?.PaymentId))
+                switch (string.IsNullOrEmpty(razorpayPaymentId))
                 {
                     case false when Methods.CheckConnectivity():
                     {
@@ -396,7 +399,7 @@ namespace WoWonder.Activities.Wallet
                             {"merchant_amount", priceInt.ToString()},
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPay(p1.PaymentId, "wallet", keyValues).ConfigureAwait(false);
+                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(razorpayPaymentId, "wallet", keyValues).ConfigureAwait(false);
                         switch (apiStatus)
                         {
                             case 200:

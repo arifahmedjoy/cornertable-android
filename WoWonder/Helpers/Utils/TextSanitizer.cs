@@ -237,9 +237,9 @@ namespace WoWonder.Helpers.Utils
                 }
                 else if (e.P0 == AutoLinkMode.ModeCustom)
                 {
-                    var dialog = new MaterialDialog.Builder(Activity);
+                    var dialog = new MaterialDialog.Builder(Activity).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                    dialog.Title(Activity.GetText(Resource.String.Lbl_Location));
+                    dialog.Title(Activity.GetText(Resource.String.Lbl_Location)).TitleColorRes(Resource.Color.primary);
                     dialog.PositiveText(Activity.GetText(Resource.String.Lbl_RemoveLocation)).OnPositive(this);
                     dialog.NeutralText(Activity.GetText(Resource.String.Lbl_ChangeLocation)).OnNeutral(this);
                     dialog.NegativeText(Activity.GetText(Resource.String.Lbl_Cancel)).OnNegative(this);

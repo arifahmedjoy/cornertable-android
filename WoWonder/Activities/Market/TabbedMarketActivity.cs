@@ -7,14 +7,11 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
-using Android.OS;
-
-
-
+using Android.OS;  
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using AndroidX.ViewPager.Widget;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
 using Newtonsoft.Json;
@@ -35,11 +32,12 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Market
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class TabbedMarketActivity : BaseActivity
-    { 
+    public class TabbedMarketActivity : BaseActivity, TabLayoutMediator.ITabConfigurationStrategy
+    {
         #region Variables Basic
 
-        private ViewPager ViewPager;
+        private MainTabAdapter Adapter;
+        private ViewPager2 ViewPager;
         public MarketFragment MarketTab;
         public MyProductsFragment MyProductsTab;
         private TabLayout TabLayout;
@@ -220,13 +218,13 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                ViewPager = FindViewById<ViewPager>(Resource.Id.viewpager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
                 FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
 
                 ViewPager.OffscreenPageLimit = 2;
                 SetUpViewPager(ViewPager);
-                TabLayout.SetupWithViewPager(ViewPager);
+                new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
 
                 CatRecyclerView = FindViewById<RecyclerView>(Resource.Id.catRecyler);
 
@@ -250,16 +248,17 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = " ";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = " ";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+
                     
                 }
                 
@@ -528,19 +527,35 @@ namespace WoWonder.Activities.Market
          
         #region Set Tab
 
-        private void SetUpViewPager(ViewPager viewPager)
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
                 MyProductsTab = new MyProductsFragment();
                 MarketTab = new MarketFragment();
-              
-                var adapter = new MainTabAdapter(SupportFragmentManager);
-                adapter.AddFragment(MarketTab, GetText(Resource.String.Lbl_Market));
-                adapter.AddFragment(MyProductsTab, GetText(Resource.String.Lbl_MyProducts));
 
-                viewPager.CurrentItem = 2;
-                viewPager.Adapter = adapter;
+                Adapter = new MainTabAdapter(this);
+                Adapter.AddFragment(MarketTab, GetText(Resource.String.Lbl_Market));
+                Adapter.AddFragment(MyProductsTab, GetText(Resource.String.Lbl_MyProducts));
+
+                viewPager.CurrentItem = Adapter.ItemCount;
+                viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                viewPager.Adapter = Adapter;
+                viewPager.Adapter.NotifyDataSetChanged();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
             }
             catch (Exception exception)
             {
@@ -607,7 +622,7 @@ namespace WoWonder.Activities.Market
                 MarketTab.MainScrollEvent.IsLoading = true;
 
                 var countList = MarketTab.MAdapter.MarketList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Market.Get_Products("", "10", offset,"","", UserDetails.MarketDistanceCount);
+                var (apiStatus, respond) = await RequestsAsync.Market.GetProductsAsync("", "10", offset,"","", UserDetails.MarketDistanceCount);
                 switch (apiStatus)
                 {
                     case 200:
@@ -687,7 +702,7 @@ namespace WoWonder.Activities.Market
 
             MyProductsTab.MainScrollEvent.IsLoading = true;
             var countList = MyProductsTab.MAdapter.MarketList.Count;
-            var (apiStatus, respond) = await RequestsAsync.Market.Get_Products(UserDetails.UserId, "10", offset);
+            var (apiStatus, respond) = await RequestsAsync.Market.GetProductsAsync(UserDetails.UserId, "10", offset);
             switch (apiStatus)
             {
                 case 200:
@@ -871,7 +886,7 @@ namespace WoWonder.Activities.Market
             {
                 MarketTab.MainScrollEvent.IsLoading = true;
                 var countList = MarketTab.MAdapter.MarketList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Market.Get_Products("", "10", "0", categoriesId, key, UserDetails.MarketDistanceCount);
+                var (apiStatus, respond) = await RequestsAsync.Market.GetProductsAsync("", "10", "0", categoriesId, key, UserDetails.MarketDistanceCount);
                 switch (apiStatus)
                 {
                     case 200:

@@ -1,50 +1,96 @@
 ﻿using System.Collections.Generic;
 using AndroidX.Fragment.App;
-using Java.Lang;
+using AndroidX.Lifecycle;
+using AndroidX.ViewPager2.Adapter;
 using WoWonder.Helpers.Utils;
 using Exception = System.Exception;
 using FragmentManager = AndroidX.Fragment.App.FragmentManager;
-using String = Java.Lang.String;
-using SupportFragment = AndroidX.Fragment.App.Fragment;
 
 namespace WoWonder.Adapters
 {
-    public class MainTabAdapter : FragmentStatePagerAdapter
-    { 
-#pragma warning disable 618
-        public MainTabAdapter(FragmentManager fm) : base(fm)
-#pragma warning restore 618
-        {
-            try
-            {
-                Fragments = new List<SupportFragment>();
-                FragmentNames = new List<string>();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
+    public class MainTabAdapter : FragmentStateAdapter
+    {
+        #region Variables
 
-        public MainTabAdapter(FragmentManager fm, int behavior) : base(fm, behavior)
-        {
-            try
-            {
-                Fragments = new List<SupportFragment>();
-                FragmentNames = new List<string>();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-         
-        public List<SupportFragment> Fragments { get; set; }
+        public List<Fragment> Fragments { get; set; }
         public List<string> FragmentNames { get; set; }
 
-        public override int Count => Fragments.Count;
 
-        public void AddFragment(SupportFragment fragment, string name)
+        #endregion
+
+        public MainTabAdapter(Fragment fragment) : base(fragment)
+        {
+            try
+            {
+                Fragments = new List<Fragment>();
+                FragmentNames = new List<string>();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public MainTabAdapter(FragmentActivity fragmentActivity) : base(fragmentActivity)
+        {
+            try
+            {
+                Fragments = new List<Fragment>();
+                FragmentNames = new List<string>();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public MainTabAdapter(FragmentManager fragmentManager, Lifecycle lifecycle) : base(fragmentManager, lifecycle)
+        {
+            try
+            {
+                Fragments = new List<Fragment>();
+                FragmentNames = new List<string>();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public override int ItemCount => Fragments.Count;
+        public override Fragment CreateFragment(int position)
+        {
+            if (Fragments[position] != null)
+            {
+                return Fragments[position];
+            }
+            else
+            {
+                return Fragments[0];
+            }
+        }
+
+        public string GetFragment(int position)
+        {
+            try
+            {
+                if (FragmentNames[position] != null)
+                {
+                    return FragmentNames[position];
+                }
+                else
+                {
+                    return FragmentNames[0];
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+                return "";
+            }
+        }
+
+        public void AddFragment(Fragment fragment, string name)
         {
             try
             {
@@ -71,7 +117,7 @@ namespace WoWonder.Adapters
             }
         }
 
-        public void RemoveFragment(SupportFragment fragment, string name)
+        public void RemoveFragment(Fragment fragment, string name)
         {
             try
             {
@@ -85,7 +131,7 @@ namespace WoWonder.Adapters
             }
         }
 
-        public void InsertFragment(int index, SupportFragment fragment, string name)
+        public void InsertFragment(int index, Fragment fragment, string name)
         {
             try
             {
@@ -98,26 +144,5 @@ namespace WoWonder.Adapters
             }
         }
 
-        public override SupportFragment GetItem(int position)
-        {
-            try
-            {
-                if (Fragments[position] != null)
-                    return Fragments[position];
-                return Fragments[0];
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-                return null!;
-            }
-        }
-
-        public override ICharSequence GetPageTitleFormatted(int position)
-        {
-            return new String(FragmentNames[position]);
-        }
-
-       
     }
 }

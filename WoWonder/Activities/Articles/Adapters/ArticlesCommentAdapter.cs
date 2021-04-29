@@ -95,7 +95,7 @@ namespace WoWonder.Activities.Articles.Adapters
                     holder.CommentText.Visibility = ViewStates.Gone;
                 }
 
-                holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Posted), false);
+                holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Posted), true);
                 holder.UserName.Text = item.UserData.Name;
 
                 GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
@@ -201,7 +201,8 @@ namespace WoWonder.Activities.Articles.Adapters
                                 break;
                             default:
                                 holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
                                 holder.LikeTextView.Tag = "Like";
                                 break;
                         }
@@ -403,12 +404,15 @@ namespace WoWonder.Activities.Articles.Adapters
                     case PostButtonSystem.DisLike:
                     case PostButtonSystem.Wonder:
                         DislikeTextView.Visibility = ViewStates.Visible;
-                        break;
+                        break; 
                 }
 
-                ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                /*ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);*/
+                ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
 
                 MainView.SetOnLongClickListener(this);
                 Image.SetOnClickListener(this);

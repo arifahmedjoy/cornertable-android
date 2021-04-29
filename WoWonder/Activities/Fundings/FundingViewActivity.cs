@@ -14,6 +14,7 @@ using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Com.Razorpay;
 using Java.Lang;
@@ -45,7 +46,7 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Fundings
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class FundingViewActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, IPaymentResultWithDataListener
+    public class FundingViewActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, IPaymentResultListener
     {
         #region Variables Basic
 
@@ -334,17 +335,19 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = " ";
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolBar.Title = " ";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
 
-                    SetSupportActionBar(toolbar);
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -478,7 +481,7 @@ namespace WoWonder.Activities.Fundings
                     {
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialog.Title(Resource.String.Lbl_Warning);
+                        dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                         dialog.Content(GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
                         dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
                         {
@@ -554,7 +557,7 @@ namespace WoWonder.Activities.Fundings
                         break;
                 }
                 
-                dialogList.Title(GetText(Resource.String.Lbl_More));
+                dialogList.Title(GetText(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -628,7 +631,7 @@ namespace WoWonder.Activities.Fundings
                 DialogType = "Donate";
 
                 var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                dialog.Title(Resource.String.Lbl_Donate);
+                dialog.Title(Resource.String.Lbl_Donate).TitleColorRes(Resource.Color.primary);
                 dialog.Input(Resource.String.Lbl_DonateCode, 0, false, (materialDialog, s) =>
                 {
                     try
@@ -852,7 +855,7 @@ namespace WoWonder.Activities.Fundings
                     DialogType = "PayStack";
                      
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_PayStack);
+                    dialog.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
                     dialog.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
                     {
                         try
@@ -914,7 +917,7 @@ namespace WoWonder.Activities.Fundings
                     DialogType = "Delete";
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_Warning);
+                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_DeleteFunding));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
                     {
@@ -923,7 +926,7 @@ namespace WoWonder.Activities.Fundings
                             // Send Api delete  
                             if (Methods.CheckConnectivity())
                             {
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Funding.DeleteFunding(DataObject.Id) });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Funding.DeleteFundingAsync(DataObject.Id) });
 
                                 var instance = FundingActivity.GetInstance();
                                 var dataFunding = instance?.FundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
@@ -1038,7 +1041,7 @@ namespace WoWonder.Activities.Fundings
             }
         }
 
-        public void OnPaymentError(int code, string response, PaymentData p2)
+        public void OnPaymentError(int code, string response)
         {
             try
             {
@@ -1051,13 +1054,13 @@ namespace WoWonder.Activities.Fundings
             }
         }
 
-        public async void OnPaymentSuccess(string razorpayPaymentId, PaymentData p1)
+        public async void OnPaymentSuccess(string razorpayPaymentId)
         {
             try
             {
                 Console.WriteLine("razorpay : Payment Successful:" + razorpayPaymentId);
 
-                switch (string.IsNullOrEmpty(p1?.PaymentId))
+                switch (string.IsNullOrEmpty(razorpayPaymentId))
                 {
                     case false when Methods.CheckConnectivity():
                     {
@@ -1067,7 +1070,7 @@ namespace WoWonder.Activities.Fundings
                             {"fund_id", DataObject.Id}
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPay(p1.PaymentId, "fund", keyValues);
+                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(razorpayPaymentId, "fund", keyValues);
                         switch (apiStatus)
                         {
                             case 200:
@@ -1107,7 +1110,7 @@ namespace WoWonder.Activities.Fundings
                         {"fund_id", DataObject.Id},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStack("fund", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStackAsync("fund", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1150,7 +1153,7 @@ namespace WoWonder.Activities.Fundings
                         {"fund_id", DataObject.Id},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySera("fund", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySeraAsync("fund", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1187,7 +1190,7 @@ namespace WoWonder.Activities.Fundings
             try
             { 
                 var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light)
-                    .Title(GetText(Resource.String.Lbl_CashFree))
+                    .Title(GetText(Resource.String.Lbl_CashFree)).TitleColorRes(Resource.Color.primary)
                     .CustomView(Resource.Layout.CashFreePaymentLayout, true)
                     .PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(async (materialDialog, action) =>
                     {
@@ -1273,7 +1276,7 @@ namespace WoWonder.Activities.Fundings
                         {"fund_id", DataObject.Id},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFree("fund", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "" , ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFreeAsync("fund", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "" , ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1390,7 +1393,7 @@ namespace WoWonder.Activities.Fundings
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Funding.FundingPay(DataObject.Id, CodeName);
+                    var (apiStatus, respond) = await RequestsAsync.Funding.FundingPayAsync(DataObject.Id, CodeName);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1445,7 +1448,7 @@ namespace WoWonder.Activities.Fundings
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Funding.GetFundingById(DataObject.Id);
+                    var (apiStatus, respond) = await RequestsAsync.Funding.GetFundingByIdAsync(DataObject.Id);
                     switch (apiStatus)
                     {
                         case 200:

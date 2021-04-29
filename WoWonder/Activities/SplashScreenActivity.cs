@@ -18,7 +18,7 @@ namespace WoWonder.Activities
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/SplashScreenTheme", NoHistory = true, MainLauncher = true, ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "http", "https" }, DataHost = "@string/ApplicationUrlWeb", AutoVerify = false)]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "http", "https" }, DataHost = "@string/ApplicationUrlWeb", DataPathPrefixes = new[] { "", "/register/", "/post/" }, AutoVerify = false)]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "http", "https" }, DataHost = "@string/ApplicationUrlWeb", DataPathPrefixes = new[] { "/register/", "/post/" }, AutoVerify = false)]
     public class SplashScreenActivity : AppCompatActivity
     { 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -44,9 +44,9 @@ namespace WoWonder.Activities
                         LangController.SetApplicationLang(this, AppSettings.Lang);
                         break;
                     default:
-#pragma warning disable 618
+                        #pragma warning disable 618 
                         UserDetails.LangName = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale?.Language.ToLower() : Resources?.Configuration?.Locales.Get(0)?.Language.ToLower() ?? Resources?.Configuration?.Locale?.Language.ToLower();
-#pragma warning restore 618
+                        #pragma warning restore 618
                         LangController.SetApplicationLang(this, UserDetails.LangName);
                         break;
                 }
@@ -75,8 +75,8 @@ namespace WoWonder.Activities
                                 case "Pending":
                                     StartActivity(new Intent(Application.Context, typeof(TabbedMainActivity)));
                                     break;
-                                default:
-                                    StartActivity(new Intent(Application.Context, typeof(FirstActivity)));
+                                default: 
+                                    StartActivity(new Intent(Application.Context, typeof(LoginActivity))); 
                                     break;
                             }
                         }
@@ -90,14 +90,13 @@ namespace WoWonder.Activities
                             case "Pending":
                                 StartActivity(new Intent(Application.Context, typeof(TabbedMainActivity)));
                                 break;
-                            default:
-                                StartActivity(new Intent(Application.Context, typeof(FirstActivity)));
+                            default: 
+                                StartActivity(new Intent(Application.Context, typeof(LoginActivity))); 
                                 break;
-                        }
-
+                        } 
                         break;
-                    default:
-                        StartActivity(new Intent(Application.Context, typeof(FirstActivity)));
+                    default: 
+                        StartActivity(new Intent(Application.Context, typeof(LoginActivity))); 
                         break;
                 }
 

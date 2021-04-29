@@ -355,7 +355,7 @@ namespace WoWonder.Activities.Search
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Yes));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_No));
 
-                dialogList.Title(GetText(Resource.String.Lbl_Profile_Picture));
+                dialogList.Title(GetText(Resource.String.Lbl_Profile_Picture)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -381,7 +381,7 @@ namespace WoWonder.Activities.Search
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Offline));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Online));
 
-                dialogList.Title(GetText(Resource.String.Lbl_Status));
+                dialogList.Title(GetText(Resource.String.Lbl_Status)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -407,7 +407,7 @@ namespace WoWonder.Activities.Search
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Verified));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_UnVerified));
 
-                dialogList.Title(GetText(Resource.String.Lbl_Verified));
+                dialogList.Title(GetText(Resource.String.Lbl_Verified)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -433,7 +433,7 @@ namespace WoWonder.Activities.Search
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
                 arrayAdapter.Insert(0 , GetText(Resource.String.Lbl_All));
 
-                dialogList.Title(GetText(Resource.String.Lbl_Location));
+                dialogList.Title(GetText(Resource.String.Lbl_Location)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

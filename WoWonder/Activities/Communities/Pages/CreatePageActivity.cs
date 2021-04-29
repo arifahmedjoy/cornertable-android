@@ -10,6 +10,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
@@ -187,16 +188,18 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Create_New_Page);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Create_New_Page);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -270,7 +273,7 @@ namespace WoWonder.Activities.Communities.Pages
 
                         var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
                         dialogList.Items(arrayAdapter);
                         dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                         dialogList.AlwaysCallSingleChoiceCallback();
@@ -321,7 +324,7 @@ namespace WoWonder.Activities.Communities.Pages
                 //Show a progress
                 AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
-                var (apiStatus, respond) = await RequestsAsync.Page.Create_Page(TxtUrl.Text.Replace(" ", ""), TxtTitle.Text, CategoryId, TxtAbout.Text);
+                var (apiStatus, respond) = await RequestsAsync.Page.CreatePageAsync(TxtUrl.Text.Replace(" ", ""), TxtTitle.Text, CategoryId, TxtAbout.Text);
                 switch (apiStatus)
                 {
                     case 200:

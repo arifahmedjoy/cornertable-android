@@ -77,7 +77,7 @@ namespace WoWonder.Activities.Live.Utils
             try
             {
 
-                var streamName = "Live_" + Methods.Time.CurrentTimeMillis();
+                var streamName = "live" + Methods.Time.CurrentTimeMillis();
                 if (string.IsNullOrEmpty(streamName) || string.IsNullOrWhiteSpace(streamName))
                 {
                     Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short)?.Show();

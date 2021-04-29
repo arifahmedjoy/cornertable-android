@@ -14,6 +14,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
@@ -189,12 +190,14 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 {
                     toolBar.Title = GetText(Resource.String.Lbl_ManageSessions);
 
-                    toolBar.SetTitleTextColor(Color.White);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -299,7 +302,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 {
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    dialog.Title(Resource.String.Lbl_Warning);
+                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_AreYouSureLogoutFromThisDevice));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Ok)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);

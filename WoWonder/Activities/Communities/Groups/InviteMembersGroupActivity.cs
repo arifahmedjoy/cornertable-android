@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -190,17 +191,19 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_InviteMembers);
+                    toolBar.Title = GetText(Resource.String.Lbl_InviteMembers);
 
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -309,7 +312,7 @@ namespace WoWonder.Activities.Communities.Groups
                 ItemUser = MAdapter.GetItem(e.Position);
                 if (ItemUser != null)
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.GroupAdd(GroupId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.GroupAddAsync(GroupId, ItemUser.UserId) });
 
                     Toast.MakeText(this, GetString(Resource.String.Lbl_Added), ToastLength.Short)?.Show();
 
@@ -351,7 +354,7 @@ namespace WoWonder.Activities.Communities.Groups
             if (Methods.CheckConnectivity())
             {
                 var countList = MAdapter.UserList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Group.GetNotInGroupMembers(GroupId);
+                var (apiStatus, respond) = await RequestsAsync.Group.GetNotInGroupMembersAsync(GroupId);
                 if (apiStatus != 200 || respond is not GetGroupMembersObject result || result.Users == null)
                 {
                     Methods.DisplayReportResult(this, respond);

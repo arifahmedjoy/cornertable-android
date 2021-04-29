@@ -13,6 +13,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.Core.View;
 using AndroidX.RecyclerView.Widget;
@@ -182,12 +183,13 @@ namespace WoWonder.Activities.Chat.GroupChat
                 if (toolbar != null)
                 {
                     toolbar.Title = GetString(Resource.String.Lbl_CreateGroup);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
                 }
             }
@@ -367,7 +369,7 @@ namespace WoWonder.Activities.Chat.GroupChat
 
                         UsersIds = UsersIds.Remove(UsersIds.Length - 1, 1);
 
-                        var (apiStatus, respond) = await RequestsAsync.GroupChat.CreateGroupChat(TxtGroupName.Text, UsersIds, GroupPathImage);
+                        var (apiStatus, respond) = await RequestsAsync.GroupChat.CreateGroupChatAsync(TxtGroupName.Text, UsersIds, GroupPathImage);
                         if (apiStatus == 200)
                         {
                             if (respond is CreateGroupChatObject result)

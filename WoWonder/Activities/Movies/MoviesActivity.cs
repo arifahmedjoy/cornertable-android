@@ -15,6 +15,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -208,16 +209,18 @@ namespace WoWonder.Activities.Movies
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Movies);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Movies);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -375,7 +378,7 @@ namespace WoWonder.Activities.Movies
 
                         arrayAdapter.Insert(0, GetString(Resource.String.Lbl_Default));
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
                         dialogList.Content(GetText(Resource.String.Lbl_GetMoviesByCategories));
                         dialogList.Items(arrayAdapter);
                         dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
@@ -446,7 +449,7 @@ namespace WoWonder.Activities.Movies
                 MainScrollEvent.IsLoading = true;
 
                 var countList = MAdapter.MoviesList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Movies.Get_Movies("10", offset,"", CategoryId);
+                var (apiStatus, respond) = await RequestsAsync.Movies.GetMoviesAsync("10", offset,"", CategoryId);
                 switch (apiStatus)
                 {
                     case 200:

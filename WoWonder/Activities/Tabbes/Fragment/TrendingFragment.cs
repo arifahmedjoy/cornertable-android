@@ -23,7 +23,7 @@ using WoWonderClient.Requests;
 
 namespace WoWonder.Activities.Tabbes.Fragment
 {
-    public class TrendingFragment : AndroidX.Fragment.App.Fragment
+    public class TrendingFragment : AndroidX.Fragment.App.Fragment 
     {
         #region  Variables Basic
 
@@ -181,6 +181,12 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         Activity.StartActivity(intent);
                         break;
                     }
+                    case Classes.ItemType.Section when item.SectionType == Classes.ItemType.LastBlogs:
+                    {
+                        var intent = new Intent(Activity, typeof(ArticlesActivity));
+                        Activity.StartActivity(intent);
+                        break;
+                    }
                     case Classes.ItemType.CoronaVirus:
                     {
                         var intent = new Intent(Context, typeof(Covid19Activity));
@@ -215,7 +221,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 {
                     case true:
                     {
-                        var (apiStatus, respond) = await RequestsAsync.Global.Get_Activities("6", offset);
+                        var (apiStatus, respond) = await RequestsAsync.Global.GetActivitiesAsync("6", offset);
                         switch (apiStatus)
                         {
                             case 200:
@@ -436,13 +442,33 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         {
                             case null:
                             {
-                                var item = ListUtils.ListCachedDataArticle.FirstOrDefault(); 
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Id = 1200,
+                                    Title = Activity.GetText(Resource.String.Lbl_LastBlogs),
+                                    SectionType = Classes.ItemType.LastBlogs,
+                                    Type = Classes.ItemType.Section,
+                                });
+
+                                var list = ListUtils.ListCachedDataArticle.Take(3).ToList();
+
+                                foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastBlogs?.Id == item.Id && a.Type == Classes.ItemType.LastBlogs) where check == null select item)
+                                {
+                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                    {
+                                        Id = long.Parse(item.Id),
+                                        LastBlogs = item,
+                                        Type = Classes.ItemType.LastBlogs
+                                    });
+                                }
+                                /*var item = ListUtils.ListCachedDataArticle.FirstOrDefault(); 
                                 GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
                                 {
                                     Id = 1200,
                                     LastBlogs = item,
                                     Type = Classes.ItemType.LastBlogs
-                                });
+                                });*/
+
                                 GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
                                 {
                                     Type = Classes.ItemType.Divider

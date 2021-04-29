@@ -10,6 +10,7 @@ using Com.Google.Ads.Interactivemedia.V3.Api;
 using Com.Google.Android.Exoplayer2;
 using Com.Google.Android.Exoplayer2.Drm;
 using Com.Google.Android.Exoplayer2.Ext.Ima;
+using Com.Google.Android.Exoplayer2.Extractor.TS;
 using Com.Google.Android.Exoplayer2.Source;
 using Com.Google.Android.Exoplayer2.Source.Ads;
 using Com.Google.Android.Exoplayer2.Source.Dash;
@@ -182,7 +183,7 @@ namespace WoWonder.Helpers.Controller
                             {
                                 SimpleExoPlayerView.Player = Player;
                                 Player.Prepare(VideoSource);
-                                    Player.AddListener(PlayerListener);
+                                    //Player.AddListener(PlayerListener);
 
                                     Player.PlayWhenReady = true;
 
@@ -221,7 +222,7 @@ namespace WoWonder.Helpers.Controller
                                     SimpleExoPlayerView.Player = Player;
                                     Player.Prepare(VideoSource);
 
-                                            Player.AddListener(PlayerListener);
+                                            //Player.AddListener(PlayerListener);
                                             Player.PlayWhenReady = true;
 
                                     bool haveResumePosition = ResumeWindow != C.IndexUnset;
@@ -242,7 +243,7 @@ namespace WoWonder.Helpers.Controller
                             SimpleExoPlayerView.Player = Player;
                             Player.Prepare(VideoSource);
 
-                                Player.AddListener(PlayerListener);
+                                //Player.AddListener(PlayerListener);
                                 Player.PlayWhenReady = true;
 
                             bool haveResumePosition = ResumeWindow != C.IndexUnset;
@@ -423,27 +424,47 @@ namespace WoWonder.Helpers.Controller
 
         private IMediaSource GetMediaSourceFromUrl(Uri uri, string extension, string tag)
         {
+            var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(ActivityContext);
+            //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName), mBandwidthMeter);
+            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(ActivityContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(ActivityContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
+            int type = Util.InferContentType(uri, extension);
             try
             {
-                var bandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(ActivityContext);
-                //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(MainContext, AppSettings.ApplicationName), mBandwidthMeter);
-                var buildHttpDataSourceFactory = new DefaultDataSourceFactory(ActivityContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
-                var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(ActivityContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
-                int type = Util.InferContentType(uri, extension);
-                IMediaSource src = type switch
+
+                IMediaSource src;
+                switch (type)
                 {
-                    C.TypeSs => new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri),
-                    C.TypeDash => new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri),
-                    C.TypeHls => new HlsMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri),
-                    C.TypeOther => new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri),
-                    _ => new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri)
-                };
+                    case C.TypeSs:
+                        src = new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri);
+                        break;
+                    case C.TypeDash:
+                        src = new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri);
+                        break;
+                    case C.TypeHls:
+                        DefaultHlsExtractorFactory defaultHlsExtractorFactory = new DefaultHlsExtractorFactory(DefaultTsPayloadReaderFactory.FlagAllowNonIdrKeyframes, true);
+                        src = new HlsMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).SetExtractorFactory(defaultHlsExtractorFactory).CreateMediaSource(uri);
+                        break;
+                    case C.TypeOther:
+                    default:
+                        src = new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri);
+                        break;
+                }
+
                 return src;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null!;
+                try
+                {
+                    return new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri);
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                    return null!;
+                }
             }
         }
 
@@ -501,7 +522,7 @@ namespace WoWonder.Helpers.Controller
             {
                 if (FullscreenPlayerView != null)
                 {
-                    Player.AddListener(PlayerListener);
+                    //Player.AddListener(PlayerListener);
                     FullscreenPlayerView.Player = Player;
                     if (FullscreenPlayerView.Player != null) FullscreenPlayerView.Player.PlayWhenReady = true;
                     MFullScreenIcon.SetImageDrawable(ActivityContext.GetDrawable(Resource.Drawable.ic_action_ic_fullscreen_skrink));
@@ -554,7 +575,7 @@ namespace WoWonder.Helpers.Controller
                 arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_CopeLink));
                 arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_Share));
 
-                dialogList.Title(ActivityContext.GetString(Resource.String.Lbl_More));
+                dialogList.Title(ActivityContext.GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

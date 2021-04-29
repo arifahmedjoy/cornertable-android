@@ -12,6 +12,7 @@ using Android.OS;
 using Android.Text;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Com.Razorpay;
 using Java.Lang;
@@ -36,7 +37,7 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.General
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Keyboard | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenLayout | ConfigChanges.ScreenSize | ConfigChanges.SmallestScreenSize | ConfigChanges.UiMode | ConfigChanges.Locale)]
-    public class GoProActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback , IPaymentResultWithDataListener
+    public class GoProActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback , IPaymentResultListener
     {
         #region Variables Basic
 
@@ -275,16 +276,18 @@ namespace WoWonder.Activities.General
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Go_Pro);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Go_Pro);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(false);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
 
                 }
             }
@@ -580,7 +583,7 @@ namespace WoWonder.Activities.General
                     PayId = ItemUpgrade.Id.ToString();
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_PayStack);
+                    dialog.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
                     dialog.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
                     {
                         try
@@ -682,7 +685,7 @@ namespace WoWonder.Activities.General
             }
         }
 
-        public void OnPaymentError(int code, string response, PaymentData p2)
+        public void OnPaymentError(int code, string response)
         {
             try
             {
@@ -695,13 +698,13 @@ namespace WoWonder.Activities.General
             }
         }
 
-        public async void OnPaymentSuccess(string razorpayPaymentId, PaymentData p1)
+        public async void OnPaymentSuccess(string razorpayPaymentId)
         {
             try
             {
                 Console.WriteLine("razorpay : Payment Successful:" + razorpayPaymentId);
 
-                switch (string.IsNullOrEmpty(p1?.PaymentId))
+                switch (string.IsNullOrEmpty(razorpayPaymentId))
                 {
                     case false when Methods.CheckConnectivity():
                     {
@@ -718,7 +721,7 @@ namespace WoWonder.Activities.General
                             {"type", type}, //week,year,month,life-time 
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPay(p1.PaymentId, "upgrade", keyValues).ConfigureAwait(false);
+                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(razorpayPaymentId, "upgrade", keyValues).ConfigureAwait(false);
                         switch (apiStatus)
                         {
                             case 200:
@@ -783,7 +786,7 @@ namespace WoWonder.Activities.General
                         _ => ""
                     };
                      
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStack(type, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStackAsync(type, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -824,7 +827,7 @@ namespace WoWonder.Activities.General
             try
             {
                 var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light)
-                    .Title(GetText(Resource.String.Lbl_CashFree))
+                    .Title(GetText(Resource.String.Lbl_CashFree)).TitleColorRes(Resource.Color.primary)
                     .CustomView(Resource.Layout.CashFreePaymentLayout, true)
                     .PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(async (materialDialog, action) =>
                     {
@@ -917,7 +920,7 @@ namespace WoWonder.Activities.General
                         {"email", email}, 
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFree(type, AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFreeAsync(type, AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -963,7 +966,7 @@ namespace WoWonder.Activities.General
                         _ => ""
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySera(type, new Dictionary<string, string>());
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySeraAsync(type, new Dictionary<string, string>());
                     switch (apiStatus)
                     {
                         case 200:

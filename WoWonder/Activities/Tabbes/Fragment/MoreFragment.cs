@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AFollestad.MaterialDialogs;
-using Android;
 using Android.Content;
-using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.OS; 
 using Android.Views;
@@ -206,10 +204,10 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                     StartActivity(intent);
                                     break;
                                 }
-                                //// Messages
-                                //case 2: 
-                                //    Methods.App.OpenAppByPackageName(Context, AppSettings.MessengerPackageName, "OpenChatApp");
-                                //    break;
+                                // Messages
+                                case 2: 
+                                    Methods.App.OpenAppByPackageName(Context, AppSettings.MessengerPackageName, "OpenChatApp");
+                                    break;
                                 // Contacts
                                 case 3:
                                 {
@@ -401,7 +399,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                 {
                                     var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                                    dialog.Title(Resource.String.Lbl_Warning);
+                                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                                     dialog.Content(Context.GetText(Resource.String.Lbl_Are_you_logout));
                                     dialog.PositiveText(Context.GetText(Resource.String.Lbl_Ok)).OnPositive(this);
                                     dialog.NegativeText(Context.GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
@@ -423,36 +421,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
         }
          
         #endregion
-
-        #region Permissions
-
-        //Permissions
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-        {
-            try
-            {
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-                switch (requestCode)
-                {
-                    case 100 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
-                        ApiRequest.Logout(Activity);
-                        break;
-                    case 100:
-                        Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_Permission_is_denied),
-                            ToastLength.Long)?.Show();
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-
-        #endregion
-
+         
         #region MaterialDialog
          
         public void OnClick(MaterialDialog p0, DialogAction p1)
@@ -461,26 +430,8 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 if (p1 == DialogAction.Positive)
                 {
-                    switch ((int)Build.VERSION.SdkInt)
-                    {
-                        // Check if we're running on Android 5.0 or higher
-                        case < 23:
-                            Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_You_will_be_logged), ToastLength.Long)?.Show();
-                            ApiRequest.Logout(Activity);
-                            break;
-                        default:
-                        {
-                            if (Activity.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && Activity.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                            {
-                                Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_You_will_be_logged), ToastLength.Long)?.Show();
-                                ApiRequest.Logout(Activity);
-                            }
-                            else
-                                new PermissionsController(Activity).RequestPermission(100);
-
-                            break;
-                        }
-                    }
+                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_You_will_be_logged), ToastLength.Long)?.Show();
+                    ApiRequest.Logout(Activity);
                 }
                 else if (p1 == DialogAction.Negative)
                 {

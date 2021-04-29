@@ -11,6 +11,7 @@ using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
@@ -207,16 +208,18 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = "";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = "";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -313,7 +316,7 @@ namespace WoWonder.Activities.Offers
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Edit));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Delete));
 
-                dialogList.Title(GetText(Resource.String.Lbl_More));
+                dialogList.Title(GetText(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -347,7 +350,7 @@ namespace WoWonder.Activities.Offers
                     DialogType = "Delete";
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_Warning);
+                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_DeleteOffers));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
@@ -394,7 +397,7 @@ namespace WoWonder.Activities.Offers
                             }
                               
                             Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Offers.DeleteOffer(DataInfoObject.Id) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Offers.DeleteOfferAsync(DataInfoObject.Id) });
                         }
                         else
                         {

@@ -53,8 +53,12 @@ namespace WoWonder.Helpers.Utils
                     new MeowBottomNavigation.Model(1, ContextCompat.GetDrawable(MainContext, Resource.Drawable.icon_notification_vector)),
                 };
 
-                if (AppSettings.ShowTrendingPage)
-                    Models.Add(new MeowBottomNavigation.Model(2, ContextCompat.GetDrawable(MainContext, Resource.Drawable.icon_fire_vector)));
+                switch (AppSettings.ShowTrendingPage)
+                {
+                    case true:
+                        Models.Add(new MeowBottomNavigation.Model(2, ContextCompat.GetDrawable(MainContext, Resource.Drawable.icon_fire_vector)));
+                        break;
+                }
 
                 Models.Add(new MeowBottomNavigation.Model(3, ContextCompat.GetDrawable(MainContext, Resource.Drawable.ic_message_user)));
                 Models.Add(new MeowBottomNavigation.Model(4, ContextCompat.GetDrawable(MainContext, Resource.Drawable.ic_menu)));
@@ -169,7 +173,7 @@ namespace WoWonder.Helpers.Utils
                 }
 
                 if (Context.ViewPager.CurrentItem != PageNumber)
-                    Context.ViewPager.SetCurrentItem(PageNumber, true);
+                    Context.ViewPager.SetCurrentItem(PageNumber, false);
             }
             catch (Exception e)
             {
@@ -223,7 +227,7 @@ namespace WoWonder.Helpers.Utils
             }
         }
 
-        public void ShowBadge(int id, string count, bool showBadge)
+        public void ShowBadge(int id , string count, bool showBadge)
         {
             try
             {
@@ -286,6 +290,6 @@ namespace WoWonder.Helpers.Utils
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        }
+        } 
     }
 }

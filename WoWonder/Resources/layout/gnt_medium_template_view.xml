@@ -60,7 +60,7 @@
                             android:layout_marginTop="@dimen/gnt_ad_indicator_top_margin"
                             android:layout_marginStart="@dimen/gnt_default_margin"
                             android:layout_marginEnd="@dimen/gnt_default_margin"
-                            android:text="Ad"
+                            android:text="@string/ad_attribution"
                             android:textColor="@color/gnt_ad_green"
                             android:textStyle="bold"
                             android:textSize="@dimen/gnt_ad_indicator_text_size" />

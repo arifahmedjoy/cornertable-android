@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
@@ -187,16 +188,18 @@ namespace WoWonder.Activities.Pokes
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Pokes);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Pokes);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -322,7 +325,7 @@ namespace WoWonder.Activities.Pokes
             if (Methods.CheckConnectivity())
             {
                 var countList = MAdapter.PokeList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Global.FetchPoke();
+                var (apiStatus, respond) = await RequestsAsync.Global.FetchPokeAsync();
                 switch (apiStatus)
                 {
                     case 200:
@@ -451,7 +454,7 @@ namespace WoWonder.Activities.Pokes
                 }
 
                 if (e.UserClass?.UserData?.UserDataClass != null)
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.CreatePoke(e.UserClass.UserData.Value.UserDataClass.UserId) });  
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.CreatePokeAsync(e.UserClass.UserData.Value.UserDataClass.UserId) });  
             }
             catch (Exception exception)
             {

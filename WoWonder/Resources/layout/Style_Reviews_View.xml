@@ -33,7 +33,6 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:text="Homer J. Allen "
                 android:textSize="15sp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold" />
@@ -50,7 +49,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:text="5.0"
                 android:textSize="18sp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 />
@@ -64,7 +62,6 @@
         android:layout_marginTop="5dp"
         android:lineSpacingExtra="4dp"
         android:textSize="16sp"
-        android:text="medium lorem ipsum"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"  />
     <View
       android:id="@+id/card_dist"

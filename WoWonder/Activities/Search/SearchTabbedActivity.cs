@@ -13,7 +13,7 @@ using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using AndroidX.ViewPager.Widget;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.AppBar;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
@@ -33,13 +33,14 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Search
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class SearchTabbedActivity : BaseActivity, TextView.IOnEditorActionListener
+    public class SearchTabbedActivity : BaseActivity, TextView.IOnEditorActionListener, TabLayoutMediator.ITabConfigurationStrategy
     {
         #region Variables Basic
 
+        private MainTabAdapter Adapter;
         private AppBarLayout AppBarLayout;
         private TabLayout TabLayout;
-        public ViewPager ViewPager;
+        public ViewPager2 ViewPager;
         private AutoCompleteTextView SearchView;
         private RecyclerView HashRecyclerView;
         public string DataKey, SearchText = "";
@@ -211,7 +212,7 @@ namespace WoWonder.Activities.Search
             try
             {
                 TabLayout = FindViewById<TabLayout>(Resource.Id.Searchtabs);
-                ViewPager = FindViewById<ViewPager>(Resource.Id.Searchviewpager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.Searchviewpager);
                  
                 AppBarLayout = FindViewById<AppBarLayout>(Resource.Id.mainAppBarLayout);
                 AppBarLayout.SetExpanded(true);
@@ -240,10 +241,10 @@ namespace WoWonder.Activities.Search
                 }
 
                 FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                   
+
                 ViewPager.OffscreenPageLimit = 3;
                 SetUpViewPager(ViewPager);
-                TabLayout.SetupWithViewPager(ViewPager); 
+                new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
             }
             catch (Exception e)
             {
@@ -259,12 +260,13 @@ namespace WoWonder.Activities.Search
                 if (Toolbar != null)
                 {
                     Toolbar.Title = " ";
-                    Toolbar.SetTitleTextColor(Color.White);
+                    Toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(Toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+ 
                 }
 
                 SearchView = FindViewById<AutoCompleteTextView>(Resource.Id.searchBox);
@@ -326,11 +328,12 @@ namespace WoWonder.Activities.Search
                 Methods.DisplayReportResultTrack(e);
             }
         }
+
         #endregion
 
         #region Set Tab 
 
-        private void SetUpViewPager(ViewPager viewPager)
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
@@ -338,28 +341,45 @@ namespace WoWonder.Activities.Search
                 PagesTab = new SearchPagesFragment();
                 GroupsTab = new SearchGroupsFragment();
 
-                var adapter = new MainTabAdapter(SupportFragmentManager);
-                adapter.AddFragment(UserTab, GetText(Resource.String.Lbl_Users));
+                Adapter = new MainTabAdapter(this);
+                Adapter.AddFragment(UserTab, GetText(Resource.String.Lbl_Users));
                 switch (AppSettings.ShowCommunitiesPages)
                 {
                     case true:
-                        adapter.AddFragment(PagesTab, GetText(Resource.String.Lbl_Pages));
+                        Adapter.AddFragment(PagesTab, GetText(Resource.String.Lbl_Pages));
                         break;
                 }
                 switch (AppSettings.ShowCommunitiesGroups)
                 {
                     case true:
-                        adapter.AddFragment(GroupsTab, GetText(Resource.String.Lbl_Groups));
+                        Adapter.AddFragment(GroupsTab, GetText(Resource.String.Lbl_Groups));
                         break;
                 }
 
-                viewPager.OffscreenPageLimit = adapter.Count;
-                viewPager.Adapter = adapter;
+                viewPager.CurrentItem = Adapter.ItemCount;
+                viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                // viewPager.RegisterOnPageChangeCallback(new MyOnPageChangeCallback(this));
+                viewPager.Adapter = Adapter;
+                viewPager.Adapter.NotifyDataSetChanged();
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
+        }
+
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            } 
         }
 
         #endregion
@@ -700,7 +720,7 @@ namespace WoWonder.Activities.Search
                 {"image", UserDetails.SearchProfilePicture}, 
             };
 
-            var (apiStatus, respond) = await RequestsAsync.Global.Get_Search(dictionary);
+            var (apiStatus, respond) = await RequestsAsync.Global.SearchAsync(dictionary);
             switch (apiStatus)
             {
                 case 200:

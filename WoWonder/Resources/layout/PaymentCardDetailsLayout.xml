@@ -11,10 +11,11 @@
     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
     <androidx.appcompat.widget.Toolbar
       android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
       android:layout_width="match_parent"
       android:layout_height="50dp"
       app:titleTextAppearance="@style/Toolbar.TitleText"
-      android:background="@drawable/linear_gradient_drawable">
+      android:background="?attr/colorFill">
     </androidx.appcompat.widget.Toolbar>
   </com.google.android.material.appbar.AppBarLayout>
     <androidx.core.widget.NestedScrollView

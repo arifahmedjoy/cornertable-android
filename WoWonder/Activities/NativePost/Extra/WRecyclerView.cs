@@ -23,6 +23,7 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Com.Google.Android.Exoplayer2.Database;
 using Com.Google.Android.Exoplayer2.Drm;
+using Com.Google.Android.Exoplayer2.Extractor.TS;
 using Com.Google.Android.Exoplayer2.Offline;
 using Google.Android.Material.FloatingActionButton;
 using Java.Util;
@@ -377,7 +378,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 //VideoPlayer.AddListener(null);
                  
                 if (Methods.CheckConnectivity())
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Get_Post_Data(item.PostData.PostId, "post_data", "1") });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.GetPostDataAsync(item.PostData.PostId, "post_data", "1") });
             }
             catch (Exception e)
             {
@@ -460,7 +461,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 //VideoPlayer.AddListener(null);
 
                 if (Methods.CheckConnectivity())
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Get_Post_Data(item.PostId, "post_data", "1") });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.GetPostDataAsync(item.PostId, "post_data", "1") });
             }
             catch (Exception e)
             {
@@ -910,7 +911,6 @@ namespace WoWonder.Activities.NativePost.Extra
             private readonly ImageView VolumeControl;
             public readonly FrameLayout MFullScreenButton;
             private readonly WRecyclerView XRecyclerView;
-            private readonly TextView TvCurrentPosition, TvNegativePosition;
             private readonly SimpleExoPlayer Player;
             public ExoPlayerRecyclerEvent(PlayerControlView controlView, WRecyclerView recyclerView, AdapterHolders.PostVideoSectionViewHolder holder)
             {
@@ -931,9 +931,6 @@ namespace WoWonder.Activities.NativePost.Extra
                     VideoPlayButton = controlView.FindViewById<ImageButton>(Resource.Id.exo_play);
                     VideoResumeButton = controlView.FindViewById<ImageButton>(Resource.Id.exo_pause);
                     VolumeControl = controlView.FindViewById<ImageView>(Resource.Id.exo_volume_icon);
-
-                    TvCurrentPosition = controlView.FindViewById<TextView>(Resource.Id.current_position);
-                    TvNegativePosition = controlView.FindViewById<TextView>(Resource.Id.negative_position);
 
                     switch (AppSettings.ShowFullScreenVideoPost)
                     {
@@ -1236,27 +1233,47 @@ namespace WoWonder.Activities.NativePost.Extra
 
         private IMediaSource GetMediaSourceFromUrl(Uri uri, string extension, string tag)
         {
+            var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(MainContext);
+            //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(MainContext, AppSettings.ApplicationName), mBandwidthMeter);
+            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(MainContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(MainContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
+            int type = Util.InferContentType(uri, extension);
             try
             {
-                BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(MainContext);
-                //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(MainContext, Util.GetUserAgent(MainContext, AppSettings.ApplicationName), mBandwidthMeter);
-                var buildHttpDataSourceFactory = new DefaultDataSourceFactory(MainContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
-                var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(MainContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
-                int type = Util.InferContentType(uri, extension);
-                IMediaSource src = type switch
+
+                IMediaSource src;
+                switch (type)
                 {
-                    C.TypeSs => new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri),
-                    C.TypeDash => new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri),
-                    C.TypeHls => new HlsMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri),
-                    C.TypeOther => new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri),
-                    _ => new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri)
-                };
+                    case C.TypeSs:
+                        src = new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri);
+                        break;
+                    case C.TypeDash:
+                        src = new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(buildHttpDataSourceFactory), buildHttpDataSourceFactoryNull).SetTag(tag).SetDrmSessionManager(IDrmSessionManager.DummyDrmSessionManager).CreateMediaSource(uri);
+                        break;
+                    case C.TypeHls:
+                        DefaultHlsExtractorFactory defaultHlsExtractorFactory = new DefaultHlsExtractorFactory(DefaultTsPayloadReaderFactory.FlagAllowNonIdrKeyframes, true);
+                        src = new HlsMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).SetExtractorFactory(defaultHlsExtractorFactory).CreateMediaSource(uri);
+                        break;
+                    case C.TypeOther:
+                    default:
+                        src = new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri);
+                        break;
+                }
+
                 return src;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null!;
+                try
+                {
+                    return new ProgressiveMediaSource.Factory(buildHttpDataSourceFactory).SetTag(tag).CreateMediaSource(uri);
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                    return null!;
+                }
             }
         }
 
@@ -1275,31 +1292,34 @@ namespace WoWonder.Activities.NativePost.Extra
                 //var bandwidthMeter = new DefaultBandwidthMeter.Builder(MainContext).Build();
                 //var defaultDataSourceFactory = new DefaultDataSourceFactory(MainContext, bandwidthMeter, new DefaultHttpDataSourceFactory(userAgent, bandwidthMeter));
 
-                new Thread(() =>
+                if (videoUrl.Path != null && videoUrl.Path.Contains(".mp4"))
                 {
-                    try
+                    new Thread(() =>
                     {
-                        //DownloaderConstructorHelper constructorHelper = new DownloaderConstructorHelper(Cache, defaultDataSourceFactory);
-                        //IDownloaderFactory factory = new DefaultDownloaderFactory(constructorHelper);
-
-                        int type = Util.InferContentType(videoUrl, VideoUrl?.Path?.Split('.').Last());
-                        string typeVideo = type switch
+                        try
                         {
-                            C.TypeSs => DownloadRequest.TypeSs,
-                            C.TypeDash => DownloadRequest.TypeDash,
-                            C.TypeHls => DownloadRequest.TypeHls,
-                            C.TypeOther => DownloadRequest.TypeProgressive,
-                            _ => DownloadRequest.TypeProgressive
-                        };
+                            //DownloaderConstructorHelper constructorHelper = new DownloaderConstructorHelper(Cache, defaultDataSourceFactory);
+                            //IDownloaderFactory factory = new DefaultDownloaderFactory(constructorHelper);
 
-                        DownloadManager downloadManager = new DownloadManager(MainContext, new DefaultDatabaseProvider(new ExoDatabaseProvider(MainContext)), Cache, CacheDataSourceFactory);
-                        downloadManager.AddDownload(new DownloadRequest("id", typeVideo, videoUrl, /* streamKeys= */new List<StreamKey>(), null, /* data= */ null));
-                    }
-                    catch (Exception e)
-                    {
-                        Methods.DisplayReportResultTrack(e);
-                    }
-                }).Start();
+                            int type = Util.InferContentType(videoUrl, videoUrl.Path.Split('.').Last());
+                            string typeVideo = type switch
+                            {
+                                C.TypeSs => DownloadRequest.TypeSs,
+                                C.TypeDash => DownloadRequest.TypeDash,
+                                C.TypeHls => DownloadRequest.TypeHls,
+                                C.TypeOther => DownloadRequest.TypeProgressive,
+                                _ => DownloadRequest.TypeProgressive
+                            };
+
+                            DownloadManager downloadManager = new DownloadManager(MainContext, new DefaultDatabaseProvider(new ExoDatabaseProvider(MainContext)), Cache, CacheDataSourceFactory);
+                            downloadManager.AddDownload(new DownloadRequest("id", typeVideo, videoUrl, /* streamKeys= */new List<StreamKey>(), null!, /* data= */ null!));
+                        }
+                        catch (Exception e)
+                        {
+                            Methods.DisplayReportResultTrack(e);
+                        }
+                    }).Start();
+                } 
             }
             catch (Exception e)
             {

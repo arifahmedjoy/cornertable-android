@@ -577,7 +577,7 @@ namespace WoWonder.Activities.Chat.Call
                     var time2 = unixTimestamp.ToString();
 
                     //Here on This function will send Selected audio file to the user 
-                    var (apiStatus, respond) = await RequestsAsync.Message.Send_Message(UserId, time2, text);
+                    var (apiStatus, respond) = await RequestsAsync.Message.SendMessageAsync(UserId, time2, text);
                     if (apiStatus == 200)
                     {
                         if (respond is SendMessageObject result)

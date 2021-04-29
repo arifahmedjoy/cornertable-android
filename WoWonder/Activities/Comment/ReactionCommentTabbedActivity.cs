@@ -10,7 +10,8 @@ using Android.Graphics;
 using Android.OS; 
 using Android.Views;
 using Android.Widget;
-using AndroidX.ViewPager.Widget;
+using AndroidX.AppCompat.Content.Res;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.Tabs;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
@@ -28,12 +29,12 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Comment
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class ReactionCommentTabbedActivity : BaseActivity
+    public class ReactionCommentTabbedActivity : BaseActivity, TabLayoutMediator.ITabConfigurationStrategy
     {
         #region Variables Basic
 
         private MainTabAdapter Adapter;
-        private ViewPager ViewPager;
+        private ViewPager2 ViewPager;
         private TabLayout TabLayout;
 
         private AngryReactionFragment AngryTab;
@@ -165,16 +166,12 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                ViewPager = FindViewById<ViewPager>(Resource.Id.viewpager);
+                ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
-
-                ViewPager.PageScrolled += ViewPager_PageScrolled;
-                ViewPager.PageSelected += ViewPagerOnPageSelected;
-
-
-                ViewPager.OffscreenPageLimit = 6;
+                 
                 SetUpViewPager(ViewPager);
-                TabLayout.SetupWithViewPager(ViewPager);
+                new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
+                TabLayout.SetTabTextColors(AppSettings.SetTabDarkTheme ? Color.White : Color.Black, Color.ParseColor(AppSettings.MainColor));
             }
             catch (Exception e)
             {
@@ -186,16 +183,18 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_CommentReaction);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetString(Resource.String.Lbl_CommentReaction);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
 
                 }
             }
@@ -232,52 +231,8 @@ namespace WoWonder.Activities.Comment
         #endregion
 
         #region Set Tab
-
-        private void ViewPagerOnPageSelected(object sender, ViewPager.PageSelectedEventArgs e)
-        {
-            try
-            {
-                var position = e.Position;
-                TypeReaction = position switch
-                {
-                    0 => "Like",
-                    1 => "Love",
-                    2 => "Haha",
-                    3 => "Wow",
-                    4 => "Sad",
-                    5 => "Angry",
-                    _ => "Like"
-                };
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void ViewPager_PageScrolled(object sender, ViewPager.PageScrolledEventArgs e)
-        {
-            try
-            {
-                var position = e.Position;
-                TypeReaction = position switch
-                {
-                    0 => "Like",
-                    1 => "Love",
-                    2 => "Haha",
-                    3 => "Wow",
-                    4 => "Sad",
-                    5 => "Angry",
-                    _ => "Like"
-                };
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void SetUpViewPager(ViewPager viewPager)
+         
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
@@ -286,7 +241,7 @@ namespace WoWonder.Activities.Comment
                 {
                     Id = CommentObject.Id;
 
-                    Adapter = new MainTabAdapter(SupportFragmentManager);
+                    Adapter = new MainTabAdapter(this);
 
                     switch (CommentObject.Reaction.Count)
                     {
@@ -364,8 +319,14 @@ namespace WoWonder.Activities.Comment
                     //    }
                     //}
 
-                    viewPager.CurrentItem = Adapter.Count;
+                    viewPager.CurrentItem = Adapter.ItemCount;
+                    viewPager.OffscreenPageLimit = Adapter.ItemCount;
+
+                    viewPager.Orientation = ViewPager2.OrientationHorizontal;
+                    viewPager.RegisterOnPageChangeCallback(new MyOnPageChangeCallback(this));
                     viewPager.Adapter = Adapter;
+                    viewPager.Adapter.NotifyDataSetChanged();
+
                 }
             }
             catch (Exception exception)
@@ -374,10 +335,83 @@ namespace WoWonder.Activities.Comment
             }
         }
 
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+                tab.SetText(Adapter.GetFragment(position));
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private class MyOnPageChangeCallback : ViewPager2.OnPageChangeCallback
+        {
+            private readonly ReactionCommentTabbedActivity Activity;
+
+            public MyOnPageChangeCallback(ReactionCommentTabbedActivity activity)
+            {
+                try
+                {
+                    Activity = activity;
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            public override void OnPageScrolled(int position, float positionOffset, int positionOffsetPixels)
+            {
+                try
+                {
+                    base.OnPageScrolled(position, positionOffset, positionOffsetPixels);
+                    Activity.TypeReaction = position switch
+                    {
+                        0 => "Like",
+                        1 => "Love",
+                        2 => "Haha",
+                        3 => "Wow",
+                        4 => "Sad",
+                        5 => "Angry",
+                        _ => "Like"
+                    };
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            public override void OnPageSelected(int position)
+            {
+                try
+                {
+                    base.OnPageSelected(position);
+                    Activity.TypeReaction = position switch
+                    {
+                        0 => "Like",
+                        1 => "Love",
+                        2 => "Haha",
+                        3 => "Wow",
+                        4 => "Sad",
+                        5 => "Angry",
+                        _ => "Like"
+                    };
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+        }
+
         #endregion Set Tab
 
         #region Load data comment 
-         
+
         public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
@@ -760,9 +794,9 @@ namespace WoWonder.Activities.Comment
                 if (AngryTab != null)
                     AngryTab.MainScrollEvent.IsLoading = false;
 
-                if (Adapter.Count != ViewPager.Adapter.Count)
+                if (Adapter.ItemCount != ViewPager.Adapter.ItemCount)
                 {
-                    ViewPager.CurrentItem = Adapter.Count;
+                    ViewPager.CurrentItem = Adapter.ItemCount;
                     ViewPager.Adapter = Adapter;
                     ViewPager.Adapter.NotifyDataSetChanged();
                 }

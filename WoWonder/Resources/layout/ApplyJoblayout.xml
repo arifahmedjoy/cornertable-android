@@ -10,10 +10,11 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
-            android:background="@drawable/linear_gradient_drawable">
+            android:background="?attr/colorFill">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -362,7 +363,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/iCurrentlyWorkCheckBox"
-                    android:text="I currently work here"
+                    android:text="@string/Lbl_ICurrentlyWork"
                     android:textSize="15sp"
                     android:gravity="center"
                     android:layout_gravity="center"

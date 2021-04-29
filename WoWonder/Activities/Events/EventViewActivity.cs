@@ -13,6 +13,7 @@ using Android.Locations;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
@@ -261,15 +262,17 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -367,7 +370,7 @@ namespace WoWonder.Activities.Events
                         break;
                 }
 
-                dialogList.Title(GetString(Resource.String.Lbl_More));
+                dialogList.Title(GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -411,7 +414,7 @@ namespace WoWonder.Activities.Events
                     dataEvent.IsInterested = Convert.ToBoolean(BtnInterested?.Tag?.ToString());
                 }
 
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Event.Interest_Event(EventData.Id) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Event.InterestEventAsync(EventData.Id) });
             }
             catch (Exception exception)
             {
@@ -453,7 +456,7 @@ namespace WoWonder.Activities.Events
                     EventMainActivity.GetInstance()?.EventTab.MAdapter.NotifyItemChanged(list.IndexOf(dataEvent));
                 }
 
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Event.Go_To_Event(EventData.Id) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Event.GoToEventAsync(EventData.Id) });
             }
             catch (Exception exception)
             {

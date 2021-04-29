@@ -708,7 +708,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                     else
                     {
                         LocalVideoTrackId = trackId;
-                        LocalVideoTrack.AddRenderer(ThumbnailVideo);
+                        LocalVideoTrack.AddSink(ThumbnailVideo);
                         ThumbnailVideo.Visibility = LocalVideoTrack == null ? ViewStates.Invisible : ViewStates.Visible;
                     }
                 }
@@ -732,7 +732,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                 if (UserVideoTrack == null)
                 {
                     UserVideoTrack = track;
-                    UserVideoTrack?.AddRenderer(UserPrimaryVideo);
+                    UserVideoTrack?.AddSink(UserPrimaryVideo);
                     ThumbnailVideo.Visibility = LocalVideoTrack == null ? ViewStates.Invisible : ViewStates.Visible;
                 }
             }

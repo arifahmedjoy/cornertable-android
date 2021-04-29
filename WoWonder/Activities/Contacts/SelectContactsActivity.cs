@@ -9,12 +9,11 @@ using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-using Android.Runtime;
-
-
+using Android.Runtime; 
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -169,14 +168,31 @@ namespace WoWonder.Activities.Contacts
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
 
-            var item = menu.FindItem(Resource.Id.searchUserBar);
-            SearchView searchItem = (SearchView)item.ActionView;
+            try
+            {
+                var item = menu.FindItem(Resource.Id.searchUserBar);
+                SearchView searchItem = (SearchView)item.ActionView;
 
-            SearchView = searchItem.JavaCast<SearchView>();
-            SearchView.SetIconifiedByDefault(true);
-            SearchView.QueryTextChange += SearchView_OnTextChange;
-            SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
+                SearchView = searchItem.JavaCast<SearchView>();
+                SearchView.SetIconifiedByDefault(true);
+                SearchView.QueryTextChange += SearchView_OnTextChange;
+                SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
+
+                //Change text colors
+                var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
+                editText.SetHintTextColor(Color.Black);
+                editText.SetTextColor(Color.ParseColor("#888888")); 
+
+                //Change Color Icon Search
+                ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
+                searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -261,12 +277,14 @@ namespace WoWonder.Activities.Contacts
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_SelectUser);
 
-                    ToolBar.SetTitleTextColor(Color.White);
+                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
 
                 }
             }
@@ -694,7 +712,7 @@ namespace WoWonder.Activities.Contacts
                     {"search_key", SearchText},
                 };
 
-                var (apiStatus, respond) = await RequestsAsync.Global.Get_Search(dictionary);
+                var (apiStatus, respond) = await RequestsAsync.Global.SearchAsync(dictionary);
                 switch (apiStatus)
                 {
                     case 200:

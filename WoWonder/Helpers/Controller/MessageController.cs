@@ -80,7 +80,7 @@ namespace WoWonder.Helpers.Controller
 
         private static async Task SendMessage(string userId, string messageHashId, string text = "", string contact = "", string filePath = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string productId = "", string lat = "", string lng = "")
         {
-            var (apiStatus, respond) = await RequestsAsync.Message.Send_Message(userId, messageHashId, text, contact, filePath, imageUrl, stickerId, gifUrl, productId, lat, lng);
+            var (apiStatus, respond) = await RequestsAsync.Message.SendMessageAsync(userId, messageHashId, text, contact, filePath, imageUrl, stickerId, gifUrl, productId, lat, lng);
             if (apiStatus == 200)
             {
                 if (respond is SendMessageObject result)

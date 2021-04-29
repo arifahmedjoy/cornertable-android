@@ -11,6 +11,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Groups;
@@ -166,16 +167,18 @@ namespace WoWonder.Activities.Suggested.Groups
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_Discover);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetString(Resource.String.Lbl_Discover);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -347,7 +350,7 @@ namespace WoWonder.Activities.Suggested.Groups
                     return;
                 }
 
-                var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(item.GroupId);
+                var (apiStatus, respond) = await RequestsAsync.Group.JoinGroupAsync(item.GroupId);
                 switch (apiStatus)
                 {
                     case 200:
@@ -450,7 +453,7 @@ namespace WoWonder.Activities.Suggested.Groups
                 if (SuggestedGroupScrollEvent != null) SuggestedGroupScrollEvent.IsLoading = true;
                 var countList = MAdapter.GroupList.Count;
 
-                var (respondCode, respondString) = await RequestsAsync.Group.GetRecommendedGroups("10", offset);
+                var (respondCode, respondString) = await RequestsAsync.Group.GetRecommendedGroupsAsync("10", offset);
                 switch (respondCode)
                 {
                     case 200:
@@ -550,7 +553,7 @@ namespace WoWonder.Activities.Suggested.Groups
                     {"search_key", "a"},
                 };
 
-                var (respondCode, respondString) = await RequestsAsync.Global.Get_Search(dictionary);
+                var (respondCode, respondString) = await RequestsAsync.Global.SearchAsync(dictionary);
                 switch (respondCode)
                 {
                     case 200:

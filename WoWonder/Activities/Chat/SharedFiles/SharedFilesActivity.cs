@@ -8,6 +8,7 @@ using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
@@ -145,12 +146,13 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 if (toolbar != null)
                 {
                     toolbar.Title = GetText(Resource.String.Lbl_Media);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)

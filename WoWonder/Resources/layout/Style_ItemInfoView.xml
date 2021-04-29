@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="My Information"
+            android:text="@string/Lbl_MyInformation"
             android:textSize="16sp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
             android:textColor="@color/textIcon" />

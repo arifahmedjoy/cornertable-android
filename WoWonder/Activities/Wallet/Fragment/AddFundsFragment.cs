@@ -295,7 +295,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 else if (text == GetString(Resource.String.Lbl_PayStack))
                 { 
                     var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                    dialog.Title(Resource.String.Lbl_PayStack);
+                    dialog.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
                     dialog.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
                     {
                         try
@@ -426,7 +426,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                             {"merchant_amount", Price}, 
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPay(p1.PaymentId, "wallet", keyValues).ConfigureAwait(false);
+                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(p1.PaymentId, "wallet", keyValues).ConfigureAwait(false);
                         switch (apiStatus)
                         {
                             case 200:
@@ -475,7 +475,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                         {"amount", priceInt.ToString()}, 
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStack("wallet", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStackAsync("wallet", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -513,7 +513,7 @@ namespace WoWonder.Activities.Wallet.Fragment
             try
             {
                 var dialog = new MaterialDialog.Builder(Activity).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light)
-                    .Title(GetText(Resource.String.Lbl_CashFree))
+                    .Title(GetText(Resource.String.Lbl_CashFree)).TitleColorRes(Resource.Color.primary)
                     .CustomView(Resource.Layout.CashFreePaymentLayout, true)
                     .PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(async (materialDialog, action) =>
                     {
@@ -598,7 +598,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                         {"amount", Price},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFree("wallet", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFreeAsync("wallet", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -640,7 +640,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                         {"amount", Price},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySera("wallet", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySeraAsync("wallet", keyValues);
                     switch (apiStatus)
                     {
                         case 200:

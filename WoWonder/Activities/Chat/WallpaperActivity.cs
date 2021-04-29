@@ -10,6 +10,7 @@ using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using JaredRummler.Android.ColorPicker;
@@ -203,12 +204,13 @@ namespace WoWonder.Activities.Chat
                 if (toolbar != null)
                 {
                     toolbar.Title = GetText(Resource.String.Lbl_Wallpaper);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)

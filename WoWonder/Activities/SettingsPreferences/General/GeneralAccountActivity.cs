@@ -2,9 +2,11 @@
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Utils;
@@ -31,12 +33,14 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 if (toolBar != null)
                 {
                     toolBar.Title = GetText(Resource.String.Lbl_GeneralAccount);
-
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
 
                 }
                 SupportFragmentManager.BeginTransaction().Replace(Resource.Id.content_frame, new GeneralAccountPrefsFragment(this))?.Commit();

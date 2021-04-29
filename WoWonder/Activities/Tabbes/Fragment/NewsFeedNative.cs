@@ -1,5 +1,4 @@
 ﻿using Android.App;
-using Android.Content;
 using Android.Graphics;
 using Android.OS;
 
@@ -25,7 +24,6 @@ using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient;
 using WoWonderClient.Classes.Posts;
-using WoWonderClient.Classes.Product;
 using WoWonderClient.Classes.Story;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
@@ -184,7 +182,10 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
                 PostFeedAdapter.ListDiffer.Clear();  
                 PostFeedAdapter.NotifyDataSetChanged();
-                 
+
+                PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList?.Clear();
+                PostFeedAdapter?.HolderStory?.StoryAdapter?.NotifyDataSetChanged();
+
                 MainRecyclerView?.StopVideo();
 
                 var combiner = new FeedCombiner(null, PostFeedAdapter.ListDiffer, Activity);
@@ -416,9 +417,9 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 var checkSection = PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
                 if (checkSection != null)
                 {
-                    checkSection.StoryList ??= new ObservableCollection<GetUserStoriesObject.StoryObject>();
+                    checkSection.StoryList ??= new ObservableCollection<StoryDataObject>();
 
-                    var (apiStatus, respond) = await RequestsAsync.Story.Get_UserStories();
+                    var (apiStatus, respond) = await RequestsAsync.Story.GetUserStoriesAsync();
                     switch (apiStatus)
                     {
                         case 200:
@@ -520,162 +521,6 @@ namespace WoWonder.Activities.Tabbes.Fragment
             else
             {
                 Toast.MakeText(Context, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-            }
-        }
-
-        #endregion
-
-        #region Permissions && Result
-
-        //Result
-
-        public override void OnActivityResult(int requestCode, int resultCode, Intent data)
-        {
-            try
-            {
-                base.OnActivityResult(requestCode, resultCode, data);
-
-                switch (requestCode)
-                {
-                    //add post
-                    case 2500 when resultCode == (int)Result.Ok:
-                    {
-                        if (!string.IsNullOrEmpty(data.GetStringExtra("itemObject")))
-                        {
-                            var postData = JsonConvert.DeserializeObject<PostDataObject>(data.GetStringExtra("itemObject") ?? "");
-                            if (postData != null)
-                            {
-                                var countList = PostFeedAdapter.ItemCount;
-
-                                var combine = new FeedCombiner(postData, PostFeedAdapter.ListDiffer, Context);
-                                combine.CombineDefaultPostSections("Top");
-
-                                int countIndex = 1;
-                                var model1 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                var model2 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                var model3 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                var model4 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                                if (model4 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                else if (model3 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                else if (model2 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                else if (model1 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                else
-                                    countIndex = 0;
-
-                                PostFeedAdapter.NotifyItemRangeInserted(countIndex, PostFeedAdapter.ListDiffer.Count - countList);
-                            }
-                        }
-                        else
-                        {
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts() });
-                        }
-
-                        break;
-                    }
-                    //Edit post
-                    case 3950 when resultCode == (int)Result.Ok:
-                    {
-                        var postId = data.GetStringExtra("PostId") ?? "";
-                        var postText = data.GetStringExtra("PostText") ?? "";
-                        var diff = PostFeedAdapter.ListDiffer;
-                        List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        switch (dataGlobal.Count)
-                        {
-                            case > 0:
-                            {
-                                foreach (var postData in dataGlobal)
-                                {
-                                    postData.PostData.Orginaltext = postText;
-                                    var index = diff.IndexOf(postData);
-                                    switch (index)
-                                    {
-                                        case > -1:
-                                            PostFeedAdapter.NotifyItemChanged(index);
-                                            break;
-                                    }
-                                }
-
-                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                                switch (checkTextSection)
-                                {
-                                    case null:
-                                    {
-                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                        var item = new AdapterModelsClass
-                                        {
-                                            TypeView = PostModelType.TextSectionPostPart,
-                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                            PostData = collection,
-                                            IsDefaultFeedPost = true
-                                        };
-
-                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                        switch (headerPostIndex)
-                                        {
-                                            case > -1:
-                                                diff.Insert(headerPostIndex + 1, item);
-                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
-                                                break;
-                                        }
-
-                                        break;
-                                    }
-                                }
-
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    //Edit post product 
-                    case 3500 when resultCode == (int)Result.Ok:
-                    {
-                        if (string.IsNullOrEmpty(data.GetStringExtra("itemData"))) return;
-                        var item = JsonConvert.DeserializeObject<ProductDataObject>(data.GetStringExtra("itemData") ?? "");
-                        if (item != null)
-                        {
-                            var diff = PostFeedAdapter.ListDiffer;
-                            var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            switch (dataGlobal.Count)
-                            {
-                                case > 0:
-                                {
-                                    foreach (var postData in dataGlobal)
-                                    {
-                                        var index = diff.IndexOf(postData);
-                                        switch (index)
-                                        {
-                                            case > -1:
-                                            {
-                                                var productUnion = postData.PostData.Product?.ProductClass;
-                                                if (productUnion != null) productUnion.Id = item.Id;
-                                                productUnion = item;
-                                                Console.WriteLine(productUnion);
-
-                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
             }
         }
 

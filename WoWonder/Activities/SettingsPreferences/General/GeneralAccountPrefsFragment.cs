@@ -151,7 +151,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 TwoFactorPref = FindPreference("Twofactor_key");
                 ManageSessionsPref = FindPreference("ManageSessions_key"); 
                 NightMode = FindPreference("Night_Mode_key");
-                VerificationPref = FindPreference("verification_key");
+                VerificationPref = FindPreference("verification_key");  
                 WallpaperPref = FindPreference("Wallpaper_key");
                 //LangPref = (ListPreference) FindPreference("Lang_key");
 
@@ -385,7 +385,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                 var dialog = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                dialog.Title(Resource.String.Lbl_Warning);
+                dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                 dialog.Content(ActivityContext.GetText(Resource.String.Lbl_Are_you_DeleteAccount) + " " + AppSettings.ApplicationName);
                 dialog.PositiveText(ActivityContext.GetText(Resource.String.Lbl_Ok)).OnPositive(this);
                 dialog.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
@@ -629,7 +629,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     {
                         TypeDialog = "About";
                         var dialog = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                        dialog.Title(GetString(Resource.String.Lbl_About));
+                        dialog.Title(GetString(Resource.String.Lbl_About)).TitleColorRes(Resource.Color.primary);
                         dialog.Input(GetString(Resource.String.Lbl_About), preference.Summary, false, this);
                         dialog.InputType(InputTypes.TextFlagImeMultiLine);
                         dialog.PositiveText(GetText(Resource.String.Lbl_Save)).OnPositive(this);
@@ -646,7 +646,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                         var arrayAdapter = new List<string>();
                         var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                        dialogList.Title(Resource.String.Lbl_Theme);
+                        dialogList.Title(Resource.String.Lbl_Theme).TitleColorRes(Resource.Color.primary);
 
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Light));
                         arrayAdapter.Add(GetText(Resource.String.Lbl_Dark));
@@ -888,7 +888,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                                     {"about", strName}
                                 };
 
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                             }
                             else
                             {

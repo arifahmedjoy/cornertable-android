@@ -18,6 +18,7 @@ using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Global;
 using IList = System.Collections.IList;
 using Object = Java.Lang.Object;
+using ImageViews.Rounded;
 
 namespace WoWonder.Activities.Articles.Adapters
 {
@@ -103,7 +104,7 @@ namespace WoWonder.Activities.Articles.Adapters
                     .Apply(RequestOptions.CircleCropTransform())
                     .Into(holder.UserImageProfile);
               
-                holder.Category.SetBackgroundColor(colorImage);
+                holder.Category.Background.SetTint(colorImage);
 
                 CategoriesController cat = new CategoriesController();
                 string id = item.CategoryLink.Split('/').Last();
@@ -124,7 +125,7 @@ namespace WoWonder.Activities.Articles.Adapters
                 }
 
                 holder.ViewMore.Text = ActivityContext.GetText(Resource.String.Lbl_ReadMore) + " >"; //READ MORE &gt; 
-                holder.Time.Text = item.Posted; 
+                holder.Time.Text = item.Posted;  
             }
             catch (Exception e)
             {
@@ -241,7 +242,7 @@ namespace WoWonder.Activities.Articles.Adapters
                  
                 UserItem = MainView.FindViewById<RelativeLayout>(Resource.Id.UserItem_Layout);
 
-                Image = MainView.FindViewById<ImageView>(Resource.Id.Image);
+                Image = MainView.FindViewById<RoundedImageView>(Resource.Id.Image);
                 Category = MainView.FindViewById<TextView>(Resource.Id.Category);
                 Title = MainView.FindViewById<TextView>(Resource.Id.Title);
                 Description = MainView.FindViewById<TextView>(Resource.Id.description);
@@ -249,7 +250,7 @@ namespace WoWonder.Activities.Articles.Adapters
                 Username = MainView.FindViewById<TextView>(Resource.Id.Username);
                 Time = MainView.FindViewById<TextView>(Resource.Id.card_dist);
                 ViewMore = MainView.FindViewById<TextView>(Resource.Id.View_more);
-
+                 
                 //Event
                 UserItem.Click += (sender, e) => userClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
                 itemView.Click += (sender, e) => clickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
@@ -265,7 +266,7 @@ namespace WoWonder.Activities.Articles.Adapters
 
         private View MainView { get; }
 
-        public ImageView Image { get; private set; }
+        public RoundedImageView Image { get; private set; }
         public TextView Title { get; private set; }
         public TextView Description { get; private set; }
         public ImageView UserImageProfile { get; private set; }
@@ -273,7 +274,7 @@ namespace WoWonder.Activities.Articles.Adapters
         public TextView Username { get; private set; }
         public TextView Time { get; private set; }
         public TextView ViewMore { get; private set; }
-        public RelativeLayout UserItem { get; private set; }
+        public RelativeLayout UserItem { get; private set; } 
 
         #endregion
     }

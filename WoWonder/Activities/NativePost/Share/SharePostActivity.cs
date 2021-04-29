@@ -8,6 +8,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.MyProfile;
@@ -169,12 +170,14 @@ namespace WoWonder.Activities.NativePost.Share
                 if (TopToolBar != null)
                 {
                     TopToolBar.Title = GetText(Resource.String.Lbl_SharePost);
-                    TopToolBar.SetTitleTextColor(Color.White);
+                    TopToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(TopToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)

@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -186,16 +187,18 @@ namespace WoWonder.Activities.BlockedUsers
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_BlockedUsers);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_BlockedUsers);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -319,7 +322,7 @@ namespace WoWonder.Activities.BlockedUsers
 
                             Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_Unblock_successfully), ToastLength.Short)?.Show();
 
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Block_User(item.UserId, false) });//false >> "un-block"
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.BlockUserAsync(item.UserId, false) });//false >> "un-block"
                         }
 
                         break;
@@ -349,7 +352,7 @@ namespace WoWonder.Activities.BlockedUsers
             if (Methods.CheckConnectivity())
             {
                 var countList = MAdapter.UserList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Global.Get_Blocked_Users();
+                var (apiStatus, respond) = await RequestsAsync.Global.GetBlockedUsersAsync();
                 if (apiStatus != 200 || respond is not GetBlockedUsersObject result || result.BlockedUsers == null)
                 {
                     Methods.DisplayReportResult(this, respond);

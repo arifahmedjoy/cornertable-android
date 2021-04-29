@@ -507,7 +507,7 @@ namespace WoWonder.Activities.Videos
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Movies.CreateComments(MoviesId, text);
+                    var (apiStatus, respond) = await RequestsAsync.Movies.CreateCommentsAsync(MoviesId, text);
                     switch (apiStatus)
                     {
                         case 200:
@@ -575,9 +575,7 @@ namespace WoWonder.Activities.Videos
         }
 
         #endregion
-
-
-
+         
         #region Load Video & Comment 
          
         public async void GetDataVideo()
@@ -597,7 +595,7 @@ namespace WoWonder.Activities.Videos
                         return;
                     }
 
-                    var (apiStatus, respond) = await RequestsAsync.Movies.Get_Movies("", "", MoviesId);
+                    var (apiStatus, respond) = await RequestsAsync.Movies.GetMoviesAsync("", "", MoviesId);
                     switch (apiStatus)
                     {
                         case 200:
@@ -733,7 +731,7 @@ namespace WoWonder.Activities.Videos
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.CommentList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Movies.GetComments(MoviesId, "25", offset);
+                var (apiStatus, respond) = await RequestsAsync.Movies.GetCommentsAsync(MoviesId, "25", offset);
                 if (apiStatus != 200 || respond is not GetCommentsMoviesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
@@ -803,8 +801,6 @@ namespace WoWonder.Activities.Videos
 
 
         #endregion
-
-
-
+         
     }
 }

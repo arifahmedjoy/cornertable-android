@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Android.App;
-
+using Android.App; 
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
@@ -24,7 +23,7 @@ namespace WoWonder.Activities.Story.Adapters
         public event EventHandler<RowStoryAdapterClickEventArgs> ItemLongClick;
 
         private readonly Activity ActivityContext;
-        public ObservableCollection<GetUserStoriesObject.StoryObject> StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>();
+        public ObservableCollection<StoryDataObject> StoryList = new ObservableCollection<StoryDataObject>();
 
         public RowStoryAdapter(Activity activity)
         {
@@ -107,7 +106,7 @@ namespace WoWonder.Activities.Story.Adapters
                 Methods.DisplayReportResultTrack(e);
             }
         }
-        public GetUserStoriesObject.StoryObject GetItem(int position)
+        public StoryDataObject GetItem(int position)
         {
             return StoryList[position];
         }

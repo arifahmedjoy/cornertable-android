@@ -41,7 +41,6 @@
                         android:gravity="center"
                     android:textColor="@color/textLight_color"
                         android:textSize="13sp"
-                        android:text="Mauris Elementum"
                         android:textStyle="bold"
                         />
                     <LinearLayout
@@ -64,7 +63,6 @@
                             android:gravity="center"
                             android:textSize="12sp"
                             android:textColor="@color/textLight_color"
-                            android:text="1 Thing in common"
                             /> 
                     </LinearLayout>
                 </LinearLayout>

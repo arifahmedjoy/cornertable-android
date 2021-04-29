@@ -11,10 +11,12 @@
 		  android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 		<androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
 		    android:layout_width="match_parent"
 		    android:layout_height="48dp"
 		    android:layout_gravity="top"
-		    android:background="@drawable/linear_gradient_drawable"
+            app:titleTextAppearance="@style/Toolbar.TitleText"
+		    android:background="?attr/colorFill"
 		    android:elevation="2dp">
 		</androidx.appcompat.widget.Toolbar>
 	</com.google.android.material.appbar.AppBarLayout>

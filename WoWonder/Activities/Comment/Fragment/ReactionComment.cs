@@ -63,7 +63,7 @@ namespace WoWonder.Activities.Comment.Fragment
                 //Irrelevant code for customizing the buttons and title
                 LayoutInflater inflater = (LayoutInflater)MainContext.GetSystemService(Context.LayoutInflaterService);
                 View dialogView = inflater?.Inflate(Resource.Layout.XReactDialogLayout, null);
-
+                
                 InitializingReactImages(dialogView);
                 ClickImageButtons();
 
@@ -154,7 +154,7 @@ namespace WoWonder.Activities.Comment.Fragment
             try
             {
                 if (imgButton != null && !imgButton.HasOnClickListeners)
-                    imgButton.Click += (sender, e) => ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = imgButton, Position = reactIndex , React = reactName });
+                    imgButton.Click += (sender, e) => ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = imgButton, Position = reactIndex, React = reactName });
             }
             catch (Exception e)
             {

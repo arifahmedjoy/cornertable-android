@@ -8,10 +8,14 @@ using Android.Views;
 using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.NativePost.Extra;
+using WoWonder.Activities.Tabbes;
+using WoWonder.Activities.UserProfile;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient;
 using WoWonderClient.Classes.Posts;
+using WoWonderClient.Classes.Story;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
 
@@ -132,7 +136,8 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         case > 0:
                         {
-                            result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
+                            result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null); 
+                            GetAllPostLive(result.Data);
 
                             switch (offset)
                             {
@@ -743,6 +748,88 @@ namespace WoWonder.Activities.NativePost.Post
         }
 
         #endregion
+
+        public void GetAllPostLive(List<PostDataObject> list)
+        {
+            try
+            {
+                var listLivePost = list?.Where(a => a.LiveTime != null && a.LiveTime.Value > 0 && string.IsNullOrEmpty(a.AgoraResourceId) && string.IsNullOrEmpty(a.PostFile))?.ToList();
+                switch (NativeFeedAdapter.NativePostType)
+                {
+                    case NativeFeedType.Global:
+                        var mainActivity = TabbedMainActivity.GetInstance();
+                        var checkSection = mainActivity?.NewsFeedTab?.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                        if (checkSection != null)
+                        {
+                            if (listLivePost?.Count > 0)
+                            {
+                                foreach (var post in from post in listLivePost let check = checkSection.StoryList.FirstOrDefault(a => a?.DataLivePost?.PostId == post.PostId) where check == null select post)
+                                { 
+                                    if (checkSection.StoryList.Count > 1)
+                                    {
+                                        checkSection.StoryList.Insert(1, new StoryDataObject
+                                        {
+                                            Avatar = post.Publisher.Avatar,
+                                            Type = "Live",
+                                            Username = ActivityContext.GetText(Resource.String.Lbl_Live),
+                                            DataLivePost = post
+                                        });
+                                    }
+                                    else
+                                    {
+                                        checkSection.StoryList.Add(new StoryDataObject
+                                        { 
+                                            Avatar = post.Publisher.Avatar,
+                                            Type = "Live",
+                                            Username = WoWonderTools.GetNameFinal(post.Publisher),
+                                            DataLivePost = post,
+                                        });
+                                    } 
+                                }
+
+                                ActivityContext?.RunOnUiThread(() =>
+                                {
+                                    try
+                                    {
+                                        var d = new Runnable(() => { mainActivity?.NewsFeedTab?.PostFeedAdapter.NotifyItemChanged(mainActivity.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(checkSection)); });
+                                        d.Run();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                }); 
+                            } 
+                        } 
+                        break;
+                    case NativeFeedType.User when NativeFeedAdapter.IdParameter != UserDetails.UserId:
+                        var userProfileActivity = UserProfileActivity.GetInstance();
+                        if (userProfileActivity != null)
+                        {
+                            if (listLivePost?.Count > 0)
+                            {
+                                userProfileActivity.DataLivePost = listLivePost.FirstOrDefault();
+                                userProfileActivity.LiveLayout.Visibility = ViewStates.Visible;
+                            }
+                            else
+                            {
+                                userProfileActivity.DataLivePost = null;
+                                userProfileActivity.LiveLayout.Visibility = ViewStates.Gone;
+                            }
+                        }
+
+                        break;
+                    default:
+                        return;
+                }
+                 
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
 
         public void InsertTheLatestPosts()
         {

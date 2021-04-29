@@ -27,6 +27,8 @@ namespace WoWonder.Activities.NativePost.Post
         public SpannableString PostDataDecoratedContent { get; set; }
         public AboutModelClass AboutModel { get; set; }
         public InfoUserModelClass InfoUserModel { get; set; }
+        // ardev
+        public InfoUserModelClass headerSectionClass { get; set; }
         public SocialLinksModelClass SocialLinksModel { get; set; }
         public FollowersModelClass FollowersModel { get; set; }
         public GroupsModelClass GroupsModel { get; set; }
@@ -35,7 +37,7 @@ namespace WoWonder.Activities.NativePost.Post
         public AlertModelClass AlertModel { get; set; }
         public GroupPrivacyModelClass PrivacyModelClass { get; set; }
         public PageInfoModelClass PageInfoModelClass { get; set; }
-        public ObservableCollection<GetUserStoriesObject.StoryObject> StoryList { get; set; }
+        public ObservableCollection<StoryDataObject> StoryList { get; set; }
 
         public PollsOptionObject PollsOption { get; set; }
 
@@ -55,7 +57,7 @@ namespace WoWonder.Activities.NativePost.Post
         FacebookPost = 26, MultiImage2 = 27, MultiImage3 = 28, MultiImage4 = 29, MultiImages = 30, PollPost = 31, AdsPost = 32, AdMob1 = 33, AdMob2 = 34,AdMob3 = 35, JobPost =36, AlertBoxAnnouncement = 37, FundingPost = 38 , PurpleFundPost = 39 ,
         SocialLinks = 40 , SuggestedGroupsBox = 41, VimeoPost = 42 , MapPost = 43, OfferPost = 44 , SearchForPosts  = 45, LivePost = 46, AgoraLivePost = 47, Section = 48 , SuggestedUsersBox = 49 , FbAdNative = 50, JobPostSection2 = 51, JobPostSection1 = 52,
         SharedHeaderPost = 53, HeaderPost = 54, TextSectionPostPart = 55, PrevBottomPostPart = 56, BottomPostPart = 57 , Divider = 58, ViewProgress = 59, PromotePost = 60,AddCommentSection = 61, CommentSection = 62, FilterSection = 63,
-        InfoUserBox = 64 , InfoPageBox = 65 , InfoGroupBox = 67, TikTokPost = 68 
+        InfoUserBox = 64 , InfoPageBox = 65 , InfoGroupBox = 67, TikTokPost = 68 , ProfileHeaderSection = 69
     }
       
     public class AboutModelClass
@@ -130,4 +132,13 @@ namespace WoWonder.Activities.NativePost.Post
         public string TypeAlert { get; set; }
         public int IconImage { get; set; }
     } 
+
+    public class HeaderSectionClass
+    {
+        public string CountFollowers { get; set; }
+        public string CountFollowing { get; set; }
+        public string CountLikes { get; set; }
+        public string CountPoints { get; set; }
+
+    }
 }

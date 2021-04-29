@@ -14,7 +14,6 @@ namespace WoWonder.Activities.AddPost.Adapters
 { 
     public class AddPollAdapter : RecyclerView.Adapter
     {
-        private int Position;
         private readonly Activity ActivityContext;
         public readonly ObservableCollection<PollAnswers> AnswersList = new ObservableCollection<PollAnswers>();
 
@@ -40,7 +39,7 @@ namespace WoWonder.Activities.AddPost.Adapters
         {
             try
             {
-                //Setup your layout here >> Style_Gif_View
+                //Setup your layout here >> Style_AddPoll
                 var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_AddPoll, parent, false);
                 var vh = new AddPollAdapterViewHolder(itemView, Click, CloseClickListener);
                 return vh;
@@ -56,12 +55,11 @@ namespace WoWonder.Activities.AddPost.Adapters
         {
             try
             {
-                Position = position;
                 switch (viewHolder)
                 {
                     case AddPollAdapterViewHolder holder:
                     {
-                        var itemcount = Position + 1;
+                        var itemcount = position + 1;
                         holder.Number.Text = itemcount.ToString(); 
                         holder.Input.Hint = ActivityContext.GetText(Resource.String.Lbl2_Answer) + " " + itemcount;
                         break;

@@ -301,6 +301,7 @@
             </LinearLayout>
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
+                app:theme="@style/ToolbarTheme"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:fitsSystemWindows="true"

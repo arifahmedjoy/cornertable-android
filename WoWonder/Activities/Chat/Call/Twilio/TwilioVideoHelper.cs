@@ -7,10 +7,12 @@ using Android.Content;
 using Android.Media;
 using Android.OS;
 using Android.Runtime;
+using Tvi.Webrtc;
 using TwilioVideo;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Call;
 using AudioTrack = TwilioVideo.AudioTrack;
+using VideoTrack = TwilioVideo.VideoTrack;
 
 namespace WoWonder.Activities.Chat.Call.Twilio
 {
@@ -96,6 +98,41 @@ namespace WoWonder.Activities.Chat.Call.Twilio
             }
         }
 
+        private string FrontCameraId = null;
+        private string BackCameraId = null;
+        private readonly Camera1Enumerator Camera1Enumerator = new Camera1Enumerator();
+        private string GetFrontCameraId()
+        {
+            if (FrontCameraId == null)
+            {
+                foreach (var deviceName in Camera1Enumerator.GetDeviceNames())
+                {
+                    if (Camera1Enumerator.IsFrontFacing(deviceName))
+                    {
+                        FrontCameraId = deviceName;
+                    }
+                }
+            }
+
+            return FrontCameraId;
+        }
+
+        private string GetBackCameraId()
+        {
+            if (BackCameraId == null)
+            {
+                foreach (var deviceName in Camera1Enumerator.GetDeviceNames())
+                {
+                    if (Camera1Enumerator.IsBackFacing(deviceName))
+                    {
+                        BackCameraId = deviceName;
+                    }
+                }
+            }
+
+            return BackCameraId;
+        }
+
         private void CreateLocalMedia(Context context)
         {
             try
@@ -103,13 +140,9 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                 AudioManager = (AudioManager)context.GetSystemService(Context.AudioService);
                 AudioManager.SpeakerphoneOn = TypeCall != TypeCall.Audio;
 
-                var cameraSource = CameraCapturer.IsSourceAvailable(CameraCapturer.CameraSource.FrontCamera) ? CameraCapturer.CameraSource.FrontCamera : CameraCapturer.CameraSource.BackCamera;
-                VideoCapturer = new CameraCapturer(context, cameraSource);
+                VideoCapturer = new CameraCapturer(context, GetFrontCameraId());
 
-                VideoConstraints videoConstraints = new VideoConstraints.Builder()
-                    .MaxFps(5)
-                    .MaxVideoDimensions(new VideoDimensions(50, 50))
-                    .Build();
+                VideoFormat videoConstraints = new VideoFormat(VideoDimensions.Hd720pVideoDimensions, 30);
 
                 CurrentVideoTrack = LocalVideoTrack.Create(context, true, VideoCapturer, videoConstraints, "camera");
                 CurrentAudioTrack = LocalAudioTrack.Create(context, true, "mic");
@@ -146,9 +179,9 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         {
             try
             {
-                if (track?.Renderers?.Any() == true)
-                    foreach (var r in track.Renderers.ToArray())
-                        track.RemoveRenderer(r);
+                if (track?.Sinks?.Any() == true)
+                    foreach (var r in track.Sinks.ToArray())
+                        track.RemoveSink(r);
             }
             catch (Exception e)
             {
@@ -190,7 +223,11 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         {
             try
             {
-                VideoCapturer?.SwitchCamera();
+                if (VideoCapturer != null)
+                {
+                    var cameraId = VideoCapturer.CameraId.Equals(GetFrontCameraId()) ? GetBackCameraId() : GetFrontCameraId();
+                    VideoCapturer.SwitchCamera(cameraId);
+                }
             }
             catch (Exception e)
             {

@@ -10,10 +10,10 @@ using Android.Content.PM;
 using Android.Graphics;
 using Android.OS; 
 using Android.Text;
-using Android.Util;
 using Android.Views;
 using Android.Webkit;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide.Util;
 using Java.Lang;
@@ -187,29 +187,12 @@ namespace WoWonder.Activities.Articles
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.MenuArticleShare, menu);
-            ChangeMenuIconColor(menu, Color.White);
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
 
             return base.OnCreateOptionsMenu(menu);
 
         }
-
-        private void ChangeMenuIconColor(IMenu menu, Color color)
-        {
-            for (int i = 0; i < menu.Size(); i++)
-            {
-                var drawable = menu.GetItem(i).Icon;
-                switch (drawable)
-                {
-                    case null:
-                        continue;
-                    default:
-                        drawable.Mutate();
-                        drawable.SetColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SrcAtop));
-                        break;
-                }
-            }
-        }
-
+         
         #endregion
 
         #region Functions
@@ -244,16 +227,18 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = "";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = "";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+ 
                 }
             }
             catch (Exception e)
@@ -419,7 +404,7 @@ namespace WoWonder.Activities.Articles
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Article.CreateComments(ArticlesId, text);
+                    var (apiStatus, respond) = await RequestsAsync.Article.CreateCommentsAsync(ArticlesId, text);
                     switch (apiStatus)
                     {
                         case 200:
@@ -638,7 +623,7 @@ namespace WoWonder.Activities.Articles
                     };
 
                     if (Methods.CheckConnectivity())
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.GetBlogById(ArticlesId) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.GetBlogByIdAsync(ArticlesId) });
 
                     StartApiService();
                 }
@@ -669,7 +654,7 @@ namespace WoWonder.Activities.Articles
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.CommentList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Article.GetComments(ArticlesId, "25", offset);
+                var (apiStatus, respond) = await RequestsAsync.Article.GetCommentsAsync(ArticlesId, "25", offset);
                 if (apiStatus != 200 || respond is not GetCommentsArticlesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

@@ -121,7 +121,6 @@
                 android:paddingEnd="10dp"
                 android:paddingTop="0dp"
                 android:textStyle="bold"
-                android:text="Amazing Life"
                 android:textSize="18sp" />
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -146,7 +145,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/date"
-                    android:text="21-04-20"
                     android:textSize="12dp" />
                 <TextView
                     android:id="@+id/discount"
@@ -165,7 +163,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/discount"
-                    android:text="1% Off 2020 Mercedes - $100,000"
                     android:textSize="12dp" />
                 <WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView
                     android:layout_below="@+id/discountNumber"
@@ -174,7 +171,6 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_alignParentBottom="true"
-                    android:text="CERTIFIED BY MERCEDES BENZ, ONE OWNER, Black Exclusive Leather, Air Conditioning, Anti-whiplash front head restraints, Auto High-beam Headlights, Auto-dimming door mirrors, Au..."
                     android:gravity="center|start"
                     android:layout_marginStart="11dp"
                     android:layout_marginTop="6dp"

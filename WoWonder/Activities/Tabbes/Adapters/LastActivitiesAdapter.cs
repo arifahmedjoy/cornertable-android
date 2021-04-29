@@ -8,6 +8,7 @@ using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Java.Util;
+using Refractored.Controls;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -86,7 +87,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-                GlideImageLoader.LoadImage(ActivityContext, item.Activator.Avatar, holder.ActivitiesImage, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
+                GlideImageLoader.LoadImage(ActivityContext, item.Activator.Avatar, holder.ActivitiesImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
                 string replace = "";
                 if (item.ActivityType.Contains("reaction"))
@@ -226,9 +227,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     case "commented_post":
                     {
                         holder.Icon.SetImageResource(Resource.Drawable.ic_action_comment);
+                        holder.Icon.SetImageResource(Resource.Drawable.ic_action_comments);
                         // holder.Icon.SetColorFilter(Color.ParseColor("#333333"), PorterDuff.Mode.Multiply);
 
-                        if (UserDetails.LangName.Contains("fr"))
+                                if (UserDetails.LangName.Contains("fr"))
                         {
                             var split = item.ActivityText.Split("commented on").Last().Replace("post", "");
                             replace = item.Activator.Name + " " + ActivityContext.GetString(Resource.String.Lbl_CommentedOn) + " " + ActivityContext.GetString(Resource.String.Lbl_Post) + " " + split;
@@ -360,7 +362,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 MainView = itemView;
 
-                ActivitiesImage = (ImageView) MainView.FindViewById(Resource.Id.Image);
+                ActivitiesImage = MainView.FindViewById<CircleImageView>(Resource.Id.Image);
                 ActivitiesEvent = MainView.FindViewById<TextView>(Resource.Id.LastActivitiesText);
                 Icon = MainView.FindViewById<ImageView>(Resource.Id.ImageIcon);
                 Time = MainView.FindViewById<TextView>(Resource.Id.Time);
@@ -379,7 +381,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
         public View MainView { get; set; }
 
-        public ImageView ActivitiesImage { get; private set; }
+        public CircleImageView ActivitiesImage { get; private set; }
         public TextView ActivitiesEvent { get; private set; }
         public ImageView Icon { get; private set; }
         public TextView Time { get; private set; }

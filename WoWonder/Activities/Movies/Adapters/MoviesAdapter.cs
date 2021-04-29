@@ -126,7 +126,7 @@ namespace WoWonder.Activities.Movies.Adapters
                                 arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_CopeLink));
                                 arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_Share));
 
-                                dialogList.Title(ActivityContext.GetString(Resource.String.Lbl_More));
+                                dialogList.Title(ActivityContext.GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                                 dialogList.Items(arrayAdapter);
                                 dialogList.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
                                 dialogList.AlwaysCallSingleChoiceCallback();

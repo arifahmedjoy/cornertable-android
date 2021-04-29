@@ -17,6 +17,7 @@ using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -175,6 +176,7 @@ namespace WoWonder.Activities.Jobs
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
 
             var item = menu.FindItem(Resource.Id.searchUserBar);
             SearchView searchItem = (SearchView)item.ActionView;
@@ -183,6 +185,15 @@ namespace WoWonder.Activities.Jobs
             SearchView.SetIconifiedByDefault(true);
             SearchView.QueryTextChange += SearchView_OnTextChange;
             SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
+
+            //Change text colors
+            var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
+            editText.SetHintTextColor(Color.Black);
+            editText.SetTextColor(Color.ParseColor("#888888")); 
+
+            //Change Color Icon Search
+            ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
+            searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -270,12 +281,14 @@ namespace WoWonder.Activities.Jobs
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_jobs);
 
-                    ToolBar.SetTitleTextColor(Color.White);
+                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -488,7 +501,7 @@ namespace WoWonder.Activities.Jobs
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.JobList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Jobs.SearchJob(SearchText,UserDetails.FilterJobCategories, UserDetails.FilterJobType, UserDetails.FilterJobLocation, "10", offset);
+                var (apiStatus, respond) = await RequestsAsync.Jobs.SearchJobAsync(SearchText,UserDetails.FilterJobCategories, UserDetails.FilterJobType, UserDetails.FilterJobLocation, "10", offset);
                 if (apiStatus != 200 || respond is not SearchJobObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

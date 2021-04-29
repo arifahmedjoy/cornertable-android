@@ -78,8 +78,11 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
+                Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle); //Sets the title bar to invisible
                 base.OnViewCreated(view, savedInstanceState);
-                InitComponent(view); 
+                if (Dialog?.Window?.Attributes != null)
+                    Dialog.Window.Attributes.WindowAnimations = Resource.Style.dialog_animation; //set the animation
+                InitComponent(view);
             }
             catch (Exception exception)
             {
@@ -104,8 +107,7 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                base.OnPause();
-                 
+                base.OnPause(); 
                 AddOrRemoveEvent(false);
             }
             catch (Exception e)
@@ -113,23 +115,7 @@ namespace WoWonder.Activities.Communities.Pages
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        public override void OnActivityCreated(Bundle savedInstanceState)
-        {
-            try
-            {
-                Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle); //Sets the title bar to invisible
-                base.OnActivityCreated(savedInstanceState);
-                if (Dialog?.Window?.Attributes != null)
-                    Dialog.Window.Attributes.WindowAnimations = Resource.Style.dialog_animation; //set the animation
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-
+          
         public override void OnLowMemory()
         {
             try
@@ -254,7 +240,7 @@ namespace WoWonder.Activities.Communities.Pages
 
         private async Task RatePageApi()
         {
-            var (apiStatus, respond) = await RequestsAsync.Page.RatePage(PageId, RatingBar.Rating.ToString(CultureInfo.InvariantCulture), TxtReview.Text);
+            var (apiStatus, respond) = await RequestsAsync.Page.RatePageAsync(PageId, RatingBar.Rating.ToString(CultureInfo.InvariantCulture), TxtReview.Text);
             switch (apiStatus)
             {
                 case 200:

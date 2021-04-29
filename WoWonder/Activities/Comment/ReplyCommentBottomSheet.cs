@@ -479,7 +479,7 @@ namespace WoWonder.Activities.Comment
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Article.CreateReply(ArticlesObject.BlogId, IdComment, text);
+                    var (apiStatus, respond) = await RequestsAsync.Article.CreateReplyAsync(ArticlesObject.BlogId, IdComment, text);
                     switch (apiStatus)
                     {
                         case 200:
@@ -585,7 +585,7 @@ namespace WoWonder.Activities.Comment
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Movies.CreateReply(MoviesObject.MovieId, IdComment, text);
+                    var (apiStatus, respond) = await RequestsAsync.Movies.CreateReplyAsync(MoviesObject.MovieId, IdComment, text);
                     switch (apiStatus)
                     {
                         case 200:
@@ -697,7 +697,7 @@ namespace WoWonder.Activities.Comment
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapterArticles.CommentList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Article.GetReply(IdComment, "25", offset);
+                var (apiStatus, respond) = await RequestsAsync.Article.GetReplyAsync(IdComment, "25", offset);
                 if (apiStatus != 200 || respond is not GetCommentsArticlesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
@@ -741,7 +741,7 @@ namespace WoWonder.Activities.Comment
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapterMovies.CommentList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Movies.GetReply(IdComment, "25", offset);
+                var (apiStatus, respond) = await RequestsAsync.Movies.GetReplyAsync(IdComment, "25", offset);
                 if (apiStatus != 200 || respond is not GetCommentsMoviesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;

@@ -63,4 +63,7 @@
 
   <dimen name="spacing_mlarge">20dp</dimen>
 
+  <dimen name="default_emoji_description_label_height">23dp</dimen>
+  <dimen name="default_emoji_description_label_bottom_margin">8dp</dimen>
+
 </resources>

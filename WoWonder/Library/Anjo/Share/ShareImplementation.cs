@@ -47,7 +47,7 @@ namespace WoWonder.Library.Anjo.Share
                         var tabsBuilder = new CustomTabsIntent.Builder();
                         tabsBuilder.SetShowTitle(options?.ChromeShowTitle ?? false);
 
-                        //var toolbarColor = options?.ChromeToolbarColor;
+                        //var toolBarColor = options?.ChromeToolbarColor;
                         //if (toolbarColor != null)
                         //    tabsBuilder.SetToolbarColor(toolbarColor.ToNativeColor());
 

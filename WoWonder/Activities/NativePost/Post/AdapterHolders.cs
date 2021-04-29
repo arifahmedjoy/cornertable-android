@@ -13,7 +13,8 @@ using Android.Widget;
 using AndroidX.AppCompat.Widget;
 using AndroidX.RecyclerView.Widget;
 using AT.Markushi.UI;
-using Com.Luseen.Autolinklibrary; 
+using Com.Luseen.Autolinklibrary;
+using ImageViews.Rounded;
 using Newtonsoft.Json;
 using Refractored.Controls;
 using WoWonder.Activities.AddPost;
@@ -37,7 +38,7 @@ using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
-using WoWonder.Library.Anjo;
+using WoWonder.Library.Anjo; 
 using WoWonder.Library.UI;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.Group;
@@ -263,11 +264,9 @@ namespace WoWonder.Activities.NativePost.Post
             public LinearLayout SecondReactionLinearLayout { get; set; }
             public LinearLayout ReactLinearLayout { get; set; }
             public LinearLayout ViewsLinearLayout { get; set; }
-            public ReactButton LikeButton { get; private set; }
-
+            public ReactButton LikeButton { get; private set; } 
             public TextView SecondReactionButton { get; private set; }
-
-            // insert ar dev
+             
             public TextView TvCommentCount { get; private set; } 
            
 
@@ -282,12 +281,12 @@ namespace WoWonder.Activities.NativePost.Post
                     SecondReactionLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.SecondReactionLinearLayout);
                     ViewsLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ViewsLinearLayout);
                     ReactLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ReactLinearLayout);
-                    LikeButton = itemView.FindViewById<ReactButton>(Resource.Id.ReactButton);
+                    LikeButton = itemView.FindViewById<ReactButton>(Resource.Id.ReactButton); 
 
                     SecondReactionButton = itemView.FindViewById<TextView>(Resource.Id.SecondReactionText);
 
                     TvCommentCount = itemView.FindViewById<TextView>(Resource.Id.CommentText);
-                    TvCommentCount.Text = "";
+                    //TvCommentCount.Text = "";
 
                     ShareLinearLayout.Visibility = AppSettings.ShowShareButton switch
                     {
@@ -390,7 +389,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly PostClickListener PostClickListener;
             private readonly int ClickType;
 
-            public ImageView Image { get; set; }
+            public RoundedImageView Image { get; set; }
 
             public PostImageSectionViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener , int clickType) : base(itemView)
             {
@@ -400,7 +399,7 @@ namespace WoWonder.Activities.NativePost.Post
                     ClickType = clickType;
 
                     itemView.SetLayerType(LayerType.Hardware, null);
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.Image);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.Image);
 
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
@@ -449,8 +448,8 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
-            public ImageView Image2 { get; private set; }
+            public RoundedImageView Image { get; private set; }
+            public RoundedImageView Image2 { get; private set; }
           
             public Post2ImageSectionViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
             {
@@ -459,8 +458,8 @@ namespace WoWonder.Activities.NativePost.Post
                     MainView = itemView;
 
                     itemView.SetLayerType(LayerType.Hardware, null);
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.image);
-                    Image2 = itemView.FindViewById<ImageView>(Resource.Id.image2);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
+                    Image2 = itemView.FindViewById<RoundedImageView>(Resource.Id.image2);
 
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
@@ -501,9 +500,9 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
-            public ImageView Image2 { get; private set; }
-            public ImageView Image3 { get; private set; }
+            public RoundedImageView Image { get; private set; }
+            public RoundedImageView Image2 { get; private set; }
+            public RoundedImageView Image3 { get; private set; }
           
             public Post3ImageSectionViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
             {
@@ -512,9 +511,9 @@ namespace WoWonder.Activities.NativePost.Post
                     MainView = itemView;
 
                     itemView.SetLayerType(LayerType.Hardware, null);
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.image);
-                    Image2 = itemView.FindViewById<ImageView>(Resource.Id.image2);
-                    Image3 = itemView.FindViewById<ImageView>(Resource.Id.image3);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
+                    Image2 = itemView.FindViewById<RoundedImageView>(Resource.Id.image2);
+                    Image3 = itemView.FindViewById<RoundedImageView>(Resource.Id.image3);
 
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
@@ -557,10 +556,10 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
-            public ImageView Image2 { get; private set; }
-            public ImageView Image3 { get; private set; }
-            public ImageView Image4 { get; private set; }
+            public RoundedImageView Image { get; private set; }
+            public RoundedImageView Image2 { get; private set; }
+            public RoundedImageView Image3 { get; private set; }
+            public RoundedImageView Image4 { get; private set; }
          
             public Post4ImageSectionViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
             {
@@ -569,10 +568,10 @@ namespace WoWonder.Activities.NativePost.Post
                     MainView = itemView;
 
                     itemView.SetLayerType(LayerType.Hardware, null);
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.image);
-                    Image2 = itemView.FindViewById<ImageView>(Resource.Id.image2);
-                    Image3 = itemView.FindViewById<ImageView>(Resource.Id.image3);
-                    Image4 = itemView.FindViewById<ImageView>(Resource.Id.image4);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
+                    Image2 = itemView.FindViewById<RoundedImageView>(Resource.Id.image2);
+                    Image3 = itemView.FindViewById<RoundedImageView>(Resource.Id.image3);
+                    Image4 = itemView.FindViewById<RoundedImageView>(Resource.Id.image4);
 
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
@@ -619,20 +618,30 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
-            public ImageView Image2 { get; private set; }
-            public ImageView Image3 { get; private set; }
+            public RoundedImageView Image { get; private set; }
+            public RoundedImageView Image2 { get; private set; }
+            public RoundedImageView Image3 { get; private set; }
+            public RoundedImageView Image4 { get; private set; }
+            public RoundedImageView Image5 { get; private set; }
+            public RoundedImageView Image6 { get; private set; }
+            public RoundedImageView Image7 { get; private set; }
             public TextView CountImageLabel { get; private set; }
+            public View ViewImage7 { get; private set; }
 
             public PostMultiImagesViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
             {
                 try
                 {
                     MainView = itemView;
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.image);
-                    Image2 = itemView.FindViewById<ImageView>(Resource.Id.image2);
-                    Image3 = itemView.FindViewById<ImageView>(Resource.Id.image3);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
+                    Image2 = itemView.FindViewById<RoundedImageView>(Resource.Id.image2);
+                    Image3 = itemView.FindViewById<RoundedImageView>(Resource.Id.image3);
+                    Image4 = itemView.FindViewById<RoundedImageView>(Resource.Id.image4);
+                    Image5 = itemView.FindViewById<RoundedImageView>(Resource.Id.image5);
+                    Image6 = itemView.FindViewById<RoundedImageView>(Resource.Id.image6);
+                    Image7 = itemView.FindViewById<RoundedImageView>(Resource.Id.image7);
                     CountImageLabel = itemView.FindViewById<TextView>(Resource.Id.counttext);
+                    ViewImage7 = itemView.FindViewById<View>(Resource.Id.view_image7);
 
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
@@ -640,6 +649,10 @@ namespace WoWonder.Activities.NativePost.Post
                     Image.SetOnClickListener(this);
                     Image2.SetOnClickListener(this);
                     Image3.SetOnClickListener(this);
+                    Image4.SetOnClickListener(this);
+                    Image5.SetOnClickListener(this);
+                    Image6.SetOnClickListener(this);
+                    Image7.SetOnClickListener(this);
                     CountImageLabel.SetOnClickListener(this);
                 }
                 catch (Exception e)
@@ -662,8 +675,16 @@ namespace WoWonder.Activities.NativePost.Post
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 1, View = MainView });
                         if (v.Id == Image3.Id)
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 2, View = MainView });
-                        if (v.Id == CountImageLabel.Id)
+                        if (v.Id == Image4.Id)
+                            PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 3, View = MainView });
+                        if (v.Id == Image5.Id)
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 4, View = MainView });
+                        if (v.Id == Image6.Id)
+                            PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 5, View = MainView });
+                        if (v.Id == Image7.Id)
+                            PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 6, View = MainView });
+                        if (v.Id == CountImageLabel.Id)
+                            PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 8, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -732,7 +753,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView ImageBlog { get; private set; }
+            public RoundedImageView ImageBlog { get; private set; }
             public ImageView BlogIcon { get; private set; }
             public TextView PostBlogText { get; private set; }
             public TextView PostBlogContent { get; private set; }
@@ -745,7 +766,7 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     MainView = itemView;
 
-                    ImageBlog = itemView.FindViewById<ImageView>(Resource.Id.imageblog);
+                    ImageBlog = itemView.FindViewById<RoundedImageView>(Resource.Id.imageblog);
                     BlogIcon = itemView.FindViewById<ImageView>(Resource.Id.blogIcon);
                     PostBlogText = itemView.FindViewById<TextView>(Resource.Id.postblogText);
                     PostBlogContent = itemView.FindViewById<TextView>(Resource.Id.postBlogContent);
@@ -808,10 +829,10 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
+            public RoundedImageView Image { get; private set; }
             public AppCompatTextView TxtEventTitle { get; private set; }
             public AppCompatTextView TxtEventDescription { get; private set; }
-            public TextView TxtEventTime { get; private set; }
+            public AppCompatTextView TxtEventTime { get; private set; }
             public AppCompatTextView TxtEventLocation { get; private set; }
             public RelativeLayout PostLinkLinearLayout { get; private set; }
              
@@ -821,10 +842,10 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     MainView = itemView;
 
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.Image);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.Image);
                     TxtEventTitle = itemView.FindViewById<AppCompatTextView>(Resource.Id.event_titile);
                     TxtEventDescription = itemView.FindViewById<AppCompatTextView>(Resource.Id.event_description);
-                    TxtEventTime = itemView.FindViewById<TextView>(Resource.Id.event_time);
+                    TxtEventTime = itemView.FindViewById<AppCompatTextView>(Resource.Id.event_time);
                     TxtEventLocation = itemView.FindViewById<AppCompatTextView>(Resource.Id.event_location);
                     PostLinkLinearLayout = itemView.FindViewById<RelativeLayout>(Resource.Id.linklinearLayout);
 
@@ -864,7 +885,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
+            public RoundedImageView Image { get; private set; }
             public TextView LinkUrl { get; private set; }
             public TextView PostLinkTitle { get; private set; }
             public TextView PostLinkContent { get; private set; }
@@ -876,7 +897,7 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     MainView = itemView;
 
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.image);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
                     LinkUrl = itemView.FindViewById<TextView>(Resource.Id.linkUrl);
                     PostLinkTitle = itemView.FindViewById<TextView>(Resource.Id.postLinkTitle);
                     PostLinkContent = itemView.FindViewById<TextView>(Resource.Id.postLinkContent);
@@ -1259,7 +1280,7 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
 
-                        if (v.Id == MainLayout.Id && item?.LiveTime != null && item.LiveTime.Value > 0)
+                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
                         {
                             //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
                             Intent intent = new Intent(PostAdapter.ActivityContext, typeof(LiveStreamingActivity));
@@ -1268,6 +1289,14 @@ namespace WoWonder.Activities.NativePost.Post
                             intent.PutExtra("StreamName", item.StreamName);
                             intent.PutExtra("PostLiveStream", JsonConvert.SerializeObject(item));
                             PostAdapter.ActivityContext.StartActivity(intent);
+                        }
+                        else if (item?.LiveTime != null && item?.LiveTime.Value > 0 && !string.IsNullOrEmpty(item?.AgoraResourceId) && !string.IsNullOrEmpty(item?.PostFile)) //Saved
+                        {
+
+                        }
+                        else //End
+                        {
+
                         }
                     }
                 }
@@ -1364,7 +1393,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
-            public ImageView Image { get; private set; }
+            public RoundedImageView Image { get; private set; }
             public ImageView LocationIcon { get; private set; }
             public TextView PostProductLocationText { get; private set; }
             public TextView PostLinkTitle { get; private set; }
@@ -1380,7 +1409,7 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     MainView = itemView;
 
-                    Image = itemView.FindViewById<ImageView>(Resource.Id.image);
+                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
                     LocationIcon = itemView.FindViewById<ImageView>(Resource.Id.locationIcon);
                     PostProductLocationText = itemView.FindViewById<TextView>(Resource.Id.postProductLocationText);
                     PostLinkTitle = itemView.FindViewById<TextView>(Resource.Id.postProductTitle);
@@ -1730,6 +1759,9 @@ namespace WoWonder.Activities.NativePost.Post
                     StoryRecyclerView = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
                     AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
                     AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
+ 
+                    AboutHead.Visibility = ViewStates.Gone;
+                    AboutMore.Visibility = ViewStates.Gone;
 
                     if (AboutMore != null)
                     {
@@ -1743,6 +1775,7 @@ namespace WoWonder.Activities.NativePost.Post
                     StoryRecyclerView?.SetLayoutManager(new LinearLayoutManager(postAdapter.ActivityContext, LinearLayoutManager.Horizontal, false));
                     StoryAdapter = new StoryAdapter(postAdapter.ActivityContext);
                     StoryRecyclerView?.SetAdapter(StoryAdapter);
+                    StoryRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(StoryRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     StoryAdapter.ItemClick += TabbedMainActivity.GetInstance().StoryAdapterOnItemClick;
                 }
                 catch (Exception e)
@@ -1789,10 +1822,8 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
 
             public CircleImageView ProfileImageView { get; private set; }
-            public TextView PostText { get; private set; }
-            public LinearLayout ImageGallery { get; private set; }
-            public LinearLayout IconMore { get; private set; }
-            // insert ar dev
+            public LinearLayout PostText { get; private set; }
+
             public RelativeLayout RlGallery { get; private set; }
             public RelativeLayout RlFriend { get; private set; }
             public RelativeLayout RlLive { get; private set; }
@@ -1803,9 +1834,7 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     MainView = itemView;
                     ProfileImageView = MainView.FindViewById<CircleImageView>(Resource.Id.image);
-                    PostText = MainView.FindViewById<TextView>(Resource.Id.postText);
-                    ImageGallery = MainView.FindViewById<LinearLayout>(Resource.Id.photoLinear);
-                    IconMore = MainView.FindViewById<LinearLayout>(Resource.Id.moreLinear);
+                    PostText = MainView.FindViewById<LinearLayout>(Resource.Id.ll_post_text);
 
                     RlGallery = MainView.FindViewById<RelativeLayout>(Resource.Id.rlPostGallery);
                     RlFriend = MainView.FindViewById<RelativeLayout>(Resource.Id.rlPostFriend);
@@ -1816,8 +1845,6 @@ namespace WoWonder.Activities.NativePost.Post
 
                     PostAdapter = postAdapter;
 
-                    IconMore.SetOnClickListener(this);
-                    ImageGallery.SetOnClickListener(this);
                     PostText.SetOnClickListener(this);
 
                     RlGallery.SetOnClickListener(this);
@@ -1838,55 +1865,7 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         var item = PostAdapter.ListDiffer[AdapterPosition];
                         var intent = new Intent(PostAdapter.ActivityContext, typeof(AddPostActivity));
-                        if (v.Id == IconMore.Id)
-                        {
-                            try
-                            { 
-                                switch (item.TypePost)
-                                {
-                                    case "feed":
-                                    case "user":
-                                        intent.PutExtra("Type", "Normal_More");
-                                        intent.PutExtra("PostId", PostAdapter.IdParameter);
-                                        break;
-                                    case "Group":
-                                        intent.PutExtra("Type", "SocialGroup_More");
-                                        intent.PutExtra("PostId", item.PostData.GroupRecipient.GroupId);
-                                        intent.PutExtra("itemObject", JsonConvert.SerializeObject(item.PostData.GroupRecipient));
-                                        break;
-                                    case "Event":
-                                        intent.PutExtra("Type", "SocialEvent_More");
-                                        if (item.PostData.Event != null)
-                                        {
-                                            intent.PutExtra("PostId", item.PostData.Event.Value.EventClass.Id);
-                                            intent.PutExtra("itemObject", JsonConvert.SerializeObject(item.PostData.Event.Value.EventClass));
-                                        }
-                                        break;
-                                    case "Page":
-                                        intent.PutExtra("Type", "SocialPage_More");
-                                        intent.PutExtra("PostId", item.PostData.PageId);
-                                        var page = new PageClass
-                                        {
-                                            PageId = item.PostData.PageId,
-                                            PageName = item.PostData.Publisher.PageName,
-                                            Avatar = item.PostData.Publisher.Avatar,
-                                        };
-                                        intent.PutExtra("itemObject", JsonConvert.SerializeObject(page));
-                                        break;
-                                    default:
-                                        intent.PutExtra("Type", "Normal");
-                                        intent.PutExtra("PostId", PostAdapter.IdParameter);
-                                        break;
-                                }
-
-                                PostAdapter.ActivityContext.StartActivityForResult(intent, 2500);
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);  
-                            }
-                        }
-                        else if (v.Id == ImageGallery.Id || v.Id == RlGallery.Id)
+                        if (v.Id == RlGallery.Id)
                         {
                             try
                             { 
@@ -2250,34 +2229,26 @@ namespace WoWonder.Activities.NativePost.Post
 
 
             public LinearLayout LayoutTime { get; private set; }
-            public TextView IconTime { get; private set; }
             public TextView TimeText { get; private set; }
             public LinearLayout LayoutWebsite { get; private set; }
-            public TextView IconWebsite { get; private set; }
             public TextView WebsiteText { get; private set; }
             
             public LinearLayout LayoutGander { get; private set; }
-            public TextView IconGander { get; private set; }
             public TextView GanderText { get; private set; }
             
             public LinearLayout LayoutBirthday { get; private set; }
-            public TextView IconBirthday { get; private set; }
             public TextView BirthdayText { get; private set; }
             
             public LinearLayout LayoutWork { get; private set; }
-            public TextView IconWork { get; private set; }
             public TextView WorkText { get; private set; }
             
             public LinearLayout LayoutLive { get; private set; }
-            public TextView IconLive { get; private set; }
             public TextView LiveText { get; private set; }
             
             public LinearLayout LayoutStudy { get; private set; }
-            public TextView IconStudy { get; private set; }
             public TextView StudyText { get; private set; }
             
             public LinearLayout LayoutRelationship { get; private set; }
-            public TextView IconRelationship { get; private set; }
             public TextView RelationshipText { get; private set; }
 
             public InfoUserBoxViewHolder(View itemView, Activity activityContext) : base(itemView)
@@ -2288,45 +2259,45 @@ namespace WoWonder.Activities.NativePost.Post
                     MainView = itemView;
                    
                     LayoutTime = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutTime);
-                    IconTime = MainView.FindViewById<TextView>(Resource.Id.IconTime);
+                    //IconTime = MainView.FindViewById<TextView>(Resource.Id.IconTime);
                     TimeText = MainView.FindViewById<TextView>(Resource.Id.TimeText);
 
                     LayoutWebsite = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutWebsite);
-                    IconWebsite = MainView.FindViewById<TextView>(Resource.Id.IconWebsite);
+                    //IconWebsite = MainView.FindViewById<TextView>(Resource.Id.IconWebsite);
                     WebsiteText = MainView.FindViewById<TextView>(Resource.Id.WebsiteText);
 
                     LayoutGander = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutGander);
-                    IconGander = MainView.FindViewById<TextView>(Resource.Id.IconGander);
+                    //IconGander = MainView.FindViewById<TextView>(Resource.Id.IconGander);
                     GanderText = MainView.FindViewById<TextView>(Resource.Id.GanderText);
                  
                     LayoutBirthday = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutBirthday);
-                    IconBirthday = MainView.FindViewById<TextView>(Resource.Id.IconBirthday);
+                    //IconBirthday = MainView.FindViewById<TextView>(Resource.Id.IconBirthday);
                     BirthdayText = MainView.FindViewById<TextView>(Resource.Id.BirthdayText);
 
                     LayoutWork = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutWork);
-                    IconWork = MainView.FindViewById<TextView>(Resource.Id.IconWork);
+                    //IconWork = MainView.FindViewById<TextView>(Resource.Id.IconWork);
                     WorkText = MainView.FindViewById<TextView>(Resource.Id.WorkText);
 
                     LayoutLive = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutLive);
-                    IconLive = MainView.FindViewById<TextView>(Resource.Id.IconLive);
+                    //IconLive = MainView.FindViewById<TextView>(Resource.Id.IconLive);
                     LiveText = MainView.FindViewById<TextView>(Resource.Id.LiveText);
 
                     LayoutStudy = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutStudy);
-                    IconStudy = MainView.FindViewById<TextView>(Resource.Id.IconStudy);
+                    //IconStudy = MainView.FindViewById<TextView>(Resource.Id.IconStudy);
                     StudyText = MainView.FindViewById<TextView>(Resource.Id.StudyText);
 
                     LayoutRelationship = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutRelationship);
-                    IconRelationship = MainView.FindViewById<TextView>(Resource.Id.IconRelationship);
+                    //IconRelationship = MainView.FindViewById<TextView>(Resource.Id.IconRelationship);
                     RelationshipText = MainView.FindViewById<TextView>(Resource.Id.RelationshipText);
 
-                    FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTime, FontAwesomeIcon.Clock);
+                    /*FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTime, FontAwesomeIcon.Clock);
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWebsite, FontAwesomeIcon.Globe);
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconGander, FontAwesomeIcon.VenusMars);
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconBirthday, FontAwesomeIcon.BirthdayCake); 
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWork, FontAwesomeIcon.Briefcase);
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconStudy, FontAwesomeIcon.School); 
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconLive, FontAwesomeIcon.Home); 
-                    FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconRelationship, FontAwesomeIcon.Heart);
+                    FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconRelationship, FontAwesomeIcon.Heart);*/
 
                     WebsiteText.SetOnClickListener(this);
                 }
@@ -2798,6 +2769,7 @@ namespace WoWonder.Activities.NativePost.Post
                     GroupsRecyclerView?.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
                     GroupsAdapter = new UserGroupsAdapter(postAdapter.ActivityContext);
                     GroupsRecyclerView?.SetAdapter(GroupsAdapter);
+                    GroupsRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(GroupsRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     GroupsAdapter.ItemClick += (sender, e) =>
                     {
                         try
@@ -2876,15 +2848,9 @@ namespace WoWonder.Activities.NativePost.Post
 
                     if (AboutHead != null)
                         AboutHead.Text = postAdapter.ActivityContext.GetString(Resource.String.Lbl3_SuggestionsUsers);
-                    switch (ListUtils.SuggestedUserList.Count)
-                    {
-                        case > 0:
-                        {
-                            if (AboutMore != null)
-                                AboutMore.Text = ListUtils.SuggestedUserList.Count.ToString();
-                            break;
-                        }
-                    }
+                     
+                    AboutMore.Text = PostAdapter.ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                    AboutMore.SetTextColor(new Color(MainView.Context.GetColor(Resource.Color.primary)));
                      
                     AboutMore?.SetOnClickListener(this);
 
@@ -2897,6 +2863,7 @@ namespace WoWonder.Activities.NativePost.Post
                         UserList = new ObservableCollection<UserDataObject>(ListUtils.SuggestedUserList.Take(12))
                     };
                     UsersRecyclerView?.SetAdapter(UsersAdapter);
+                    UsersRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(UsersRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     UsersAdapter.ItemClick += (sender, e) =>
                     {
                         try
@@ -3006,12 +2973,9 @@ namespace WoWonder.Activities.NativePost.Post
                     AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
 
                     AboutHead.Text = postAdapter.ActivityContext.GetString(Resource.String.Lbl_SuggestedGroups);
-                    AboutMore.Text = ListUtils.SuggestedGroupList.Count switch
-                    {
-                        > 0 => ListUtils.SuggestedGroupList.Count.ToString(),
-                        _ => AboutMore.Text
-                    };
-
+                    AboutMore.Text = PostAdapter.ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                    AboutMore.SetTextColor(new Color(MainView.Context.GetColor(Resource.Color.primary)));
+                     
                     PostAdapter = postAdapter;
 
                     AboutMore.SetOnClickListener(this);
@@ -3025,6 +2989,7 @@ namespace WoWonder.Activities.NativePost.Post
                         GroupList = new ObservableCollection<GroupClass>(ListUtils.SuggestedGroupList.Take(12))
                     };
                     GroupsRecyclerView.SetAdapter(GroupsAdapter);
+                    GroupsRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(GroupsRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     GroupsAdapter.ItemClick += (sender, e) =>
                     {
                         try
@@ -3080,7 +3045,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 return;
                             }
                              
-                            var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(item.GroupId);
+                            var (apiStatus, respond) = await RequestsAsync.Group.JoinGroupAsync(item.GroupId);
                             switch (apiStatus)
                             {
                                 case 200:
@@ -3165,6 +3130,91 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
             private readonly PostClickListener PostClickListener;
 
+            public RecyclerView PagesRecyclerView { get; private set; }
+            public UserPagesAdapter PagesAdapter { get; private set; }
+
+            public TextView AboutHead { get; private set; }
+            public TextView AboutMore { get; private set; }
+            public PagesViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
+            {
+                try
+                {
+                    PostAdapter = postAdapter;
+                    PostClickListener = postClickListener;
+
+                    MainView = itemView;
+                    PagesRecyclerView = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
+                    AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
+                    AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
+
+                    AboutMore.Visibility = ViewStates.Gone;
+                    AboutMore?.SetOnClickListener(this);
+
+                    if (PagesAdapter != null)
+                        return;
+
+                    PagesRecyclerView?.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
+                    PagesAdapter = new UserPagesAdapter(postAdapter.ActivityContext);
+                    PagesRecyclerView?.SetAdapter(PagesAdapter);
+                    PagesAdapter.ItemClick += (sender, e) =>
+                    {
+                        try
+                        {
+                            var position = e.Position;
+                            switch (position)
+                            {
+                                case < 0:
+                                    return;
+                            }
+
+                            var item = PagesAdapter.GetItem(position);
+                            switch (item)
+                            {
+                                case null:
+                                    return;
+                            }
+
+                            /*if (UserDetails.UserId == item.UserId)
+                                item.IsOwner = true;*/
+
+                            MainApplication.GetInstance()?.NavigateTo(postAdapter.ActivityContext, typeof(PageProfileActivity), item);
+                        }
+                        catch (Exception x)
+                        {
+                            Methods.DisplayReportResultTrack(x);
+                        }
+                    };
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
+            public void OnClick(View v)
+            {
+                try
+                {
+                    if (AdapterPosition != RecyclerView.NoPosition)
+                    {
+                        var item = PostAdapter.ListDiffer[AdapterPosition];
+
+                        if (v.Id == AboutMore?.Id)
+                            PostClickListener.OpenAllViewer("PagesModel", PostAdapter.IdParameter, item);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+        }
+        /*public class PagesViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
+        {
+            public View MainView { get; private set; }
+            private readonly NativePostAdapter PostAdapter;
+            private readonly PostClickListener PostClickListener;
+
             public RelativeLayout LayoutSuggestionPages { get; private set; }
             public ImageView PageImage1 { get; private set; }
             public ImageView PageImage2 { get; private set; }
@@ -3214,7 +3264,7 @@ namespace WoWonder.Activities.NativePost.Post
                     Methods.DisplayReportResultTrack(e); 
                 }
             } 
-        }
+        }*/
 
         public class EmptyStateAdapterViewHolder : RecyclerView.ViewHolder
         {
@@ -3237,7 +3287,7 @@ namespace WoWonder.Activities.NativePost.Post
             public TextView HeadText { get; private set; }
             public TextView SubText { get; private set; }
             public View LineView { get; private set; }
-            public ImageView Image { get; private set; }
+            public RoundedImageView Image { get; private set; }
             public NativePostAdapter Adapter { get; private set; }
             public AlertAdapterViewHolder(View itemView, NativePostAdapter adapter , PostModelType viewType) : base(itemView)
             {
@@ -3251,7 +3301,7 @@ namespace WoWonder.Activities.NativePost.Post
                     LineView = MainView.FindViewById<View>(Resource.Id.lineview);
                     HeadText = MainView.FindViewById<TextView>(Resource.Id.HeadText);
                     SubText = MainView.FindViewById<TextView>(Resource.Id.subText);
-                    Image = MainView.FindViewById<ImageView>(Resource.Id.Image);
+                    Image = MainView.FindViewById<RoundedImageView>(Resource.Id.Image);
 
                     switch (MianAlert.HasOnClickListeners)
                     {
@@ -3506,7 +3556,7 @@ namespace WoWonder.Activities.NativePost.Post
                             arrayAdapter.Add(MainView.Context.GetString(Resource.String.Lbl_All));
                             arrayAdapter.Add(MainView.Context.GetString(Resource.String.Lbl_People_i_Follow));
                              
-                            dialogList.Title(MainView.Context.GetString(Resource.String.Lbl_Filter));
+                            dialogList.Title(MainView.Context.GetString(Resource.String.Lbl_Filter)).TitleColorRes(Resource.Color.primary);
                             dialogList.Items(arrayAdapter);
                             dialogList.PositiveText(MainView.Context.GetText(Resource.String.Lbl_Close)).OnPositive((p0, p1) =>
                             {
@@ -3671,6 +3721,67 @@ namespace WoWonder.Activities.NativePost.Post
                     Methods.DisplayReportResultTrack(e);
                 }
             }
+        }
+
+        public class ProfileHeaderSectionHolder : RecyclerView.ViewHolder
+        {
+            public LinearLayout MainLayout { get; private set; }
+            public TextView CountFollowers { get; private set; }
+            public TextView CountFollowings { get; private set; }
+            public TextView CountLikes { get; private set; }
+            public TextView CountPoints { get; private set; }
+            public TextView TxtFollowers { get; private set; }
+            public TextView TxtFollowing { get; private set; }
+            public LinearLayout LlCountFollowers { get; private set; }
+            public LinearLayout LlCountFollowing { get; private set; }
+            public LinearLayout LlCountLike { get; private set; }
+            public LinearLayout LlPoint { get; private set; }
+
+            public ProfileHeaderSectionHolder(View itemView) : base(itemView)
+            {
+                try
+                {
+                    MainLayout = itemView.FindViewById<LinearLayout>(Resource.Id.mainLayout);
+
+                    CountFollowers = itemView.FindViewById<TextView>(Resource.Id.CountFollowers);
+                    CountFollowings = itemView.FindViewById<TextView>(Resource.Id.CountFollowing);
+                    CountLikes = itemView.FindViewById<TextView>(Resource.Id.CountLikes);
+                    CountPoints = itemView.FindViewById<TextView>(Resource.Id.CountPoints);
+
+                    TxtFollowers = itemView.FindViewById<TextView>(Resource.Id.txtFollowers);
+                    TxtFollowing = itemView.FindViewById<TextView>(Resource.Id.txtFollowing);
+
+                    LlCountFollowers = itemView.FindViewById<LinearLayout>(Resource.Id.CountFollowersLayout);
+                    LlCountFollowing = itemView.FindViewById<LinearLayout>(Resource.Id.CountFollowingLayout);
+                    LlCountLike = itemView.FindViewById<LinearLayout>(Resource.Id.CountLikesLayout);
+                    LlPoint = itemView.FindViewById<LinearLayout>(Resource.Id.CountPointsLayout);
+
+                    switch (AppSettings.ConnectivitySystem)
+                    {
+                        // Following
+                        case 1:
+                            TxtFollowers.Text = itemView.Context.GetText(Resource.String.Lbl_Followers);
+                            TxtFollowing.Text = itemView.Context.GetText(Resource.String.Lbl_Following);
+                            break;
+                        // Friend
+                        default:
+                            TxtFollowers.Text = itemView.Context.GetText(Resource.String.Lbl_Friends);
+                            TxtFollowing.Text = itemView.Context.GetText(Resource.String.Lbl_Post);
+                            break;
+                    }
+
+                    if (!AppSettings.ShowUserPoint)
+                    {
+                        LlPoint.Visibility = ViewStates.Gone;
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
         }
 
     }

@@ -550,7 +550,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                 }
                 else
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Message.Get_users_list_Async(UserDetails.UserId, UserDetails.UserId, "20", offset, UserDetails.OnlineUsers);
+                    var (apiStatus, respond) = await RequestsAsync.Message.GetusersListAsync(UserDetails.UserId, UserDetails.UserId, "20", offset, UserDetails.OnlineUsers);
                     if (apiStatus != 200 || respond is not GetUsersListObject result || result.Users == null)
                     {
                         MainScrollEvent.IsLoading = false;
@@ -1751,7 +1751,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                     //if (AppSettings.EnableChatGroup)
                     //    fetch += ",group_chat_requests";
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.Get_General_Data(false, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, "1", "group_chat_requests");
+                    var (apiStatus, respond) = await RequestsAsync.Global.GetGeneralDataAsync(false, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, "1", "group_chat_requests");
                     if (apiStatus == 200)
                     {
                         if (respond is GetGeneralDataObject result)

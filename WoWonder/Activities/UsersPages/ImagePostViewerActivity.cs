@@ -39,15 +39,14 @@ namespace WoWonder.Activities.UsersPages
         private ImageViewTouch PageImage;
         private ImageView ImgLike, ImgWoWonder, ImgWonder; 
         private SuperTextView TxtDescription; 
-        private TextView TxtCountLike, TxtCountWoWonder, TxtWonder, ShareText; 
+        private TextView TxtCountLike, TxtCountWoWonder, TxtWonder, ShareText, CommentCount, ShareCount;
         private LinearLayout MainSectionButton,BtnCountLike, BtnCountWoWonder, BtnLike, BtnComment, BtnShare, BtnWonder, InfoImageLiner;
         private RelativeLayout MainLayout;
         private PostDataObject PostData;
         private ReactButton LikeButton;
         private string ImageUrl;
-        private PostClickListener ClickListener;
-        
-       
+        private PostClickListener ClickListener; 
+
         #endregion
 
         #region General
@@ -153,7 +152,7 @@ namespace WoWonder.Activities.UsersPages
 
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
-            MenuInflater.Inflate(Resource.Menu.ImagePost, menu);
+            MenuInflater.Inflate(Resource.Menu.ImagePost, menu); 
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -170,9 +169,9 @@ namespace WoWonder.Activities.UsersPages
                     Download_OnClick();
                     break;
 
-                case Resource.Id.ic_action_comment:
+                /*case Resource.Id.ic_action_comment:
                     Copy_OnClick();
-                    break;
+                    break;*/
 
                 case Resource.Id.action_More:
                     More_OnClick();
@@ -247,6 +246,9 @@ namespace WoWonder.Activities.UsersPages
                 TxtCountLike = FindViewById<TextView>(Resource.Id.LikeText1);
                 TxtCountWoWonder = FindViewById<TextView>(Resource.Id.WoWonderTextCount);
 
+                ShareCount = FindViewById<TextView>(Resource.Id.Sharecount);
+                CommentCount = FindViewById<TextView>(Resource.Id.Commentcount);
+
                 MainLayout = FindViewById<RelativeLayout>(Resource.Id.main);
                 InfoImageLiner = FindViewById<LinearLayout>(Resource.Id.infoImageLiner);
                 InfoImageLiner.Visibility = ViewStates.Visible;
@@ -264,10 +266,10 @@ namespace WoWonder.Activities.UsersPages
                 TxtWonder = FindViewById<TextView>(Resource.Id.SecondReactionText);
 
                 // set the default image display type
-               // PageImage.SetDisplayType(ImageViewTouchBase.DisplayType.FitIfBigger);
+                // PageImage.SetDisplayType(ImageViewTouchBase.DisplayType.FitIfBigger);
 
                 LikeButton = FindViewById<ReactButton>(Resource.Id.ReactButton);
-                LikeButton.SetTextColor(Color.White);
+                LikeButton.SetTextColor(Color.ParseColor("#C3C7D0"));
 
                 ShareText = FindViewById<TextView>(Resource.Id.ShareText);
                 ShareText.Visibility = AppSettings.ShowTextShareButton switch
@@ -281,7 +283,7 @@ namespace WoWonder.Activities.UsersPages
                     case PostButtonSystem.ReactionDefault:
                     case PostButtonSystem.ReactionSubShine:
                     case PostButtonSystem.Like:
-                        MainSectionButton.WeightSum = 3;
+                        MainSectionButton.WeightSum = 5;
                         BtnWonder.Visibility = ViewStates.Gone;
 
                         TxtCountWoWonder.Visibility = ViewStates.Gone;
@@ -325,21 +327,23 @@ namespace WoWonder.Activities.UsersPages
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private void InitToolbar()
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = " ";
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = " ";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    toolBar.SetNavigationIcon(Resource.Drawable.ic_action_left_arrow2);
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+ 
                 }
             }
             catch (Exception e)
@@ -543,10 +547,10 @@ namespace WoWonder.Activities.UsersPages
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.Wonder:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.PostId, "wonder") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "wonder") });
                         break;
                     case PostButtonSystem.DisLike:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(PostData.PostId, "dislike") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "dislike") });
                         break;
                 }
             }
@@ -713,6 +717,9 @@ namespace WoWonder.Activities.UsersPages
                         readMoreOption.AddReadMoreTo(TxtDescription, new Java.Lang.String(description)); 
                     }
 
+                    CommentCount.Text = PostData.PostComments + " " + GetString(Resource.String.Lbl_Comments);
+                    ShareCount.Text = PostData.PostShares + " " + GetString(Resource.String.Lbl_Shares);
+
                     switch (AppSettings.PostButton)
                     {
                         case PostButtonSystem.ReactionDefault:
@@ -721,7 +728,7 @@ namespace WoWonder.Activities.UsersPages
                             PostData.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
 
                             TxtCountLike.Text = Methods.FunString.FormatPriceValue(PostData.Reaction.Count);
-
+                                 
                             if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
                             {
                                 switch (string.IsNullOrEmpty(PostData.Reaction.Type))
@@ -768,7 +775,7 @@ namespace WoWonder.Activities.UsersPages
                             else
                             {
                                 LikeButton.SetReactionPack(ReactConstants.Default);
-                                LikeButton.SetTextColor(Color.White);
+                                LikeButton.SetTextColor(Color.ParseColor("#C3C7D0"));
 
                                 ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
                             }
@@ -780,7 +787,7 @@ namespace WoWonder.Activities.UsersPages
                             ImgLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
 
                             TxtCountLike.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostLikes));
-
+                                 
                             switch (AppSettings.PostButton)
                             {
                                 case PostButtonSystem.Wonder:

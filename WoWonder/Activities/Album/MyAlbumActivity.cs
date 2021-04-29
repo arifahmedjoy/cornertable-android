@@ -8,12 +8,10 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
-using Android.OS;
-
-
-
+using Android.OS; 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -205,16 +203,18 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_Albums);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_Albums);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -462,7 +462,7 @@ namespace WoWonder.Activities.Album
                 MainScrollEvent.IsLoading = true;
 
                 var countList = MAdapter.AlbumList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Album.GetAlbums(UserDetails.UserId, "15", offset);
+                var (apiStatus, respond) = await RequestsAsync.Album.GetAlbumsAsync(UserDetails.UserId, "15", offset);
                 if (apiStatus != 200 || respond is not GetAlbumsObject result || result.Albums == null)
                 {
                     MainScrollEvent.IsLoading = false;

@@ -146,7 +146,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Fragment
 
                 if (Methods.CheckConnectivity())
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.Change_Chat_Color(UserId, colorCssode) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.ChangeChatColorAsync(UserId, colorCssode) });
                 }
                 else
                 {

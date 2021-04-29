@@ -2454,7 +2454,7 @@ namespace WoWonder.Activities.Chat.PageChat
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.PageChat.FetchPageChatMessages(PageId, UserId);
+                    var (apiStatus, respond) = await RequestsAsync.PageChat.FetchPageChatMessagesAsync(PageId, UserId);
                     if (apiStatus == 200)
                     {
                         if (respond is PageMessagesObject result)
@@ -2518,7 +2518,7 @@ namespace WoWonder.Activities.Chat.PageChat
                     if (Methods.CheckConnectivity())
                     {
                         var lastMessageId = MAdapter.DifferList.LastOrDefault()?.MesData?.Id;
-                        var (apiStatus, respond) = await RequestsAsync.PageChat.FetchPageChatMessages(PageId, UserId, "0", "0");
+                        var (apiStatus, respond) = await RequestsAsync.PageChat.FetchPageChatMessagesAsync(PageId, UserId, "0", "0");
                         if (apiStatus == 200)
                         {
                             var countList = MAdapter.DifferList.Count;
@@ -2614,7 +2614,7 @@ namespace WoWonder.Activities.Chat.PageChat
                     var index = MAdapter.DifferList.IndexOf(data);
                     Console.WriteLine(index);
 
-                    var (apiStatus, respond) = await RequestsAsync.PageChat.FetchPageChatMessages(PageId, UserId, firstMessageId, "0", "15");
+                    var (apiStatus, respond) = await RequestsAsync.PageChat.FetchPageChatMessagesAsync(PageId, UserId, firstMessageId, "0", "15");
                     if (apiStatus == 200)
                     {
                         if (respond is PageMessagesObject result)
@@ -3257,7 +3257,7 @@ namespace WoWonder.Activities.Chat.PageChat
                             MAdapter.NotifyItemRangeChanged(index, MAdapter.DifferList.Count);
                         }
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessage(SelectedItemPositions.Id.ToString()) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteMessageAsync(SelectedItemPositions.Id.ToString()) });
 
                         if (Timer != null)
                         {

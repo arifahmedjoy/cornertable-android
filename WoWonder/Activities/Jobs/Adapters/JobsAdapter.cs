@@ -274,7 +274,7 @@ namespace WoWonder.Activities.Jobs.Adapters
                 arrayAdapter.Add(ActivityContext.GetText(Resource.String.Lbl_Edit));
                 arrayAdapter.Add(ActivityContext.GetText(Resource.String.Lbl_Delete));
 
-                dialogList.Title(ActivityContext.GetText(Resource.String.Lbl_More));
+                dialogList.Title(ActivityContext.GetText(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
@@ -305,7 +305,7 @@ namespace WoWonder.Activities.Jobs.Adapters
                     DialogType = "Delete";
 
                     var dialog = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                    dialog.Title(Resource.String.Lbl_Warning);
+                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                     dialog.Content(ActivityContext.GetText(Resource.String.Lbl_DeleteJobs));
                     dialog.PositiveText(ActivityContext.GetText(Resource.String.Lbl_Yes)).OnPositive(this);
                     dialog.NegativeText(ActivityContext.GetText(Resource.String.Lbl_No)).OnNegative(this);
@@ -360,7 +360,7 @@ namespace WoWonder.Activities.Jobs.Adapters
                             }
 
                             Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(DataInfoObject.PostId, "delete") });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(DataInfoObject.PostId, "delete") });
                         }
                         else
                         {

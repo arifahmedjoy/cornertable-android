@@ -13,6 +13,7 @@ using Android.OS;
 
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -191,12 +192,14 @@ namespace WoWonder.Activities.MyProfile
                 {
                     toolBar.Title = GetText(Resource.String.Lbl_Activities);
 
-                    toolBar.SetTitleTextColor(Color.White);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                 }
             }
             catch (Exception e)
@@ -218,6 +221,7 @@ namespace WoWonder.Activities.MyProfile
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
+                MRecycler.AddItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.Vertical));
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<ActivityDataObject>(this, MAdapter, sizeProvider, 10);
@@ -379,7 +383,7 @@ namespace WoWonder.Activities.MyProfile
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.LastActivitiesList.Count;
-                var (apiStatus, respond) = await RequestsAsync.Global.Get_MyActivities("25", offset);
+                var (apiStatus, respond) = await RequestsAsync.Global.GetMyActivitiesAsync("25", offset);
                 switch (apiStatus)
                 {
                     case 200:

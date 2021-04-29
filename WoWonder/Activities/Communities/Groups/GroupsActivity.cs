@@ -10,7 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Android.Gms.Ads;
-using Android.Graphics;  
+using Android.Graphics;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
@@ -204,16 +205,18 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-                if (toolbar != null)
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
                 {
-                    toolbar.Title = GetText(Resource.String.Lbl_ExploreGroup);
-                    toolbar.SetTitleTextColor(Color.White);
-                    SetSupportActionBar(toolbar);
+                    toolBar.Title = GetText(Resource.String.Lbl_ExploreGroup);
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+
                     
                 }
             }
@@ -502,7 +505,7 @@ namespace WoWonder.Activities.Communities.Groups
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroups("0", "7");
+                var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroupsAsync("0", "7");
                 if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                 {
                     Methods.DisplayReportResult(this, respond);
@@ -606,7 +609,7 @@ namespace WoWonder.Activities.Communities.Groups
             {
                 MainScrollEvent.IsLoading = true;
                 
-                var (apiStatus, respond) = await RequestsAsync.Group.GetJoinedGroups(UserDetails.UserId ,offset, "10");
+                var (apiStatus, respond) = await RequestsAsync.Group.GetJoinedGroupsAsync(UserDetails.UserId ,offset, "10");
                 if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
