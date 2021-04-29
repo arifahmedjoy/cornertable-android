@@ -56,10 +56,10 @@ namespace WoWonder.Helpers.Utils
             NoPageChat,
             NoMessages,
             NoFiles,
-            NoGroupRequest, 
+            NoGroupRequest,
             NoStartedMessages,
             NoPinnedMessages,
-            NoArchive, 
+            NoArchive,
         }
 
         public void InflateLayout(View inflated , Type type)
@@ -330,7 +330,7 @@ namespace WoWonder.Helpers.Utils
                         EmptyStateButton.Visibility = ViewStates.Gone;
                         break;
 
-                        //chat
+                    //chat
                     case Type.NoCall:
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Call);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
@@ -393,7 +393,7 @@ namespace WoWonder.Helpers.Utils
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_PinnedMessages);
                         DescriptionText.Text = "";
                         EmptyStateButton.Visibility = ViewStates.Gone;
-                        break; 
+                        break;
                 }
             }
             catch (Exception e)

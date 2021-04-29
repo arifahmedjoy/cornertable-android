@@ -290,14 +290,15 @@ namespace WoWonder.Activities
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -383,13 +384,14 @@ namespace WoWonder.Activities
                                       "$('.content-container').css('margin-top', '0');" +
                                       "$('.wo_about_wrapper_parent').css('top', '0');";
 
-                    if (Build.VERSION.SdkInt >= (BuildVersionCodes)19)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        view.EvaluateJavascript(js, this);
-                    }
-                    else
-                    {
-                        view.LoadUrl(js);
+                        case >= (BuildVersionCodes)19:
+                            view.EvaluateJavascript(js, this);
+                            break;
+                        default:
+                            view.LoadUrl(js);
+                            break;
                     }
                 }
                 catch (Exception e)
@@ -411,13 +413,14 @@ namespace WoWonder.Activities
                                       "$('.content-container').css('margin-top', '0');" +
                                       "$('.wo_about_wrapper_parent').css('top', '0');";
 
-                    if (Build.VERSION.SdkInt >= (BuildVersionCodes)19)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        view.EvaluateJavascript(js, this);
-                    }
-                    else
-                    {
-                        view.LoadUrl(js);
+                        case >= (BuildVersionCodes)19:
+                            view.EvaluateJavascript(js, this);
+                            break;
+                        default:
+                            view.LoadUrl(js);
+                            break;
                     }
                 }
                 catch (Exception e)

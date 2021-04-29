@@ -62,12 +62,15 @@ namespace WoWonder.Activities.UserProfile.Adapters
         {
             try
             {
-                if (!(viewHolder is UserGroupsAdapterViewHolder holder))
+                if (viewHolder is not UserGroupsAdapterViewHolder holder)
                     return;
 
                 var item = GroupList[position];
-                if (item == null)
-                    return;
+                switch (item)
+                {
+                    case null:
+                        return;
+                }
 
                 if (item.Avatar.Contains("http"))
                     GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
@@ -91,9 +94,11 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is UserGroupsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case UserGroupsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -150,14 +155,21 @@ namespace WoWonder.Activities.UserProfile.Adapters
             {
                 var d = new List<string>();
                 var item = GroupList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

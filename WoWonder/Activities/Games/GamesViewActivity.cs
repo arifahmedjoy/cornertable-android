@@ -284,16 +284,17 @@ namespace WoWonder.Activities.Games
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    //HybridView.Touch += HybridViewOnTouch;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    //HybridView.Touch -= HybridViewOnTouch;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        //HybridView.Touch += HybridViewOnTouch;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        //HybridView.Touch -= HybridViewOnTouch;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)

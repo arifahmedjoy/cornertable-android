@@ -51,15 +51,12 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                switch (PageNumber)
+                return PageNumber switch
                 {
-                    case 0:
-                        return FragmentListTab0.Count > 1 ? FragmentListTab0.Count : 0;
-                    case 1:
-                        return FragmentListTab1.Count > 1 ? FragmentListTab1.Count : 0;
-                    default:
-                        return FragmentListTab0.Count > 1 ? FragmentListTab0.Count : 0;
-                }
+                    0 => FragmentListTab0.Count > 1 ? FragmentListTab0.Count : 0,
+                    1 => FragmentListTab1.Count > 1 ? FragmentListTab1.Count : 0,
+                    _ => FragmentListTab0.Count > 1 ? FragmentListTab0.Count : 0
+                };
             }
             catch (Exception e)
             {
@@ -72,12 +69,21 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (fragmentList.Count > 0)
+                switch (fragmentList.Count)
                 {
-                    foreach (var fra in fragmentList)
+                    case > 0:
                     {
-                        if (fra.IsAdded && fra.IsVisible)
-                            ft.Hide(fra);
+                        foreach (var fra in fragmentList)
+                        {
+                            switch (fra.IsAdded)
+                            {
+                                case true when fra.IsVisible:
+                                    ft.Hide(fra);
+                                    break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -154,22 +160,37 @@ namespace WoWonder.Helpers.Utils
                 {
                     case 0:
                     {
-                        if (!FragmentListTab0.Contains(newFragment))
-                            FragmentListTab0.Add(newFragment);
+                        switch (FragmentListTab0.Contains(newFragment))
+                        {
+                            case false:
+                                FragmentListTab0.Add(newFragment);
+                                break;
+                        }
+
                         break;
                     }
                     case 1:
                     {
-                        if (!FragmentListTab1.Contains(newFragment))
-                            FragmentListTab1.Add(newFragment);
+                        switch (FragmentListTab1.Contains(newFragment))
+                        {
+                            case false:
+                                FragmentListTab1.Add(newFragment);
+                                break;
+                        }
+
                         break;
                     }
                 }
 
-                if (!newFragment.IsAdded)
-                    ft.Add(Resource.Id.mainFragment, newFragment, PageNumber + newFragment.Id.ToString());
-                else
-                    ft.Show(newFragment);
+                switch (newFragment.IsAdded)
+                {
+                    case false:
+                        ft.Add(Resource.Id.mainFragment, newFragment, PageNumber + newFragment.Id.ToString());
+                        break;
+                    default:
+                        ft.Show(newFragment);
+                        break;
+                }
 
                 ft.CommitNow();
                 Context.SupportFragmentManager.ExecutePendingTransactions();
@@ -203,8 +224,12 @@ namespace WoWonder.Helpers.Utils
             HideFragmentFromList(FragmentListTab0, ft);
             HideFragmentFromList(FragmentListTab1, ft);
 
-            if (oldFragment.IsAdded)
-                ft.Remove(oldFragment);
+            switch (oldFragment.IsAdded)
+            {
+                case true:
+                    ft.Remove(oldFragment);
+                    break;
+            }
 
             switch (PageNumber)
             {
@@ -269,8 +294,12 @@ namespace WoWonder.Helpers.Utils
                             if (FragmentListTab0.Contains(oldFragment))
                                 FragmentListTab0.Remove(oldFragment);
 
-                            if (oldFragment.IsAdded)
-                                ft.Remove(oldFragment);
+                            switch (oldFragment.IsAdded)
+                            {
+                                case true:
+                                    ft.Remove(oldFragment);
+                                    break;
+                            }
 
                             HideFragmentFromList(FragmentListTab0, ft);
                         }
@@ -296,7 +325,11 @@ namespace WoWonder.Helpers.Utils
 
         public void ShowFragment1()
         {
-            if (FragmentListTab1.Count < 0) return;
+            switch (FragmentListTab1.Count)
+            {
+                case < 0:
+                    return;
+            }
             var currentFragment = FragmentListTab1[FragmentListTab1.Count - 1];
             if (currentFragment != null)
                 DisplayFragment(currentFragment);

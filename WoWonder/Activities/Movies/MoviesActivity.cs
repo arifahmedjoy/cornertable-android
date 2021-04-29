@@ -142,8 +142,11 @@ namespace WoWonder.Activities.Movies
         {
             try
             {
-                if (MAdapter.MoviesList.Count > 0)
-                    ListUtils.ListCachedDataMovie = MAdapter.MoviesList;
+                ListUtils.ListCachedDataMovie = MAdapter.MoviesList.Count switch
+                {
+                    > 0 => MAdapter.MoviesList,
+                    _ => ListUtils.ListCachedDataMovie
+                };
 
                 DestroyBasic(); 
                 base.OnDestroy();
@@ -258,18 +261,19 @@ namespace WoWonder.Activities.Movies
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    BtnFilter.Click += BtnFilterOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    BtnFilter.Click -= BtnFilterOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        BtnFilter.Click += BtnFilterOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        BtnFilter.Click -= BtnFilterOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -361,24 +365,27 @@ namespace WoWonder.Activities.Movies
         {
             try
             {
-                if (CategoriesController.ListCategoriesMovies.Count > 0)
+                switch (CategoriesController.ListCategoriesMovies.Count)
                 {
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    case > 0:
+                    {
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesMovies.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesMovies.Select(item => item.CategoriesName).ToList();
 
-                    arrayAdapter.Insert(0, GetString(Resource.String.Lbl_Default));
+                        arrayAdapter.Insert(0, GetString(Resource.String.Lbl_Default));
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Content(GetText(Resource.String.Lbl_GetMoviesByCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Movies");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Content(GetText(Resource.String.Lbl_GetMoviesByCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Movies");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -394,20 +401,23 @@ namespace WoWonder.Activities.Movies
         private void LoadMovies()
         {
             try
-            { 
-                if (ListUtils.ListCachedDataMovie.Count > 0)
+            {
+                switch (ListUtils.ListCachedDataMovie.Count)
                 {
-                    MAdapter.MoviesList = ListUtils.ListCachedDataMovie;
-                    MAdapter.NotifyDataSetChanged();
+                    case > 0:
+                    {
+                        MAdapter.MoviesList = ListUtils.ListCachedDataMovie;
+                        MAdapter.NotifyDataSetChanged();
 
-                    var item = MAdapter.MoviesList.LastOrDefault();
-                    if (item != null && !string.IsNullOrEmpty(item.Id))
-                        StartApiService(item.Id);
+                        var item = MAdapter.MoviesList.LastOrDefault();
+                        if (item != null && !string.IsNullOrEmpty(item.Id))
+                            StartApiService(item.Id);
+                        break;
+                    }
+                    default:
+                        StartApiService();
+                        break;
                 }
-                else
-                {
-                    StartApiService();
-                }   
             }
             catch (Exception e)
             {
@@ -425,8 +435,11 @@ namespace WoWonder.Activities.Movies
 
         private async Task LoadMoviesAsync(string offset = "")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -434,36 +447,54 @@ namespace WoWonder.Activities.Movies
 
                 var countList = MAdapter.MoviesList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Movies.Get_Movies("10", offset,"", CategoryId);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetMoviesObject result)
+                    case 200:
                     {
-                        var respondList = result.Movies.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            if (countList > 0)
+                            case GetMoviesObject result:
                             {
-                                foreach (var item in from item in result.Movies let check = MAdapter.MoviesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Movies.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.MoviesList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Movies let check = MAdapter.MoviesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MAdapter.MoviesList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.MoviesList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.MoviesList = new ObservableCollection<GetMoviesObject.Movie>(result.Movies);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.MoviesList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreMovies), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.MoviesList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.MoviesList = new ObservableCollection<GetMoviesObject.Movie>(result.Movies);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.MoviesList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreMovies), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -472,10 +503,12 @@ namespace WoWonder.Activities.Movies
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -490,24 +523,29 @@ namespace WoWonder.Activities.Movies
                 MainScrollEvent.IsLoading = false; 
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.MoviesList.Count > 0)
+                switch (MAdapter.MoviesList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoMovies);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoMovies);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

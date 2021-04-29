@@ -71,11 +71,11 @@ namespace WoWonder.Activities.WalkTroutPage
                         Manifest.Permission.Camera
                     }, 208);
                 }
-               
+
                 if (Methods.CheckConnectivity())
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiPostAsync.FetchFirstNewsFeedApiPosts, ApiRequest.LoadSuggestedUser, ApiRequest.LoadSuggestedGroup, ApiRequest.GetMyGroups, ApiRequest.GetMyPages });
 
-               var fullGlideRequestBuilder = Glide.With(this).AsDrawable().SetDiskCacheStrategy(DiskCacheStrategy.Automatic).SkipMemoryCache(true).Override(200);
+                var fullGlideRequestBuilder = Glide.With(this).AsDrawable().SetDiskCacheStrategy(DiskCacheStrategy.Automatic).SkipMemoryCache(true).Override(200);
 
                 List<string> stickerList = new List<string>();
                 stickerList.AddRange(Stickers.StickerList1);
@@ -104,7 +104,6 @@ namespace WoWonder.Activities.WalkTroutPage
                         Methods.DisplayReportResultTrack(e);
                     }
                 });
-
             }
             catch (Exception e)
             {
@@ -182,37 +181,37 @@ namespace WoWonder.Activities.WalkTroutPage
                 {
                     case 1:
                     {
-                        if ((int)Build.VERSION.SdkInt >= 23)
+                        switch ((int)Build.VERSION.SdkInt)
                         {
-                            if (AppSettings.InvitationSystem)
-                            {
+                            case >= 23 when AppSettings.InvitationSystem:
                                 RequestPermissions(new[]
                                 {
                                     Manifest.Permission.ReadContacts,
                                     Manifest.Permission.ReadPhoneNumbers,
                                     Manifest.Permission.GetAccounts,
                                 }, 2);
-                            }
-                            else
-                            {
+                                break;
+                            case >= 23:
                                 RequestPermissions(new[]
                                 {
                                     Manifest.Permission.Camera
                                 }, 2);
-                            }
+                                break;
                         }
 
                         break;
                     }
                     case 2:
                     {
-                        if ((int)Build.VERSION.SdkInt >= 23)
+                        switch ((int)Build.VERSION.SdkInt)
                         {
-                            RequestPermissions(new[]
-                            {
-                                Manifest.Permission.RecordAudio,
-                                Manifest.Permission.ModifyAudioSettings
-                            }, 4);
+                            case >= 23:
+                                RequestPermissions(new[]
+                                {
+                                    Manifest.Permission.RecordAudio,
+                                    Manifest.Permission.ModifyAudioSettings
+                                }, 4);
+                                break;
                         }
 
                         break;
@@ -236,21 +235,33 @@ namespace WoWonder.Activities.WalkTroutPage
             {
                 if (Caller.Contains("register"))
                 {
-                    if (ListUtils.SettingsSiteList?.MembershipSystem == "1")
+                    switch (ListUtils.SettingsSiteList?.MembershipSystem)
                     {
-                        var intent = new Intent(this, typeof(GoProActivity));
-                        intent.PutExtra("class", "register");
-                        StartActivity(intent);
-                    }
-                    else if (AppSettings.ShowSuggestedUsersOnRegister)
-                    {
-                        Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
-                        newIntent?.PutExtra("class", "register");
-                        StartActivity(newIntent);
-                    }
-                    else
-                    {
-                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                        case "1":
+                        {
+                            var intent = new Intent(this, typeof(GoProActivity));
+                            intent.PutExtra("class", "register");
+                            StartActivity(intent);
+                            break;
+                        }
+                        default:
+                        {
+                            switch (AppSettings.ShowSuggestedUsersOnRegister)
+                            {
+                                case true:
+                                {
+                                    Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
+                                    newIntent?.PutExtra("class", "register");
+                                    StartActivity(newIntent);
+                                    break;
+                                }
+                                default:
+                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                    break;
+                            }
+
+                            break;
+                        }
                     }
                 }
                 else
@@ -273,21 +284,33 @@ namespace WoWonder.Activities.WalkTroutPage
             {
                 if (Caller.Contains("register"))
                 {
-                    if (ListUtils.SettingsSiteList?.MembershipSystem == "1")
+                    switch (ListUtils.SettingsSiteList?.MembershipSystem)
                     {
-                        var intent = new Intent(this, typeof(GoProActivity));
-                        intent.PutExtra("class", "register");
-                        StartActivity(intent);
-                    }
-                    else if (AppSettings.ShowSuggestedUsersOnRegister)
-                    {
-                        Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
-                        newIntent?.PutExtra("class", "register");
-                        StartActivity(newIntent);
-                    }
-                    else
-                    {
-                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                        case "1":
+                        {
+                            var intent = new Intent(this, typeof(GoProActivity));
+                            intent.PutExtra("class", "register");
+                            StartActivity(intent);
+                            break;
+                        }
+                        default:
+                        {
+                            switch (AppSettings.ShowSuggestedUsersOnRegister)
+                            {
+                                case true:
+                                {
+                                    Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
+                                    newIntent?.PutExtra("class", "register");
+                                    StartActivity(newIntent);
+                                    break;
+                                }
+                                default:
+                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                    break;
+                            }
+
+                            break;
+                        }
                     }
                 }
                 else

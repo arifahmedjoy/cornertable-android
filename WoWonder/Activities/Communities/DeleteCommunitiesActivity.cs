@@ -176,18 +176,12 @@ namespace WoWonder.Activities.Communities
                 var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolbar != null)
                 {
-                    switch (CommunitiesType)
+                    toolbar.Title = CommunitiesType switch
                     {
-                        case "Page":
-                            toolbar.Title = GetText(Resource.String.Lbl_DeletePage);
-                            break;
-                        case "Group":
-                            toolbar.Title = GetText(Resource.String.Lbl_DeleteGroup);
-                            break;
-                        default:
-                            toolbar.Title = GetText(Resource.String.Lbl_Delete);
-                            break;
-                    }
+                        "Page" => GetText(Resource.String.Lbl_DeletePage),
+                        "Group" => GetText(Resource.String.Lbl_DeleteGroup),
+                        _ => GetText(Resource.String.Lbl_Delete)
+                    };
 
                     toolbar.SetTitleTextColor(Color.White);
                     SetSupportActionBar(toolbar);
@@ -207,14 +201,15 @@ namespace WoWonder.Activities.Communities
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnDelete.Click += BtnDeleteOnClick;
-                }
-                else
-                {
-                    BtnDelete.Click -= BtnDeleteOnClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnDelete.Click += BtnDeleteOnClick;
+                        break;
+                    default:
+                        BtnDelete.Click -= BtnDeleteOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -246,10 +241,11 @@ namespace WoWonder.Activities.Communities
         {
             try
             {
-                if (!ChkDelete.Checked)
+                switch (ChkDelete.Checked)
                 {
-                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Warning),GetText(Resource.String.Lbl_You_can_not_access_your_disapproval),GetText(Resource.String.Lbl_Ok));
-                    return;
+                    case false:
+                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Warning),GetText(Resource.String.Lbl_You_can_not_access_your_disapproval),GetText(Resource.String.Lbl_Ok));
+                        return;
                 }
 
                 if (!Methods.CheckConnectivity())

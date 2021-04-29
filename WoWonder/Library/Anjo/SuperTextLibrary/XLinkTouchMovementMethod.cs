@@ -84,10 +84,13 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
 
                 var link = spannable.GetSpans(horizontalOffset, horizontalOffset, Class.FromType(typeof(XTouchableSpan)));
 
-                if (link?.Length > 0)
+                switch (link?.Length)
                 {
-                    var sdfs = (XTouchableSpan)link[0];
-                    return sdfs;
+                    case > 0:
+                    {
+                        var sdfs = (XTouchableSpan)link[0];
+                        return sdfs;
+                    }
                 }
             }
             catch (Exception exception)

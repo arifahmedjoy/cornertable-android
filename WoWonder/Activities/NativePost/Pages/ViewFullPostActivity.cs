@@ -259,14 +259,15 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -344,25 +345,37 @@ namespace WoWonder.Activities.NativePost.Pages
         private async Task LoadPostDataAsync()
         {
             var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(PostId, "post_data");
-            if (apiStatus == 200)
+            switch (apiStatus)
             {
-                if (respond is GetPostDataObject result)
+                case 200:
                 {
-                    DataObject = result.PostData;
-                    if (DataObject != null)
+                    switch (respond)
                     {
-                        DataObject.GetPostComments = new List<GetCommentObject>();
+                        case GetPostDataObject result:
+                        {
+                            DataObject = result.PostData;
+                            if (DataObject != null)
+                            {
+                                DataObject.GetPostComments = new List<GetCommentObject>();
 
-                        var combine = new FeedCombiner(DataObject, NativeFeedAdapter.ListDiffer, this);
-                        combine.CombineDefaultPostSections();
+                                var combine = new FeedCombiner(DataObject, NativeFeedAdapter.ListDiffer, this);
+                                combine.CombineDefaultPostSections();
 
-                        await LoadDataComment();
+                                await LoadDataComment();
 
-                        RunOnUiThread(() => { NativeFeedAdapter.NotifyDataSetChanged(); });
+                                RunOnUiThread(() => { NativeFeedAdapter.NotifyDataSetChanged(); });
+                            }
+
+                            break;
+                        }
                     }
+
+                    break;
                 }
+                default:
+                    Methods.DisplayReportResult(this, respond);
+                    break;
             }
-            else Methods.DisplayReportResult(this, respond);
 
             RunOnUiThread(ShowEmptyPage);
         }
@@ -383,15 +396,19 @@ namespace WoWonder.Activities.NativePost.Pages
                 else
                 {
                     var emptyStateChecker = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                    if (emptyStateChecker == null)
+                    switch (emptyStateChecker)
                     {
-                        var data = new AdapterModelsClass
+                        case null:
                         {
-                            TypeView = PostModelType.EmptyState,
-                            Id = 744747447,
-                        };
-                        NativeFeedAdapter.ListDiffer.Add(data);
-                        NativeFeedAdapter.NotifyItemInserted(NativeFeedAdapter.ListDiffer.IndexOf(data));
+                            var data = new AdapterModelsClass
+                            {
+                                TypeView = PostModelType.EmptyState,
+                                Id = 744747447,
+                            };
+                            NativeFeedAdapter.ListDiffer.Add(data);
+                            NativeFeedAdapter.NotifyItemInserted(NativeFeedAdapter.ListDiffer.IndexOf(data));
+                            break;
+                        }
                     }
                 }
             }
@@ -408,14 +425,17 @@ namespace WoWonder.Activities.NativePost.Pages
 
         private async Task LoadDataComment(string offset ="0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var (apiStatus, respond) = await RequestsAsync.Comment.GetPostComments(PostId, "10", offset);
-                if (apiStatus != 200 || (respond is not CommentObject result) || result.CommentList == null)
+                if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -423,25 +443,32 @@ namespace WoWonder.Activities.NativePost.Pages
                 else
                 {
                     var respondList = result.CommentList?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        foreach (var item in result.CommentList)
+                        case > 0:
                         {
-                            CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
-                            if (check == null)
+                            foreach (var item in result.CommentList)
                             {
-                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                                if (db != null) MAdapter.CommentList.Add(db);
+                                CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
+                                switch (check)
+                                {
+                                    case null:
+                                    {
+                                        var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                        if (db != null) MAdapter.CommentList.Add(db);
+                                        break;
+                                    }
+                                    default:
+                                        check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                        check.Replies = item.Replies;
+                                        check.RepliesCount = item.RepliesCount;
+                                        break;
+                                }
                             }
-                            else
-                            {
-                                check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                                check.Replies = item.Replies;
-                                check.RepliesCount = item.RepliesCount;
-                            }
-                        }
 
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        }
                     }
                 }
 

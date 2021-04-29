@@ -5,6 +5,7 @@ using Android.Util;
 using Android.Views;
 using Android.Views.Animations;
 using Android.Widget;
+using JetBrains.Annotations;
 using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Library.Anjo.StoriesProgressView
@@ -25,27 +26,28 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
             void OnStartProgress();
             void OnFinishProgress(); 
         }
-         
+
+
         protected PausableProgressBar(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
         {
         }
 
-        public PausableProgressBar(Context context) : base(context)
+        public PausableProgressBar([NotNull] Context context) : base(context)
         {
             Init(context);
         }
 
-        public PausableProgressBar(Context context, IAttributeSet attrs) : base(context, attrs)
+        public PausableProgressBar([NotNull] Context context, IAttributeSet attrs) : base(context, attrs)
         {
             Init(context);
         }
 
-        public PausableProgressBar(Context context, IAttributeSet attrs, int defStyleAttr) : base(context, attrs, defStyleAttr)
+        public PausableProgressBar([NotNull] Context context, IAttributeSet attrs, int defStyleAttr) : base(context, attrs, defStyleAttr)
         {
             Init(context);
         }
 
-        public PausableProgressBar(Context context, IAttributeSet attrs, int defStyleAttr, int defStyleRes) : base(context, attrs, defStyleAttr, defStyleRes)
+        public PausableProgressBar([NotNull] Context context, IAttributeSet attrs, int defStyleAttr, int defStyleRes) : base(context, attrs, defStyleAttr, defStyleRes)
         {
             Init(context);
         }
@@ -66,172 +68,96 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
          
         public void SetDuration(long duration)
         {
-            try
-            {
-                Duration = duration;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            } 
+            Duration = duration;
         }
 
         public void SetCallback(ICallback callback)
         {
-            try
-            {
-                Callback = callback; 
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            Callback = callback;
         }
 
         public void SetMax()
         {
-            try
-            {
-                FinishProgress(true); 
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            FinishProgress(true);
         }
 
         public void SetMin()
         {
-            try
-            {
-                FinishProgress(false); 
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            FinishProgress(false);
         }
 
         public void SetMinWithoutCallback()
         {
-            try
-            {
-                MaxProgressView.SetBackgroundResource(Resource.Color.progress_secondary);
+            MaxProgressView.SetBackgroundResource(Resource.Color.progress_secondary);
 
-                MaxProgressView.Visibility = ViewStates.Visible;
-                if (Animation != null)
-                {
-                    Animation.SetAnimationListener(null);
-                    Animation.Cancel();
-                }
-
-            }
-            catch (Exception e)
+            MaxProgressView.Visibility = ViewStates.Visible;
+            if (Animation != null)
             {
-                Methods.DisplayReportResultTrack(e);
+                Animation.SetAnimationListener(null);
+                Animation.Cancel();
             }
         }
 
         public void SetMaxWithoutCallback()
         {
-            try
-            {
-                MaxProgressView.SetBackgroundResource(Resource.Color.progress_max_active);
+            MaxProgressView.SetBackgroundResource(Resource.Color.progress_max_active);
 
-                MaxProgressView.Visibility = ViewStates.Visible;
-                if (Animation != null)
-                {
-                    Animation.SetAnimationListener(null);
-                    Animation.Cancel();
-                }
-
-            }
-            catch (Exception e)
+            MaxProgressView.Visibility = ViewStates.Visible;
+            if (Animation != null)
             {
-                Methods.DisplayReportResultTrack(e);
+                Animation.SetAnimationListener(null);
+                Animation.Cancel();
             }
         }
 
         private void FinishProgress(bool  isMax)
         {
-            try
+            switch (isMax)
             {
-                if (isMax) MaxProgressView.SetBackgroundResource(Resource.Color.progress_max_active);
-                MaxProgressView.Visibility = isMax ? ViewStates.Visible : ViewStates.Gone;
-                if (Animation != null)
-                {
-                    Animation.SetAnimationListener(null);
-                    Animation.Cancel();
-                    Callback?.OnFinishProgress();
-                } 
+                case true:
+                    MaxProgressView.SetBackgroundResource(Resource.Color.progress_max_active);
+                    break;
             }
-            catch (Exception e)
+            MaxProgressView.Visibility =  isMax ? ViewStates.Visible : ViewStates.Gone;
+            if (Animation != null)
             {
-                Methods.DisplayReportResultTrack(e);
+                Animation.SetAnimationListener(null);
+                Animation.Cancel();
+                Callback?.OnFinishProgress();
             }
         }
 
         public void StartProgress()
         {
-            try
-            {
-                MaxProgressView.Visibility = ViewStates.Gone;
+            MaxProgressView.Visibility = ViewStates.Gone;
 
-                Animation = new PassableScaleAnimation(0, 1, 1, 1, Dimension.Absolute, 0, Dimension.RelativeToSelf, 0)
-                {
-                    Duration = Duration,
-                    Interpolator = new LinearInterpolator()
-                };
-                Animation.SetAnimationListener(new MyAnimationListener(this));
-                Animation.FillAfter = true;
-                FrontProgressView.StartAnimation(Animation);
-            }
-            catch (Exception e)
+            Animation = new PassableScaleAnimation(0, 1, 1, 1, Dimension.Absolute, 0, Dimension.RelativeToSelf, 0)
             {
-                Methods.DisplayReportResultTrack(e);
-            } 
+                Duration = Duration, Interpolator = new LinearInterpolator()
+            };
+            Animation.SetAnimationListener(new MyAnimationListener(this));
+            Animation.FillAfter = true;
+            FrontProgressView.StartAnimation(Animation);
         }
 
 
         public void PauseProgress()
         {
-            try
-            { 
-                Animation?.Pause();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            Animation?.Pause();
         }
 
         public void ResumeProgress()
         {
-            try
-            {
-
-                Animation?.Resume();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            Animation?.Resume();
         }
 
         public void Clear()
         {
-            try
+            if (Animation != null)
             {
-                if (Animation != null)
-                {
-                    Animation.SetAnimationListener(null);
-                    Animation.Cancel();
-                    Animation = null;
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
+                Animation.SetAnimationListener(null);
+                Animation.Cancel();
+                Animation = null;
             }
         }
          
@@ -262,7 +188,7 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
                 }
                 catch (Exception e)
                 {
-                    Methods.DisplayReportResultTrack(e);
+                    Console.WriteLine(e);
                 }
             }
         }
@@ -295,21 +221,17 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
 
             public override bool GetTransformation(long currentTime, Transformation outTransformation, float scale)
             {
-                try
+                MElapsedAtPause = MPaused switch
                 {
-                    if (MPaused && MElapsedAtPause == 0)
-                    {
-                        MElapsedAtPause = currentTime - StartTime;
-                    }
-                    if (MPaused)
-                    {
-                        StartTime = currentTime - MElapsedAtPause;
-                    } 
-                }
-                catch (Exception e)
+                    true when MElapsedAtPause == 0 => currentTime - StartTime,
+                    _ => MElapsedAtPause
+                };
+                StartTime = MPaused switch
                 {
-                    Methods.DisplayReportResultTrack(e);
-                }
+                    true => currentTime - MElapsedAtPause,
+                    _ => StartTime
+                };
+
                 return base.GetTransformation(currentTime, outTransformation, scale);
             }
 
@@ -318,16 +240,15 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
             /// </summary>
             public void Pause()
             {
-                try
+                switch (MPaused)
                 {
-                    if (MPaused) return;
-                    MElapsedAtPause = 0;
-                    MPaused = true;
+                    case true:
+                        return;
+                    default:
+                        MElapsedAtPause = 0;
+                        MPaused = true;
+                        break;
                 }
-                catch (Exception e)
-                {
-                    Methods.DisplayReportResultTrack(e);
-                } 
             }
 
             /// <summary>
@@ -335,14 +256,7 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
             /// </summary>
             public void Resume()
             {
-                try
-                {
-                    MPaused = false;
-                }
-                catch (Exception e)
-                {
-                    Methods.DisplayReportResultTrack(e);
-                } 
+                MPaused = false;
             }
 
         }

@@ -51,8 +51,11 @@ namespace WoWonder.Activities.Jobs
                 SetContentView(Resource.Layout.EditJobsLayout);
 
                 var dataObject = Intent?.GetStringExtra("JobsObject");
-                if (!string.IsNullOrEmpty(dataObject))
-                    DataInfoObject = JsonConvert.DeserializeObject<JobInfoObject>(dataObject);
+                DataInfoObject = string.IsNullOrEmpty(dataObject) switch
+                {
+                    false => JsonConvert.DeserializeObject<JobInfoObject>(dataObject),
+                    _ => DataInfoObject
+                };
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -229,22 +232,23 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                    TxtSalaryDate.Touch += TxtSalaryDateOnTouch;
-                    TxtJobType.Touch += TxtJobTypeOnTouch;
-                    TxtCategory.Touch += TxtCategoryOnTouch;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = null!; 
-                    TxtSalaryDate.Touch -= TxtSalaryDateOnTouch;
-                    TxtJobType.Touch -= TxtJobTypeOnTouch;
-                    TxtCategory.Touch -= TxtCategoryOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = this; 
+                        TxtSalaryDate.Touch += TxtSalaryDateOnTouch;
+                        TxtJobType.Touch += TxtJobTypeOnTouch;
+                        TxtCategory.Touch += TxtCategoryOnTouch;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = null!; 
+                        TxtSalaryDate.Touch -= TxtSalaryDateOnTouch;
+                        TxtJobType.Touch -= TxtJobTypeOnTouch;
+                        TxtCategory.Touch -= TxtCategoryOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -293,24 +297,27 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesJob.Count > 0)
+                switch (CategoriesController.ListCategoriesJob.Count)
                 {
-                    TypeDialog = "Categories";
+                    case > 0:
+                    {
+                        TypeDialog = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Job");
+                        break;
                 }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Job");
-                } 
             }
             catch (Exception exception)
             {
@@ -369,22 +376,26 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Location when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Location when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -414,49 +425,57 @@ namespace WoWonder.Activities.Jobs
                      
                     var (apiStatus, respond) = await RequestsAsync.Jobs.EditJob(DataInfoObject.Id, TxtTitle.Text, TxtDescription.Text, TxtLocation.Text,
                         TxtMinimum.Text, TxtMaximum.Text, SalaryDateId, JobTypeId, CategoryId);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageJobObject result)
+                        case 200:
                         {
-                            Console.WriteLine(result.MessageData);
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_jobSuccessfullyEdited), ToastLength.Short)?.Show();
-                            AndHUD.Shared.Dismiss(this);
+                            switch (respond)
+                            {
+                                case MessageJobObject result:
+                                {
+                                    Console.WriteLine(result.MessageData);
+                                    Toast.MakeText(this, GetString(Resource.String.Lbl_jobSuccessfullyEdited), ToastLength.Short)?.Show();
+                                    AndHUD.Shared.Dismiss(this);
 
-                            JobInfoObject newInfoObject = new JobInfoObject
-                            {
-                                Title = TxtTitle.Text,
-                                Location = TxtLocation.Text,
-                                Minimum = TxtMinimum.Text,
-                                Maximum = TxtMaximum.Text,
-                                SalaryDate = TxtSalaryDate.Text,
-                                JobType = TxtJobType.Text,
-                                Description = TxtDescription.Text,
-                                Category = CategoryId,
-                            };
+                                    JobInfoObject newInfoObject = new JobInfoObject
+                                    {
+                                        Title = TxtTitle.Text,
+                                        Location = TxtLocation.Text,
+                                        Minimum = TxtMinimum.Text,
+                                        Maximum = TxtMaximum.Text,
+                                        SalaryDate = TxtSalaryDate.Text,
+                                        JobType = TxtJobType.Text,
+                                        Description = TxtDescription.Text,
+                                        Category = CategoryId,
+                                    };
                              
-                            JobInfoObject data = JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
-                            if (data != null)
-                            {
-                                data.Title = TxtTitle.Text;
-                                data.Location = TxtLocation.Text;
-                                data.Minimum = TxtMinimum.Text;
-                                data.Maximum = TxtMaximum.Text; 
-                                data.SalaryDate = TxtSalaryDate.Text; 
-                                data.JobType = TxtJobType.Text; 
-                                data.Description = TxtDescription.Text; 
-                                data.Category = CategoryId; 
-                                JobsActivity.GetInstance().MAdapter.NotifyItemChanged(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(data));
+                                    JobInfoObject data = JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
+                                    if (data != null)
+                                    {
+                                        data.Title = TxtTitle.Text;
+                                        data.Location = TxtLocation.Text;
+                                        data.Minimum = TxtMinimum.Text;
+                                        data.Maximum = TxtMaximum.Text; 
+                                        data.SalaryDate = TxtSalaryDate.Text; 
+                                        data.JobType = TxtJobType.Text; 
+                                        data.Description = TxtDescription.Text; 
+                                        data.Category = CategoryId; 
+                                        JobsActivity.GetInstance().MAdapter.NotifyItemChanged(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(data));
+                                    }
+
+                                    Intent intent = new Intent();
+                                    intent.PutExtra("JobsItem", JsonConvert.SerializeObject(newInfoObject));
+                                    SetResult(Result.Ok, intent);
+                                    Finish();
+                                    break;
+                                }
                             }
 
-                            Intent intent = new Intent();
-                            intent.PutExtra("JobsItem", JsonConvert.SerializeObject(newInfoObject));
-                            SetResult(Result.Ok, intent);
-                            Finish();
+                            break;
                         }
-                    }
-                    else
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
                 else
@@ -482,8 +501,12 @@ namespace WoWonder.Activities.Jobs
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == 502 && resultCode == Result.Ok)
-                    GetPlaceFromPicker(data);
+                switch (requestCode)
+                {
+                    case 502 when resultCode == Result.Ok:
+                        GetPlaceFromPicker(data);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -498,17 +521,15 @@ namespace WoWonder.Activities.Jobs
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 105)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open intent Camera when the request code of result is 503
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
-                    {
+                        break;
+                    case 105:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -573,9 +594,12 @@ namespace WoWonder.Activities.Jobs
             try
             {
                 var placeAddress = data.GetStringExtra("Address") ?? "";
-                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                if (!string.IsNullOrEmpty(placeAddress))
-                    TxtLocation.Text = placeAddress;
+                TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
+                {
+                    //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                    false => placeAddress,
+                    _ => TxtLocation.Text
+                };
             }
             catch (Exception e)
             {
@@ -601,46 +625,28 @@ namespace WoWonder.Activities.Jobs
                     TxtMaximum.Text = DataInfoObject.Maximum;
 
                     //Set Salary Date
-                    SalaryDateId = DataInfoObject.SalaryDate; 
-                    switch (DataInfoObject.SalaryDate)
+                    SalaryDateId = DataInfoObject.SalaryDate;
+                    TxtSalaryDate.Text = DataInfoObject.SalaryDate switch
                     {
-                        case "per_hour":
-                            TxtSalaryDate.Text = GetString(Resource.String.Lbl_per_hour);
-                            break;
-                        case "per_day":
-                            TxtSalaryDate.Text = GetString(Resource.String.Lbl_per_day);
-                            break;
-                        case "per_week":
-                            TxtSalaryDate.Text = GetString(Resource.String.Lbl_per_week);
-                            break;
-                        case "per_month":
-                            TxtSalaryDate.Text = GetString(Resource.String.Lbl_per_month);
-                            break;
-                        case "per_year":
-                            TxtSalaryDate.Text = GetString(Resource.String.Lbl_per_year);
-                            break; 
-                    }
-                     
+                        "per_hour" => GetString(Resource.String.Lbl_per_hour),
+                        "per_day" => GetString(Resource.String.Lbl_per_day),
+                        "per_week" => GetString(Resource.String.Lbl_per_week),
+                        "per_month" => GetString(Resource.String.Lbl_per_month),
+                        "per_year" => GetString(Resource.String.Lbl_per_year),
+                        _ => TxtSalaryDate.Text
+                    };
+
                     //Set job type
-                    JobTypeId = DataInfoObject.JobType; 
-                    switch (DataInfoObject.JobType)
+                    JobTypeId = DataInfoObject.JobType;
+                    TxtJobType.Text = DataInfoObject.JobType switch
                     {
-                        case "full_time":
-                            TxtJobType.Text = GetString(Resource.String.Lbl_full_time);
-                            break;
-                        case "part_time":
-                            TxtJobType.Text = GetString(Resource.String.Lbl_part_time);
-                            break;
-                        case "internship":
-                            TxtJobType.Text = GetString(Resource.String.Lbl_internship);
-                            break;
-                        case "volunteer":
-                            TxtJobType.Text = GetString(Resource.String.Lbl_volunteer);
-                            break;
-                        case "contract":
-                            TxtJobType.Text = GetString(Resource.String.Lbl_contract);
-                            break;
-                    }
+                        "full_time" => GetString(Resource.String.Lbl_full_time),
+                        "part_time" => GetString(Resource.String.Lbl_part_time),
+                        "internship" => GetString(Resource.String.Lbl_internship),
+                        "volunteer" => GetString(Resource.String.Lbl_volunteer),
+                        "contract" => GetString(Resource.String.Lbl_contract),
+                        _ => TxtJobType.Text
+                    };
 
                     CategoryId = DataInfoObject.Category;
                     TxtCategory.Text = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == DataInfoObject.Category)?.CategoriesName;

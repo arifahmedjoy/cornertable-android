@@ -215,14 +215,15 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                // true +=  // false -=
-                if (addFunding)
+                switch (addFunding)
                 {
-                    ActionButton.Click += ActionButtonOnClick;
-                }
-                else
-                {
-                    ActionButton.Click -= ActionButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        ActionButton.Click += ActionButtonOnClick;
+                        break;
+                    default:
+                        ActionButton.Click -= ActionButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -302,8 +303,11 @@ namespace WoWonder.Activities.Fundings
 
         public async Task GetFunding(string offset = "0")
         {
-            if (FundingTab.MainScrollEvent.IsLoading)
-                return;
+            switch (FundingTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -311,36 +315,54 @@ namespace WoWonder.Activities.Fundings
                 var countList = FundingTab.MAdapter.FundingList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Funding.FetchFunding("10", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is FetchFundingObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case FetchFundingObject result:
                             {
-                                foreach (var item in from item in result.Data let check = FundingTab.MAdapter.FundingList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    FundingTab.MAdapter.FundingList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = FundingTab.MAdapter.FundingList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            FundingTab.MAdapter.FundingList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { FundingTab.MAdapter.NotifyItemRangeInserted(countList, FundingTab.MAdapter.FundingList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        FundingTab.MAdapter.FundingList = new ObservableCollection<FundingDataObject>(result.Data);
+                                        RunOnUiThread(() => { FundingTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (FundingTab.MAdapter.FundingList.Count)
+                                        {
+                                            case > 10 when !FundingTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { FundingTab.MAdapter.NotifyItemRangeInserted(countList, FundingTab.MAdapter.FundingList.Count - countList); });
-                            }
-                            else
-                            {
-                                FundingTab.MAdapter.FundingList = new ObservableCollection<FundingDataObject>(result.Data);
-                                RunOnUiThread(() => { FundingTab.MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (FundingTab.MAdapter.FundingList.Count > 10 && !FundingTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(() => ShowEmptyPage("GetFunding"));
             }
@@ -349,10 +371,12 @@ namespace WoWonder.Activities.Fundings
                 FundingTab.Inflated = FundingTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(FundingTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                    x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -362,8 +386,11 @@ namespace WoWonder.Activities.Fundings
 
         public async Task GetMyFunding(string offset = "0")
         {
-            if (MyFundingTab.MainScrollEvent.IsLoading)
-                return;
+            switch (MyFundingTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -371,36 +398,54 @@ namespace WoWonder.Activities.Fundings
                 var countList = MyFundingTab.MAdapter.FundingList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Funding.FetchMyFunding(UserDetails.UserId , "10", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is FetchFundingObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case FetchFundingObject result:
                             {
-                                foreach (var item in from item in result.Data let check = MyFundingTab.MAdapter.FundingList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    MyFundingTab.MAdapter.FundingList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MyFundingTab.MAdapter.FundingList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MyFundingTab.MAdapter.FundingList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MyFundingTab.MAdapter.NotifyItemRangeInserted(countList, MyFundingTab.MAdapter.FundingList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MyFundingTab.MAdapter.FundingList = new ObservableCollection<FundingDataObject>(result.Data);
+                                        RunOnUiThread(() => { MyFundingTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MyFundingTab.MAdapter.FundingList.Count)
+                                        {
+                                            case > 10 when !MyFundingTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MyFundingTab.MAdapter.NotifyItemRangeInserted(countList, MyFundingTab.MAdapter.FundingList.Count - countList); });
-                            }
-                            else
-                            {
-                                MyFundingTab.MAdapter.FundingList = new ObservableCollection<FundingDataObject>(result.Data);
-                                RunOnUiThread(() => { MyFundingTab.MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MyFundingTab.MAdapter.FundingList.Count > 10 && !MyFundingTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(() => ShowEmptyPage("GetMyFunding"));
             }
@@ -409,10 +454,12 @@ namespace WoWonder.Activities.Fundings
                 MyFundingTab.Inflated = MyFundingTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(MyFundingTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                    x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -432,25 +479,33 @@ namespace WoWonder.Activities.Fundings
                         FundingTab.MainScrollEvent.IsLoading = false;
                         FundingTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (FundingTab.MAdapter.FundingList.Count > 0)
+                        switch (FundingTab.MAdapter.FundingList.Count)
                         {
-                            FundingTab.MRecycler.Visibility = ViewStates.Visible;
-                            FundingTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            FundingTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (FundingTab.Inflated == null)
-                                FundingTab.Inflated = FundingTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(FundingTab.Inflated, EmptyStateInflater.Type.NoFunding);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                FundingTab.MRecycler.Visibility = ViewStates.Visible;
+                                FundingTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
+                                FundingTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                FundingTab.Inflated = FundingTab.Inflated switch
+                                {
+                                    null => FundingTab.EmptyStateLayout.Inflate(),
+                                    _ => FundingTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(FundingTab.Inflated, EmptyStateInflater.Type.NoFunding);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+                                FundingTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            FundingTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -460,25 +515,33 @@ namespace WoWonder.Activities.Fundings
                         MyFundingTab.MainScrollEvent.IsLoading = false;
                         MyFundingTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (MyFundingTab.MAdapter.FundingList.Count > 0)
+                        switch (MyFundingTab.MAdapter.FundingList.Count)
                         {
-                            MyFundingTab.MRecycler.Visibility = ViewStates.Visible;
-                            MyFundingTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            MyFundingTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (MyFundingTab.Inflated == null)
-                                MyFundingTab.Inflated = MyFundingTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(MyFundingTab.Inflated, EmptyStateInflater.Type.NoFunding);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                MyFundingTab.MRecycler.Visibility = ViewStates.Visible;
+                                MyFundingTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
+                                MyFundingTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                MyFundingTab.Inflated = MyFundingTab.Inflated switch
+                                {
+                                    null => MyFundingTab.EmptyStateLayout.Inflate(),
+                                    _ => MyFundingTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(MyFundingTab.Inflated, EmptyStateInflater.Type.NoFunding);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+                                MyFundingTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            MyFundingTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;

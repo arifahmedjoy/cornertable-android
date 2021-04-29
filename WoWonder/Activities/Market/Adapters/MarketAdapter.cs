@@ -67,10 +67,14 @@ namespace WoWonder.Activities.Market.Adapters
         {
             try
             {
-                if (viewHolder is MarketAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MarketList[position];
-                    if (item != null) Initialize(holder, item);
+                    case MarketAdapterViewHolder holder:
+                    {
+                        var item = MarketList[position];
+                        if (item != null) Initialize(holder, item);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -83,16 +87,14 @@ namespace WoWonder.Activities.Market.Adapters
         {
             try
             {
-                if (item.Images?.Count > 0)
+                switch (item.Images?.Count)
                 {
-                    if (item.Images[0].Image.Contains("http"))
-                    {
+                    case > 0 when item.Images[0].Image.Contains("http"):
                         GlideImageLoader.LoadImage(ActivityContext, item.Images?[0]?.Image, holder.Thumbnail, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                    }
-                    else  
-                    {
+                        break;
+                    case > 0:
                         Glide.With(ActivityContext).Load(new File(item.Images?[0]?.Image)).Apply(new RequestOptions().CenterCrop().Placeholder(Resource.Drawable.ImagePlacholder).Error(Resource.Drawable.ImagePlacholder)).Into(holder.Thumbnail);
-                    }
+                        break;
                 }
 
                 GlideImageLoader.LoadImage(ActivityContext, item.Seller?.Avatar, holder.Userprofilepic,ImageStyle.CircleCrop, ImagePlaceholders.Color);
@@ -119,9 +121,11 @@ namespace WoWonder.Activities.Market.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is MarketAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Thumbnail);
+                    case MarketAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Thumbnail);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -177,19 +181,23 @@ namespace WoWonder.Activities.Market.Adapters
             {
                 var d = new List<string>();
                 var item = MarketList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
-
-                if (item.Images?.Count > 0)
-                { 
-                    d.Add(item.Images[0].Image);
-                    d.Add(item.Seller.Avatar);
-                    return d;
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
                 }
-                 
-                d.Add(item.Seller.Avatar);
+
+                switch (item.Images?.Count)
+                {
+                    case > 0:
+                        d.Add(item.Images[0].Image);
+                        d.Add(item.Seller.Avatar);
+                        return d;
+                    default:
+                        d.Add(item.Seller.Avatar);
                 
-                return d;
+                        return d;
+                }
             }
             catch (Exception e)
             {

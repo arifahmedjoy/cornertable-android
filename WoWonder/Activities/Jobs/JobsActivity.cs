@@ -332,20 +332,21 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
-                { 
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    BtnFilter.Click += BtnFilterOnClick;
-                    DiscoverButton.Click += DiscoverButtonOnClick;
-                }
-                else
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    BtnFilter.Click -= BtnFilterOnClick;
-                    DiscoverButton.Click -= DiscoverButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        BtnFilter.Click += BtnFilterOnClick;
+                        DiscoverButton.Click += DiscoverButtonOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        BtnFilter.Click -= BtnFilterOnClick;
+                        DiscoverButton.Click -= DiscoverButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -477,15 +478,18 @@ namespace WoWonder.Activities.Jobs
 
         private async Task LoadJobsAsync(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.JobList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Jobs.SearchJob(SearchText,UserDetails.FilterJobCategories, UserDetails.FilterJobType, UserDetails.FilterJobLocation, "10", offset);
-                if (apiStatus != 200 || (respond is not SearchJobObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not SearchJobObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -493,26 +497,38 @@ namespace WoWonder.Activities.Jobs
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
-                    { 
-                        foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
-                        {
-                            MAdapter.JobList.Add(WoWonderTools.ListFilterJobs(item));
-                        }
-
-                        if (countList > 0)
-                        { 
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
-                        }
-                        else
-                        {
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                        }
-                    }
-                    else
+                    switch (respondList)
                     {
-                        if (MAdapter.JobList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
+                        case > 0:
+                        {
+                            foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            {
+                                MAdapter.JobList.Add(WoWonderTools.ListFilterJobs(item));
+                            }
+
+                            switch (countList)
+                            {
+                                case > 0:
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
+                                    break;
+                                default:
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                            }
+
+                            break;
+                        }
+                        default:
+                        {
+                            switch (MAdapter.JobList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
+                        }
                     }
                 }
 
@@ -523,10 +539,12 @@ namespace WoWonder.Activities.Jobs
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -541,24 +559,29 @@ namespace WoWonder.Activities.Jobs
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.JobList.Count > 0)
+                switch (MAdapter.JobList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoJob);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoJob);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

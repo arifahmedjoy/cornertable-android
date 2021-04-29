@@ -135,13 +135,15 @@ namespace WoWonder.Activities.NearBy
                 DistanceBar.Max = 300;
                 DistanceBar.SetOnSeekBarChangeListener(this);
 
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
+                switch (Build.VERSION.SdkInt)
                 {
-                    DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.NearByDistanceCount) ? 300 : Convert.ToInt32(UserDetails.NearByDistanceCount), true);
-                }
-                else // For API < 24 
-                {
-                    DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.NearByDistanceCount) ? 300 : Convert.ToInt32(UserDetails.NearByDistanceCount);
+                    case >= BuildVersionCodes.N:
+                        DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.NearByDistanceCount) ? 300 : Convert.ToInt32(UserDetails.NearByDistanceCount), true);
+                        break;
+                    // For API < 24 
+                    default:
+                        DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.NearByDistanceCount) ? 300 : Convert.ToInt32(UserDetails.NearByDistanceCount);
+                        break;
                 }
             }
             catch (Exception e)
@@ -174,35 +176,39 @@ namespace WoWonder.Activities.NearBy
                     GenderSelect = false
                 });
 
-                if (ListUtils.SettingsSiteList?.Genders?.Count > 0)
+                switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
-                    foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
+                    case > 0:
                     {
+                        foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
+                        {
+                            GenderAdapter.GenderList.Add(new Classes.Gender
+                            {
+                                GenderId = key,
+                                GenderName = value,
+                                GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                                GenderSelect = false
+                            });
+                        }
+
+                        break;
+                    }
+                    default:
                         GenderAdapter.GenderList.Add(new Classes.Gender
                         {
-                            GenderId = key,
-                            GenderName = value,
+                            GenderId = "male",
+                            GenderName = Activity.GetText(Resource.String.Radio_Male),
                             GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
                             GenderSelect = false
                         });
-                    }
-                }
-                else
-                {
-                    GenderAdapter.GenderList.Add(new Classes.Gender
-                    {
-                        GenderId = "male",
-                        GenderName = Activity.GetText(Resource.String.Radio_Male),
-                        GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
-                        GenderSelect = false
-                    });
-                    GenderAdapter.GenderList.Add(new Classes.Gender
-                    {
-                        GenderId = "female",
-                        GenderName = Activity.GetText(Resource.String.Radio_Female),
-                        GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
-                        GenderSelect = false
-                    });
+                        GenderAdapter.GenderList.Add(new Classes.Gender
+                        {
+                            GenderId = "female",
+                            GenderName = Activity.GetText(Resource.String.Radio_Female),
+                            GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                            GenderSelect = false
+                        });
+                        break;
                 }
 
                 GenderAdapter.NotifyDataSetChanged();
@@ -222,20 +228,31 @@ namespace WoWonder.Activities.NearBy
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = GenderAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                        if (check.Count > 0)
-                            foreach (var all in check)
-                                all.GenderSelect = false;
+                        var item = GenderAdapter.GetItem(position);
+                        if (item != null)
+                        {
+                            var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
+                            switch (check.Count)
+                            {
+                                case > 0:
+                                {
+                                    foreach (var all in check)
+                                        all.GenderSelect = false;
+                                    break;
+                                }
+                            }
 
-                        item.GenderSelect = true;
-                        GenderAdapter.NotifyDataSetChanged();
+                            item.GenderSelect = true;
+                            GenderAdapter.NotifyDataSetChanged();
 
-                        Gender = item.GenderId;
+                            Gender = item.GenderId;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -329,9 +346,15 @@ namespace WoWonder.Activities.NearBy
                 //////////////////////////// Gender //////////////////////////////
 
                 var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                if (check1.Count > 0)
-                    foreach (var all in check1)
-                        all.GenderSelect = false;
+                switch (check1.Count)
+                {
+                    case > 0:
+                    {
+                        foreach (var all in check1)
+                            all.GenderSelect = false;
+                        break;
+                    }
+                }
 
                 var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == "all");
                 if (check2 != null)
@@ -351,34 +374,28 @@ namespace WoWonder.Activities.NearBy
                 ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
                 ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
 
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                    DistanceBar.SetProgress(300, true);
-                else  // For API < 24 
-                    DistanceBar.Progress = 300;
+                switch (Build.VERSION.SdkInt)
+                {
+                    case >= BuildVersionCodes.N:
+                        DistanceBar.SetProgress(300, true);
+                        break;
+                    // For API < 24 
+                    default:
+                        DistanceBar.Progress = 300;
+                        break;
+                }
 
                 TxtDistanceCount.Text = DistanceCount + " " + GetText(Resource.String.Lbl_km);
 
-                switch (RelationshipId)
+                TxtRelationship.Text = RelationshipId switch
                 {
-                    case "5":
-                        TxtRelationship.Text = GetText(Resource.String.Lbl_All);
-                        break;
-                    case "1":
-                        TxtRelationship.Text = GetText(Resource.String.Lbl_Single);
-                        break;
-                    case "2":
-                        TxtRelationship.Text = GetText(Resource.String.Lbl_InRelationship);
-                        break;
-                    case "3":
-                        TxtRelationship.Text = GetText(Resource.String.Lbl_Married);
-                        break;
-                    case "4":
-                        TxtRelationship.Text = GetText(Resource.String.Lbl_Engaged);
-                        break;
-                    default:
-                        TxtRelationship.Text = GetText(Resource.String.Lbl_All);
-                        break;
-                }
+                    "5" => GetText(Resource.String.Lbl_All),
+                    "1" => GetText(Resource.String.Lbl_Single),
+                    "2" => GetText(Resource.String.Lbl_InRelationship),
+                    "3" => GetText(Resource.String.Lbl_Married),
+                    "4" => GetText(Resource.String.Lbl_Engaged),
+                    _ => GetText(Resource.String.Lbl_All)
+                };
             }
             catch (Exception exception)
             {
@@ -541,9 +558,15 @@ namespace WoWonder.Activities.NearBy
                     Gender = data.Gender;
 
                     var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                    if (check1.Count > 0)
-                        foreach (var all in check1)
-                            all.GenderSelect = false;
+                    switch (check1.Count)
+                    {
+                        case > 0:
+                        {
+                            foreach (var all in check1)
+                                all.GenderSelect = false;
+                            break;
+                        }
+                    }
 
                     var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == data.Gender);
                     if (check2 != null)
@@ -556,13 +579,15 @@ namespace WoWonder.Activities.NearBy
 
                     TxtDistanceCount.Text = DistanceCount + " " + GetText(Resource.String.Lbl_km);
 
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        DistanceBar.SetProgress(DistanceCount == 0 ? 300 : DistanceCount, true);
-                    }
-                    else // For API < 24 
-                    {
-                        DistanceBar.Progress = DistanceCount == 0 ? 300 : DistanceCount;
+                        case >= BuildVersionCodes.N:
+                            DistanceBar.SetProgress(DistanceCount == 0 ? 300 : DistanceCount, true);
+                            break;
+                        // For API < 24 
+                        default:
+                            DistanceBar.Progress = DistanceCount == 0 ? 300 : DistanceCount;
+                            break;
                     }
 
                     //////////////////////////// Status //////////////////////////////
@@ -610,27 +635,15 @@ namespace WoWonder.Activities.NearBy
                             break;
                     }
 
-                    switch (RelationshipId)
+                    TxtRelationship.Text = RelationshipId switch
                     {
-                        case "1":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_Single);
-                            break;
-                        case "2":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_InRelationship);
-                            break;
-                        case "3":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_Married);
-                            break;
-                        case "4":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_Engaged);
-                            break;
-                        case "5":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_All);
-                            break;
-                        default:
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_All);
-                            break;
-                    }
+                        "1" => GetText(Resource.String.Lbl_Single),
+                        "2" => GetText(Resource.String.Lbl_InRelationship),
+                        "3" => GetText(Resource.String.Lbl_Married),
+                        "4" => GetText(Resource.String.Lbl_Engaged),
+                        "5" => GetText(Resource.String.Lbl_All),
+                        _ => GetText(Resource.String.Lbl_All)
+                    };
                 }
                 else
                 {
@@ -651,9 +664,15 @@ namespace WoWonder.Activities.NearBy
                     //////////////////////////// Gender //////////////////////////////
 
                     var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                    if (check1.Count > 0)
-                        foreach (var all in check1)
-                            all.GenderSelect = false;
+                    switch (check1.Count)
+                    {
+                        case > 0:
+                        {
+                            foreach (var all in check1)
+                                all.GenderSelect = false;
+                            break;
+                        }
+                    }
 
                     var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == "all");
                     if (check2 != null)
@@ -674,34 +693,28 @@ namespace WoWonder.Activities.NearBy
                     ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
                     ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
 
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                        DistanceBar.SetProgress(300, true);
-                    else  // For API < 24 
-                        DistanceBar.Progress = 300;
+                    switch (Build.VERSION.SdkInt)
+                    {
+                        case >= BuildVersionCodes.N:
+                            DistanceBar.SetProgress(300, true);
+                            break;
+                        // For API < 24 
+                        default:
+                            DistanceBar.Progress = 300;
+                            break;
+                    }
 
                     //TxtDistanceCount.Text = "300 " + GetText(Resource.String.Lbl_km);
 
-                    switch (RelationshipId)
+                    TxtRelationship.Text = RelationshipId switch
                     {
-                        case "5":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_All);
-                            break;
-                        case "1":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_Single);
-                            break;
-                        case "2":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_InRelationship);
-                            break;
-                        case "3":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_Married);
-                            break;
-                        case "4":
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_Engaged);
-                            break;
-                        default:
-                            TxtRelationship.Text = GetText(Resource.String.Lbl_All);
-                            break;
-                    }
+                        "5" => GetText(Resource.String.Lbl_All),
+                        "1" => GetText(Resource.String.Lbl_Single),
+                        "2" => GetText(Resource.String.Lbl_InRelationship),
+                        "3" => GetText(Resource.String.Lbl_Married),
+                        "4" => GetText(Resource.String.Lbl_Engaged),
+                        _ => GetText(Resource.String.Lbl_All)
+                    };
                 }
 
                 

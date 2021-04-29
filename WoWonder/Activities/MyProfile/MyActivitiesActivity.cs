@@ -240,16 +240,17 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -320,22 +321,31 @@ namespace WoWonder.Activities.MyProfile
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        if (item.ActivityType == "following" || item.ActivityType == "friend")
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
                         {
-                            WoWonderTools.OpenProfile(this, item.FollowId, item.FollowData);
+                            switch (item.ActivityType)
+                            {
+                                case "following":
+                                case "friend":
+                                    WoWonderTools.OpenProfile(this, item.FollowId, item.FollowData);
+                                    break;
+                                default:
+                                {
+                                    var intent = new Intent(this, typeof(ViewFullPostActivity));
+                                    intent.PutExtra("Id", item.PostId);
+                                    intent.PutExtra("DataItem", JsonConvert.SerializeObject(item.PostData));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                            }
                         }
-                        else
-                        {
-                            var intent = new Intent(this, typeof(ViewFullPostActivity));
-                            intent.PutExtra("Id", item.PostId);
-                            intent.PutExtra("DataItem", JsonConvert.SerializeObject(item.PostData));
-                            StartActivity(intent);
-                        }
+
+                        break;
                     }
                 }
             }
@@ -359,44 +369,65 @@ namespace WoWonder.Activities.MyProfile
 
         private async Task LoadMyActivitiesAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.LastActivitiesList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.Get_MyActivities("25", offset);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is MyActivitiesObject result)
+                    case 200:
                     {
-                        var respondList = result.Activities.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            if (countList > 0)
+                            case MyActivitiesObject result:
                             {
-                                foreach (var item in from item in result.Activities let check = MAdapter.LastActivitiesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Activities.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.LastActivitiesList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Activities let check = MAdapter.LastActivitiesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MAdapter.LastActivitiesList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.LastActivitiesList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.LastActivitiesList = new ObservableCollection<ActivityDataObject>(result.Activities);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.LastActivitiesList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreActivities), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.LastActivitiesList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.LastActivitiesList = new ObservableCollection<ActivityDataObject>(result.Activities);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.LastActivitiesList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreActivities), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -405,10 +436,12 @@ namespace WoWonder.Activities.MyProfile
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -424,24 +457,29 @@ namespace WoWonder.Activities.MyProfile
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.LastActivitiesList.Count > 0)
+                switch (MAdapter.LastActivitiesList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoActivities);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoActivities);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

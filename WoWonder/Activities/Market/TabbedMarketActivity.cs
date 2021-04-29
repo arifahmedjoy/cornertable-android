@@ -140,11 +140,17 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                if (MarketTab.MAdapter.MarketList.Count > 0)
-                    ListUtils.ListCachedDataProduct = MarketTab.MAdapter.MarketList;
+                ListUtils.ListCachedDataProduct = MarketTab.MAdapter.MarketList.Count switch
+                {
+                    > 0 => MarketTab.MAdapter.MarketList,
+                    _ => ListUtils.ListCachedDataProduct
+                };
 
-                if (MyProductsTab.MAdapter.MarketList.Count > 0)
-                    ListUtils.ListCachedDataMyProduct = MyProductsTab.MAdapter.MarketList;
+                ListUtils.ListCachedDataMyProduct = MyProductsTab.MAdapter.MarketList.Count switch
+                {
+                    > 0 => MyProductsTab.MAdapter.MarketList,
+                    _ => ListUtils.ListCachedDataMyProduct
+                };
 
                 DestroyBasic();
                 base.OnDestroy();
@@ -225,10 +231,11 @@ namespace WoWonder.Activities.Market
                 CatRecyclerView = FindViewById<RecyclerView>(Resource.Id.catRecyler);
 
                 DiscoverButton = (ImageView)FindViewById(Resource.Id.discoverButton);
-                if (!AppSettings.ShowNearbyShops)
+                DiscoverButton.Visibility = AppSettings.ShowNearbyShops switch
                 {
-                    DiscoverButton.Visibility = ViewStates.Gone;
-                }
+                    false => ViewStates.Gone,
+                    _ => DiscoverButton.Visibility
+                };
 
                 FilterButton = (TextView)FindViewById(Resource.Id.filter_icon);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, FilterButton, IonIconsFonts.Options);
@@ -285,28 +292,37 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                if (CategoriesController.ListCategoriesProducts.Count > 0)
+                switch (CategoriesController.ListCategoriesProducts.Count)
                 {
-                    var check = CategoriesController.ListCategoriesProducts.Where(a => a.CategoriesColor == AppSettings.MainColor).ToList();
-                    if (check.Count > 0)
-                        foreach (var all in check)
-                            all.CategoriesColor = "#ffffff";
-                     
-                    CatRecyclerView.HasFixedSize = true;
-                    CatRecyclerView.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Horizontal, false));
-                    CategoriesAdapter = new CategoriesAdapter(this)
+                    case > 0:
                     {
-                        MCategoriesList = CategoriesController.ListCategoriesProducts,
-                    };
-                    CatRecyclerView.SetAdapter(CategoriesAdapter);
-                    CatRecyclerView.NestedScrollingEnabled = false;
-                    CategoriesAdapter.NotifyDataSetChanged();
-                    CatRecyclerView.Visibility = ViewStates.Visible;
-                    CategoriesAdapter.ItemClick += CategoriesAdapterOnItemClick;
-                }
-                else
-                {
-                    CatRecyclerView.Visibility = ViewStates.Gone;
+                        var check = CategoriesController.ListCategoriesProducts.Where(a => a.CategoriesColor == AppSettings.MainColor).ToList();
+                        switch (check.Count)
+                        {
+                            case > 0:
+                            {
+                                foreach (var all in check)
+                                    all.CategoriesColor = "#ffffff";
+                                break;
+                            }
+                        }
+                     
+                        CatRecyclerView.HasFixedSize = true;
+                        CatRecyclerView.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Horizontal, false));
+                        CategoriesAdapter = new CategoriesAdapter(this)
+                        {
+                            MCategoriesList = CategoriesController.ListCategoriesProducts,
+                        };
+                        CatRecyclerView.SetAdapter(CategoriesAdapter);
+                        CatRecyclerView.NestedScrollingEnabled = false;
+                        CategoriesAdapter.NotifyDataSetChanged();
+                        CatRecyclerView.Visibility = ViewStates.Visible;
+                        CategoriesAdapter.ItemClick += CategoriesAdapterOnItemClick;
+                        break;
+                    }
+                    default:
+                        CatRecyclerView.Visibility = ViewStates.Gone;
+                        break;
                 }
             }
             catch (Exception e)
@@ -319,18 +335,19 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    FloatingActionButtonView.Click += CreateProductOnClick;
-                    FilterButton.Click += FilterButtonOnClick;
-                    DiscoverButton.Click += DiscoverButtonOnClick;
-                }
-                else
-                {
-                    FloatingActionButtonView.Click -= CreateProductOnClick;
-                    FilterButton.Click -= FilterButtonOnClick;
-                    DiscoverButton.Click -= DiscoverButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        FloatingActionButtonView.Click += CreateProductOnClick;
+                        FilterButton.Click += FilterButtonOnClick;
+                        DiscoverButton.Click += DiscoverButtonOnClick;
+                        break;
+                    default:
+                        FloatingActionButtonView.Click -= CreateProductOnClick;
+                        FilterButton.Click -= FilterButtonOnClick;
+                        DiscoverButton.Click -= DiscoverButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -421,9 +438,15 @@ namespace WoWonder.Activities.Market
                 if (item != null)
                 {
                     var check = CategoriesAdapter.MCategoriesList.Where(a => a.CategoriesColor == AppSettings.MainColor).ToList();
-                    if (check.Count > 0)
-                        foreach (var all in check)
-                            all.CategoriesColor = "#ffffff";
+                    switch (check.Count)
+                    {
+                        case > 0:
+                        {
+                            foreach (var all in check)
+                                all.CategoriesColor = "#ffffff";
+                            break;
+                        }
+                    }
 
                     var click = CategoriesAdapter.MCategoriesList.FirstOrDefault(a => a.CategoriesId == item.CategoriesId);
                     if (click != null) click.CategoriesColor = AppSettings.MainColor;
@@ -469,19 +492,29 @@ namespace WoWonder.Activities.Market
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                if (requestCode == 200)
+                switch (requestCode)
                 {
-                    if (resultCode == Result.Ok)
+                    case 200:
                     {
-                        if (MarketTab != null)
+                        switch (resultCode)
                         {
-                            var result = data.GetStringExtra("product");
+                            case Result.Ok:
+                            {
+                                if (MarketTab != null)
+                                {
+                                    var result = data.GetStringExtra("product");
 
-                            var item = JsonConvert.DeserializeObject<ProductDataObject>(result);
+                                    var item = JsonConvert.DeserializeObject<ProductDataObject>(result);
 
-                            MarketTab.MAdapter.MarketList.Insert(0, item);
-                            MarketTab.MAdapter.NotifyItemInserted(0);
+                                    MarketTab.MAdapter.MarketList.Insert(0, item);
+                                    MarketTab.MAdapter.NotifyItemInserted(0);
+                                }
+
+                                break;
+                            }
                         }
+
+                        break;
                     }
                 }
             }
@@ -563,8 +596,11 @@ namespace WoWonder.Activities.Market
 
         public async Task GetMarket(string offset = "0")
         {
-            if (MarketTab.MainScrollEvent.IsLoading)
-                return;
+            switch (MarketTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -572,36 +608,54 @@ namespace WoWonder.Activities.Market
 
                 var countList = MarketTab.MAdapter.MarketList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Market.Get_Products("", "10", offset,"","", UserDetails.MarketDistanceCount);
-                if (apiStatus.Equals(200))
+                switch (apiStatus)
                 {
-                    if (respond is GetProductsObject result)
+                    case 200:
                     {
-                        var respondList = result.Products.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            if (countList > 0)
+                            case GetProductsObject result:
                             {
-                                foreach (var item in from item in result.Products let check = MarketTab.MAdapter.MarketList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Products.Count;
+                                switch (respondList)
                                 {
-                                    MarketTab.MAdapter.MarketList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Products let check = MarketTab.MAdapter.MarketList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MarketTab.MAdapter.MarketList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MarketTab.MAdapter.NotifyItemRangeInserted(countList , MarketTab.MAdapter.MarketList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MarketTab.MAdapter.MarketList = new ObservableCollection<ProductDataObject>(result.Products);
+                                        RunOnUiThread(() => { MarketTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MarketTab.MAdapter.MarketList.Count)
+                                        {
+                                            case > 10 when !MarketTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MarketTab.MAdapter.NotifyItemRangeInserted(countList , MarketTab.MAdapter.MarketList.Count - countList); });
-                            }
-                            else
-                            {
-                                MarketTab.MAdapter.MarketList = new ObservableCollection<ProductDataObject>(result.Products);
-                                RunOnUiThread(() => { MarketTab.MAdapter.NotifyDataSetChanged(); }); 
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MarketTab.MAdapter.MarketList.Count > 10 && !MarketTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(() => { ShowEmptyPage("GetMarket");}); 
             }
@@ -610,10 +664,12 @@ namespace WoWonder.Activities.Market
                 MarketTab.Inflated = MarketTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(MarketTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -623,42 +679,63 @@ namespace WoWonder.Activities.Market
 
         public async Task GetMyProducts(string offset = "0")
         {
-            if (MyProductsTab.MainScrollEvent.IsLoading)
-                return;
+            switch (MyProductsTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             MyProductsTab.MainScrollEvent.IsLoading = true;
             var countList = MyProductsTab.MAdapter.MarketList.Count;
             var (apiStatus, respond) = await RequestsAsync.Market.Get_Products(UserDetails.UserId, "10", offset);
-            if (apiStatus.Equals(200))
+            switch (apiStatus)
             {
-                if (respond is GetProductsObject result)
+                case 200:
                 {
-                    var respondList = result.Products.Count;
-                    if (respondList > 0)
+                    switch (respond)
                     {
-                        if (countList > 0)
+                        case GetProductsObject result:
                         {
-                            foreach (var item in from item in result.Products let check = MyProductsTab.MAdapter.MarketList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            var respondList = result.Products.Count;
+                            switch (respondList)
                             {
-                                MyProductsTab.MAdapter.MarketList.Add(item);
+                                case > 0 when countList > 0:
+                                {
+                                    foreach (var item in from item in result.Products let check = MyProductsTab.MAdapter.MarketList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                    {
+                                        MyProductsTab.MAdapter.MarketList.Add(item);
+                                    }
+
+                                    RunOnUiThread(() => { MyProductsTab.MAdapter.NotifyItemRangeInserted(countList, MyProductsTab.MAdapter.MarketList.Count - countList); });
+                                    break;
+                                }
+                                case > 0:
+                                    MyProductsTab.MAdapter.MarketList = new ObservableCollection<ProductDataObject>(result.Products);
+                                    RunOnUiThread(() => { MyProductsTab.MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                                default:
+                                {
+                                    switch (MyProductsTab.MAdapter.MarketList.Count)
+                                    {
+                                        case > 10 when !MyProductsTab.MRecycler.CanScrollVertically(1):
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
+                                            break;
+                                    }
+
+                                    break;
+                                }
                             }
 
-                            RunOnUiThread(() => { MyProductsTab.MAdapter.NotifyItemRangeInserted(countList, MyProductsTab.MAdapter.MarketList.Count - countList); });
-                        }
-                        else
-                        {
-                            MyProductsTab.MAdapter.MarketList = new ObservableCollection<ProductDataObject>(result.Products);
-                            RunOnUiThread(() => { MyProductsTab.MAdapter.NotifyDataSetChanged(); });
+                            break;
                         }
                     }
-                    else
-                    {
-                        if (MyProductsTab.MAdapter.MarketList.Count > 10 && !MyProductsTab.MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
-                    }
+
+                    break;
                 }
+                default:
+                    Methods.DisplayReportResult(this, respond);
+                    break;
             }
-            else Methods.DisplayReportResult(this, respond);
 
             RunOnUiThread(() => { ShowEmptyPage("GetMyProducts"); }); 
         }
@@ -674,26 +751,34 @@ namespace WoWonder.Activities.Market
                         MarketTab.MainScrollEvent.IsLoading = false;
                         MarketTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (MarketTab.MAdapter.MarketList.Count > 0)
+                        switch (MarketTab.MAdapter.MarketList.Count)
                         {
-                            MarketTab.MRecycler.Visibility = ViewStates.Visible;
-                            MarketTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            MarketTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (MarketTab.Inflated == null)
-                                MarketTab.Inflated = MarketTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(MarketTab.Inflated, EmptyStateInflater.Type.NoProduct);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                MarketTab.MRecycler.Visibility = ViewStates.Visible;
+                                MarketTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateProductsOnClick;
+                                MarketTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                MarketTab.Inflated = MarketTab.Inflated switch
+                                {
+                                    null => MarketTab.EmptyStateLayout.Inflate(),
+                                    _ => MarketTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(MarketTab.Inflated, EmptyStateInflater.Type.NoProduct);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateProductsOnClick;
+                                        break;
+                                }
+                                MarketTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            MarketTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -703,26 +788,34 @@ namespace WoWonder.Activities.Market
                         MyProductsTab.MainScrollEvent.IsLoading = false;
                         MyProductsTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (MyProductsTab.MAdapter.MarketList.Count > 0)
+                        switch (MyProductsTab.MAdapter.MarketList.Count)
                         {
-                            MyProductsTab.MRecycler.Visibility = ViewStates.Visible;
-                            MyProductsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            MyProductsTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (MyProductsTab.Inflated == null)
-                                MyProductsTab.Inflated = MyProductsTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(MyProductsTab.Inflated, EmptyStateInflater.Type.NoProduct);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                MyProductsTab.MRecycler.Visibility = ViewStates.Visible;
+                                MyProductsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateProductsOnClick;
+                                MyProductsTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                MyProductsTab.Inflated = MyProductsTab.Inflated switch
+                                {
+                                    null => MyProductsTab.EmptyStateLayout.Inflate(),
+                                    _ => MyProductsTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(MyProductsTab.Inflated, EmptyStateInflater.Type.NoProduct);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateProductsOnClick;
+                                        break;
+                                }
+                                MyProductsTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            MyProductsTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -768,44 +861,65 @@ namespace WoWonder.Activities.Market
 
         private async Task GetMarketByKey(string key = "", string categoriesId = "")
         {
-            if (MarketTab.MainScrollEvent.IsLoading)
-                return;
+            switch (MarketTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MarketTab.MainScrollEvent.IsLoading = true;
                 var countList = MarketTab.MAdapter.MarketList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Market.Get_Products("", "10", "0", categoriesId, key, UserDetails.MarketDistanceCount);
-                if (apiStatus.Equals(200))
+                switch (apiStatus)
                 {
-                    if (respond is GetProductsObject result)
+                    case 200:
                     {
-                        var respondList = result.Products.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            if (countList > 0)
+                            case GetProductsObject result:
                             {
-                                foreach (var item in from item in result.Products let check = MarketTab.MAdapter.MarketList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Products.Count;
+                                switch (respondList)
                                 {
-                                    MarketTab.MAdapter.MarketList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Products let check = MarketTab.MAdapter.MarketList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MarketTab.MAdapter.MarketList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MarketTab.MAdapter.NotifyItemRangeInserted(countList, MarketTab.MAdapter.MarketList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MarketTab.MAdapter.MarketList = new ObservableCollection<ProductDataObject>(result.Products);
+                                        RunOnUiThread(() => { MarketTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MarketTab.MAdapter.MarketList.Count)
+                                        {
+                                            case > 10 when !MarketTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MarketTab.MAdapter.NotifyItemRangeInserted(countList, MarketTab.MAdapter.MarketList.Count - countList); });
-                            }
-                            else
-                            {
-                                MarketTab.MAdapter.MarketList = new ObservableCollection<ProductDataObject>(result.Products);
-                                RunOnUiThread(() => { MarketTab.MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MarketTab.MAdapter.MarketList.Count > 10 && !MarketTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(() => { ShowEmptyPage("GetMarket"); });
             }
@@ -814,10 +928,12 @@ namespace WoWonder.Activities.Market
                 MarketTab.Inflated = MarketTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(MarketTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();

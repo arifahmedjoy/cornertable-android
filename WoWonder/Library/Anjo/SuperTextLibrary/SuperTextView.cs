@@ -164,10 +164,12 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
             {
                 List<StTools.XAutoLinkItem> autoLinkItems = new List<StTools.XAutoLinkItem>();
 
-                if (AutoLinkModes == null)
+                switch (AutoLinkModes)
                 {
-                    Init(Context);
-                    //throw new NullPointerException("Please add at least one mode");
+                    case null:
+                        Init(Context);
+                        //throw new NullPointerException("Please add at least one mode");
+                        break;
                 }
 
                 foreach (StTools.XAutoLinkMode anAutoLinkMode in AutoLinkModes)
@@ -175,31 +177,41 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
                     Console.WriteLine("Run foreach MatchedRanges => 175");
                     string regex = StTools.XUtils.GetRegexByAutoLinkMode(anAutoLinkMode, CustomRegex);
                    
-                    if (regex.Length <= 0)
-                        continue;
+                    switch (regex.Length)
+                    {
+                        case <= 0:
+                            continue;
+                    }
                     
                     Pattern pattern = Pattern.Compile(regex);
                     Matcher matcher = pattern.Matcher(text);
                    
-                    if (anAutoLinkMode == StTools.XAutoLinkMode.ModePhone)
-                    { 
-                        while (matcher.Find())
-                        {
-                            Console.WriteLine("Run while MatchedRanges => 186");
-                            StTools.XAutoLinkItem ss = new StTools.XAutoLinkItem(matcher.Start(), matcher.End(), matcher.Group(), anAutoLinkMode, UserId);
-
-                            if (matcher.Group().Length > MinPhoneNumberLength)
-                            {
-                                autoLinkItems.Add(ss);
-                            }
-                        }
-                    }
-                    else
+                    switch (anAutoLinkMode)
                     {
-                        while (matcher.Find())
+                        case StTools.XAutoLinkMode.ModePhone:
                         {
-                            Console.WriteLine("Run while MatchedRanges => 199");
-                            autoLinkItems.Add(new StTools.XAutoLinkItem(matcher.Start(), matcher.End(), matcher.Group(), anAutoLinkMode, UserId));
+                            while (matcher.Find())
+                            {
+                                Console.WriteLine("Run while MatchedRanges => 186");
+                                StTools.XAutoLinkItem ss = new StTools.XAutoLinkItem(matcher.Start(), matcher.End(), matcher.Group(), anAutoLinkMode, UserId);
+
+                                if (matcher.Group().Length > MinPhoneNumberLength)
+                                {
+                                    autoLinkItems.Add(ss);
+                                }
+                            }
+
+                            break;
+                        }
+                        default:
+                        {
+                            while (matcher.Find())
+                            {
+                                Console.WriteLine("Run while MatchedRanges => 199");
+                                autoLinkItems.Add(new StTools.XAutoLinkItem(matcher.Start(), matcher.End(), matcher.Group(), anAutoLinkMode, UserId));
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -217,23 +229,15 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
         {
             try
             {
-                switch (autoLinkMode)
+                return autoLinkMode switch
                 {
-                    case StTools.XAutoLinkMode.ModeHashTag:
-                        return HashtagModeColor;
-                    case StTools.XAutoLinkMode.ModeMention:
-                        return MentionModeColor;
-                    case StTools.XAutoLinkMode.ModePhone:
-                        return PhoneModeColor;
-                    case StTools.XAutoLinkMode.ModeEmail:
-                        return EmailModeColor;
-                    case StTools.XAutoLinkMode.ModeUrl:
-                        return UrlModeColor;
-                    //case StTools.XAutoLinkMode.ModeCustom:
-                    //    return CustomModeColor;
-                    default:
-                        return DefaultColor;
-                }
+                    StTools.XAutoLinkMode.ModeHashTag => HashtagModeColor,
+                    StTools.XAutoLinkMode.ModeMention => MentionModeColor,
+                    StTools.XAutoLinkMode.ModePhone => PhoneModeColor,
+                    StTools.XAutoLinkMode.ModeEmail => EmailModeColor,
+                    StTools.XAutoLinkMode.ModeUrl => UrlModeColor,
+                    _ => DefaultColor
+                };
             }
             catch (Exception e)
             {
@@ -390,67 +394,71 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
         {
             try
             {
-                if (Build.VERSION.SdkInt >= (BuildVersionCodes)16)
+                switch (Build.VERSION.SdkInt)
                 {
-                    StaticLayout layout = null!;
-                    Field field = null!;
-
-                    Class klass = Class.FromType(typeof(DynamicLayout));
-
-                    try
+                    case >= (BuildVersionCodes)16:
                     {
-                        Field insetsDirtyField = klass.GetDeclaredField("sStaticLayout");
+                        StaticLayout layout = null!;
+                        Field field = null!;
 
-                        insetsDirtyField.Accessible = true;
-                        layout = (StaticLayout)insetsDirtyField.Get(klass);
+                        Class klass = Class.FromType(typeof(DynamicLayout));
 
-                    }
-                    catch (NoSuchFieldException ex)
-                    {
-                        Methods.DisplayReportResultTrack(ex);
-                    }
-                    catch (IllegalAccessException ex)
-                    {
-                        Methods.DisplayReportResultTrack(ex);
-                    }
-
-                    if (layout != null)
-                    {
                         try
                         {
-                            //Field insetsDirtyField = klass.GetDeclaredField("sStaticLayout");
+                            Field insetsDirtyField = klass.GetDeclaredField("sStaticLayout");
 
-                            field = layout.Class.GetDeclaredField("mMaximumVisibleLineCount");
-                            field.Accessible = true;
-                            field.SetInt(layout, MaxLines);
+                            insetsDirtyField.Accessible = true;
+                            layout = (StaticLayout)insetsDirtyField.Get(klass);
+
                         }
-                        catch (NoSuchFieldException e)
+                        catch (NoSuchFieldException ex)
                         {
-                            Methods.DisplayReportResultTrack(e);
+                            Methods.DisplayReportResultTrack(ex);
                         }
-                        catch (IllegalAccessException e)
+                        catch (IllegalAccessException ex)
                         {
-                            Methods.DisplayReportResultTrack(e);
+                            Methods.DisplayReportResultTrack(ex);
                         }
+
+                        if (layout != null)
+                        {
+                            try
+                            {
+                                //Field insetsDirtyField = klass.GetDeclaredField("sStaticLayout");
+
+                                field = layout.Class.GetDeclaredField("mMaximumVisibleLineCount");
+                                field.Accessible = true;
+                                field.SetInt(layout, MaxLines);
+                            }
+                            catch (NoSuchFieldException e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                            catch (IllegalAccessException e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        }
+
+                        base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
+
+                        if (layout != null && field != null)
+                        {
+                            try
+                            {
+                                field.SetInt(layout, Integer.MaxValue);
+                            }
+                            catch (IllegalAccessException e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        }
+
+                        break;
                     }
-
-                    base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
-
-                    if (layout != null && field != null)
-                    {
-                        try
-                        {
-                            field.SetInt(layout, Integer.MaxValue);
-                        }
-                        catch (IllegalAccessException e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    }
-                }
-                else
-                {
-                    base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
+                    default:
+                        base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
+                        break;
                 }
             }
             catch (Exception e)

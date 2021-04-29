@@ -207,20 +207,24 @@ namespace WoWonder.Activities.Articles
                 }
                 else
                 {
-                    if ((int)Build.VERSION.SdkInt < 23)
+                    switch ((int)Build.VERSION.SdkInt)
                     {
-                        LoadWebView();
-                    }
-                    else
-                    {
-                        if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted
-                            && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessMediaLocation) == Permission.Granted)
-                        {
+                        case < 23:
                             LoadWebView();
-                        }
-                        else
+                            break;
+                        default:
                         {
-                            new PermissionsController(this).RequestPermission(108);
+                            if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted
+                                && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessMediaLocation) == Permission.Granted)
+                            {
+                                LoadWebView();
+                            }
+                            else
+                            {
+                                new PermissionsController(this).RequestPermission(108);
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -265,16 +269,15 @@ namespace WoWonder.Activities.Articles
 
                     HybridView.CopyBackForwardList();
                     HybridView.CanGoBackOrForward(0);
-                     
-                    //Load url to be rendered on WebView
-                    if (AppSettings.SetTabDarkTheme)
+
+                    Url = AppSettings.SetTabDarkTheme switch
                     {
-                        Url = Client.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" + UserDetails.UserId + "&application=phone&mode=night";
-                    }
-                    else
-                    { 
-                        Url = Client.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" + UserDetails.UserId + "&application=phone";
-                    }
+                        //Load url to be rendered on WebView
+                        true => Client.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" +
+                                UserDetails.UserId + "&application=phone&mode=night",
+                        _ => Client.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" +
+                             UserDetails.UserId + "&application=phone"
+                    };
 
                     switch (AppSettings.Lang)
                     {
@@ -341,14 +344,15 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -399,40 +403,57 @@ namespace WoWonder.Activities.Articles
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if ((int)Build.VERSION.SdkInt >= 21)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Android.Net.Uri[] results = null;
-                    //Check if response is positive
-                    if (resultCode == Result.Ok)
+                    case >= 21:
+                    {
+                        Android.Net.Uri[] results = null;
+                        switch (resultCode)
+                        {
+                            //Check if response is positive
+                            case Result.Ok:
+                            {
+                                if (requestCode == Fcr)
+                                {
+                                    switch (MUma)
+                                    {
+                                        case null:
+                                            return;
+                                    }
+
+                                    var dataString = data?.Data?.ToString();
+                                    if (dataString != null)
+                                    {
+                                        results = new[]
+                                        {
+                                            Android.Net.Uri.Parse(dataString)
+                                        };
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                        MUma.OnReceiveValue(results);
+                        MUma = null;
+                        break;
+                    }
+                    default:
                     {
                         if (requestCode == Fcr)
                         {
-                            if (MUma == null)
-                                return;
-
-                            var dataString = data?.Data?.ToString();
-                            if (dataString != null)
+                            switch (MUm)
                             {
-                                results = new[]
-                                {
-                                    Android.Net.Uri.Parse(dataString)
-                                };
+                                case null:
+                                    return;
                             }
-                        }
-                    }
-                    MUma.OnReceiveValue(results);
-                    MUma = null;
-                }
-                else
-                {
-                    if (requestCode == Fcr)
-                    {
-                        if (null == MUm)
-                            return;
 
-                        Android.Net.Uri result = data == null || resultCode != Result.Ok ? null : data.Data;
-                        MUm.OnReceiveValue(result);
-                        MUm = null;
+                            Android.Net.Uri result = data == null || resultCode != Result.Ok ? null : data.Data;
+                            MUm.OnReceiveValue(result);
+                            MUm = null;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -448,17 +469,15 @@ namespace WoWonder.Activities.Articles
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 108)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         LoadWebView();
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
                         Finish();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -540,13 +559,14 @@ namespace WoWonder.Activities.Articles
                                       "$('.content-container').css('margin-top', '0');" +
                                       "$('.wo_about_wrapper_parent').css('top', '0');";
 
-                    if (Build.VERSION.SdkInt >= (BuildVersionCodes)19)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        view.EvaluateJavascript(js, this);
-                    }
-                    else
-                    {
-                        view.LoadUrl(js);
+                        case >= (BuildVersionCodes)19:
+                            view.EvaluateJavascript(js, this);
+                            break;
+                        default:
+                            view.LoadUrl(js);
+                            break;
                     }
                 }
                 catch (Exception e)
@@ -572,13 +592,14 @@ namespace WoWonder.Activities.Articles
                                       "$('.content-container').css('margin-top', '0');" +
                                       "$('.wo_about_wrapper_parent').css('top', '0');";
 
-                    if (Build.VERSION.SdkInt >= (BuildVersionCodes)19)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        view.EvaluateJavascript(js, this);
-                    }
-                    else
-                    {
-                        view.LoadUrl(js);
+                        case >= (BuildVersionCodes)19:
+                            view.EvaluateJavascript(js, this);
+                            break;
+                        default:
+                            view.LoadUrl(js);
+                            break;
                     }
                 }
                 catch (Exception e)

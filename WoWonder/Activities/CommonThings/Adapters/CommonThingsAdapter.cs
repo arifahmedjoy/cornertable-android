@@ -62,15 +62,20 @@ namespace WoWonder.Activities.CommonThings.Adapters
         {
             try
             {
-                if (viewHolder is CommonThingsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = CommonThingsList[position];
-                    if (item != null)
+                    case CommonThingsAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
+                        var item = CommonThingsList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
 
-                        holder.Name.Text = WoWonderTools.GetNameFinal(item.UserData);
-                        holder.CountCommon.Text = item.CommonThings + " " + ActivityContext.GetText(Resource.String.Lbl_ThingInCommon);
+                            holder.Name.Text = WoWonderTools.GetNameFinal(item.UserData);
+                            holder.CountCommon.Text = item.CommonThings + " " + ActivityContext.GetText(Resource.String.Lbl_ThingInCommon);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -86,9 +91,11 @@ namespace WoWonder.Activities.CommonThings.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is CommonThingsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case CommonThingsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -150,14 +157,21 @@ namespace WoWonder.Activities.CommonThings.Adapters
             {
                 var d = new List<string>();
                 var item = CommonThingsList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.UserData.Avatar))
-                        d.Add(item.UserData.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.UserData.Avatar))
+                        {
+                            case false:
+                                d.Add(item.UserData.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

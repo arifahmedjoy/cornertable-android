@@ -137,8 +137,11 @@ namespace WoWonder.Activities.MyVideo
         {
             try
             {
-                if (MAdapter.MyVideoList.Count > 0)
-                    ListUtils.ListCachedDataMyVideos = MAdapter.MyVideoList;
+                ListUtils.ListCachedDataMyVideos = MAdapter.MyVideoList.Count switch
+                {
+                    > 0 => MAdapter.MyVideoList,
+                    _ => ListUtils.ListCachedDataMyVideos
+                };
 
                 DestroyBasic();
 
@@ -251,16 +254,17 @@ namespace WoWonder.Activities.MyVideo
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -355,16 +359,21 @@ namespace WoWonder.Activities.MyVideo
         {
             try
             {
-                if (ListUtils.ListCachedDataMyVideos.Count > 0)
+                switch (ListUtils.ListCachedDataMyVideos.Count)
                 {
-                    MAdapter.MyVideoList = ListUtils.ListCachedDataMyVideos;
-                    MAdapter.NotifyDataSetChanged();
+                    case > 0:
+                    {
+                        MAdapter.MyVideoList = ListUtils.ListCachedDataMyVideos;
+                        MAdapter.NotifyDataSetChanged();
 
-                    var item = MAdapter.MyVideoList.LastOrDefault()?.Id ?? "0";
-                    StartApiService(item);
+                        var item = MAdapter.MyVideoList.LastOrDefault()?.Id ?? "0";
+                        StartApiService(item);
+                        break;
+                    }
+                    default:
+                        StartApiService();
+                        break;
                 }
-                else
-                    StartApiService();
             }
             catch (Exception e)
             {
@@ -374,8 +383,11 @@ namespace WoWonder.Activities.MyVideo
 
         private void StartApiService(string offset = "0")
         {
-            if (MAdapter.MyVideoList.Count > 0)
-                ListUtils.ListCachedDataMyVideos = MAdapter.MyVideoList;
+            ListUtils.ListCachedDataMyVideos = MAdapter.MyVideoList.Count switch
+            {
+                > 0 => MAdapter.MyVideoList,
+                _ => ListUtils.ListCachedDataMyVideos
+            };
 
             if (!Methods.CheckConnectivity())
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -385,15 +397,18 @@ namespace WoWonder.Activities.MyVideo
 
         private async Task LoadMyVideo(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.MyVideoList.Count; 
                 var (apiStatus, respond) = await RequestsAsync.Album.GetPostByType(UserDetails.UserId , "video", "10", offset);
-                if (apiStatus != 200 || (respond is not PostObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -401,29 +416,43 @@ namespace WoWonder.Activities.MyVideo
                 else
                 {
                     var respondList = result.Data?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        result.Data.RemoveAll(w => string.IsNullOrEmpty(w.PostFileFull));
-
-                        if (countList > 0)
+                        case > 0:
                         {
-                            foreach (var item in from item in result.Data let check = MAdapter.MyVideoList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            result.Data.RemoveAll(w => string.IsNullOrEmpty(w.PostFileFull));
+
+                            switch (countList)
                             {
-                                MAdapter.MyVideoList.Add(item);
+                                case > 0:
+                                {
+                                    foreach (var item in from item in result.Data let check = MAdapter.MyVideoList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                    {
+                                        MAdapter.MyVideoList.Add(item);
+                                    }
+
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.MyVideoList.Count - countList); });
+                                    break;
+                                }
+                                default:
+                                    MAdapter.MyVideoList = new ObservableCollection<PostDataObject>(result.Data);
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
                             }
 
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.MyVideoList.Count - countList); });
+                            break;
                         }
-                        else
+                        default:
                         {
-                            MAdapter.MyVideoList = new ObservableCollection<PostDataObject>(result.Data);
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            switch (MAdapter.MyVideoList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreVideo), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.MyVideoList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreVideo), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -434,10 +463,12 @@ namespace WoWonder.Activities.MyVideo
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -452,24 +483,29 @@ namespace WoWonder.Activities.MyVideo
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.MyVideoList.Count > 0)
+                switch (MAdapter.MyVideoList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoVideo);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoVideo);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

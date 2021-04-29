@@ -308,18 +308,19 @@ namespace WoWonder.Activities.NearbyBusiness
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnFilter.Click += BtnFilterOnClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                }
-                else
-                {
-                    BtnFilter.Click -= BtnFilterOnClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnFilter.Click += BtnFilterOnClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        BtnFilter.Click -= BtnFilterOnClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -440,15 +441,18 @@ namespace WoWonder.Activities.NearbyBusiness
 
         private async Task LoadShopsAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.NearbyBusinessList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.GetNearbyBusinesses("10", offset, SearchText, UserDetails.NearbyBusinessDistanceCount);
-                if (apiStatus != 200 || (respond is not NearbyBusinessesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not NearbyBusinessesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -456,9 +460,9 @@ namespace WoWonder.Activities.NearbyBusiness
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapter.NearbyBusinessList.FirstOrDefault(a => a.JobId == item.JobId) where check == null select item)
                             {
@@ -466,17 +470,23 @@ namespace WoWonder.Activities.NearbyBusiness
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.NearbyBusinessList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.NearbyBusinessList = new ObservableCollection<NearbyBusinessesDataObject>(result.Data);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.NearbyBusinessList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.NearbyBusinessList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -487,10 +497,12 @@ namespace WoWonder.Activities.NearbyBusiness
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -505,24 +517,29 @@ namespace WoWonder.Activities.NearbyBusiness
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.NearbyBusinessList.Count > 0)
+                switch (MAdapter.NearbyBusinessList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-                     
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoBusiness);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+                     
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoBusiness);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

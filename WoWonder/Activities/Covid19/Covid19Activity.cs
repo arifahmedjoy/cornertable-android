@@ -210,11 +210,13 @@ namespace WoWonder.Activities.Covid19
         private async Task LoadDataAsync()
         {
             var (apiStatus, respond) = await ApiRequest.GetInfoCovid19Async(UserDetails.Country);
-            if (apiStatus != 200 || (respond is not Covid19Object result) || result.Response == null)
+            if (apiStatus != 200 || respond is not Covid19Object result || result.Response == null)
             {
-                if (AppSettings.SetApisReportMode && apiStatus != 400 && respond is ErrorCovid19Object error)
+                switch (AppSettings.SetApisReportMode)
                 {
-                    Methods.DialogPopup.InvokeAndShowDialog(this, "ReportMode", error.Message, "Close");
+                    case true when apiStatus != 400 && respond is ErrorCovid19Object error:
+                        Methods.DialogPopup.InvokeAndShowDialog(this, "ReportMode", error.Message, "Close");
+                        break;
                 }
             }
             else

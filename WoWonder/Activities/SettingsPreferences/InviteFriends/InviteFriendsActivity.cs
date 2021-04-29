@@ -225,14 +225,15 @@ namespace WoWonder.Activities.SettingsPreferences.InviteFriends
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick; 
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick; 
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -266,29 +267,38 @@ namespace WoWonder.Activities.SettingsPreferences.InviteFriends
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-
-                    Contact = item;
-                    if (item != null)
+                    case >= 0:
                     {
-                        if ((int)Build.VERSION.SdkInt < 23)
+                        var item = MAdapter.GetItem(position);
+
+                        Contact = item;
+                        if (item != null)
                         {
-                            Methods.App.SendSms(this, item.PhoneNumber, InviteSmsText);
-                        }
-                        else
-                        {
-                            //Check to see if any permission in our group is available, if one, then all are
-                            if (CheckSelfPermission(Manifest.Permission.SendSms) == Permission.Granted)
+                            switch ((int)Build.VERSION.SdkInt)
                             {
-                              new IntentController(this).OpenIntentSendSms(item.PhoneNumber, InviteSmsText);
-                            }
-                            else
-                            {
-                                 new PermissionsController(this).RequestPermission(104);
+                                case < 23:
+                                    Methods.App.SendSms(this, item.PhoneNumber, InviteSmsText);
+                                    break;
+                                default:
+                                {
+                                    //Check to see if any permission in our group is available, if one, then all are
+                                    if (CheckSelfPermission(Manifest.Permission.SendSms) == Permission.Granted)
+                                    {
+                                        new IntentController(this).OpenIntentSendSms(item.PhoneNumber, InviteSmsText);
+                                    }
+                                    else
+                                    {
+                                        new PermissionsController(this).RequestPermission(104);
+                                    }
+
+                                    break;
+                                }
                             }
                         }
+
+                        break;
                     }
                 }
             }
@@ -323,16 +333,14 @@ namespace WoWonder.Activities.SettingsPreferences.InviteFriends
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-            if (requestCode == 104)
+            switch (requestCode)
             {
-                if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                {
-                    new IntentController(this).OpenIntentSendSms(Contact.PhoneNumber, InviteSmsText); 
-                }
-                else
-                {
+                case 104 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    new IntentController(this).OpenIntentSendSms(Contact.PhoneNumber, InviteSmsText);
+                    break;
+                case 104:
                     Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                }
+                    break;
             }
         } 
     }

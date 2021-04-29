@@ -288,39 +288,43 @@ namespace WoWonder.Activities.Comment
 
                     Adapter = new MainTabAdapter(SupportFragmentManager);
 
-                    if (CommentObject.Reaction.Count > 0)
+                    switch (CommentObject.Reaction.Count)
                     {
-                        LikeTab = new LikeReactionFragment();
-                        LoveTab = new LoveReactionFragment();
-                        HahaTab = new HahaReactionFragment();
-                        WowTab = new WowReactionFragment();
-                        SadTab = new SadReactionFragment();
-                        AngryTab = new AngryReactionFragment();
+                        case > 0:
+                        {
+                            LikeTab = new LikeReactionFragment();
+                            LoveTab = new LoveReactionFragment();
+                            HahaTab = new HahaReactionFragment();
+                            WowTab = new WowReactionFragment();
+                            SadTab = new SadReactionFragment();
+                            AngryTab = new AngryReactionFragment();
 
-                        Bundle args = new Bundle();
-                        args.PutString("NamePage", TypeClass);
+                            Bundle args = new Bundle();
+                            args.PutString("NamePage", TypeClass);
 
-                        LikeTab = new LikeReactionFragment();
-                        LoveTab = new LoveReactionFragment();
-                        HahaTab = new HahaReactionFragment();
-                        WowTab = new WowReactionFragment();
-                        SadTab = new SadReactionFragment();
-                        AngryTab = new AngryReactionFragment();
+                            LikeTab = new LikeReactionFragment();
+                            LoveTab = new LoveReactionFragment();
+                            HahaTab = new HahaReactionFragment();
+                            WowTab = new WowReactionFragment();
+                            SadTab = new SadReactionFragment();
+                            AngryTab = new AngryReactionFragment();
 
-                        LikeTab.Arguments = args;
-                        LoveTab.Arguments = args;
-                        HahaTab.Arguments = args;
-                        WowTab.Arguments = args;
-                        SadTab.Arguments = args;
-                        AngryTab.Arguments = args;
+                            LikeTab.Arguments = args;
+                            LoveTab.Arguments = args;
+                            HahaTab.Arguments = args;
+                            WowTab.Arguments = args;
+                            SadTab.Arguments = args;
+                            AngryTab.Arguments = args;
 
-                        Adapter.AddFragment(LikeTab, GetText(Resource.String.Btn_Likes));
-                        Adapter.AddFragment(LoveTab, GetText(Resource.String.Btn_Love));
-                        Adapter.AddFragment(HahaTab, GetText(Resource.String.Btn_Haha));
-                        Adapter.AddFragment(WowTab, GetText(Resource.String.Btn_Wow));
-                        Adapter.AddFragment(SadTab, GetText(Resource.String.Btn_Sad));
-                        Adapter.AddFragment(AngryTab, GetText(Resource.String.Btn_Angry));
-                    }//wael
+                            Adapter.AddFragment(LikeTab, GetText(Resource.String.Btn_Likes));
+                            Adapter.AddFragment(LoveTab, GetText(Resource.String.Btn_Love));
+                            Adapter.AddFragment(HahaTab, GetText(Resource.String.Btn_Haha));
+                            Adapter.AddFragment(WowTab, GetText(Resource.String.Btn_Wow));
+                            Adapter.AddFragment(SadTab, GetText(Resource.String.Btn_Sad));
+                            Adapter.AddFragment(AngryTab, GetText(Resource.String.Btn_Angry)); //wael
+                            break;
+                        }
+                    }
                     //else
                     //{
                     //    if (PostData.Reaction.Like > 0 || PostData.Reaction.Like1 > 0)
@@ -416,216 +420,312 @@ namespace WoWonder.Activities.Comment
                 AngryTab.MainScrollEvent.IsLoading = true;
              
             var (apiStatus, respond) = await RequestsAsync.Comment.GetCommentReactionsAsync(Id, TypeClass.ToLower(), "10", TypeReaction, offset);
-            if (apiStatus == 200)
+            switch (apiStatus)
             {
-                if (respond is PostReactionsObject result)
+                case 200:
                 {
-                    if (LikeTab != null)
+                    switch (respond)
                     {
-                        int countLikeUserList = LikeTab?.MAdapter?.UserList?.Count ?? 0;
-
-                        //Like
-                        var respondListLike = result.Data.Like.Count;
-                        if (respondListLike > 0)
+                        case PostReactionsObject result:
                         {
-                            var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Likes)));
-                            if (string.IsNullOrEmpty(dataTab))
-                                Adapter.AddFragment(LikeTab, GetText(Resource.String.Btn_Likes));
-
-                            if (countLikeUserList > 0)
+                            if (LikeTab != null)
                             {
-                                foreach (var item in from item in result.Data.Like let check = LikeTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                int countLikeUserList = LikeTab?.MAdapter?.UserList?.Count ?? 0;
+
+                                //Like
+                                var respondListLike = result.Data.Like.Count;
+                                switch (respondListLike)
                                 {
-                                    LikeTab.MAdapter.UserList.Add(item);
-                                }
+                                    case > 0:
+                                    {
+                                        var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Likes)));
+                                        if (string.IsNullOrEmpty(dataTab))
+                                            Adapter.AddFragment(LikeTab, GetText(Resource.String.Btn_Likes));
 
-                                RunOnUiThread(() => { LikeTab.MAdapter.NotifyItemRangeInserted(countLikeUserList - 1, LikeTab.MAdapter.UserList.Count - countLikeUserList); });
+                                        switch (countLikeUserList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Data.Like let check = LikeTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    LikeTab.MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { LikeTab.MAdapter.NotifyItemRangeInserted(countLikeUserList - 1, LikeTab.MAdapter.UserList.Count - countLikeUserList); });
+                                                break;
+                                            }
+                                            default:
+                                                LikeTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Like);
+                                                RunOnUiThread(() => { LikeTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (LikeTab.MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !LikeTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
                             }
-                            else
+
+                            if (LoveTab != null)
                             {
-                                LikeTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Like);
-                                RunOnUiThread(() => { LikeTab.MAdapter.NotifyDataSetChanged(); });
+                                int countLoveUserList = LoveTab?.MAdapter?.UserList?.Count ?? 0;
+
+                                //Love
+                                var respondListLove = result.Data.Love.Count;
+                                switch (respondListLove)
+                                {
+                                    case > 0:
+                                    {
+                                        var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Love)));
+                                        if (string.IsNullOrEmpty(dataTab))
+                                            Adapter.AddFragment(LoveTab, GetText(Resource.String.Btn_Love));
+
+                                        switch (countLoveUserList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Data.Love let check = LoveTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    LoveTab.MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { LoveTab.MAdapter.NotifyItemRangeInserted(countLoveUserList - 1, LoveTab.MAdapter.UserList.Count - countLoveUserList); });
+                                                break;
+                                            }
+                                            default:
+                                                LoveTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Love);
+                                                RunOnUiThread(() => { LoveTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (LoveTab.MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !LoveTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
                             }
-                        }
-                        else
-                        {
-                            if (LikeTab.MAdapter.UserList.Count > 10 && !LikeTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+
+                            if (WowTab != null)
+                            {
+                                int countWowUserList = WowTab?.MAdapter?.UserList?.Count ?? 0;
+
+                                //Wow
+                                var respondListWow = result.Data.Wow.Count;
+                                switch (respondListWow)
+                                {
+                                    case > 0:
+                                    {
+                                        var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Wow)));
+                                        if (string.IsNullOrEmpty(dataTab))
+                                            Adapter.AddFragment(WowTab, GetText(Resource.String.Btn_Wow));
+
+                                        switch (countWowUserList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Data.Wow let check = WowTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    WowTab.MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { WowTab.MAdapter.NotifyItemRangeInserted(countWowUserList - 1, WowTab.MAdapter.UserList.Count - countWowUserList); });
+                                                break;
+                                            }
+                                            default:
+                                                WowTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Wow);
+                                                RunOnUiThread(() => { WowTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (WowTab.MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !WowTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (HahaTab != null)
+                            {
+                                int countHahaUserList = HahaTab?.MAdapter?.UserList?.Count ?? 0;
+
+                                //Haha
+                                var respondListHaha = result.Data.Haha.Count;
+                                switch (respondListHaha)
+                                {
+                                    case > 0:
+                                    {
+                                        var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Haha)));
+                                        if (string.IsNullOrEmpty(dataTab))
+                                            Adapter.AddFragment(HahaTab, GetText(Resource.String.Btn_Haha));
+
+                                        switch (countHahaUserList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Data.Haha let check = HahaTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    HahaTab.MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { HahaTab.MAdapter.NotifyItemRangeInserted(countHahaUserList - 1, HahaTab.MAdapter.UserList.Count - countHahaUserList); });
+                                                break;
+                                            }
+                                            default:
+                                                HahaTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Haha);
+                                                RunOnUiThread(() => { HahaTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (HahaTab.MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !HahaTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (SadTab != null)
+                            {
+                                int countSadUserList = SadTab?.MAdapter?.UserList?.Count ?? 0;
+
+                                //Sad
+                                var respondListSad = result.Data.Sad.Count;
+                                switch (respondListSad)
+                                {
+                                    case > 0:
+                                    {
+                                        var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Sad)));
+                                        if (string.IsNullOrEmpty(dataTab))
+                                            Adapter.AddFragment(SadTab, GetText(Resource.String.Btn_Sad));
+
+                                        switch (countSadUserList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Data.Sad let check = SadTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    SadTab.MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { SadTab.MAdapter.NotifyItemRangeInserted(countSadUserList - 1, SadTab.MAdapter.UserList.Count - countSadUserList); });
+                                                break;
+                                            }
+                                            default:
+                                                SadTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Sad);
+                                                RunOnUiThread(() => { SadTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (SadTab.MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !SadTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (AngryTab != null)
+                            {
+                                int countAngryUserList = AngryTab?.MAdapter?.UserList?.Count ?? 0;
+
+                                //Angry
+                                var respondListAngry = result.Data.Angry.Count;
+                                switch (respondListAngry)
+                                {
+                                    case > 0:
+                                    {
+                                        string dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Angry)));
+                                        if (string.IsNullOrEmpty(dataTab))
+                                            Adapter.AddFragment(AngryTab, GetText(Resource.String.Btn_Angry));
+
+                                        switch (countAngryUserList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Data.Angry let check = AngryTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    AngryTab.MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { AngryTab.MAdapter.NotifyItemRangeInserted(countAngryUserList - 1, AngryTab.MAdapter.UserList.Count - countAngryUserList); });
+                                                break;
+                                            }
+                                            default:
+                                                AngryTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Angry);
+                                                RunOnUiThread(() => { AngryTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (AngryTab.MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !AngryTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            break;
                         }
                     }
 
-                    if (LoveTab != null)
-                    {
-                        int countLoveUserList = LoveTab?.MAdapter?.UserList?.Count ?? 0;
-
-                        //Love
-                        var respondListLove = result.Data.Love.Count;
-                        if (respondListLove > 0)
-                        {
-                            var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Love)));
-                            if (string.IsNullOrEmpty(dataTab))
-                                Adapter.AddFragment(LoveTab, GetText(Resource.String.Btn_Love));
-
-                            if (countLoveUserList > 0)
-                            {
-                                foreach (var item in from item in result.Data.Love let check = LoveTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                {
-                                    LoveTab.MAdapter.UserList.Add(item);
-                                }
-
-                                RunOnUiThread(() => { LoveTab.MAdapter.NotifyItemRangeInserted(countLoveUserList - 1, LoveTab.MAdapter.UserList.Count - countLoveUserList); });
-                            }
-                            else
-                            {
-                                LoveTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Love);
-                                RunOnUiThread(() => { LoveTab.MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (LoveTab.MAdapter.UserList.Count > 10 && !LoveTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
-                    }
-
-                    if (WowTab != null)
-                    {
-                        int countWowUserList = WowTab?.MAdapter?.UserList?.Count ?? 0;
-
-                        //Wow
-                        var respondListWow = result.Data.Wow.Count;
-                        if (respondListWow > 0)
-                        {
-                            var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Wow)));
-                            if (string.IsNullOrEmpty(dataTab))
-                                Adapter.AddFragment(WowTab, GetText(Resource.String.Btn_Wow));
-
-                            if (countWowUserList > 0)
-                            {
-                                foreach (var item in from item in result.Data.Wow let check = WowTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                {
-                                    WowTab.MAdapter.UserList.Add(item);
-                                }
-
-                                RunOnUiThread(() => { WowTab.MAdapter.NotifyItemRangeInserted(countWowUserList - 1, WowTab.MAdapter.UserList.Count - countWowUserList); });
-                            }
-                            else
-                            {
-                                WowTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Wow);
-                                RunOnUiThread(() => { WowTab.MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (WowTab.MAdapter.UserList.Count > 10 && !WowTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
-                    }
-
-                    if (HahaTab != null)
-                    {
-                        int countHahaUserList = HahaTab?.MAdapter?.UserList?.Count ?? 0;
-
-                        //Haha
-                        var respondListHaha = result.Data.Haha.Count;
-                        if (respondListHaha > 0)
-                        {
-                            var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Haha)));
-                            if (string.IsNullOrEmpty(dataTab))
-                                Adapter.AddFragment(HahaTab, GetText(Resource.String.Btn_Haha));
-
-                            if (countHahaUserList > 0)
-                            {
-                                foreach (var item in from item in result.Data.Haha let check = HahaTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                {
-                                    HahaTab.MAdapter.UserList.Add(item);
-                                }
-
-                                RunOnUiThread(() => { HahaTab.MAdapter.NotifyItemRangeInserted(countHahaUserList - 1, HahaTab.MAdapter.UserList.Count - countHahaUserList); });
-                            }
-                            else
-                            {
-                                HahaTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Haha);
-                                RunOnUiThread(() => { HahaTab.MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (HahaTab.MAdapter.UserList.Count > 10 && !HahaTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
-                    }
-
-                    if (SadTab != null)
-                    {
-                        int countSadUserList = SadTab?.MAdapter?.UserList?.Count ?? 0;
-
-                        //Sad
-                        var respondListSad = result.Data.Sad.Count;
-                        if (respondListSad > 0)
-                        {
-                            var dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Sad)));
-                            if (string.IsNullOrEmpty(dataTab))
-                                Adapter.AddFragment(SadTab, GetText(Resource.String.Btn_Sad));
-
-                            if (countSadUserList > 0)
-                            {
-                                foreach (var item in from item in result.Data.Sad let check = SadTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                {
-                                    SadTab.MAdapter.UserList.Add(item);
-                                }
-
-                                RunOnUiThread(() => { SadTab.MAdapter.NotifyItemRangeInserted(countSadUserList - 1, SadTab.MAdapter.UserList.Count - countSadUserList); });
-                            }
-                            else
-                            {
-                                SadTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Sad);
-                                RunOnUiThread(() => { SadTab.MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (SadTab.MAdapter.UserList.Count > 10 && !SadTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
-                    }
-
-                    if (AngryTab != null)
-                    {
-                        int countAngryUserList = AngryTab?.MAdapter?.UserList?.Count ?? 0;
-
-                        //Angry
-                        var respondListAngry = result.Data.Angry.Count;
-                        if (respondListAngry > 0)
-                        {
-                            string dataTab = Adapter.FragmentNames.FirstOrDefault(a => a.Contains(GetText(Resource.String.Btn_Angry)));
-                            if (string.IsNullOrEmpty(dataTab))
-                                Adapter.AddFragment(AngryTab, GetText(Resource.String.Btn_Angry));
-
-                            if (countAngryUserList > 0)
-                            {
-                                foreach (var item in from item in result.Data.Angry let check = AngryTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                {
-                                    AngryTab.MAdapter.UserList.Add(item);
-                                }
-
-                                RunOnUiThread(() => { AngryTab.MAdapter.NotifyItemRangeInserted(countAngryUserList - 1, AngryTab.MAdapter.UserList.Count - countAngryUserList); });
-                            }
-                            else
-                            {
-                                AngryTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data.Angry);
-                                RunOnUiThread(() => { AngryTab.MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (AngryTab.MAdapter.UserList.Count > 10 && !AngryTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
-                    }
+                    break;
                 }
+                default:
+                    Methods.DisplayReportResult(this, respond);
+                    break;
             }
-            else Methods.DisplayReportResult(this, respond);
 
             RunOnUiThread(ShowEmptyPage);
 
@@ -669,157 +769,205 @@ namespace WoWonder.Activities.Comment
 
                 if (LikeTab != null)
                 {
-                    if (LikeTab.SwipeRefreshLayout.Refreshing)
-                        LikeTab.SwipeRefreshLayout.Refreshing = false;
-
-                    if (LikeTab.MAdapter.UserList.Count > 0)
+                    LikeTab.SwipeRefreshLayout.Refreshing = LikeTab.SwipeRefreshLayout.Refreshing switch
                     {
-                        LikeTab.MRecycler.Visibility = ViewStates.Visible;
-                        LikeTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        true => false,
+                        _ => LikeTab.SwipeRefreshLayout.Refreshing
+                    };
+
+                    switch (LikeTab.MAdapter.UserList.Count)
                     {
-                        LikeTab.MRecycler.Visibility = ViewStates.Gone;
-
-                        LikeTab.Inflated ??= LikeTab.EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(LikeTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        case > 0:
+                            LikeTab.MRecycler.Visibility = ViewStates.Visible;
+                            LikeTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
                         {
-                            x.EmptyStateButton.Click += null!;
+                            LikeTab.MRecycler.Visibility = ViewStates.Gone;
+
+                            LikeTab.Inflated ??= LikeTab.EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(LikeTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            LikeTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        LikeTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                     }
                 }
 
                 if (LoveTab != null)
                 {
-                    if (LoveTab.SwipeRefreshLayout.Refreshing)
-                        LoveTab.SwipeRefreshLayout.Refreshing = false;
-
-                    if (LoveTab.MAdapter.UserList.Count > 0)
+                    LoveTab.SwipeRefreshLayout.Refreshing = LoveTab.SwipeRefreshLayout.Refreshing switch
                     {
-                        LoveTab.MRecycler.Visibility = ViewStates.Visible;
-                        LoveTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        true => false,
+                        _ => LoveTab.SwipeRefreshLayout.Refreshing
+                    };
+
+                    switch (LoveTab.MAdapter.UserList.Count)
                     {
-                        LoveTab.MRecycler.Visibility = ViewStates.Gone;
-
-                        LoveTab.Inflated ??= LoveTab.EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(LoveTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        case > 0:
+                            LoveTab.MRecycler.Visibility = ViewStates.Visible;
+                            LoveTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
                         {
-                            x.EmptyStateButton.Click += null!;
+                            LoveTab.MRecycler.Visibility = ViewStates.Gone;
+
+                            LoveTab.Inflated ??= LoveTab.EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(LoveTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            LoveTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        LoveTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                     }
                 }
 
                 if (WowTab != null)
                 {
-                    if (WowTab.SwipeRefreshLayout.Refreshing)
-                        WowTab.SwipeRefreshLayout.Refreshing = false;
-
-                    if (WowTab.MAdapter.UserList.Count > 0)
+                    WowTab.SwipeRefreshLayout.Refreshing = WowTab.SwipeRefreshLayout.Refreshing switch
                     {
-                        WowTab.MRecycler.Visibility = ViewStates.Visible;
-                        WowTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        true => false,
+                        _ => WowTab.SwipeRefreshLayout.Refreshing
+                    };
+
+                    switch (WowTab.MAdapter.UserList.Count)
                     {
-                        WowTab.MRecycler.Visibility = ViewStates.Gone;
-
-                        WowTab.Inflated ??= WowTab.EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(WowTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        case > 0:
+                            WowTab.MRecycler.Visibility = ViewStates.Visible;
+                            WowTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
                         {
-                            x.EmptyStateButton.Click += null!;
+                            WowTab.MRecycler.Visibility = ViewStates.Gone;
+
+                            WowTab.Inflated ??= WowTab.EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(WowTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            WowTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        WowTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                     }
                 }
 
                 if (HahaTab != null)
                 {
-                    if (HahaTab.SwipeRefreshLayout.Refreshing)
-                        HahaTab.SwipeRefreshLayout.Refreshing = false;
-
-                    if (HahaTab.MAdapter.UserList.Count > 0)
+                    HahaTab.SwipeRefreshLayout.Refreshing = HahaTab.SwipeRefreshLayout.Refreshing switch
                     {
-                        HahaTab.MRecycler.Visibility = ViewStates.Visible;
-                        HahaTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        true => false,
+                        _ => HahaTab.SwipeRefreshLayout.Refreshing
+                    };
+
+                    switch (HahaTab.MAdapter.UserList.Count)
                     {
-                        HahaTab.MRecycler.Visibility = ViewStates.Gone;
-
-                        HahaTab.Inflated ??= HahaTab.EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(HahaTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        case > 0:
+                            HahaTab.MRecycler.Visibility = ViewStates.Visible;
+                            HahaTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
                         {
-                            x.EmptyStateButton.Click += null!;
+                            HahaTab.MRecycler.Visibility = ViewStates.Gone;
+
+                            HahaTab.Inflated ??= HahaTab.EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(HahaTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            HahaTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        HahaTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                     }
                 }
 
                 if (SadTab != null)
                 {
-                    if (SadTab.SwipeRefreshLayout.Refreshing)
-                        SadTab.SwipeRefreshLayout.Refreshing = false;
-
-                    if (SadTab.MAdapter.UserList.Count > 0)
+                    SadTab.SwipeRefreshLayout.Refreshing = SadTab.SwipeRefreshLayout.Refreshing switch
                     {
-                        SadTab.MRecycler.Visibility = ViewStates.Visible;
-                        SadTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        true => false,
+                        _ => SadTab.SwipeRefreshLayout.Refreshing
+                    };
+
+                    switch (SadTab.MAdapter.UserList.Count)
                     {
-                        SadTab.MRecycler.Visibility = ViewStates.Gone;
-
-                        SadTab.Inflated ??= SadTab.EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(SadTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        case > 0:
+                            SadTab.MRecycler.Visibility = ViewStates.Visible;
+                            SadTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
                         {
-                            x.EmptyStateButton.Click += null!;
+                            SadTab.MRecycler.Visibility = ViewStates.Gone;
+
+                            SadTab.Inflated ??= SadTab.EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(SadTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            SadTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        SadTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                     }
                 }
 
                 if (AngryTab != null)
                 {
-                    if (AngryTab.SwipeRefreshLayout.Refreshing)
-                        AngryTab.SwipeRefreshLayout.Refreshing = false;
-
-                    if (AngryTab.MAdapter.UserList.Count > 0)
+                    AngryTab.SwipeRefreshLayout.Refreshing = AngryTab.SwipeRefreshLayout.Refreshing switch
                     {
-                        AngryTab.MRecycler.Visibility = ViewStates.Visible;
-                        AngryTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        true => false,
+                        _ => AngryTab.SwipeRefreshLayout.Refreshing
+                    };
+
+                    switch (AngryTab.MAdapter.UserList.Count)
                     {
-                        AngryTab.MRecycler.Visibility = ViewStates.Gone;
-
-                        AngryTab.Inflated ??= AngryTab.EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(AngryTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        case > 0:
+                            AngryTab.MRecycler.Visibility = ViewStates.Visible;
+                            AngryTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
                         {
-                            x.EmptyStateButton.Click += null!;
+                            AngryTab.MRecycler.Visibility = ViewStates.Gone;
+
+                            AngryTab.Inflated ??= AngryTab.EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(AngryTab.Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            AngryTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        AngryTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                     }
                 }
             }

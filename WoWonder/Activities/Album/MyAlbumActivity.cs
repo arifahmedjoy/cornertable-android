@@ -137,8 +137,11 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                if (MAdapter.AlbumList.Count > 0)
-                    ListUtils.ListCachedDataAlbum = MAdapter.AlbumList;
+                ListUtils.ListCachedDataAlbum = MAdapter.AlbumList.Count switch
+                {
+                    > 0 => MAdapter.AlbumList,
+                    _ => ListUtils.ListCachedDataAlbum
+                };
 
                 DestroyBasic();
 
@@ -256,18 +259,19 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.OnItemClick += MAdapterOnOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    ActionButton.Click += ActionButtonOnClick;
-                }
-                else
-                {
-                    MAdapter.OnItemClick -= MAdapterOnOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    ActionButton.Click -= ActionButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.OnItemClick += MAdapterOnOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        ActionButton.Click += ActionButtonOnClick;
+                        break;
+                    default:
+                        MAdapter.OnItemClick -= MAdapterOnOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        ActionButton.Click -= ActionButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -376,16 +380,21 @@ namespace WoWonder.Activities.Album
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                if (requestCode == 2020 && resultCode == Result.Ok)
+                switch (requestCode)
                 {
-                    string result = data.GetStringExtra("AlbumItem"); 
-                    var item = JsonConvert.DeserializeObject<PostDataObject>(result);
-                    if (item != null)
+                    case 2020 when resultCode == Result.Ok:
                     {
-                        MAdapter.AlbumList.Add(item);
-                        MAdapter.NotifyDataSetChanged();
+                        string result = data.GetStringExtra("AlbumItem"); 
+                        var item = JsonConvert.DeserializeObject<PostDataObject>(result);
+                        if (item != null)
+                        {
+                            MAdapter.AlbumList.Add(item);
+                            MAdapter.NotifyDataSetChanged();
 
-                        RunOnUiThread(ShowEmptyPage); 
+                            RunOnUiThread(ShowEmptyPage); 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -403,16 +412,21 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                if (ListUtils.ListCachedDataAlbum.Count > 0)
+                switch (ListUtils.ListCachedDataAlbum.Count)
                 {
-                    MAdapter.AlbumList = ListUtils.ListCachedDataAlbum;
-                    MAdapter.NotifyDataSetChanged();
+                    case > 0:
+                    {
+                        MAdapter.AlbumList = ListUtils.ListCachedDataAlbum;
+                        MAdapter.NotifyDataSetChanged();
 
-                    var item = MAdapter.AlbumList.LastOrDefault()?.Id ?? "0";
-                    StartApiService(item);
+                        var item = MAdapter.AlbumList.LastOrDefault()?.Id ?? "0";
+                        StartApiService(item);
+                        break;
+                    }
+                    default:
+                        StartApiService();
+                        break;
                 }
-                else
-                    StartApiService(); 
             }
             catch (Exception e)
             {
@@ -423,8 +437,11 @@ namespace WoWonder.Activities.Album
 
         private void StartApiService(string offset = "0")
         {
-            if (MAdapter.AlbumList.Count > 0)
-                ListUtils.ListCachedDataAlbum = MAdapter.AlbumList;
+            ListUtils.ListCachedDataAlbum = MAdapter.AlbumList.Count switch
+            {
+                > 0 => MAdapter.AlbumList,
+                _ => ListUtils.ListCachedDataAlbum
+            };
 
             if (!Methods.CheckConnectivity())
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -434,8 +451,11 @@ namespace WoWonder.Activities.Album
 
         private async Task LoadAlbum(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -451,9 +471,9 @@ namespace WoWonder.Activities.Album
                 else
                 {
                     var respondList = result.Albums?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Albums let check = MAdapter.AlbumList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -461,17 +481,23 @@ namespace WoWonder.Activities.Album
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.AlbumList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.AlbumList = new ObservableCollection<PostDataObject>(result.Albums);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.AlbumList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreAlbums), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.AlbumList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreAlbums), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -482,10 +508,12 @@ namespace WoWonder.Activities.Album
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -500,24 +528,29 @@ namespace WoWonder.Activities.Album
                 MainScrollEvent.IsLoading = false; 
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.AlbumList.Count > 0)
+                switch (MAdapter.AlbumList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoAlbum);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoAlbum);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

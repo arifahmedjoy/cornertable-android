@@ -32,82 +32,110 @@ namespace WoWonder.Activities.MyProfile.Adapters
             {
                 var activityContext = context;
 
-                if (AppSettings.ShowSettingsSocialLinksFacebook)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 1,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_Facebook),
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = IonIconsFonts.LogoFacebook,
-                        IconColor = Color.ParseColor("#3b5999")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksFacebook)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 1,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_Facebook),
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = IonIconsFonts.LogoFacebook,
+                            IconColor = Color.ParseColor("#3b5999")
+                        });
+                        break;
+                }
 
-                if (AppSettings.ShowSettingsSocialLinksTwitter)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 2,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_Twitter),
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = IonIconsFonts.LogoTwitter,
-                        IconColor = Color.ParseColor("#55acee")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksTwitter)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 2,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_Twitter),
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = IonIconsFonts.LogoTwitter,
+                            IconColor = Color.ParseColor("#55acee")
+                        });
+                        break;
+                }
 
-                if (AppSettings.ShowSettingsSocialLinksGoogle)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 3,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_GooglePlus) + "+",
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = IonIconsFonts.LogoGoogle,
-                        IconColor = Color.ParseColor("#dd4b39")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksGoogle)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 3,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_GooglePlus) + "+",
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = IonIconsFonts.LogoGoogle,
+                            IconColor = Color.ParseColor("#dd4b39")
+                        });
+                        break;
+                }
 
-                if (AppSettings.ShowSettingsSocialLinksVkontakte)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 4,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_Vk),
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = FontAwesomeIcon.Vk,
-                        IconColor = Color.ParseColor("#4c75a3")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksVkontakte)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 4,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_Vk),
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = FontAwesomeIcon.Vk,
+                            IconColor = Color.ParseColor("#4c75a3")
+                        });
+                        break;
+                }
 
-                if (AppSettings.ShowSettingsSocialLinksLinkedin)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 5,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_Linkedin),
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = IonIconsFonts.LogoLinkedin,
-                        IconColor = Color.ParseColor("#0077B5")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksLinkedin)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 5,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_Linkedin),
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = IonIconsFonts.LogoLinkedin,
+                            IconColor = Color.ParseColor("#0077B5")
+                        });
+                        break;
+                }
 
-                if (AppSettings.ShowSettingsSocialLinksInstagram)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 6,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_Instagram),
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = IonIconsFonts.Happy,
-                        IconColor = Color.ParseColor("#e4405f")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksInstagram)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 6,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_Instagram),
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = IonIconsFonts.Happy,
+                            IconColor = Color.ParseColor("#e4405f")
+                        });
+                        break;
+                }
 
-                if (AppSettings.ShowSettingsSocialLinksYouTube)
-                    SocialList.Add(new SocialItem
-                    {
-                        Id = 7,
-                        SocialName = activityContext.GetText(Resource.String.Lbl_YouTube),
-                        SocialLinkName = "",
-                        Checkvisibilty = false,
-                        SocialIcon = IonIconsFonts.LogoYoutube,
-                        IconColor = Color.ParseColor("#cd201f")
-                    });
+                switch (AppSettings.ShowSettingsSocialLinksYouTube)
+                {
+                    case true:
+                        SocialList.Add(new SocialItem
+                        {
+                            Id = 7,
+                            SocialName = activityContext.GetText(Resource.String.Lbl_YouTube),
+                            SocialLinkName = "",
+                            Checkvisibilty = false,
+                            SocialIcon = IonIconsFonts.LogoYoutube,
+                            IconColor = Color.ParseColor("#cd201f")
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -141,33 +169,39 @@ namespace WoWonder.Activities.MyProfile.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is SocialLinksAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = SocialList[position];
-                    if (item != null)
+                    case SocialLinksAdapterViewHolder holder:
                     {
-                        string name = Methods.FunString.DecodeString(item.SocialName);
-                        holder.NameSocial.Text = Methods.FunString.SubStringCutOf(name, 20);
-
-                        FontUtils.SetTextViewIcon(item.Id == 4 ? FontsIconFrameWork.FontAwesomeBrands : FontsIconFrameWork.IonIcons,holder.IconSocial, item.SocialIcon);
-
-                        holder.IconSocial.SetTextColor(item.IconColor);
-
-                        if (item.Checkvisibilty)
+                        var item = SocialList[position];
+                        if (item != null)
                         {
-                            FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconCheck, IonIconsFonts.Checkmark);
-                            holder.IconCheck.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                            string name = Methods.FunString.DecodeString(item.SocialName);
+                            holder.NameSocial.Text = Methods.FunString.SubStringCutOf(name, 20);
 
-                            holder.NameLink.Text = item.SocialLinkName;
-                            holder.NameLink.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                            FontUtils.SetTextViewIcon(item.Id == 4 ? FontsIconFrameWork.FontAwesomeBrands : FontsIconFrameWork.IonIcons,holder.IconSocial, item.SocialIcon);
 
-                            holder.LayoutCheckvisibilty.Visibility = ViewStates.Visible;
+                            holder.IconSocial.SetTextColor(item.IconColor);
+
+                            switch (item.Checkvisibilty)
+                            {
+                                case true:
+                                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconCheck, IonIconsFonts.Checkmark);
+                                    holder.IconCheck.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+
+                                    holder.NameLink.Text = item.SocialLinkName;
+                                    holder.NameLink.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+
+                                    holder.LayoutCheckvisibilty.Visibility = ViewStates.Visible;
+                                    break;
+                                default:
+                                    holder.LayoutCheckvisibilty.Visibility = ViewStates.Invisible;
+                                    break;
+                            }
                         }
-                        else
-                        {
-                            holder.LayoutCheckvisibilty.Visibility = ViewStates.Invisible;
-                        }
+
+                        break;
                     }
                 }
             }
@@ -184,14 +218,15 @@ namespace WoWonder.Activities.MyProfile.Adapters
                 var data = SocialList.FirstOrDefault(a => a.Id == item.Id);
                 if (data != null)
                 {
-                    if (!string.IsNullOrEmpty(linkName))
+                    switch (string.IsNullOrEmpty(linkName))
                     {
-                        data.SocialLinkName = linkName;
-                        data.Checkvisibilty = true;
-                    }
-                    else
-                    {
-                        data.Checkvisibilty = false;
+                        case false:
+                            data.SocialLinkName = linkName;
+                            data.Checkvisibilty = true;
+                            break;
+                        default:
+                            data.Checkvisibilty = false;
+                            break;
                     }
 
                     NotifyItemChanged(SocialList.IndexOf(data));

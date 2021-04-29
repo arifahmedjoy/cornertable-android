@@ -45,8 +45,11 @@ namespace WoWonder.Activities.NativePost.Post
 
         public async Task FetchNewsFeedApiPosts(string offset = "0", string typeRun = "Add", string hash = "")
         {
-            if (WRecyclerView.MainScrollEvent.IsLoading)
-                return;
+            switch (WRecyclerView.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (!Methods.CheckConnectivity())
                 return;
@@ -87,7 +90,7 @@ namespace WoWonder.Activities.NativePost.Post
                     return;
             }
 
-            if (apiStatus != 200 || (respond is not PostObject result) || result.Data == null)
+            if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
             {
                 WRecyclerView.MainScrollEvent.IsLoading = false; 
                 Methods.DisplayReportResult(ActivityContext, respond);
@@ -102,7 +105,7 @@ namespace WoWonder.Activities.NativePost.Post
                 return;
 
             var (apiStatus, respond) = await RequestsAsync.Posts.SearchForPosts(AppSettings.PostApiLimitOnScroll, offset, id, searchQuery, type);
-            if (apiStatus != 200 || (respond is not PostObject result) || result.Data == null)
+            if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
             {
                 WRecyclerView.MainScrollEvent.IsLoading = false;
                 Methods.DisplayReportResult(ActivityContext, respond);
@@ -114,7 +117,7 @@ namespace WoWonder.Activities.NativePost.Post
         {
             try
             {
-                if (apiStatus != 200 || (respond is not PostObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
                 {
                     WRecyclerView.MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(ActivityContext, respond);
@@ -125,140 +128,186 @@ namespace WoWonder.Activities.NativePost.Post
                         WRecyclerView.SwipeRefreshLayoutView.Refreshing = false;
 
                     var countList = NativeFeedAdapter.ItemCount;
-                    if (result.Data.Count > 0)
+                    switch (result.Data.Count)
                     {
-                        result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
-
-                        if (offset == "0" && countList > 10 && typeRun == "Insert" && NativeFeedAdapter.NativePostType == NativeFeedType.Global)
+                        case > 0:
                         {
-                            result.Data.Reverse();
-                            bool add = false;
+                            result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
 
-                            foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                            switch (offset)
                             {
-                                add = true;
-                                NativeFeedAdapter.NewPostList.Add(post);
-                            }
-
-                            ActivityContext?.RunOnUiThread(() =>
-                            {
-                                try
+                                case "0" when countList > 10 && typeRun == "Insert" && NativeFeedAdapter.NativePostType == NativeFeedType.Global:
                                 {
-                                    if (add && WRecyclerView.PopupBubbleView != null && WRecyclerView.PopupBubbleView.Visibility != ViewStates.Visible && AppSettings.ShowNewPostOnNewsFeed)
+                                    result.Data.Reverse();
+                                    bool add = false;
+
+                                    foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
                                     {
-                                        WRecyclerView.PopupBubbleView.Visibility = ViewStates.Visible;
+                                        add = true;
+                                        NativeFeedAdapter.NewPostList.Add(post);
                                     }
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e);
-                                }
-                            });
-                        }
-                        else
-                        {
-                            bool add = false;
-                            foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
-                            {
-                                add = true;
-                                var combiner = new FeedCombiner(null, NativeFeedAdapter.ListDiffer, ActivityContext);
 
-                                if (NativeFeedAdapter.NativePostType == NativeFeedType.Global)
-                                {
-                                    if (result.Data.Count < 6 && NativeFeedAdapter.ListDiffer.Count < 6)
+                                    ActivityContext?.RunOnUiThread(() =>
                                     {
-                                        if (!ShowFindMoreAlert)
+                                        try
                                         {
-                                            ShowFindMoreAlert = true;
+                                            WRecyclerView.PopupBubbleView.Visibility = add switch
+                                            {
+                                                true when WRecyclerView.PopupBubbleView != null &&
+                                                          WRecyclerView.PopupBubbleView.Visibility !=
+                                                          ViewStates.Visible &&
+                                                          AppSettings.ShowNewPostOnNewsFeed => ViewStates.Visible,
+                                                _ => WRecyclerView.PopupBubbleView.Visibility
+                                            };
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Methods.DisplayReportResultTrack(e);
+                                        }
+                                    });
+                                    break;
+                                }
+                                default:
+                                {
+                                    bool add = false;
+                                    foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                                    {
+                                        add = true;
+                                        var combiner = new FeedCombiner(null, NativeFeedAdapter.ListDiffer, ActivityContext);
 
-                                            combiner.AddFindMoreAlertPostView("Pages");
-                                            combiner.AddFindMoreAlertPostView("Groups");
+                                        switch (NativeFeedAdapter.NativePostType)
+                                        {
+                                            case NativeFeedType.Global:
+                                            {
+                                                switch (result.Data.Count)
+                                                {
+                                                    case < 6 when NativeFeedAdapter.ListDiffer.Count < 6:
+                                                    {
+                                                        switch (ShowFindMoreAlert)
+                                                        {
+                                                            case false:
+                                                                ShowFindMoreAlert = true;
+
+                                                                combiner.AddFindMoreAlertPostView("Pages");
+                                                                combiner.AddFindMoreAlertPostView("Groups");
+                                                                break;
+                                                        }
+
+                                                        break;
+                                                    }
+                                                }
+
+                                                var check1 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedGroupsBox);
+                                                switch (check1)
+                                                {
+                                                    case null when AppSettings.ShowSuggestedGroup && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedGroupCount == 0 && ListUtils.SuggestedGroupList.Count > 0:
+                                                        combiner.AddSuggestedBoxPostView(PostModelType.SuggestedGroupsBox);
+                                                        break;
+                                                }
+
+                                                var check2 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedUsersBox);
+                                                switch (check2)
+                                                {
+                                                    case null when AppSettings.ShowSuggestedUser && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedUserCount == 0 && ListUtils.SuggestedUserList.Count > 0:
+                                                        combiner.AddSuggestedBoxPostView(PostModelType.SuggestedUsersBox);
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        switch (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowAdMobNativeCount)
+                                        {
+                                            case 0 when NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowAdMobNativePost:
+                                                switch (LastAdsType)
+                                                {
+                                                    case PostModelType.AdMob1:
+                                                        LastAdsType = PostModelType.AdMob2;
+                                                        combiner.AddAdsPostView(PostModelType.AdMob1);
+                                                        break;
+                                                    case PostModelType.AdMob2:
+                                                        LastAdsType = PostModelType.AdMob3;
+                                                        combiner.AddAdsPostView(PostModelType.AdMob2);
+                                                        break;
+                                                    case PostModelType.AdMob3:
+                                                        LastAdsType = PostModelType.AdMob1;
+                                                        combiner.AddAdsPostView(PostModelType.AdMob3);
+                                                        break;
+                                                }
+
+                                                break;
+                                        }
+
+                                        var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
+                                        switch (post.PostType)
+                                        {
+                                            case "ad":
+                                                combine.AddAdsPost();
+                                                break;
+                                            default:
+                                            {
+                                                bool isPromoted = post.IsPostBoosted == "1" || post.SharedInfo.SharedInfoClass != null && post.SharedInfo.SharedInfoClass?.IsPostBoosted == "1";
+                                                switch (isPromoted)
+                                                {
+                                                    //Promoted
+                                                    case true:
+                                                        combine.CombineDefaultPostSections("Top");
+                                                        break;
+                                                    default:
+                                                        combine.CombineDefaultPostSections();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        switch (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowFbNativeAdsCount)
+                                        {
+                                            case 0 when NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowFbNativeAds:
+                                                combiner.AddAdsPostView(PostModelType.FbAdNative);
+                                                break;
                                         }
                                     }
 
-                                    var check1 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedGroupsBox);
-                                    if (check1 == null && AppSettings.ShowSuggestedGroup && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedGroupCount == 0 && ListUtils.SuggestedGroupList.Count > 0)
+                                    switch (add)
                                     {
-                                        combiner.AddSuggestedBoxPostView(PostModelType.SuggestedGroupsBox);
-                                    }
-
-                                    var check2 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedUsersBox);
-                                    if (check2 == null && AppSettings.ShowSuggestedUser && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedUserCount == 0 && ListUtils.SuggestedUserList.Count > 0)
-                                    {
-                                        combiner.AddSuggestedBoxPostView(PostModelType.SuggestedUsersBox);
-                                    }
-                                }
-
-                                if (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowAdMobNativeCount == 0 && NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowAdMobNativePost)
-                                {
-                                    switch (LastAdsType)
-                                    {
-                                        case PostModelType.AdMob1:
-                                            LastAdsType = PostModelType.AdMob2;
-                                            combiner.AddAdsPostView(PostModelType.AdMob1);
-                                            break;
-                                        case PostModelType.AdMob2:
-                                            LastAdsType = PostModelType.AdMob3;
-                                            combiner.AddAdsPostView(PostModelType.AdMob2);
-                                            break;
-                                        case PostModelType.AdMob3:
-                                            LastAdsType = PostModelType.AdMob1;
-                                            combiner.AddAdsPostView(PostModelType.AdMob3);
+                                        case true:
+                                            ActivityContext?.RunOnUiThread(() =>
+                                            {
+                                                try
+                                                {
+                                                    var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run();
+                                                    GC.Collect();
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Methods.DisplayReportResultTrack(e);
+                                                }
+                                            });
                                             break;
                                     }
-                                }
 
-                                var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
-                                if (post.PostType == "ad")
-                                {
-                                    combine.AddAdsPost();
-                                }
-                                else
-                                {
-                                    bool isPromoted = post.IsPostBoosted == "1" || post.SharedInfo.SharedInfoClass != null && post.SharedInfo.SharedInfoClass?.IsPostBoosted == "1";
-                                    if (isPromoted) //Promoted
-                                    {
-                                        combine.CombineDefaultPostSections("Top");
-                                    }
-                                    else
-                                    {
-                                        combine.CombineDefaultPostSections();
-                                    }
-                                }
-
-                                if (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowFbNativeAdsCount == 0 && NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowFbNativeAds)
-                                {
-                                    combiner.AddAdsPostView(PostModelType.FbAdNative);
+                                    //else
+                                    //{
+                                    //    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_NoMorePost), ToastLength.Short)?.Show(); 
+                                    //}
+                                    break;
                                 }
                             }
 
-                            if (add)
-                            {
-                                ActivityContext?.RunOnUiThread(() =>
-                                {
-                                    try
-                                    {
-                                        var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run();
-                                        GC.Collect();
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Methods.DisplayReportResultTrack(e);
-                                    }
-                                });
-                            }
-
-                            //else
-                            //{
-                            //    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_NoMorePost), ToastLength.Short)?.Show(); 
-                            //}
+                            break;
                         }
                     }
 
                     ActivityContext?.RunOnUiThread(ShowEmptyPage);
 
-                    if (NativeFeedAdapter.NativePostType == NativeFeedType.Global)
-                        WRecyclerView.DataPostJson = JsonConvert.SerializeObject(result); 
+                    WRecyclerView.DataPostJson = NativeFeedAdapter.NativePostType switch
+                    {
+                        NativeFeedType.Global => JsonConvert.SerializeObject(result),
+                        _ => WRecyclerView.DataPostJson
+                    };
                 }
 
                 WRecyclerView.MainScrollEvent.IsLoading = false;
@@ -278,45 +327,61 @@ namespace WoWonder.Activities.NativePost.Post
                 NativeFeedAdapter.NotifyDataSetChanged();
 
                 var combiner = new FeedCombiner(null, NativeFeedAdapter.ListDiffer, ActivityContext);
-                combiner.AddStoryPostView();
                 combiner.AddPostBoxPostView("feed", -1);
-                 
-                if (list.Count > 0)
+
+                switch (AppSettings.ShowStory)
                 {
-                    bool add = false;
-                    foreach (var post in from post in list let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                    case true:
+                        combiner.AddStoryPostView("feed", -1);
+                        break;
+                }
+
+                switch (list.Count)
+                {
+                    case > 0:
                     {
-                        add = true;
-                        var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
-                        if (post.PostType == "ad")
+                        bool add = false;
+                        foreach (var post in from post in list let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
                         {
-                            combine.AddAdsPost();
-                        }
-                        else
-                        {
-                            combine.CombineDefaultPostSections();
-                        }
-                    }
-                     
-                    if (PostCacheList?.Count > 0)
-                    {
-                        LoadBottomDataApi(PostCacheList.Take(30).ToList());
-                    }
-                     
-                    if (add)
-                    {
-                        ActivityContext?.RunOnUiThread(() =>
-                        {
-                            try
+                            add = true;
+                            var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
+                            switch (post.PostType)
                             {
-                                NativeFeedAdapter.NotifyDataSetChanged();
-                                NativeFeedAdapter.NewPostList.Clear();
+                                case "ad":
+                                    combine.AddAdsPost();
+                                    break;
+                                default:
+                                    combine.CombineDefaultPostSections();
+                                    break;
                             }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
+                        }
+                     
+                        switch (PostCacheList?.Count)
+                        {
+                            case > 0:
+                                LoadBottomDataApi(PostCacheList.Take(30).ToList());
+                                break;
+                        }
+                     
+                        switch (add)
+                        {
+                            case true:
+                                ActivityContext?.RunOnUiThread(() =>
+                                {
+                                    try
+                                    {
+                                        NativeFeedAdapter.NotifyDataSetChanged();
+                                        NativeFeedAdapter.NewPostList.Clear();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                });
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -330,12 +395,15 @@ namespace WoWonder.Activities.NativePost.Post
         {
             try
             {
-                if (WRecyclerView.MainScrollEvent.IsLoading)
-                    return;
+                switch (WRecyclerView.MainScrollEvent.IsLoading)
+                {
+                    case true:
+                        return;
+                }
 
                 WRecyclerView.MainScrollEvent.IsLoading = true;
 
-                if (apiStatus != 200 || (respond is not FetchMemoriesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not FetchMemoriesObject result || result.Data == null)
                 {
                     WRecyclerView.MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(ActivityContext, respond);
@@ -346,32 +414,42 @@ namespace WoWonder.Activities.NativePost.Post
                         WRecyclerView.SwipeRefreshLayoutView.Refreshing = false;
 
                     var countList = NativeFeedAdapter.ItemCount;
-                    if (result.Data.Posts.Count > 0)
+                    switch (result.Data.Posts.Count)
                     {
-                        result.Data.Posts.RemoveAll(a => a.Publisher == null && a.UserData == null);
-                        result.Data.Posts.Reverse();
-
-                        foreach (var post in from post in result.Data.Posts let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                        case > 0:
                         {
-                            if (post.Publisher == null && post.UserData == null)
-                                continue;
+                            result.Data.Posts.RemoveAll(a => a.Publisher == null && a.UserData == null);
+                            result.Data.Posts.Reverse();
 
-                            var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
-                            combine.CombineDefaultPostSections();
+                            foreach (var post in from post in result.Data.Posts let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                            {
+                                switch (post.Publisher)
+                                {
+                                    case null when post.UserData == null:
+                                        continue;
+                                    default:
+                                    {
+                                        var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
+                                        combine.CombineDefaultPostSections();
+                                        break;
+                                    }
+                                }
+                            }
+
+                            ActivityContext?.RunOnUiThread(() =>
+                            {
+                                try
+                                {
+                                    var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run(); 
+                                    GC.Collect();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            break;
                         }
-
-                        ActivityContext?.RunOnUiThread(() =>
-                        {
-                            try
-                            {
-                                var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run(); 
-                                GC.Collect();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
                     } 
                 }
 
@@ -394,13 +472,19 @@ namespace WoWonder.Activities.NativePost.Post
                 if (NativeFeedAdapter.NativePostType != NativeFeedType.Global)
                     return;
                  
-                if (PostCacheList?.Count > 40)
-                    return;
+                switch (PostCacheList?.Count)
+                {
+                    case > 40:
+                        return;
+                }
                   
                 var diff = NativeFeedAdapter.ListDiffer;
                 var list = new List<AdapterModelsClass>(diff);
-                if (list.Count <= 20)
-                    return;
+                switch (list.Count)
+                {
+                    case <= 20:
+                        return;
+                }
 
                 var item = list.LastOrDefault();
                  
@@ -410,15 +494,26 @@ namespace WoWonder.Activities.NativePost.Post
 
                 string offset;
 
-                if (item.TypeView == PostModelType.Divider || item.TypeView == PostModelType.ViewProgress || item.TypeView == PostModelType.AdMob1 || item.TypeView == PostModelType.AdMob2 || item.TypeView == PostModelType.AdMob3 || item.TypeView == PostModelType.FbAdNative || item.TypeView == PostModelType.AdsPost || item.TypeView == PostModelType.SuggestedGroupsBox || item.TypeView == PostModelType.SuggestedUsersBox || item.TypeView == PostModelType.CommentSection || item.TypeView == PostModelType.AddCommentSection)
+                switch (item.TypeView)
                 {
-                    item = list.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
-                    offset = item?.PostData?.PostId ?? "0";
-                    Console.WriteLine(offset);
-                }
-                else
-                {
-                    offset = item.PostData?.PostId ?? "0";
+                    case PostModelType.Divider:
+                    case PostModelType.ViewProgress:
+                    case PostModelType.AdMob1:
+                    case PostModelType.AdMob2:
+                    case PostModelType.AdMob3:
+                    case PostModelType.FbAdNative:
+                    case PostModelType.AdsPost:
+                    case PostModelType.SuggestedGroupsBox:
+                    case PostModelType.SuggestedUsersBox:
+                    case PostModelType.CommentSection:
+                    case PostModelType.AddCommentSection:
+                        item = list.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
+                        offset = item?.PostData?.PostId ?? "0";
+                        Console.WriteLine(offset);
+                        break;
+                    default:
+                        offset = item.PostData?.PostId ?? "0";
+                        break;
                 }
 
                 Console.WriteLine(offset);
@@ -435,7 +530,7 @@ namespace WoWonder.Activities.NativePost.Post
                         return;
                 }
 
-                if (apiStatus != 200 || (respond is not PostObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not PostObject result || result.Data == null)
                 { 
                     Methods.DisplayReportResult(ActivityContext, respond);
                 }
@@ -444,21 +539,30 @@ namespace WoWonder.Activities.NativePost.Post
                     PostCacheList ??= new List<PostDataObject>();
 
                     var countList = PostCacheList?.Count ?? 0;
-                    if (result?.Data?.Count > 0)
+                    switch (result?.Data?.Count)
                     {
-                        result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
+                        case > 0:
+                        {
+                            result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
                          
-                        if (countList > 0)
-                        {
-                            foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                            switch (countList)
                             {
-                                PostCacheList.Add(post);
+                                case > 0:
+                                {
+                                    foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                                    {
+                                        PostCacheList.Add(post);
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    PostCacheList = new List<PostDataObject>(result.Data);
+                                    break;
                             }
+
+                            break;
                         }
-                        else
-                        {
-                            PostCacheList = new List<PostDataObject>(result.Data);
-                        } 
                     }
                 } 
             }
@@ -473,95 +577,120 @@ namespace WoWonder.Activities.NativePost.Post
             try
             {
                 var countList = NativeFeedAdapter.ItemCount;
-                if (list?.Count > 0)
+                switch (list?.Count)
                 {
-                    bool add = false;
-                    foreach (var post in from post in list let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                    case > 0:
                     {
-                        add = true;
-                        var combiner = new FeedCombiner(null, NativeFeedAdapter.ListDiffer, ActivityContext);
-
-                        if (NativeFeedAdapter.NativePostType == NativeFeedType.Global)
+                        bool add = false;
+                        foreach (var post in from post in list let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a?.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
                         {
-                            var check1 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedGroupsBox);
-                            if (check1 == null && AppSettings.ShowSuggestedGroup && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedGroupCount == 0 && ListUtils.SuggestedGroupList.Count > 0)
-                            {
-                                combiner.AddSuggestedBoxPostView(PostModelType.SuggestedGroupsBox);
-                            }
+                            add = true;
+                            var combiner = new FeedCombiner(null, NativeFeedAdapter.ListDiffer, ActivityContext);
 
-                            var check2 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedUsersBox);
-                            if (check2 == null && AppSettings.ShowSuggestedUser && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedUserCount == 0 && ListUtils.SuggestedUserList.Count > 0)
+                            switch (NativeFeedAdapter.NativePostType)
                             {
-                                combiner.AddSuggestedBoxPostView(PostModelType.SuggestedUsersBox);
-                            }
-                        }
+                                case NativeFeedType.Global:
+                                {
+                                    var check1 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedGroupsBox);
+                                    switch (check1)
+                                    {
+                                        case null when AppSettings.ShowSuggestedGroup && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedGroupCount == 0 && ListUtils.SuggestedGroupList.Count > 0:
+                                            combiner.AddSuggestedBoxPostView(PostModelType.SuggestedGroupsBox);
+                                            break;
+                                    }
 
-                        if (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowAdMobNativeCount == 0 && NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowAdMobNativePost)
-                        {
-                            switch (LastAdsType)
-                            {
-                                case PostModelType.AdMob1:
-                                    LastAdsType = PostModelType.AdMob2;
-                                    combiner.AddAdsPostView(PostModelType.AdMob1);
+                                    var check2 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedUsersBox);
+                                    switch (check2)
+                                    {
+                                        case null when AppSettings.ShowSuggestedUser && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedUserCount == 0 && ListUtils.SuggestedUserList.Count > 0:
+                                            combiner.AddSuggestedBoxPostView(PostModelType.SuggestedUsersBox);
+                                            break;
+                                    }
+
                                     break;
-                                case PostModelType.AdMob2:
-                                    LastAdsType = PostModelType.AdMob3;
-                                    combiner.AddAdsPostView(PostModelType.AdMob2);
+                                }
+                            }
+
+                            switch (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowAdMobNativeCount)
+                            {
+                                case 0 when NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowAdMobNativePost:
+                                    switch (LastAdsType)
+                                    {
+                                        case PostModelType.AdMob1:
+                                            LastAdsType = PostModelType.AdMob2;
+                                            combiner.AddAdsPostView(PostModelType.AdMob1);
+                                            break;
+                                        case PostModelType.AdMob2:
+                                            LastAdsType = PostModelType.AdMob3;
+                                            combiner.AddAdsPostView(PostModelType.AdMob2);
+                                            break;
+                                        case PostModelType.AdMob3:
+                                            LastAdsType = PostModelType.AdMob1;
+                                            combiner.AddAdsPostView(PostModelType.AdMob3);
+                                            break;
+                                    }
+
                                     break;
-                                case PostModelType.AdMob3:
-                                    LastAdsType = PostModelType.AdMob1;
-                                    combiner.AddAdsPostView(PostModelType.AdMob3);
+                            }
+
+                            var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
+                            switch (post.PostType)
+                            {
+                                case "ad":
+                                    combine.AddAdsPost();
+                                    break;
+                                default:
+                                {
+                                    bool isPromoted = post.IsPostBoosted == "1" || post.SharedInfo.SharedInfoClass != null && post.SharedInfo.SharedInfoClass?.IsPostBoosted == "1";
+                                    switch (isPromoted)
+                                    {
+                                        //Promoted
+                                        case true:
+                                            combine.CombineDefaultPostSections("Top");
+                                            break;
+                                        default:
+                                            combine.CombineDefaultPostSections();
+                                            break;
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            switch (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowFbNativeAdsCount)
+                            {
+                                case 0 when NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowFbNativeAds:
+                                    combiner.AddAdsPostView(PostModelType.FbAdNative);
                                     break;
                             }
                         }
 
-                        var combine = new FeedCombiner(RegexFilterText(post), NativeFeedAdapter.ListDiffer, ActivityContext);
-                        if (post.PostType == "ad")
+                        switch (add)
                         {
-                            combine.AddAdsPost();
-                        }
-                        else
-                        {
-                            bool isPromoted = post.IsPostBoosted == "1" || post.SharedInfo.SharedInfoClass != null && post.SharedInfo.SharedInfoClass?.IsPostBoosted == "1";
-                            if (isPromoted) //Promoted
-                            {
-                                combine.CombineDefaultPostSections("Top");
-                            }
-                            else
-                            {
-                                combine.CombineDefaultPostSections();
-                            }
+                            case true:
+                                ActivityContext?.RunOnUiThread(() =>
+                                {
+                                    try
+                                    {
+                                        var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run();
+                                        GC.Collect(); 
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                });
+                                break;
                         }
 
-                        if (NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowFbNativeAdsCount == 0 && NativeFeedAdapter.ListDiffer.Count > 0 && AppSettings.ShowFbNativeAds)
-                        {
-                            combiner.AddAdsPostView(PostModelType.FbAdNative);
-                        }
+                        PostCacheList.RemoveRange(0, list.Count - 1); 
+                        ActivityContext?.RunOnUiThread(ShowEmptyPage);
+
+                        return add;
                     }
-
-                    if (add)
-                    {
-                        ActivityContext?.RunOnUiThread(() =>
-                        {
-                            try
-                            {
-                                var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run();
-                                GC.Collect(); 
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
-                    }
-
-                    PostCacheList.RemoveRange(0, list.Count - 1); 
-                    ActivityContext?.RunOnUiThread(ShowEmptyPage);
-
-                    return add;
+                    default:
+                        return false;
                 }
-
-                return false;
             }
             catch (Exception e)
             {
@@ -589,15 +718,19 @@ namespace WoWonder.Activities.NativePost.Post
                 else
                 {
                     var emptyStateChecker = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                    if (emptyStateChecker == null)
+                    switch (emptyStateChecker)
                     {
-                        var data = new AdapterModelsClass
+                        case null:
                         {
-                            TypeView = PostModelType.EmptyState,
-                            Id = 744747447,
-                        };
-                        NativeFeedAdapter.ListDiffer.Add(data);
-                        NativeFeedAdapter.NotifyItemInserted(NativeFeedAdapter.ListDiffer.IndexOf(data));
+                            var data = new AdapterModelsClass
+                            {
+                                TypeView = PostModelType.EmptyState,
+                                Id = 744747447,
+                            };
+                            NativeFeedAdapter.ListDiffer.Add(data);
+                            NativeFeedAdapter.NotifyItemInserted(NativeFeedAdapter.ListDiffer.IndexOf(data));
+                            break;
+                        }
                     }
                 }
 
@@ -615,10 +748,14 @@ namespace WoWonder.Activities.NativePost.Post
         {
             try
             {
-                if (!string.IsNullOrEmpty(WRecyclerView.DataPostJson))
+                switch (string.IsNullOrEmpty(WRecyclerView.DataPostJson))
                 {
-                    SqLiteDatabase dbDatabase = new SqLiteDatabase();
-                    dbDatabase.InsertOrUpdatePost(WRecyclerView.DataPostJson);
+                    case false:
+                    {
+                        SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                        dbDatabase.InsertOrUpdatePost(WRecyclerView.DataPostJson);
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -644,37 +781,42 @@ namespace WoWonder.Activities.NativePost.Post
 
                         string pattern = @"(data-id=[""'](.*?)[""']|href=[""'](.*?)[""'])";
                         var aa = Regex.Matches(item.PostText, pattern);
-                        if (aa?.Count > 0)
+                        switch (aa?.Count)
                         {
-                            for (int i = 0; i < aa.Count; i++)
-                            { 
-                                string userid = ""; 
-                                if (aa.Count > i)
-                                    userid = aa[i]?.Value?.Replace("data-id=", "").Replace('"', ' ').Replace(" ", "");
+                            case > 0:
+                            {
+                                for (int i = 0; i < aa.Count; i++)
+                                { 
+                                    string userid = ""; 
+                                    if (aa.Count > i)
+                                        userid = aa[i]?.Value?.Replace("data-id=", "").Replace('"', ' ').Replace(" ", "");
                                 
-                                string username = ""; 
-                                if (aa.Count > i + 1)
-                                    username = aa[i + 1]?.Value?.Replace("href=", "").Replace('"', ' ').Replace(" ", "").Replace(Client.WebsiteUrl, "").Replace("\n", "");
+                                    string username = ""; 
+                                    if (aa.Count > i + 1)
+                                        username = aa[i + 1]?.Value?.Replace("href=", "").Replace('"', ' ').Replace(" ", "").Replace(Client.WebsiteUrl, "").Replace("\n", "");
 
-                                if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(username))
-                                    continue;
+                                    if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(username))
+                                        continue;
 
-                                var data = dataUser.FirstOrDefault(a => a.Key?.ToString() == userid && a.Value?.ToString() == username);
-                                if (data.Key != null) 
-                                    continue;
+                                    var data = dataUser.FirstOrDefault(a => a.Key?.ToString() == userid && a.Value?.ToString() == username);
+                                    if (data.Key != null) 
+                                        continue;
 
-                                i++;
+                                    i++;
 
-                                if (!string.IsNullOrWhiteSpace(userid) && !string.IsNullOrWhiteSpace(username) && !dataUser.ContainsKey(userid))
-                                    dataUser.Add(userid, username);
+                                    switch (string.IsNullOrWhiteSpace(userid))
+                                    {
+                                        case false when !string.IsNullOrWhiteSpace(username) && !dataUser.ContainsKey(userid):
+                                            dataUser.Add(userid, username);
+                                            break;
+                                    }
+                                }
+
+                                item.RegexFilterList = new Dictionary<string, string>(dataUser);
+                                return item;
                             }
-
-                            item.RegexFilterList = new Dictionary<string, string>(dataUser);
-                            return item;
-                        }
-                        else
-                        {
-                            return item;
+                            default:
+                                return item;
                         }
                     }
                     catch (Exception e)
@@ -700,18 +842,22 @@ namespace WoWonder.Activities.NativePost.Post
                     return;
                  
                 var (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnBackground); 
-                if (apiStatus != 200 || (respond is not PostObject result))
+                if (apiStatus != 200 || respond is not PostObject result)
                 {
                     //Methods.DisplayReportResult(ActivityContext, respond);
                 }
                 else
-                { 
-                    if (result?.Data?.Count > 0)
+                {
+                    switch (result?.Data?.Count)
                     {
-                        result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
-                        SqLiteDatabase dbDatabase = new SqLiteDatabase();
-                        //Insert All data to database
-                        dbDatabase.InsertOrUpdatePost(JsonConvert.SerializeObject(result)); 
+                        case > 0:
+                        {
+                            result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
+                            SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                            //Insert All data to database
+                            dbDatabase.InsertOrUpdatePost(JsonConvert.SerializeObject(result));
+                            break;
+                        }
                     }
                 }
             }

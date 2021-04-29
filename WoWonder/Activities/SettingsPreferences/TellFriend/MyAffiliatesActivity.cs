@@ -150,16 +150,17 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 //https://demo.wowonder.com/register?ref=waelanjo
                 TxtLink.Text = Client.WebsiteUrl + "/register?ref=" + UserDetails.Username;
                  
-                if (Convert.ToInt32(ListUtils.SettingsSiteList?.AmountPercentRef ?? "0") > 0)
+                switch (Convert.ToInt32(ListUtils.SettingsSiteList?.AmountPercentRef ?? "0"))
                 {
-                    TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + "%" + ListUtils.SettingsSiteList?.AmountPercentRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs)  + " !";   
-                }
-                else 
-                {
-                    var (currency, currencyIcon) = WoWonderTools.GetCurrency(ListUtils.SettingsSiteList?.AdsCurrency);
-                    Console.WriteLine(currency);
+                    case > 0:
+                        TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + "%" + ListUtils.SettingsSiteList?.AmountPercentRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs)  + " !";
+                        break;
+                    default:
+                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(ListUtils.SettingsSiteList?.AdsCurrency);
+                        Console.WriteLine(currency);
 
-                    TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + " " + currencyIcon + ListUtils.SettingsSiteList?.AmountRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs) + " !";
+                        TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + " " + currencyIcon + ListUtils.SettingsSiteList?.AmountRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs) + " !";
+                        break;
                 } 
             }
             catch (Exception e)
@@ -194,16 +195,17 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnShare.Click += BtnShareOnClick;
-                    TxtLink.LongClick += TxtLinkOnLongClick;
-                }
-                else
-                {
-                    BtnShare.Click -= BtnShareOnClick;
-                    TxtLink.LongClick -= TxtLinkOnLongClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnShare.Click += BtnShareOnClick;
+                        TxtLink.LongClick += TxtLinkOnLongClick;
+                        break;
+                    default:
+                        BtnShare.Click -= BtnShareOnClick;
+                        TxtLink.LongClick -= TxtLinkOnLongClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -247,15 +249,20 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                //Share Plugin same as video
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = UserDetails.Username,
-                    Text = "",
-                    Url = TxtLink.Text
-                });
+                    //Share Plugin same as video
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = UserDetails.Username,
+                            Text = "",
+                            Url = TxtLink.Text
+                        });
+                        break;
+                }
             }
             catch (Exception exception)
             {

@@ -43,8 +43,11 @@ namespace WoWonder.Activities.AddPost.Adapters
                 NotifyDataSetChanged();
                 mainRecyclerView.ScheduleLayoutAnimation();
 
-                if (ColorsList.Count == 0)
-                    mainRecyclerView.Visibility = ViewStates.Invisible;
+                mainRecyclerView.Visibility = ColorsList.Count switch
+                {
+                    0 => ViewStates.Invisible,
+                    _ => mainRecyclerView.Visibility
+                };
             }
             catch (Exception e)
             {
@@ -79,26 +82,34 @@ namespace WoWonder.Activities.AddPost.Adapters
             try
             {
                 var item = ColorsList[position];
-                if (viewHolder is ColorBoxAdapterViewHolder holder)
+                switch (viewHolder)
                 {
                     // var getColorObject = ListUtils.SettingsSiteList?.PostColors.FirstOrDefault(a => a.Key == item.ColorId);
-                    if (!string.IsNullOrEmpty(item.Image))
-                    {
+                    case ColorBoxAdapterViewHolder holder when !string.IsNullOrEmpty(item.Image):
                         GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.ColoredImage, ImageStyle.RoundedCrop, ImagePlaceholders.Color);
-                    }
-                    else
+                        break;
+                    case ColorBoxAdapterViewHolder holder:
                     {
                         var colorsList = new List<int>();
 
-                        if (!string.IsNullOrEmpty(item.Color1))
-                            colorsList.Add(Color.ParseColor(item.Color1));
+                        switch (string.IsNullOrEmpty(item.Color1))
+                        {
+                            case false:
+                                colorsList.Add(Color.ParseColor(item.Color1));
+                                break;
+                        }
 
-                        if (!string.IsNullOrEmpty(item.Color2))
-                            colorsList.Add(Color.ParseColor(item.Color2));
+                        switch (string.IsNullOrEmpty(item.Color2))
+                        {
+                            case false:
+                                colorsList.Add(Color.ParseColor(item.Color2));
+                                break;
+                        }
 
                         GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
                         gd.SetCornerRadius(0f);
                         holder.ColoredImage.Background = gd;
+                        break;
                     }
                 }
             }
@@ -115,8 +126,12 @@ namespace WoWonder.Activities.AddPost.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is ColorBoxAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.ColoredImage);
+                switch (holder)
+                {
+                    case ColorBoxAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.ColoredImage);
+                        break;
+                }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)

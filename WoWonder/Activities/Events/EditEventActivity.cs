@@ -235,18 +235,19 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtAdd.Click += TxtAddOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                    BtnImage.Click += BtnImageOnClick;
-                }
-                else
-                {
-                    TxtAdd.Click -= TxtAddOnClick;
-                    TxtLocation.OnFocusChangeListener = null!; 
-                    BtnImage.Click -= BtnImageOnClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtAdd.Click += TxtAddOnClick;
+                        TxtLocation.OnFocusChangeListener = this; 
+                        BtnImage.Click += BtnImageOnClick;
+                        break;
+                    default:
+                        TxtAdd.Click -= TxtAddOnClick;
+                        TxtLocation.OnFocusChangeListener = null!; 
+                        BtnImage.Click -= BtnImageOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -305,22 +306,26 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Location when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Location when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -392,68 +397,76 @@ namespace WoWonder.Activities.Events
                         AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
                         var (apiStatus, respond) = await RequestsAsync.Event.Edit_Event(EventId, TxtEventName.Text, TxtLocation.Text, TxtDescription.Text, TxtStartDate.Text, TxtEndDate.Text, TxtStartTime.Text, TxtEndTime.Text, EventPathImage);
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            if (respond is EditEventObject result)
+                            case 200:
                             {
-                                AndHUD.Shared.Dismiss(this); 
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_EventSuccessfullyEdited), ToastLength.Short)?.Show();
-
-                                Console.WriteLine(result.MessageData);
-                                //Add new item to my Event list
-                                var user = ListUtils.MyProfileList?.FirstOrDefault();
-                                 
-                                if (EventMainActivity.GetInstance()?.MyEventTab?.MAdapter.EventList != null)
+                                switch (respond)
                                 {
-                                   var data = EventMainActivity.GetInstance()?.MyEventTab?.MAdapter?.EventList?.FirstOrDefault(a =>a.Id == EventId);
-                                   if (data != null)
-                                   {
-                                       data.Id = EventId;
-                                       data.Description = TxtDescription.Text;
-                                       data.Cover = EventPathImage;
-                                       data.EndDate = TxtEndDate.Text;
-                                       data.EndTime = TxtEndTime.Text;
-                                       data.IsOwner = true;
-                                       data.Location = TxtLocation.Text;
-                                       data.Name = TxtEventName.Text;
-                                       data.StartDate = TxtStartDate.Text;
-                                       data.StartTime = TxtStartTime.Text;
-                                       data.UserData = user;
-
-                                       EventMainActivity.GetInstance()?.MyEventTab?.MAdapter?.NotifyItemChanged(EventMainActivity.GetInstance().MyEventTab.MAdapter.EventList.IndexOf(data));
-                                   } 
-                                }
-
-                                if (EventMainActivity.GetInstance()?.EventTab?.MAdapter.EventList != null)
-                                {
-                                    var data = EventMainActivity.GetInstance()?.EventTab?.MAdapter.EventList?.FirstOrDefault(a => a.Id == EventId);
-                                    if (data != null)
+                                    case EditEventObject result:
                                     {
-                                        data.Id = EventId;
-                                        data.Description = TxtDescription.Text;
-                                        data.Cover = EventPathImage;
-                                        data.EndDate = TxtEndDate.Text;
-                                        data.EndTime = TxtEndTime.Text;
-                                        data.IsOwner = true;
-                                        data.Location = TxtLocation.Text;
-                                        data.Name = TxtEventName.Text;
-                                        data.StartDate = TxtStartDate.Text;
-                                        data.StartTime = TxtStartTime.Text;
-                                        data.UserData = user;
+                                        AndHUD.Shared.Dismiss(this); 
+                                        Toast.MakeText(this, GetString(Resource.String.Lbl_EventSuccessfullyEdited), ToastLength.Short)?.Show();
 
-                                        EventMainActivity.GetInstance()?.EventTab?.MAdapter?.NotifyItemChanged(EventMainActivity.GetInstance().EventTab.MAdapter.EventList.IndexOf(data));
+                                        Console.WriteLine(result.MessageData);
+                                        //Add new item to my Event list
+                                        var user = ListUtils.MyProfileList?.FirstOrDefault();
+                                 
+                                        if (EventMainActivity.GetInstance()?.MyEventTab?.MAdapter.EventList != null)
+                                        {
+                                            var data = EventMainActivity.GetInstance()?.MyEventTab?.MAdapter?.EventList?.FirstOrDefault(a =>a.Id == EventId);
+                                            if (data != null)
+                                            {
+                                                data.Id = EventId;
+                                                data.Description = TxtDescription.Text;
+                                                data.Cover = EventPathImage;
+                                                data.EndDate = TxtEndDate.Text;
+                                                data.EndTime = TxtEndTime.Text;
+                                                data.IsOwner = true;
+                                                data.Location = TxtLocation.Text;
+                                                data.Name = TxtEventName.Text;
+                                                data.StartDate = TxtStartDate.Text;
+                                                data.StartTime = TxtStartTime.Text;
+                                                data.UserData = user;
+
+                                                EventMainActivity.GetInstance()?.MyEventTab?.MAdapter?.NotifyItemChanged(EventMainActivity.GetInstance().MyEventTab.MAdapter.EventList.IndexOf(data));
+                                            } 
+                                        }
+
+                                        if (EventMainActivity.GetInstance()?.EventTab?.MAdapter.EventList != null)
+                                        {
+                                            var data = EventMainActivity.GetInstance()?.EventTab?.MAdapter.EventList?.FirstOrDefault(a => a.Id == EventId);
+                                            if (data != null)
+                                            {
+                                                data.Id = EventId;
+                                                data.Description = TxtDescription.Text;
+                                                data.Cover = EventPathImage;
+                                                data.EndDate = TxtEndDate.Text;
+                                                data.EndTime = TxtEndTime.Text;
+                                                data.IsOwner = true;
+                                                data.Location = TxtLocation.Text;
+                                                data.Name = TxtEventName.Text;
+                                                data.StartDate = TxtStartDate.Text;
+                                                data.StartTime = TxtStartTime.Text;
+                                                data.UserData = user;
+
+                                                EventMainActivity.GetInstance()?.EventTab?.MAdapter?.NotifyItemChanged(EventMainActivity.GetInstance().EventTab.MAdapter.EventList.IndexOf(data));
+                                            }
+                                        }
+                                 
+                                
+                                
+
+                                        Finish();
+                                        break;
                                     }
                                 }
-                                 
-                                
-                                
 
-                                Finish();
+                                break;
                             }
-                        }
-                        else 
-                        {
-                            Methods.DisplayAndHudErrorResult(this, respond);
+                            default:
+                                Methods.DisplayAndHudErrorResult(this, respond);
+                                break;
                         } 
                     }
                 }
@@ -482,31 +495,35 @@ namespace WoWonder.Activities.Events
                     {
                         var result = CropImage.GetActivityResult(data);
 
-                        if (resultCode == Result.Ok)
+                        switch (resultCode)
                         {
-                            if (result.IsSuccessful)
+                            case Result.Ok when result.IsSuccessful:
                             {
                                 var resultUri = result.Uri;
 
-                                if (!string.IsNullOrEmpty(resultUri.Path))
+                                switch (string.IsNullOrEmpty(resultUri.Path))
                                 {
-                                    EventPathImage = resultUri.Path;
-                                    File file2 = new File(resultUri.Path);
-                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImageEvent);
+                                    case false:
+                                    {
+                                        EventPathImage = resultUri.Path;
+                                        File file2 = new File(resultUri.Path);
+                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImageEvent);
 
 
-                                    //GlideImageLoader.LoadImage(this, resultUri.Path, ImageEvent, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
+                                        //GlideImageLoader.LoadImage(this, resultUri.Path, ImageEvent, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
+                                        break;
+                                    }
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        break;
                                 }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                                }
+
+                                break;
                             }
-                            else
-                            {
+                            case Result.Ok:
                                 Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                            }
+                                break;
                         }
 
                         break;
@@ -515,9 +532,12 @@ namespace WoWonder.Activities.Events
                     case 502 when resultCode == Result.Ok:
                     {
                         var placeAddress = data.GetStringExtra("Address") ?? "";
-                        //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                        if (!string.IsNullOrEmpty(placeAddress))
-                            TxtLocation.Text = placeAddress;
+                        TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
+                        {
+                            //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                            false => placeAddress,
+                            _ => TxtLocation.Text
+                        };
                         break;
                     }
                 }
@@ -610,30 +630,15 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
                         //Open Image 
-                       var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
                         CropImage.Activity()
                             .SetInitialCropWindowPaddingRatio(0)
                             .SetAutoZoomEnabled(true)
@@ -641,10 +646,31 @@ namespace WoWonder.Activities.Events
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }

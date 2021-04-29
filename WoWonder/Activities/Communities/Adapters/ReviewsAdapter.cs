@@ -61,27 +61,32 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-
-                if (viewHolder is ReviewsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = UserList[position];
-                    if (item != null)
+                    case ReviewsAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = UserList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                        holder.Name.Text = WoWonderTools.GetNameFinal(item.UserData);
+                            holder.Name.Text = WoWonderTools.GetNameFinal(item.UserData);
                      
-                        if (!string.IsNullOrEmpty(item.Valuation))
-                        {
-                            holder.Review.Text = Methods.FunString.DecodeString(item.Review);
-                            holder.Review.Visibility = ViewStates.Visible;
-                        }
-                        else
-                        {
-                            holder.Review.Visibility = ViewStates.Gone;
+                            switch (string.IsNullOrEmpty(item.Valuation))
+                            {
+                                case false:
+                                    holder.Review.Text = Methods.FunString.DecodeString(item.Review);
+                                    holder.Review.Visibility = ViewStates.Visible;
+                                    break;
+                                default:
+                                    holder.Review.Visibility = ViewStates.Gone;
+                                    break;
+                            }
+
+                            holder.Val.Text = item.Valuation;
                         }
 
-                        holder.Val.Text = item.Valuation;
+                        break;
                     }
                 }
             }
@@ -97,10 +102,12 @@ namespace WoWonder.Activities.Communities.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is ReviewsAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case ReviewsAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -155,8 +162,11 @@ namespace WoWonder.Activities.Communities.Adapters
             {
                 var d = new List<string>();
                 var item = UserList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.UserData.Avatar != "")
                 {

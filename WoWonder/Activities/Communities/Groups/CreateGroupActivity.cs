@@ -217,21 +217,21 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtCreate.Click += TxtCreateOnClick;
-                    TxtCategories.Touch += TxtCategoryOnClick;
-                    RadioPublic.CheckedChange += RbPublicOnCheckedChange;
-                    RadioPrivate.CheckedChange += RbPrivateOnCheckedChange;
-
-                }
-                else
-                {
-                    TxtCreate.Click -= TxtCreateOnClick;
-                    TxtCategories.Touch -= TxtCategoryOnClick;
-                    RadioPublic.CheckedChange -= RbPublicOnCheckedChange;
-                    RadioPrivate.CheckedChange -= RbPrivateOnCheckedChange; 
+                    // true +=  // false -=
+                    case true:
+                        TxtCreate.Click += TxtCreateOnClick;
+                        TxtCategories.Touch += TxtCategoryOnClick;
+                        RadioPublic.CheckedChange += RbPublicOnCheckedChange;
+                        RadioPrivate.CheckedChange += RbPrivateOnCheckedChange;
+                        break;
+                    default:
+                        TxtCreate.Click -= TxtCreateOnClick;
+                        TxtCategories.Touch -= TxtCategoryOnClick;
+                        RadioPublic.CheckedChange -= RbPublicOnCheckedChange;
+                        RadioPrivate.CheckedChange -= RbPrivateOnCheckedChange;
+                        break;
                 }
             }
             catch (Exception e)
@@ -279,10 +279,12 @@ namespace WoWonder.Activities.Communities.Groups
             try
             {
                 var isChecked = RadioPrivate.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RadioPublic.Checked = false;
-                    GroupPrivacy = "2";
+                    case true:
+                        RadioPublic.Checked = false;
+                        GroupPrivacy = "2";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -296,10 +298,12 @@ namespace WoWonder.Activities.Communities.Groups
             try
             {
                 var isChecked = RadioPublic.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RadioPrivate.Checked = false;
-                    GroupPrivacy = "1";
+                    case true:
+                        RadioPrivate.Checked = false;
+                        GroupPrivacy = "1";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -314,23 +318,26 @@ namespace WoWonder.Activities.Communities.Groups
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesGroup.Count > 0)
+                switch (CategoriesController.ListCategoriesGroup.Count)
                 {
-                    TypeDialog = "Categories";
+                    case > 0:
+                    {
+                        TypeDialog = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -380,24 +387,32 @@ namespace WoWonder.Activities.Communities.Groups
                 AndHUD.Shared.Show(this, GetString(Resource.String.Lbl_Loading) + "...");
 
                 var (apiStatus, respond) = await RequestsAsync.Group.Create_Group(TxtUrl.Text.Replace(" " , "") ,TxtTitle.Text, TxtAbout.Text, CategoryId, GroupPrivacy);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is CreateGroupObject result)
+                    case 200:
                     {
-                        AndHUD.Shared.Dismiss(this); 
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                        switch (respond)
+                        {
+                            case CreateGroupObject result:
+                            {
+                                AndHUD.Shared.Dismiss(this); 
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
 
-                        Intent returnIntent = new Intent();
-                        if (result.GroupData != null)
-                            returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(result.GroupData));
-                        SetResult(Result.Ok, returnIntent);
+                                Intent returnIntent = new Intent();
+                                if (result.GroupData != null)
+                                    returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(result.GroupData));
+                                SetResult(Result.Ok, returnIntent);
 
-                        Finish();
+                                Finish();
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                   Methods.DisplayAndHudErrorResult(this, respond);
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 } 
             }
             catch (Exception exception)
@@ -415,15 +430,19 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                if (TypeDialog == "Categories")
+                switch (TypeDialog)
                 {
-                    var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString());
-                    if (category != null)
+                    case "Categories":
                     {
-                        CategoryId = category.CategoriesId; 
+                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString());
+                        if (category != null)
+                        {
+                            CategoryId = category.CategoriesId; 
+                        }
+                        TxtCategories.Text = itemString.ToString();
+                        break;
                     }
-                    TxtCategories.Text = itemString.ToString();
-                } 
+                }
             }
             catch (Exception e)
             {

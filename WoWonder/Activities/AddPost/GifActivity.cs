@@ -296,16 +296,17 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -420,25 +421,30 @@ namespace WoWonder.Activities.AddPost
                 var countList = MAdapter.GifList.Count;
                 var respond = await ApiRequest.SearchGif(SearchKey, offset);
                 if (respond != null)
-                { 
-                    if (countList > 0)
+                {
+                    switch (countList)
                     {
-                        foreach (var item in respond)
+                        case > 0:
                         {
-                            var check = MAdapter.GifList.FirstOrDefault(a => a.Id == item.Id);
-                            if (check == null)
+                            foreach (var item in respond)
                             {
-                                MAdapter.GifList.Add(item);
+                                var check = MAdapter.GifList.FirstOrDefault(a => a.Id == item.Id);
+                                switch (check)
+                                {
+                                    case null:
+                                        MAdapter.GifList.Add(item);
+                                        break;
+                                }
                             }
-                        }
 
-                        //RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GifList.Count - countList); });
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                    }
-                    else
-                    {
-                        MAdapter.GifList = new ObservableCollection<GifGiphyClass.Datum>(respond);
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            //RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GifList.Count - countList); });
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        }
+                        default:
+                            MAdapter.GifList = new ObservableCollection<GifGiphyClass.Datum>(respond);
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
                     }
                 }
 
@@ -449,10 +455,12 @@ namespace WoWonder.Activities.AddPost
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -468,23 +476,28 @@ namespace WoWonder.Activities.AddPost
                 var respond = await ApiRequest.TrendingGif(offset);
                 if (respond != null)
                 {
-                    if (countList > 0)
+                    switch (countList)
                     {
-                        foreach (var item in respond)
+                        case > 0:
                         {
-                            var check = MAdapter.GifList.FirstOrDefault(a => a.Id == item.Id);
-                            if (check == null)
+                            foreach (var item in respond)
                             {
-                                MAdapter.GifList.Add(item);
+                                var check = MAdapter.GifList.FirstOrDefault(a => a.Id == item.Id);
+                                switch (check)
+                                {
+                                    case null:
+                                        MAdapter.GifList.Add(item);
+                                        break;
+                                }
                             }
-                        }
 
-                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GifList.Count - countList); });
-                    }
-                    else
-                    {
-                        MAdapter.GifList = new ObservableCollection<GifGiphyClass.Datum>(respond);
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GifList.Count - countList); });
+                            break;
+                        }
+                        default:
+                            MAdapter.GifList = new ObservableCollection<GifGiphyClass.Datum>(respond);
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
                     }
                 }
 
@@ -495,10 +508,12 @@ namespace WoWonder.Activities.AddPost
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -511,25 +526,29 @@ namespace WoWonder.Activities.AddPost
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.GifList.Count > 0)
+                switch (MAdapter.GifList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.Gify);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.Gify);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

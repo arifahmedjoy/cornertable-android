@@ -93,24 +93,32 @@ namespace WoWonder
                 InitRtcEngine();
                 InitConfig();
 
-                //Bypass Web Errors 
-                //======================================
-                if (AppSettings.TurnSecurityProtocolType3072On)
+                switch (AppSettings.TurnSecurityProtocolType3072On)
                 {
-                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-                    var client = new HttpClient(new AndroidClientHandler());
-                    ServicePointManager.Expect100Continue = true;
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls13;
-                    Console.WriteLine(client);
+                    //Bypass Web Errors 
+                    //======================================
+                    case true:
+                    {
+                        ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+                        var client = new HttpClient(new AndroidClientHandler());
+                        ServicePointManager.Expect100Continue = true;
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls13;
+                        Console.WriteLine(client);
+                        break;
+                    }
                 }
 
 
-                if (AppSettings.TurnTrustFailureOnWebException)
+                switch (AppSettings.TurnTrustFailureOnWebException)
                 {
-                    //If you are Getting this error >>> System.Net.WebException: Error: TrustFailure /// then Set it to true
-                    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-                    var b = new AesCryptoServiceProvider();
-                    Console.WriteLine(b);
+                    case true:
+                    {
+                        //If you are Getting this error >>> System.Net.WebException: Error: TrustFailure /// then Set it to true
+                        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+                        var b = new AesCryptoServiceProvider();
+                        Console.WriteLine(b);
+                        break;
+                    }
                 }
 
                 //OneSignal Notification  
@@ -149,7 +157,7 @@ namespace WoWonder
                     if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                         ListUtils.UserList = sqLiteDatabase.Get_LastUsersChat_List();
                     else
-                        ListUtils.UserChatList = sqLiteDatabase.GetLastUsersChatList(); 
+                        ListUtils.UserChatList = sqLiteDatabase.GetLastUsersChatList();
                 }
             }
             catch (Exception exception)
@@ -396,26 +404,32 @@ namespace WoWonder
                 {
                     if (toContext == typeof(GroupProfileActivity))
                     {
-                        if (passData is GroupClass groupClass)
-                        { 
-                            intent.PutExtra("GroupObject", JsonConvert.SerializeObject(groupClass));
-                            intent.PutExtra("GroupId", groupClass.GroupId);
+                        switch (passData)
+                        {
+                            case GroupClass groupClass:
+                                intent.PutExtra("GroupObject", JsonConvert.SerializeObject(groupClass));
+                                intent.PutExtra("GroupId", groupClass.GroupId);
+                                break;
                         }
                     }
                     else if (toContext == typeof(PageProfileActivity))
                     {
-                        if (passData is PageClass pageClass)
+                        switch (passData)
                         {
-                            intent.PutExtra("PageObject", JsonConvert.SerializeObject(pageClass));
-                            intent.PutExtra("PageId", pageClass.PageId);
-                        } 
+                            case PageClass pageClass:
+                                intent.PutExtra("PageObject", JsonConvert.SerializeObject(pageClass));
+                                intent.PutExtra("PageId", pageClass.PageId);
+                                break;
+                        }
                     }
                     else if (toContext == typeof(YoutubePlayerActivity))
                     {
-                        if (passData is PostDataObject postData)
+                        switch (passData)
                         {
-                            intent.PutExtra("PostObject", JsonConvert.SerializeObject(postData));
-                            intent.PutExtra("PostId", postData.PostId);
+                            case PostDataObject postData:
+                                intent.PutExtra("PostObject", JsonConvert.SerializeObject(postData));
+                                intent.PutExtra("PostId", postData.PostId);
+                                break;
                         }
                          
                         fromContext.StartActivity(intent);
@@ -424,10 +438,12 @@ namespace WoWonder
                     }
                     else if (toContext == typeof(UserProfileActivity))
                     {
-                        if (passData is UserDataObject userDataObject)
+                        switch (passData)
                         {
-                            intent.PutExtra("UserObject", JsonConvert.SerializeObject(userDataObject));
-                            intent.PutExtra("UserId", userDataObject.UserId);
+                            case UserDataObject userDataObject:
+                                intent.PutExtra("UserObject", JsonConvert.SerializeObject(userDataObject));
+                                intent.PutExtra("UserId", userDataObject.UserId);
+                                break;
                         }
                        
                         ((AppCompatActivity)fromContext).OverridePendingTransition(Resource.Animation.abc_popup_enter, Resource.Animation.popup_exit);

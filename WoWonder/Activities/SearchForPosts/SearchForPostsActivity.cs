@@ -210,8 +210,11 @@ namespace WoWonder.Activities.SearchForPosts
 
                 MainRecyclerView.SetXAdapter(PostFeedAdapter, SwipeRefreshLayout);
 
-                if (Inflated == null)
-                    Inflated = EmptyStateLayout.Inflate();
+                Inflated = Inflated switch
+                {
+                    null => EmptyStateLayout.Inflate(),
+                    _ => Inflated
+                };
 
                 EmptyStateInflater x1 = new EmptyStateInflater();
                 x1.InflateLayout(Inflated, EmptyStateInflater.Type.NoSearchResult);
@@ -229,14 +232,15 @@ namespace WoWonder.Activities.SearchForPosts
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -289,50 +293,55 @@ namespace WoWonder.Activities.SearchForPosts
 
         public bool OnEditorAction(TextView v, [GeneratedEnum] ImeAction actionId, KeyEvent e)
         {
-            if (actionId == ImeAction.Search)
+            switch (actionId)
             {
-                SearchText = v.Text;
+                case ImeAction.Search:
+                    SearchText = v.Text;
 
-                SearchView.ClearFocus();
-                v.ClearFocus();
+                    SearchView.ClearFocus();
+                    v.ClearFocus();
 
-                SearchViewOnQueryTextSubmit(SearchText);
+                    SearchViewOnQueryTextSubmit(SearchText);
 
-                SearchView.ClearFocus();
-                v.ClearFocus();
+                    SearchView.ClearFocus();
+                    v.ClearFocus();
 
-                return true;
+                    return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
           
         private void SearchViewOnQueryTextSubmit(string newText)
         {
             try
             {
-                if (!string.IsNullOrEmpty(newText) && !string.IsNullOrWhiteSpace(newText))
+                switch (string.IsNullOrEmpty(newText))
                 {
-                    SearchText = newText;
+                    case false when !string.IsNullOrWhiteSpace(newText):
+                    {
+                        SearchText = newText;
 
-                    SearchView.ClearFocus();
+                        SearchView.ClearFocus();
                      
-                    PostFeedAdapter.ListDiffer.Clear();
-                    PostFeedAdapter.NotifyDataSetChanged();
+                        PostFeedAdapter.ListDiffer.Clear();
+                        PostFeedAdapter.NotifyDataSetChanged();
 
-                    SwipeRefreshLayout.Refreshing = true;
-                    SwipeRefreshLayout.Enabled = true;
+                        SwipeRefreshLayout.Refreshing = true;
+                        SwipeRefreshLayout.Enabled = true;
 
-                    PostFeedAdapter.NativePostType = NativeFeedType.SearchForPosts;
+                        PostFeedAdapter.NativePostType = NativeFeedType.SearchForPosts;
 
-                    StartApiService();
+                        StartApiService();
 
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
 
-                    SearchView.ClearFocus();
+                        SearchView.ClearFocus();
 
-                    var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
-                    inputManager?.HideSoftInputFromWindow(CurrentFocus?.WindowToken, HideSoftInputFlags.None);
+                        var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+                        inputManager?.HideSoftInputFromWindow(CurrentFocus?.WindowToken, HideSoftInputFlags.None);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)

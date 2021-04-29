@@ -62,21 +62,30 @@ namespace WoWonder.Activities.Contacts.Adapters
         {
             try
             {
-                if (viewHolder is SelectContactsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = UserList[position];
-                    if (item != null)
+                    case SelectContactsAdapterViewHolder holder:
                     {
-                        holder.CheckBox.Checked = item.Selected;
+                        var item = UserList[position];
+                        if (item != null)
+                        {
+                            holder.CheckBox.Checked = item.Selected;
 
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                        holder.Name.Text = WoWonderTools.GetNameFinal(item);
+                            holder.Name.Text = WoWonderTools.GetNameFinal(item);
 
-                        if (item.Verified == "1")
-                            holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                            switch (item.Verified)
+                            {
+                                case "1":
+                                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                    break;
+                            }
 
-                        holder.About.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(item), 25);
+                            holder.About.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(item), 25);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -92,10 +101,12 @@ namespace WoWonder.Activities.Contacts.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is SelectContactsAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case SelectContactsAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -152,8 +163,11 @@ namespace WoWonder.Activities.Contacts.Adapters
             {
                 var d = new List<string>();
                 var item = UserList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Avatar != "")
                 {

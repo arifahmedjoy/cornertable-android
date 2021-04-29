@@ -218,16 +218,17 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = null!; 
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = this;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = null!;
+                        break;
                 }
             }
             catch (Exception e)
@@ -289,32 +290,40 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Page.Update_Page_Data(PagesId, dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                            AndHUD.Shared.Dismiss(this);
-                            Console.WriteLine(result.Message);
+                            switch (respond)
+                            {
+                                case MessageObject result:
+                                {
+                                    AndHUD.Shared.Dismiss(this);
+                                    Console.WriteLine(result.Message);
 
-                            PageData.About = TxtAbout.Text;
-                            PageData.Company = TxtCompany.Text;
-                            PageData.Phone = TxtPhone.Text;
-                            PageData.Address = TxtLocation.Text;
-                            PageData.Website = TxtWebsite.Text;
+                                    PageData.About = TxtAbout.Text;
+                                    PageData.Company = TxtCompany.Text;
+                                    PageData.Phone = TxtPhone.Text;
+                                    PageData.Address = TxtLocation.Text;
+                                    PageData.Website = TxtWebsite.Text;
 
-                            PageProfileActivity.PageData = PageData;
+                                    PageProfileActivity.PageData = PageData;
 
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
 
-                            Intent returnIntent = new Intent();
-                            returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
-                            SetResult(Result.Ok, returnIntent);
-                            Finish();
+                                    Intent returnIntent = new Intent();
+                                    returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
+                                    SetResult(Result.Ok, returnIntent);
+                                    Finish();
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
-                    }
-                    else 
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
             }
@@ -329,22 +338,26 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Location when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Location when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -365,8 +378,12 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == 502 && resultCode == Result.Ok)
-                    GetPlaceFromPicker(data);
+                switch (requestCode)
+                {
+                    case 502 when resultCode == Result.Ok:
+                        GetPlaceFromPicker(data);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -381,17 +398,15 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 105)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open intent Camera when the request code of result is 503
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
-                    {
+                        break;
+                    case 105:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -428,9 +443,12 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             try
             {
                 var placeAddress = data.GetStringExtra("Address") ?? "";
-                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                if (!string.IsNullOrEmpty(placeAddress))
-                    TxtLocation.Text = placeAddress;
+                TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
+                {
+                    //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                    false => placeAddress,
+                    _ => TxtLocation.Text
+                };
             }
             catch (Exception e)
             {

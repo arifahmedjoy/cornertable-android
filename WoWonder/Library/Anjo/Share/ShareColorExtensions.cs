@@ -16,14 +16,11 @@ namespace WoWonder.Library.Anjo.Share
         /// <returns>The converted color</returns>
         public static Color ToNativeColor(this ShareColor color)
         {
-            if (color == null)
-                throw new ArgumentNullException(nameof(color));
-
-            return new Color(
-                color.R,
-                color.G,
-                color.B,
-                color.A);
+            return color switch
+            {
+                null => throw new ArgumentNullException(nameof(color)),
+                _ => new Color(color.R, color.G, color.B, color.A)
+            };
         }
     }
 }

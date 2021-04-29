@@ -63,22 +63,31 @@ namespace WoWonder.Activities.AddPost.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is MentionAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = MentionList[position];
-                    if (item != null)
-                    { 
-                        holder.CheckBox.Checked = item.Selected;
+                    case MentionAdapterViewHolder holder:
+                    {
+                        var item = MentionList[position];
+                        if (item != null)
+                        { 
+                            holder.CheckBox.Checked = item.Selected;
 
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
    
-                        holder.Name.Text = WoWonderTools.GetNameFinal(item);
+                            holder.Name.Text = WoWonderTools.GetNameFinal(item);
 
-                        if (item.Verified == "1")
-                            holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                            switch (item.Verified)
+                            {
+                                case "1":
+                                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                    break;
+                            }
 
-                        holder.About.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(item), 25);
+                            holder.About.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(item), 25);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -94,8 +103,12 @@ namespace WoWonder.Activities.AddPost.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is MentionAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                switch (holder)
+                {
+                    case MentionAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
+                }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -151,8 +164,11 @@ namespace WoWonder.Activities.AddPost.Adapters
             {
                 var d = new List<string>();
                 var item = MentionList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Avatar != "")
                 {

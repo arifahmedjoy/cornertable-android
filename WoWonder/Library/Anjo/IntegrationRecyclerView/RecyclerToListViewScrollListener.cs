@@ -21,20 +21,14 @@ namespace WoWonder.Library.Anjo.IntegrationRecyclerView
         public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
         {
             base.OnScrollStateChanged(recyclerView, newState);
-            ScrollState listViewState = ScrollState.TouchScroll; //wael;
 
-            switch (newState)
+            ScrollState listViewState = newState switch
             {
-                case RecyclerView.ScrollStateDragging:
-                    listViewState = ScrollState.TouchScroll;
-                    break;
-                case RecyclerView.ScrollStateIdle:
-                    listViewState = ScrollState.Idle;
-                    break;
-                case RecyclerView.ScrollStateSettling:
-                    listViewState = ScrollState.Fling;
-                    break;
-            }
+                RecyclerView.ScrollStateDragging => ScrollState.TouchScroll,
+                RecyclerView.ScrollStateIdle => ScrollState.Idle,
+                RecyclerView.ScrollStateSettling => ScrollState.Fling,
+                _ => ScrollState.TouchScroll
+            };
 
             scrollListener.OnScrollStateChanged(null /*view*/, listViewState);
 

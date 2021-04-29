@@ -61,28 +61,33 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-                if (viewHolder is ShortcutsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = ShortcutsList[position];
-                    if (item != null)
+                    case ShortcutsAdapterViewHolder holder:
                     {
-                        switch (item.Type)
+                        var item = ShortcutsList[position];
+                        if (item != null)
                         {
-                            case "Page":
-                                GlideImageLoader.LoadImage(ActivityContext, item.PageClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                                holder.Name.Text = item.PageClass.Name;
+                            switch (item.Type)
+                            {
+                                case "Page":
+                                    GlideImageLoader.LoadImage(ActivityContext, item.PageClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    holder.Name.Text = item.PageClass.Name;
 
-                                holder.ImageCircle.SetImageResource(Resource.Drawable.Orange_Color);
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosFlag);
-                                break;
-                            case "Group":
-                                GlideImageLoader.LoadImage(ActivityContext, item.GroupClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                                holder.Name.Text = item.GroupClass.Name;
+                                    holder.ImageCircle.SetImageResource(Resource.Drawable.Orange_Color);
+                                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosFlag);
+                                    break;
+                                case "Group":
+                                    GlideImageLoader.LoadImage(ActivityContext, item.GroupClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    holder.Name.Text = item.GroupClass.Name;
 
-                                holder.ImageCircle.SetImageResource(Resource.Drawable.Blue_Color);
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosPeople);
-                                break;
+                                    holder.ImageCircle.SetImageResource(Resource.Drawable.Blue_Color);
+                                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosPeople);
+                                    break;
+                            }
                         }
+
+                        break;
                     }
                 }
             }
@@ -99,9 +104,11 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is ShortcutsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case ShortcutsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -158,23 +165,32 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 var d = new List<string>();
                 var item = ShortcutsList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    switch (item.Type)
-                    {
-                        case "Page":
-                            if (!string.IsNullOrEmpty(item.PageClass.Avatar))
-                                d.Add(item.PageClass.Avatar);
-                            break;
-                        case "Group":
-                            if (!string.IsNullOrEmpty(item.GroupClass.Avatar))
-                                d.Add(item.GroupClass.Avatar);
-                            break;
-                    }
+                    case null:
+                        return d;
+                    default:
+                        switch (item.Type)
+                        {
+                            case "Page":
+                                switch (string.IsNullOrEmpty(item.PageClass.Avatar))
+                                {
+                                    case false:
+                                        d.Add(item.PageClass.Avatar);
+                                        break;
+                                }
+                                break;
+                            case "Group":
+                                switch (string.IsNullOrEmpty(item.GroupClass.Avatar))
+                                {
+                                    case false:
+                                        d.Add(item.GroupClass.Avatar);
+                                        break;
+                                }
+                                break;
+                        }
                      
-                    return d;
+                        return d;
                 }
             }
             catch (Exception e)

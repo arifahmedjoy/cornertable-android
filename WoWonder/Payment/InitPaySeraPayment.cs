@@ -148,35 +148,39 @@ namespace WoWonder.Payment
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Global.PaySera(request, keyValues);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        switch (request)
-                        {
-                            case "fund":
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
-                                FundingViewActivity.GetInstance()?.StartApiService();
-                                break;
-                            case "upgrade":
-                                var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                                if (dataUser != null)
-                                {
-                                    dataUser.IsPro = "1";
+                        case 200:
+                            switch (request)
+                            {
+                                case "fund":
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
+                                    FundingViewActivity.GetInstance()?.StartApiService();
+                                    break;
+                                case "upgrade":
+                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                    if (dataUser != null)
+                                    {
+                                        dataUser.IsPro = "1";
 
-                                    var sqlEntity = new SqLiteDatabase();
-                                    sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                        var sqlEntity = new SqLiteDatabase();
+                                        sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
                                     
-                                }
+                                    }
                                  
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
-                                break;
-                            case "wallet":
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
-                                break;
-                        }
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    break;
+                                case "wallet":
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
+                                    break;
+                            }
 
-                        StopPaySera();
+                            StopPaySera();
+                            break;
+                        default:
+                            Methods.DisplayReportResult(ActivityContext, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(ActivityContext, respond);
                 }
                 else
                 {

@@ -19,7 +19,11 @@ namespace WoWonder.Helpers.Fonts
                     {
                         var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "ionicons.ttf");
                         textViewUi.SetTypeface(font, TypefaceStyle.Normal);
-                        if (!string.IsNullOrEmpty(iconUnicode)) textViewUi.Text = iconUnicode;
+                        textViewUi.Text = string.IsNullOrEmpty(iconUnicode) switch
+                        {
+                            false => iconUnicode,
+                            _ => textViewUi.Text
+                        };
                         //return font;
                         break;
                     }
@@ -27,7 +31,11 @@ namespace WoWonder.Helpers.Fonts
                     {
                         var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "fa-solid-900.ttf");
                         textViewUi.SetTypeface(font, TypefaceStyle.Normal);
-                        if (!string.IsNullOrEmpty(iconUnicode)) textViewUi.Text = iconUnicode;
+                        textViewUi.Text = string.IsNullOrEmpty(iconUnicode) switch
+                        {
+                            false => iconUnicode,
+                            _ => textViewUi.Text
+                        };
                         //return font;
                         break;
                     }
@@ -35,7 +43,11 @@ namespace WoWonder.Helpers.Fonts
                     {
                         var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "fa-regular-400.ttf");
                         textViewUi.SetTypeface(font, TypefaceStyle.Normal);
-                        if (!string.IsNullOrEmpty(iconUnicode)) textViewUi.Text = iconUnicode;
+                        textViewUi.Text = string.IsNullOrEmpty(iconUnicode) switch
+                        {
+                            false => iconUnicode,
+                            _ => textViewUi.Text
+                        };
                         //return font;
                         break;
                     }
@@ -43,7 +55,11 @@ namespace WoWonder.Helpers.Fonts
                     {
                         var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "fa-brands-400.ttf");
                         textViewUi.SetTypeface(font, TypefaceStyle.Normal);
-                        if (!string.IsNullOrEmpty(iconUnicode)) textViewUi.Text = iconUnicode;
+                        textViewUi.Text = string.IsNullOrEmpty(iconUnicode) switch
+                        {
+                            false => iconUnicode,
+                            _ => textViewUi.Text
+                        };
                         //return font;
                         break;
                     }
@@ -51,7 +67,11 @@ namespace WoWonder.Helpers.Fonts
                     {
                         var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "fa-light-300.ttf");
                         textViewUi.SetTypeface(font, TypefaceStyle.Normal);
-                        if (!string.IsNullOrEmpty(iconUnicode)) textViewUi.Text = iconUnicode;
+                        textViewUi.Text = string.IsNullOrEmpty(iconUnicode) switch
+                        {
+                            false => iconUnicode,
+                            _ => textViewUi.Text
+                        };
                         //return font;
                         break;
                     }

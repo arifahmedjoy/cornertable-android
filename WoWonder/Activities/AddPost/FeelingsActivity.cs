@@ -219,14 +219,15 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)

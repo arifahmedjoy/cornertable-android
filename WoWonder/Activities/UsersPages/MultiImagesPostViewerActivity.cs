@@ -272,8 +272,11 @@ namespace WoWonder.Activities.UsersPages
 
                 ShareText = FindViewById<TextView>(Resource.Id.ShareText);
 
-                if (!AppSettings.ShowTextShareButton && ShareText != null)
-                    ShareText.Visibility = ViewStates.Gone;
+                ShareText.Visibility = AppSettings.ShowTextShareButton switch
+                {
+                    false when ShareText != null => ViewStates.Gone,
+                    _ => ShareText.Visibility
+                };
 
                 switch (AppSettings.PostButton)
                 {
@@ -313,8 +316,11 @@ namespace WoWonder.Activities.UsersPages
                         break;
                 }
 
-                if (!AppSettings.ShowShareButton && BtnShare != null)
-                    BtnShare.Visibility = ViewStates.Gone;
+                BtnShare.Visibility = AppSettings.ShowShareButton switch
+                {
+                    false when BtnShare != null => ViewStates.Gone,
+                    _ => BtnShare.Visibility
+                };
             }
             catch (Exception e)
             {
@@ -349,47 +355,72 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnComment.Click += BtnCommentOnClick;
-                    BtnShare.Click += BtnShareOnClick;
-                    BtnCountLike.Click += BtnCountLikeOnClick;
-                    BtnCountWoWonder.Click += BtnCountWoWonderOnClick;
-                    InfoImageLiner.Click += MainLayoutOnClick;
-                    MainLayout.Click += MainLayoutOnClick;
-
-                    if (AppSettings.PostButton == PostButtonSystem.Wonder || AppSettings.PostButton == PostButtonSystem.DisLike)
-                        BtnWonder.Click += BtnWonderOnClick;
-
-                    LikeButton.Click += (sender, args) => LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs
+                    // true +=  // false -=
+                    case true:
                     {
-                        NewsFeedClass = PostData,
-                        View = TxtCountLike,
-                    }, null, "MultiImagesPostViewerActivity");
+                        BtnComment.Click += BtnCommentOnClick;
+                        BtnShare.Click += BtnShareOnClick;
+                        BtnCountLike.Click += BtnCountLikeOnClick;
+                        BtnCountWoWonder.Click += BtnCountWoWonderOnClick;
+                        InfoImageLiner.Click += MainLayoutOnClick;
+                        MainLayout.Click += MainLayoutOnClick;
 
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
-                        LikeButton.LongClick += (sender, args) => LikeButton.LongClickDialog(new GlobalClickEventArgs
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.Wonder:
+                            case PostButtonSystem.DisLike:
+                                BtnWonder.Click += BtnWonderOnClick;
+                                break;
+                        }
+
+                        LikeButton.Click += (sender, args) => LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs
                         {
                             NewsFeedClass = PostData,
                             View = TxtCountLike,
-                        }, null, "MultiImagesPostViewerActivity"); 
-                }
-                else
-                {
-                    BtnComment.Click -= BtnCommentOnClick;
-                    BtnShare.Click -= BtnShareOnClick;
-                    BtnCountLike.Click -= BtnCountLikeOnClick;
-                    BtnCountWoWonder.Click -= BtnCountWoWonderOnClick;
-                    InfoImageLiner.Click -= MainLayoutOnClick;
-                    MainLayout.Click -= MainLayoutOnClick;
+                        }, null, "MultiImagesPostViewerActivity");
 
-                    if (AppSettings.PostButton == PostButtonSystem.Wonder || AppSettings.PostButton == PostButtonSystem.DisLike)
-                        BtnWonder.Click -= BtnWonderOnClick;
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.ReactionDefault:
+                            case PostButtonSystem.ReactionSubShine:
+                                LikeButton.LongClick += (sender, args) => LikeButton.LongClickDialog(new GlobalClickEventArgs
+                                {
+                                    NewsFeedClass = PostData,
+                                    View = TxtCountLike,
+                                }, null, "MultiImagesPostViewerActivity");
+                                break;
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        BtnComment.Click -= BtnCommentOnClick;
+                        BtnShare.Click -= BtnShareOnClick;
+                        BtnCountLike.Click -= BtnCountLikeOnClick;
+                        BtnCountWoWonder.Click -= BtnCountWoWonderOnClick;
+                        InfoImageLiner.Click -= MainLayoutOnClick;
+                        MainLayout.Click -= MainLayoutOnClick;
 
-                    LikeButton.Click += null!;
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
-                        LikeButton.LongClick -= null!;
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.Wonder:
+                            case PostButtonSystem.DisLike:
+                                BtnWonder.Click -= BtnWonderOnClick;
+                                break;
+                        }
+
+                        LikeButton.Click += null!;
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.ReactionDefault:
+                            case PostButtonSystem.ReactionSubShine:
+                                LikeButton.LongClick -= null!;
+                                break;
+                        }
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -461,10 +492,15 @@ namespace WoWonder.Activities.UsersPages
                 if (PostData.IsWondered != null && PostData.IsWondered.Value)
                 {
                     var x = Convert.ToInt32(PostData.PostWonders);
-                    if (x > 0)
-                        x--;
-                    else
-                        x = 0;
+                    switch (x)
+                    {
+                        case > 0:
+                            x--;
+                            break;
+                        default:
+                            x = 0;
+                            break;
+                    }
 
                     ImgWonder.SetColorFilter(Color.White);
                     ImgWoWonder.SetColorFilter(Color.White);
@@ -474,15 +510,12 @@ namespace WoWonder.Activities.UsersPages
 
                     TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(x);
 
-                    switch (AppSettings.PostButton)
+                    TxtWonder.Text = AppSettings.PostButton switch
                     {
-                        case PostButtonSystem.Wonder:
-                            TxtWonder.Text = GetText(Resource.String.Btn_Wonder);
-                            break;
-                        case PostButtonSystem.DisLike:
-                            TxtWonder.Text = GetText(Resource.String.Btn_Dislike);
-                            break;
-                    }
+                        PostButtonSystem.Wonder => GetText(Resource.String.Btn_Wonder),
+                        PostButtonSystem.DisLike => GetText(Resource.String.Btn_Dislike),
+                        _ => TxtWonder.Text
+                    };
 
                     BtnWonder.Tag = "false";
                 }
@@ -500,15 +533,12 @@ namespace WoWonder.Activities.UsersPages
 
                     TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(x);
 
-                    switch (AppSettings.PostButton)
+                    TxtWonder.Text = AppSettings.PostButton switch
                     {
-                        case PostButtonSystem.Wonder:
-                            TxtWonder.Text = GetText(Resource.String.Lbl_wondered);
-                            break;
-                        case PostButtonSystem.DisLike:
-                            TxtWonder.Text = GetText(Resource.String.Lbl_disliked);
-                            break;
-                    }
+                        PostButtonSystem.Wonder => GetText(Resource.String.Lbl_wondered),
+                        PostButtonSystem.DisLike => GetText(Resource.String.Lbl_disliked),
+                        _ => TxtWonder.Text
+                    };
 
                     BtnWonder.Tag = "true";
                 }
@@ -552,22 +582,33 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+                switch (AppSettings.PostButton)
                 {
-                    if (PostData.Reaction.Count > 0)
+                    case PostButtonSystem.ReactionDefault:
+                    case PostButtonSystem.ReactionSubShine:
                     {
-                        var intent = new Intent(this, typeof(ReactionPostTabbedActivity));
-                        intent.PutExtra("PostObject", JsonConvert.SerializeObject(PostData));
+                        switch (PostData.Reaction.Count)
+                        {
+                            case > 0:
+                            {
+                                var intent = new Intent(this, typeof(ReactionPostTabbedActivity));
+                                intent.PutExtra("PostObject", JsonConvert.SerializeObject(PostData));
+                                StartActivity(intent);
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        var intent = new Intent(this, typeof(PostDataActivity));
+                        intent.PutExtra("PostId", PostData.PostId);
+                        intent.PutExtra("PostType", "post_likes");
                         StartActivity(intent);
+                        break;
                     }
                 }
-                else
-                {
-                    var intent = new Intent(this, typeof(PostDataActivity));
-                    intent.PutExtra("PostId", PostData.PostId);
-                    intent.PutExtra("PostType", "post_likes");
-                    StartActivity(intent);
-                } 
             }
             catch (Exception exception)
             {
@@ -618,18 +659,25 @@ namespace WoWonder.Activities.UsersPages
                 {
                     var photos = new ObservableCollection<string>();
 
-                    if (TypePost == "Product" && PostData.Product != null)
+                    switch (TypePost)
                     {
-                        foreach (var item in PostData.Product.Value.ProductClass.Images)
+                        case "Product" when PostData.Product != null:
                         {
-                            photos.Add(item.Image);
+                            foreach (var item in PostData.Product.Value.ProductClass.Images)
+                            {
+                                photos.Add(item.Image);
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        foreach (var item in PostData.PhotoMulti ?? PostData.PhotoAlbum)
+                        default:
                         {
-                            photos.Add(item.Image);
+                            foreach (var item in PostData.PhotoMulti ?? PostData.PhotoAlbum)
+                            {
+                                photos.Add(item.Image);
+                            }
+
+                            break;
                         }
                     }
                     ViewPager.Adapter = new TouchImageAdapter(this, photos);
@@ -654,126 +702,144 @@ namespace WoWonder.Activities.UsersPages
                         readMoreOption.AddReadMoreTo(TxtDescription, new Java.Lang.String(description)); 
                     }
                       
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+                    switch (AppSettings.PostButton)
                     {
-                        PostData.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
-
-                        TxtCountLike.Text = Methods.FunString.FormatPriceValue(PostData.Reaction.Count);
-                         
-                        if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
+                        case PostButtonSystem.ReactionDefault:
+                        case PostButtonSystem.ReactionSubShine:
                         {
-                            if (!string.IsNullOrEmpty(PostData.Reaction.Type))
+                            PostData.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
+
+                            TxtCountLike.Text = Methods.FunString.FormatPriceValue(PostData.Reaction.Count);
+                         
+                            if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
                             {
-                                var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == PostData.Reaction.Type).Value?.Id ?? "";
-                                switch (react)
+                                switch (string.IsNullOrEmpty(PostData.Reaction.Type))
                                 {
-                                    case "1":
-                                        LikeButton.SetReactionPack(ReactConstants.Like);
-                                        ImgLike.SetImageResource(Resource.Drawable.emoji_like);
+                                    case false:
+                                    {
+                                        var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == PostData.Reaction.Type).Value?.Id ?? "";
+                                        switch (react)
+                                        {
+                                            case "1":
+                                                LikeButton.SetReactionPack(ReactConstants.Like);
+                                                ImgLike.SetImageResource(Resource.Drawable.emoji_like);
+                                                break;
+                                            case "2":
+                                                LikeButton.SetReactionPack(ReactConstants.Love);
+                                                ImgLike.SetImageResource(Resource.Drawable.emoji_love);
+                                                break;
+                                            case "3":
+                                                LikeButton.SetReactionPack(ReactConstants.HaHa);
+                                                ImgLike.SetImageResource(Resource.Drawable.emoji_haha);
+                                                break;
+                                            case "4":
+                                                LikeButton.SetReactionPack(ReactConstants.Wow);
+                                                ImgLike.SetImageResource(Resource.Drawable.emoji_wow);
+                                                break;
+                                            case "5":
+                                                LikeButton.SetReactionPack(ReactConstants.Sad);
+                                                ImgLike.SetImageResource(Resource.Drawable.emoji_sad);
+                                                break;
+                                            case "6":
+                                                LikeButton.SetReactionPack(ReactConstants.Angry);
+                                                ImgLike.SetImageResource(Resource.Drawable.emoji_angry);
+                                                break;
+                                            default:
+                                                LikeButton.SetReactionPack(ReactConstants.Default);
+                                                ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
+                                                break;
+                                        }
+
                                         break;
-                                    case "2":
-                                        LikeButton.SetReactionPack(ReactConstants.Love);
-                                        ImgLike.SetImageResource(Resource.Drawable.emoji_love);
-                                        break;
-                                    case "3":
-                                        LikeButton.SetReactionPack(ReactConstants.HaHa);
-                                        ImgLike.SetImageResource(Resource.Drawable.emoji_haha);
-                                        break;
-                                    case "4":
-                                        LikeButton.SetReactionPack(ReactConstants.Wow);
-                                        ImgLike.SetImageResource(Resource.Drawable.emoji_wow);
-                                        break;
-                                    case "5":
-                                        LikeButton.SetReactionPack(ReactConstants.Sad);
-                                        ImgLike.SetImageResource(Resource.Drawable.emoji_sad);
-                                        break;
-                                    case "6":
-                                        LikeButton.SetReactionPack(ReactConstants.Angry);
-                                        ImgLike.SetImageResource(Resource.Drawable.emoji_angry);
-                                        break;
-                                    default:
-                                        LikeButton.SetReactionPack(ReactConstants.Default);
-                                        ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
-                                        break;
+                                    }
                                 }
                             }
+                            else
+                            {
+                                LikeButton.SetReactionPack(ReactConstants.Default);
+                                LikeButton.SetTextColor(Color.White);
+
+                                ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
+                            }
+
+                            break;
                         }
-                        else
+                        default:
                         {
-                            LikeButton.SetReactionPack(ReactConstants.Default);
-                            LikeButton.SetTextColor(Color.White);
+                            ImgLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
 
-                            ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
-                        }
-                    }
-                    else
-                    {
-                        ImgLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
+                            TxtCountLike.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostLikes));
 
-                        TxtCountLike.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostLikes));
+                            switch (AppSettings.PostButton)
+                            {
+                                case PostButtonSystem.Wonder:
+                                case PostButtonSystem.DisLike:
+                                    TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostWonders));
+                                    break;
+                            }
 
-                        if (AppSettings.PostButton == PostButtonSystem.Wonder || AppSettings.PostButton == PostButtonSystem.DisLike)
-                            TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostWonders));
+                            switch (AppSettings.PostButton)
+                            {
+                                case PostButtonSystem.Wonder when PostData.IsWondered != null && PostData.IsWondered.Value:
 
-                        switch (AppSettings.PostButton)
-                        {
-                            case PostButtonSystem.Wonder when PostData.IsWondered != null && PostData.IsWondered.Value:
+                                    BtnWonder.Tag = "true";
+                                    ImgWoWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
-                                BtnWonder.Tag = "true";
-                                ImgWoWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
+                                    ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                                ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    TxtWonder.Text = GetString(Resource.String.Lbl_wondered);
+                                    TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                    break;
+                                case PostButtonSystem.Wonder:
 
-                                TxtWonder.Text = GetString(Resource.String.Lbl_wondered);
-                                TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                break;
-                            case PostButtonSystem.Wonder:
+                                    BtnWonder.Tag = "false";
+                                    ImgWoWonder.SetColorFilter(Color.White);
 
-                                BtnWonder.Tag = "false";
-                                ImgWoWonder.SetColorFilter(Color.White);
+                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
+                                    ImgWonder.SetColorFilter(Color.White);
 
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                                ImgWonder.SetColorFilter(Color.White);
+                                    TxtWonder.Text = GetString(Resource.String.Btn_Wonder);
+                                    TxtWonder.SetTextColor(Color.ParseColor("#444444"));
+                                    break;
+                                case PostButtonSystem.DisLike when PostData.IsWondered != null && PostData.IsWondered.Value:
 
-                                TxtWonder.Text = GetString(Resource.String.Btn_Wonder);
-                                TxtWonder.SetTextColor(Color.ParseColor("#444444"));
-                                break;
-                            case PostButtonSystem.DisLike when PostData.IsWondered != null && PostData.IsWondered.Value:
+                                    BtnWonder.Tag = "true";
+                                    ImgWoWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
-                                BtnWonder.Tag = "true";
-                                ImgWoWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
+                                    ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                                ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    TxtWonder.Text = GetString(Resource.String.Lbl_disliked);
+                                    TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
 
-                                TxtWonder.Text = GetString(Resource.String.Lbl_disliked);
-                                TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                    break;
+                                case PostButtonSystem.DisLike:
 
-                                break;
-                            case PostButtonSystem.DisLike:
+                                    BtnWonder.Tag = "false";
+                                    ImgWoWonder.SetColorFilter(Color.White);
 
-                                BtnWonder.Tag = "false";
-                                ImgWoWonder.SetColorFilter(Color.White);
+                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
+                                    ImgWonder.SetColorFilter(Color.White);
 
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                                ImgWonder.SetColorFilter(Color.White);
+                                    TxtWonder.Text = GetString(Resource.String.Btn_Dislike);
+                                    TxtWonder.SetTextColor(Color.ParseColor("#444444"));
+                                    break;
+                                case PostButtonSystem.Like when PostData.IsLiked != null && PostData.IsLiked.Value:
 
-                                TxtWonder.Text = GetString(Resource.String.Btn_Dislike);
-                                TxtWonder.SetTextColor(Color.ParseColor("#444444"));
-                                break;
-                            case PostButtonSystem.Like when PostData.IsLiked != null && PostData.IsLiked.Value:
+                                    BtnLike.Tag = "true";
+                                    ImgLike.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
-                                BtnLike.Tag = "true";
-                                ImgLike.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    break;
+                                case PostButtonSystem.Like:
 
-                                break;
-                            case PostButtonSystem.Like:
+                                    BtnLike.Tag = "false";
+                                    ImgLike.SetColorFilter(Color.White);
 
-                                BtnLike.Tag = "false";
-                                ImgLike.SetColorFilter(Color.White);
+                                    break; 
+                            }
 
-                                break; 
+                            break;
                         }
                     }
                 }

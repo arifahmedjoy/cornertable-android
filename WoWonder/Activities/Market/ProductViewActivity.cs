@@ -35,6 +35,7 @@ using WoWonder.Library.Anjo;
 using WoWonder.Library.Anjo.SuperTextLibrary;
 using WoWonderClient.Classes.Comments;
 using WoWonderClient.Classes.Global;
+using WoWonderClient.Classes.Message;
 using WoWonderClient.Classes.Posts;
 using WoWonderClient.Classes.Product;
 using WoWonderClient.Requests; 
@@ -92,9 +93,14 @@ namespace WoWonder.Activities.Market
                 SetRecyclerViewAdapters();
 
                 ProductData = JsonConvert.DeserializeObject<ProductDataObject>(Intent?.GetStringExtra("ProductView") ?? "");
-                if (ProductData == null) return;
-                 
-                Get_Data_Product(ProductData);
+                switch (ProductData)
+                {
+                    case null:
+                        return;
+                    default:
+                        Get_Data_Product(ProductData);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -240,11 +246,19 @@ namespace WoWonder.Activities.Market
                         break;
                 }
 
-                if (!AppSettings.SetTabDarkTheme)
-                    ImageMore.SetColorFilter(Color.Black);
+                switch (AppSettings.SetTabDarkTheme)
+                {
+                    case false:
+                        ImageMore.SetColorFilter(Color.Black);
+                        break;
+                }
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
+                }
 
             }
             catch (Exception e)
@@ -293,47 +307,72 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
-                { 
-                    BtnContact.Click += BtnContactOnClick;
-                    UserImageAvatar.Click += UserImageAvatarOnClick;
-                    TxtProductCardName.Click += UserImageAvatarOnClick; 
-                    ImageMore.Click += ImageMoreOnClick;
-                    IconBack.Click += IconBackOnClick;
-                    TxtProductDescription.LongClick += TxtProductDescriptionOnLongClick;
-                    BtnComment.Click += BtnCommentOnClick;
-
-                    if (AppSettings.PostButton == PostButtonSystem.Wonder || AppSettings.PostButton == PostButtonSystem.DisLike)
-                        BtnWonder.Click += BtnWonderOnClick;
-
-                    LikeButton.Click += (sender, args) => LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs
+                switch (addEvent)
+                {
+                    // true +=  // false -=
+                    case true:
                     {
-                        NewsFeedClass = PostData,
-                    } , null, "ProductViewActivity");
+                        BtnContact.Click += BtnContactOnClick;
+                        UserImageAvatar.Click += UserImageAvatarOnClick;
+                        TxtProductCardName.Click += UserImageAvatarOnClick; 
+                        ImageMore.Click += ImageMoreOnClick;
+                        IconBack.Click += IconBackOnClick;
+                        TxtProductDescription.LongClick += TxtProductDescriptionOnLongClick;
+                        BtnComment.Click += BtnCommentOnClick;
 
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
-                        LikeButton.LongClick += (sender, args) => LikeButton.LongClickDialog(new GlobalClickEventArgs
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.Wonder:
+                            case PostButtonSystem.DisLike:
+                                BtnWonder.Click += BtnWonderOnClick;
+                                break;
+                        }
+
+                        LikeButton.Click += (sender, args) => LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs
                         {
                             NewsFeedClass = PostData,
-                        }, null, "ProductViewActivity");
-                }
-                else
-                {
-                    BtnContact.Click -= BtnContactOnClick;
-                    UserImageAvatar.Click -= UserImageAvatarOnClick;
-                    TxtProductCardName.Click -= UserImageAvatarOnClick; 
-                    ImageMore.Click -= ImageMoreOnClick;
-                    IconBack.Click -= IconBackOnClick;
-                    TxtProductDescription.LongClick -= TxtProductDescriptionOnLongClick;
-                    BtnComment.Click -= BtnCommentOnClick;
+                        } , null, "ProductViewActivity");
 
-                    if (AppSettings.PostButton == PostButtonSystem.Wonder || AppSettings.PostButton == PostButtonSystem.DisLike)
-                        BtnWonder.Click -= BtnWonderOnClick;
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.ReactionDefault:
+                            case PostButtonSystem.ReactionSubShine:
+                                LikeButton.LongClick += (sender, args) => LikeButton.LongClickDialog(new GlobalClickEventArgs
+                                {
+                                    NewsFeedClass = PostData,
+                                }, null, "ProductViewActivity");
+                                break;
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        BtnContact.Click -= BtnContactOnClick;
+                        UserImageAvatar.Click -= UserImageAvatarOnClick;
+                        TxtProductCardName.Click -= UserImageAvatarOnClick; 
+                        ImageMore.Click -= ImageMoreOnClick;
+                        IconBack.Click -= IconBackOnClick;
+                        TxtProductDescription.LongClick -= TxtProductDescriptionOnLongClick;
+                        BtnComment.Click -= BtnCommentOnClick;
 
-                    LikeButton.Click += null!;
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
-                        LikeButton.LongClick -= null!; 
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.Wonder:
+                            case PostButtonSystem.DisLike:
+                                BtnWonder.Click -= BtnWonderOnClick;
+                                break;
+                        }
+
+                        LikeButton.Click += null!;
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.ReactionDefault:
+                            case PostButtonSystem.ReactionSubShine:
+                                LikeButton.LongClick -= null!;
+                                break;
+                        }
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -398,9 +437,9 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                if (AppSettings.MessengerIntegration)
+                switch (AppSettings.MessengerIntegration)
                 {
-                    if (AppSettings.ShowDialogAskOpenMessenger)
+                    case true when AppSettings.ShowDialogAskOpenMessenger:
                     {
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
@@ -424,29 +463,30 @@ namespace WoWonder.Activities.Market
                         dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
                         dialog.AlwaysCallSingleChoiceCallback();
                         dialog.Build().Show();
+                        break;
                     }
-                    else
-                    {
+                    case true:
                         Intent intent = new Intent(this, typeof(ChatWindowActivity));
                         intent.PutExtra("UserID", ProductData.Seller.UserId);
                         intent.PutExtra("TypeChat", "User");
                         intent.PutExtra("UserItem", JsonConvert.SerializeObject(ProductData.Seller));
                         StartActivity(intent);
-                    }
-                } 
-                else
-                {
-                    if (!Methods.CheckConnectivity())
+                        break;
+                    default:
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                        return;
+                        if (!Methods.CheckConnectivity())
+                        {
+                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            return;
+                        }
+
+                        var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                        var time = unixTimestamp.ToString();
+
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.Send_Message(ProductData.Seller.UserId, time, "", "", "", "", "", "", ProductData.Id) });
+                        Toast.MakeText(this, GetString(Resource.String.Lbl_MessageSentSuccessfully), ToastLength.Short)?.Show();
+                        break;
                     }
-
-                    var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                    var time = unixTimestamp.ToString();
-
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.Send_Message(ProductData.Seller.UserId, time, "", "", "", "", "", "", ProductData.Id) });
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_MessageSentSuccessfully), ToastLength.Short)?.Show(); 
                 }
             }
             catch (Exception e)
@@ -610,25 +650,27 @@ namespace WoWonder.Activities.Market
                 if (PostData.IsWondered != null && (bool)PostData.IsWondered)
                 {
                     var x = Convert.ToInt32(PostData.PostWonders);
-                    if (x > 0)
-                        x--;
-                    else
-                        x = 0;
+                    switch (x)
+                    {
+                        case > 0:
+                            x--;
+                            break;
+                        default:
+                            x = 0;
+                            break;
+                    }
 
                     ImgWonder.SetColorFilter(Color.White);
 
                     PostData.IsWondered = false;
                     PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
 
-                    switch (AppSettings.PostButton)
+                    TxtWonder.Text = AppSettings.PostButton switch
                     {
-                        case PostButtonSystem.Wonder:
-                            TxtWonder.Text = GetText(Resource.String.Btn_Wonder);
-                            break;
-                        case PostButtonSystem.DisLike:
-                            TxtWonder.Text = GetText(Resource.String.Btn_Dislike);
-                            break;
-                    }
+                        PostButtonSystem.Wonder => GetText(Resource.String.Btn_Wonder),
+                        PostButtonSystem.DisLike => GetText(Resource.String.Btn_Dislike),
+                        _ => TxtWonder.Text
+                    };
 
                     BtnWonder.Tag = "false";
                 }
@@ -642,15 +684,12 @@ namespace WoWonder.Activities.Market
 
                     ImgWonder.SetColorFilter(Color.ParseColor("#f89823"));
 
-                    switch (AppSettings.PostButton)
+                    TxtWonder.Text = AppSettings.PostButton switch
                     {
-                        case PostButtonSystem.Wonder:
-                            TxtWonder.Text = GetText(Resource.String.Lbl_wondered);
-                            break;
-                        case PostButtonSystem.DisLike:
-                            TxtWonder.Text = GetText(Resource.String.Lbl_disliked);
-                            break;
-                    }
+                        PostButtonSystem.Wonder => GetText(Resource.String.Lbl_wondered),
+                        PostButtonSystem.DisLike => GetText(Resource.String.Lbl_disliked),
+                        _ => TxtWonder.Text
+                    };
 
                     BtnWonder.Tag = "true";
                 }
@@ -707,69 +746,74 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                if (TypeDialog == "DeletePost")
+                switch (TypeDialog)
                 {
-                    try
-                    {
-                        if (!Methods.CheckConnectivity())
+                    case "DeletePost":
+                        try
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                            return;
-                        }
-
-                        var adapterGlobal = WRecyclerView.GetInstance()?.NativeFeedAdapter;
-                        var diff = adapterGlobal?.ListDiffer;
-                        var dataGlobal = diff?.Where(a => a.PostData?.PostId == ProductData?.PostId).ToList();
-                        if (dataGlobal != null)
-                        {
-                            foreach (var postData in dataGlobal)
+                            if (!Methods.CheckConnectivity())
                             {
-                                WRecyclerView.GetInstance()?.RemoveByRowIndex(postData);
+                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                return;
                             }
-                        }
 
-                        var recycler = TabbedMainActivity.GetInstance()?.NewsFeedTab?.MainRecyclerView;
-                        var dataGlobal2 = recycler?.NativeFeedAdapter.ListDiffer?.Where(a => a.PostData?.PostId == ProductData?.PostId).ToList();
-                        if (dataGlobal2 != null)
-                        {
-                            foreach (var postData in dataGlobal2)
+                            var adapterGlobal = WRecyclerView.GetInstance()?.NativeFeedAdapter;
+                            var diff = adapterGlobal?.ListDiffer;
+                            var dataGlobal = diff?.Where(a => a.PostData?.PostId == ProductData?.PostId).ToList();
+                            if (dataGlobal != null)
                             {
-                                recycler.RemoveByRowIndex(postData);
+                                foreach (var postData in dataGlobal)
+                                {
+                                    WRecyclerView.GetInstance()?.RemoveByRowIndex(postData);
+                                }
                             }
-                        }
 
-                        if (TabbedMarketActivity.GetInstance()?.MyProductsTab?.MAdapter?.MarketList != null)
-                        {
-                            TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.MarketList?.Remove(ProductData);
-                            TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.NotifyDataSetChanged();
-                        }
+                            var recycler = TabbedMainActivity.GetInstance()?.NewsFeedTab?.MainRecyclerView;
+                            var dataGlobal2 = recycler?.NativeFeedAdapter.ListDiffer?.Where(a => a.PostData?.PostId == ProductData?.PostId).ToList();
+                            if (dataGlobal2 != null)
+                            {
+                                foreach (var postData in dataGlobal2)
+                                {
+                                    recycler.RemoveByRowIndex(postData);
+                                }
+                            }
 
-                        if (TabbedMarketActivity.GetInstance()?.MarketTab?.MAdapter?.MarketList != null)
-                        {
-                            TabbedMarketActivity.GetInstance().MarketTab.MAdapter.MarketList?.Remove(ProductData);
-                            TabbedMarketActivity.GetInstance().MarketTab.MAdapter.NotifyDataSetChanged();
-                        }
+                            if (TabbedMarketActivity.GetInstance()?.MyProductsTab?.MAdapter?.MarketList != null)
+                            {
+                                TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.MarketList?.Remove(ProductData);
+                                TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.NotifyDataSetChanged();
+                            }
+
+                            if (TabbedMarketActivity.GetInstance()?.MarketTab?.MAdapter?.MarketList != null)
+                            {
+                                TabbedMarketActivity.GetInstance().MarketTab.MAdapter.MarketList?.Remove(ProductData);
+                                TabbedMarketActivity.GetInstance().MarketTab.MAdapter.NotifyDataSetChanged();
+                            }
                          
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(ProductData.PostId, "delete") }); 
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Post_Actions(ProductData.PostId, "delete") }); 
 
-                        Finish();
-                    }
-                    catch (Exception e)
+                            Finish();
+                        }
+                        catch (Exception e)
+                        {
+                            Methods.DisplayReportResultTrack(e);
+                        }
+
+                        break;
+                    default:
                     {
-                        Methods.DisplayReportResultTrack(e);
+                        if (p1 == DialogAction.Positive)
+                        {
+                        }
+                        else if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
                     }
                 }
-                else
-                {
-                    if (p1 == DialogAction.Positive)
-                    {
-                    }
-                    else if (p1 == DialogAction.Negative)
-                    {
-                        p0.Dismiss();
-                    }
-                } 
             }
             catch (Exception e)
             {
@@ -787,17 +831,22 @@ namespace WoWonder.Activities.Market
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                
-                if (requestCode == 3500 && resultCode == Result.Ok)
+
+                switch (requestCode)
                 {
-                    if (string.IsNullOrEmpty(data.GetStringExtra("itemData"))) return;
-                    var item = JsonConvert.DeserializeObject<ProductDataObject>(data.GetStringExtra("itemData"));
-                    if (item != null)
+                    case 3500 when resultCode == Result.Ok:
                     {
-                        ProductData = item;
-                        Get_Data_Product(item);
+                        if (string.IsNullOrEmpty(data.GetStringExtra("itemData"))) return;
+                        var item = JsonConvert.DeserializeObject<ProductDataObject>(data.GetStringExtra("itemData"));
+                        if (item != null)
+                        {
+                            ProductData = item;
+                            Get_Data_Product(item);
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception e)
             {
@@ -828,16 +877,23 @@ namespace WoWonder.Activities.Market
                 };
 
                 List<string> listImageUser = new List<string>();
-                if (productData.Images?.Count > 0)
-                    listImageUser.AddRange(productData.Images.Select(t => t.Image));
-                else
-                    listImageUser.Add(productData.Images?[0]?.Image);
-
-                if (ViewPagerView.Adapter == null)
+                switch (productData.Images?.Count)
                 {
-                    ViewPagerView.Adapter = new MultiImagePagerAdapter(this, listImageUser);
-                    ViewPagerView.CurrentItem = 0;
-                    CircleIndicatorView.SetViewPager(ViewPagerView);
+                    case > 0:
+                        listImageUser.AddRange(productData.Images.Select(t => t.Image));
+                        break;
+                    default:
+                        listImageUser.Add(productData.Images?[0]?.Image);
+                        break;
+                }
+
+                switch (ViewPagerView.Adapter)
+                {
+                    case null:
+                        ViewPagerView.Adapter = new MultiImagePagerAdapter(this, listImageUser);
+                        ViewPagerView.CurrentItem = 0;
+                        CircleIndicatorView.SetViewPager(ViewPagerView);
+                        break;
                 }
                 ViewPagerView.Adapter.NotifyDataSetChanged();
 
@@ -898,109 +954,126 @@ namespace WoWonder.Activities.Market
             if (Methods.CheckConnectivity())
             {
                 var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(PostId, "post_data");
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetPostDataObject result)
+                    case 200:
                     {
-                        PostData = result.PostData;
-
-                        if (PostData.IsLiked != null && (bool)PostData.IsLiked)
+                        switch (respond)
                         {
-                            BtnLike.Tag = "true";
-                        }
-                        else
-                        {
-                            BtnLike.Tag = "false";
-                        }
-
-                        if (PostData.IsWondered != null && (bool)PostData.IsWondered)
-                        {
-                            BtnWonder.Tag = "true";
-                            ImgWonder.SetColorFilter(Color.ParseColor("#f89823"));
-
-                            TxtWonder.Text = GetText(Resource.String.Lbl_wondered);
-                        }
-                        else
-                        {
-                            BtnWonder.Tag = "false";
-                            ImgWonder.SetColorFilter(Color.White);
-                            TxtWonder.Text = GetText(Resource.String.Btn_Wonder);
-
-                        }
-
-                        switch (AppSettings.PostButton)
-                        {
-                            case PostButtonSystem.ReactionDefault:
-                            case PostButtonSystem.ReactionSubShine:
+                            case GetPostDataObject result:
                             {
-                                PostData.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
+                                PostData = result.PostData;
 
-                                if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
+                                if (PostData.IsLiked != null && (bool)PostData.IsLiked)
                                 {
-                                    if (!string.IsNullOrEmpty(PostData.Reaction.Type))
+                                    BtnLike.Tag = "true";
+                                }
+                                else
+                                {
+                                    BtnLike.Tag = "false";
+                                }
+
+                                if (PostData.IsWondered != null && (bool)PostData.IsWondered)
+                                {
+                                    BtnWonder.Tag = "true";
+                                    ImgWonder.SetColorFilter(Color.ParseColor("#f89823"));
+
+                                    TxtWonder.Text = GetText(Resource.String.Lbl_wondered);
+                                }
+                                else
+                                {
+                                    BtnWonder.Tag = "false";
+                                    ImgWonder.SetColorFilter(Color.White);
+                                    TxtWonder.Text = GetText(Resource.String.Btn_Wonder);
+
+                                }
+
+                                switch (AppSettings.PostButton)
+                                {
+                                    case PostButtonSystem.ReactionDefault:
+                                    case PostButtonSystem.ReactionSubShine:
                                     {
-                                        var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == PostData.Reaction.Type).Value?.Id ?? "";
-                                        switch (react)
+                                        PostData.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
+
+                                        if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
                                         {
-                                            case "1":
-                                                LikeButton.SetReactionPack(ReactConstants.Like);
-                                                break;
-                                            case "2":
-                                                LikeButton.SetReactionPack(ReactConstants.Love);
-                                                break;
-                                            case "3":
-                                                LikeButton.SetReactionPack(ReactConstants.HaHa);
-                                                break;
-                                            case "4":
-                                                LikeButton.SetReactionPack(ReactConstants.Wow);
-                                                break;
-                                            case "5":
-                                                LikeButton.SetReactionPack(ReactConstants.Sad);
-                                                break;
-                                            case "6":
-                                                LikeButton.SetReactionPack(ReactConstants.Angry);
-                                                break;
-                                            default:
-                                                LikeButton.SetReactionPack(ReactConstants.Default);
-                                                break; 
-                                        } 
+                                            switch (string.IsNullOrEmpty(PostData.Reaction.Type))
+                                            {
+                                                case false:
+                                                {
+                                                    var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == PostData.Reaction.Type).Value?.Id ?? "";
+                                                    switch (react)
+                                                    {
+                                                        case "1":
+                                                            LikeButton.SetReactionPack(ReactConstants.Like);
+                                                            break;
+                                                        case "2":
+                                                            LikeButton.SetReactionPack(ReactConstants.Love);
+                                                            break;
+                                                        case "3":
+                                                            LikeButton.SetReactionPack(ReactConstants.HaHa);
+                                                            break;
+                                                        case "4":
+                                                            LikeButton.SetReactionPack(ReactConstants.Wow);
+                                                            break;
+                                                        case "5":
+                                                            LikeButton.SetReactionPack(ReactConstants.Sad);
+                                                            break;
+                                                        case "6":
+                                                            LikeButton.SetReactionPack(ReactConstants.Angry);
+                                                            break;
+                                                        default:
+                                                            LikeButton.SetReactionPack(ReactConstants.Default);
+                                                            break; 
+                                                    }
+
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        break;
                                     }
+                                    case PostButtonSystem.Wonder when PostData.IsWondered != null && (bool)PostData.IsWondered:
+                                        ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
+                                        ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+
+                                        TxtWonder.Text = GetString(Resource.String.Lbl_wondered);
+                                        TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                        break;
+                                    case PostButtonSystem.Wonder:
+                                        ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
+                                        ImgWonder.SetColorFilter(Color.ParseColor("#666666"));
+
+                                        TxtWonder.Text = GetString(Resource.String.Btn_Wonder);
+                                        TxtWonder.SetTextColor(Color.ParseColor("#444444"));
+                                        break;
+                                    case PostButtonSystem.DisLike when PostData.IsWondered != null && (bool)PostData.IsWondered:
+                                        ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
+                                        ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+
+                                        TxtWonder.Text = GetString(Resource.String.Lbl_disliked);
+                                        TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                        break;
+                                    case PostButtonSystem.DisLike:
+                                        ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
+                                        ImgWonder.SetColorFilter(Color.ParseColor("#666666"));
+
+                                        TxtWonder.Text = GetString(Resource.String.Btn_Dislike);
+                                        TxtWonder.SetTextColor(Color.ParseColor("#444444"));
+                                        break;
                                 }
 
                                 break;
                             }
-                            case PostButtonSystem.Wonder when PostData.IsWondered != null && (bool)PostData.IsWondered:
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                                ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
-
-                                TxtWonder.Text = GetString(Resource.String.Lbl_wondered);
-                                TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                break;
-                            case PostButtonSystem.Wonder:
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                                ImgWonder.SetColorFilter(Color.ParseColor("#666666"));
-
-                                TxtWonder.Text = GetString(Resource.String.Btn_Wonder);
-                                TxtWonder.SetTextColor(Color.ParseColor("#444444"));
-                                break;
-                            case PostButtonSystem.DisLike when PostData.IsWondered != null && (bool)PostData.IsWondered:
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                                ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
-
-                                TxtWonder.Text = GetString(Resource.String.Lbl_disliked);
-                                TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                break;
-                            case PostButtonSystem.DisLike:
-                                ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                                ImgWonder.SetColorFilter(Color.ParseColor("#666666"));
-
-                                TxtWonder.Text = GetString(Resource.String.Btn_Dislike);
-                                TxtWonder.SetTextColor(Color.ParseColor("#444444"));
-                                break;
                         }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);  
             }
             else
             { 
@@ -1016,28 +1089,34 @@ namespace WoWonder.Activities.Market
             {
                 var countList = MAdapter.CommentList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Comment.GetPostComments(PostId, "10", offset);
-                if (apiStatus != 200 || (respond is not CommentObject result) || result.CommentList == null)
+                if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
                 {
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.CommentList?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        foreach (var item in from item in result.CommentList let check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                        case > 0:
                         {
-                            var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                            if (db != null) MAdapter.CommentList.Add(db);
-                        }
+                            foreach (var item in from item in result.CommentList let check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            {
+                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                if (db != null) MAdapter.CommentList.Add(db);
+                            }
 
-                        if (countList > 0)
-                        {
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.CommentList.Count - countList); });
-                        }
-                        else
-                        {
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            switch (countList)
+                            {
+                                case > 0:
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.CommentList.Count - countList); });
+                                    break;
+                                default:
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -1050,25 +1129,31 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                if (MAdapter.CommentList.Count > 0)
+                switch (MAdapter.CommentList.Count)
                 {
-                    CommentsRecyclerView.Visibility = ViewStates.Visible;
-
-                    var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
-                    if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                    case > 0:
                     {
-                        MAdapter.CommentList.Remove(emptyStateChecker);
-                        MAdapter.NotifyDataSetChanged();
-                    }
-                }
-                else
-                {
-                    CommentsRecyclerView.Visibility = ViewStates.Gone;
+                        CommentsRecyclerView.Visibility = ViewStates.Visible;
 
-                    MAdapter.CommentList.Clear();
-                    var d = new CommentObjectExtra { Text = MAdapter.EmptyState };
-                    MAdapter.CommentList.Add(d);
-                    MAdapter.NotifyDataSetChanged();
+                        var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
+                        if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                        {
+                            MAdapter.CommentList.Remove(emptyStateChecker);
+                            MAdapter.NotifyDataSetChanged();
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        CommentsRecyclerView.Visibility = ViewStates.Gone;
+
+                        MAdapter.CommentList.Clear();
+                        var d = new CommentObjectExtra { Text = MAdapter.EmptyState };
+                        MAdapter.CommentList.Add(d);
+                        MAdapter.NotifyDataSetChanged();
+                        break;
+                    }
                 }
             }
             catch (Exception e)

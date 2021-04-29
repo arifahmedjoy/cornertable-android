@@ -88,31 +88,35 @@ namespace WoWonder.Activities.NativePost.Services
                 if (string.IsNullOrEmpty(Methods.AppLifecycleObserver.AppState))
                     Methods.AppLifecycleObserver.AppState = "Background";
 
-                if (Methods.AppLifecycleObserver.AppState == "Background")
+                switch (Methods.AppLifecycleObserver.AppState)
                 {
-                    if (string.IsNullOrEmpty(Client.WebsiteUrl))
+                    case "Background":
                     {
-                        Client a = new Client(AppSettings.TripleDesAppServiceProvider);
-                        Console.WriteLine(a);
+                        if (string.IsNullOrEmpty(Client.WebsiteUrl))
+                        {
+                            Client a = new Client(AppSettings.TripleDesAppServiceProvider);
+                            Console.WriteLine(a);
+                        }
+
+                        SqLiteDatabase dbDatabase = new SqLiteDatabase();
+
+                        if (string.IsNullOrEmpty(Current.AccessToken))
+                        {
+                            var login = dbDatabase.Get_data_Login_Credentials();
+                            Console.WriteLine(login);
+                        }
+
+                        if (string.IsNullOrEmpty(Current.AccessToken))
+                            return;
+
+                        if (Methods.CheckConnectivity())
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiPostAsync.FetchFirstNewsFeedApiPosts });
+
+                        //Toast.MakeText(Application.Context, "ResultSender wael", ToastLength.Short).Show();
+                        MainHandler ??= new Handler(Looper.MainLooper);
+                        MainHandler?.PostDelayed(new PostUpdaterHelper(new Handler(Looper.MainLooper)), AppSettings.RefreshPostSeconds);
+                        break;
                     }
-
-                    SqLiteDatabase dbDatabase = new SqLiteDatabase();
-
-                    if (string.IsNullOrEmpty(Current.AccessToken))
-                    {
-                        var login = dbDatabase.Get_data_Login_Credentials();
-                        Console.WriteLine(login);
-                    }
-
-                    if (string.IsNullOrEmpty(Current.AccessToken))
-                        return;
-
-                    if (Methods.CheckConnectivity())
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiPostAsync.FetchFirstNewsFeedApiPosts });
-
-                    //Toast.MakeText(Application.Context, "ResultSender wael", ToastLength.Short).Show();
-                    MainHandler ??= new Handler(Looper.MainLooper);
-                    MainHandler?.PostDelayed(new PostUpdaterHelper(new Handler(Looper.MainLooper)), AppSettings.RefreshPostSeconds);
                 }
             }
             catch (Exception e)

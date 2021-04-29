@@ -24,13 +24,14 @@ namespace WoWonder.Helpers.Utils
 
                 intent.AddFlags(ActivityFlags.NoHistory);
                 intent.AddFlags(ActivityFlags.MultipleTask);
-                if ((int)Build.VERSION.SdkInt >= 21)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    intent.AddFlags(ActivityFlags.NewDocument);
-                }
-                else
-                {
-                    intent.AddFlags(ActivityFlags.ClearWhenTaskReset);
+                    case >= 21:
+                        intent.AddFlags(ActivityFlags.NewDocument);
+                        break;
+                    default:
+                        intent.AddFlags(ActivityFlags.ClearWhenTaskReset);
+                        break;
                 }
                 intent.SetFlags(ActivityFlags.ClearTop);
                 intent.SetFlags(ActivityFlags.NewTask);

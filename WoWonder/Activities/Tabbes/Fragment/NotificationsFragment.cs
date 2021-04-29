@@ -77,14 +77,18 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 InitComponent(view);
                 SetRecyclerViewAdapters();
 
-                if (!AppSettings.SetTabOnButton)
+                switch (AppSettings.SetTabOnButton)
                 {
-                    var parasms = (RelativeLayout.LayoutParams)SwipeRefreshLayout.LayoutParameters;
-                    // Check if we're running on Android 5.0 or higher
-                    parasms.TopMargin = (int)Build.VERSION.SdkInt < 23 ? 80 : 120;
+                    case false:
+                    {
+                        var parasms = (RelativeLayout.LayoutParams)SwipeRefreshLayout.LayoutParameters;
+                        // Check if we're running on Android 5.0 or higher
+                        parasms.TopMargin = (int)Build.VERSION.SdkInt < 23 ? 80 : 120;
 
-                    MRecycler.LayoutParameters = parasms;
-                    MRecycler.SetPadding(0, 0, 0, 0);
+                        MRecycler.LayoutParameters = parasms;
+                        MRecycler.SetPadding(0, 0, 0, 0);
+                        break;
+                    }
                 }
 
                 if (!Methods.CheckConnectivity())
@@ -176,12 +180,17 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
-                if (e.Position > -1)
+                switch (e.Position)
                 {
-                    var item = MAdapter.GetItem(e.Position);
-                    if (item != null)
+                    case > -1:
                     {
-                        EventClickNotification(Activity, item);
+                        var item = MAdapter.GetItem(e.Position);
+                        if (item != null)
+                        {
+                            EventClickNotification(Activity, item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -244,230 +253,319 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
-                if (MainScrollEvent.IsLoading)
-                    return ("", "", "", "");
+                switch (MainScrollEvent.IsLoading)
+                {
+                    case true:
+                        return ("", "", "", "");
+                }
 
                 if (Methods.CheckConnectivity())
                 {
                     MainScrollEvent.IsLoading = true;
                      
                     var (apiStatus, respond) = await RequestsAsync.Global.Get_General_Data(seenNotifications, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, offset);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetGeneralDataObject result)
+                        case 200:
                         {
-                           Activity?.RunOnUiThread(() =>
-                           {
-                               try
-                               {
-                                   // Notifications
-                                   var countNotificationsList = MAdapter.NotificationsList.Count;
-                                   var respondList = result.Notifications.Count;
-                                   if (respondList > 0)
-                                   {
-                                       if (countNotificationsList > 0)
-                                       {
-                                           var listNew = result.Notifications?.Where(c => !MAdapter.NotificationsList.Select(fc => fc.Id).Contains(c.Id)).ToList();
-                                           if (listNew.Count > 0)
-                                           { 
-                                               foreach (var notification in listNew)
-                                               {
-                                                   MAdapter.NotificationsList.Insert(0 , notification);
-                                               }
+                            switch (respond)
+                            {
+                                case GetGeneralDataObject result:
+                                    Activity?.RunOnUiThread(() =>
+                                    {
+                                        try
+                                        {
+                                            // Notifications
+                                            var countNotificationsList = MAdapter.NotificationsList.Count;
+                                            var respondList = result.Notifications.Count;
+                                            switch (respondList)
+                                            {
+                                                case > 0 when countNotificationsList > 0:
+                                                {
+                                                    var listNew = result.Notifications?.Where(c => !MAdapter.NotificationsList.Select(fc => fc.Id).Contains(c.Id)).ToList();
+                                                    switch (listNew.Count)
+                                                    {
+                                                        case > 0:
+                                                        {
+                                                            foreach (var notification in listNew)
+                                                            {
+                                                                MAdapter.NotificationsList.Insert(0 , notification);
+                                                            }
 
-                                               MAdapter.NotifyItemRangeInserted(countNotificationsList - 1, MAdapter.NotificationsList.Count - countNotificationsList);
-                                           }
-                                       }
-                                       else
-                                       {
-                                           MAdapter.NotificationsList = new ObservableCollection<NotificationObject>(result.Notifications);
-                                           MAdapter.NotifyDataSetChanged();
-                                       }
-                                   }
-                                   else
-                                   {
-                                       if (MAdapter.NotificationsList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                           Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoMoreNotifications), ToastLength.Short)?.Show();
-                                   }
+                                                            MAdapter.NotifyItemRangeInserted(countNotificationsList - 1, MAdapter.NotificationsList.Count - countNotificationsList);
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    break;
+                                                }
+                                                case > 0:
+                                                    MAdapter.NotificationsList = new ObservableCollection<NotificationObject>(result.Notifications);
+                                                    MAdapter.NotifyDataSetChanged();
+                                                    break;
+                                                default:
+                                                {
+                                                    switch (MAdapter.NotificationsList.Count)
+                                                    {
+                                                        case > 10 when !MRecycler.CanScrollVertically(1):
+                                                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoMoreNotifications), ToastLength.Short)?.Show();
+                                                            break;
+                                                    }
+
+                                                    break;
+                                                }
+                                            }
                                     
-                                   if (AppSettings.ShowTrendingPage &&GlobalContext.TrendingTab != null)
-                                   { 
-                                       // FriendRequests
-                                       var respondListFriendRequests = result?.FriendRequests?.Count;
-                                       if (respondListFriendRequests > 0)
-                                       {
-                                           ListUtils.FriendRequestsList = new ObservableCollection<UserDataObject>(result.FriendRequests);
+                                            switch (AppSettings.ShowTrendingPage)
+                                            {
+                                                case true when GlobalContext.TrendingTab != null:
+                                                {
+                                                    // FriendRequests
+                                                    var respondListFriendRequests = result?.FriendRequests?.Count;
+                                                    switch (respondListFriendRequests)
+                                                    {
+                                                        case > 0:
+                                                        {
+                                                            ListUtils.FriendRequestsList = new ObservableCollection<UserDataObject>(result.FriendRequests);
 
-                                           var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.FriendRequest);
-                                           if (checkList == null)
-                                           {
-                                               var friendRequests = new Classes.TrendingClass
-                                               {
-                                                   Id = 400,
-                                                   UserList = new List<UserDataObject>(),
-                                                   Type = Classes.ItemType.FriendRequest
-                                               };
+                                                            var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.FriendRequest);
+                                                            switch (checkList)
+                                                            {
+                                                                case null:
+                                                                {
+                                                                    var friendRequests = new Classes.TrendingClass
+                                                                    {
+                                                                        Id = 400,
+                                                                        UserList = new List<UserDataObject>(),
+                                                                        Type = Classes.ItemType.FriendRequest
+                                                                    };
 
-                                               var list = result.FriendRequests.TakeLast(4).ToList();
-                                               if (list.Count > 0)
-                                                   friendRequests.UserList.AddRange(list);
+                                                                    var list = result.FriendRequests.TakeLast(4).ToList();
+                                                                    switch (list.Count)
+                                                                    {
+                                                                        case > 0:
+                                                                            friendRequests.UserList.AddRange(list);
+                                                                            break;
+                                                                    }
 
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Add(friendRequests);
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(friendRequests);
                                                 
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                               { 
-                                                   Type = Classes.ItemType.Divider
-                                               });
-                                           }
-                                           else
-                                           {
-                                               if (checkList.UserList.Count < 3)
-                                               {
-                                                   var list = result.FriendRequests.TakeLast(4).ToList();
-                                                   if (list.Count > 0)
-                                                       checkList.UserList.AddRange(list);
-                                               }
-                                           }
-                                       }
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                                    { 
+                                                                        Type = Classes.ItemType.Divider
+                                                                    });
+                                                                    break;
+                                                                }
+                                                                default:
+                                                                {
+                                                                    switch (checkList.UserList.Count)
+                                                                    {
+                                                                        case < 3:
+                                                                        {
+                                                                            var list = result.FriendRequests.TakeLast(4).ToList();
+                                                                            switch (list.Count)
+                                                                            {
+                                                                                case > 0:
+                                                                                    checkList.UserList.AddRange(list);
+                                                                                    break;
+                                                                            }
+                                                                            break;
+                                                                        }
+                                                                    }
 
-                                       // TrendingHashtag
-                                       var respondListHashTag = result?.TrendingHashtag?.Count;
-                                       if (respondListHashTag > 0 && AppSettings.ShowTrendingHashTags)
-                                       {
-                                           ListUtils.HashTagList = new ObservableCollection<TrendingHashtag>(result.TrendingHashtag);
+                                                                    break;
+                                                                }
+                                                            }
 
-                                           var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.HashTag);
-                                           if (checkList == null)
-                                           {
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                               {
-                                                   Id = 900,
-                                                   Title = Activity.GetText(Resource.String.Lbl_TrendingHashTags),
-                                                   SectionType = Classes.ItemType.HashTag,
-                                                   Type = Classes.ItemType.Section,
-                                               });
+                                                            break;
+                                                        }
+                                                    }
 
-                                               var list = result.TrendingHashtag.Take(5).ToList();
+                                                    // TrendingHashtag
+                                                    var respondListHashTag = result?.TrendingHashtag?.Count;
+                                                    switch (respondListHashTag)
+                                                    {
+                                                        case > 0 when AppSettings.ShowTrendingHashTags:
+                                                        {
+                                                            ListUtils.HashTagList = new ObservableCollection<TrendingHashtag>(result.TrendingHashtag);
 
-                                               foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.HashTags?.Id == item.Id && a.Type == Classes.ItemType.HashTag) where check == null select item)
-                                               {
-                                                   GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                                   {
-                                                       Id = long.Parse(item.Id),
-                                                       HashTags = item,
-                                                       Type = Classes.ItemType.HashTag
-                                                   });
-                                               }
+                                                            var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.HashTag);
+                                                            switch (checkList)
+                                                            {
+                                                                case null:
+                                                                {
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                                    {
+                                                                        Id = 900,
+                                                                        Title = Activity.GetText(Resource.String.Lbl_TrendingHashTags),
+                                                                        SectionType = Classes.ItemType.HashTag,
+                                                                        Type = Classes.ItemType.Section,
+                                                                    });
 
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                               {
-                                                   Type = Classes.ItemType.Divider
-                                               });
-                                           }
-                                       }
+                                                                    var list = result.TrendingHashtag.Take(5).ToList();
 
-                                       // PromotedPages
-                                       var respondListPromotedPages = result.PromotedPages?.Count;
-                                       if (respondListPromotedPages > 0 && AppSettings.ShowPromotedPages)
-                                       {
-                                           var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ProPage);
-                                           if (checkList == null)
-                                           {
-                                               var proPage = new Classes.TrendingClass
-                                               {
-                                                   Id = 200,
-                                                   PageList = new List<PageClass>(),
-                                                   Type = Classes.ItemType.ProPage
-                                               };
+                                                                    foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.HashTags?.Id == item.Id && a.Type == Classes.ItemType.HashTag) where check == null select item)
+                                                                    {
+                                                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                                        {
+                                                                            Id = long.Parse(item.Id),
+                                                                            HashTags = item,
+                                                                            Type = Classes.ItemType.HashTag
+                                                                        });
+                                                                    }
 
-                                               foreach (var item in from item in result.PromotedPages let check = proPage.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
-                                               {
-                                                   proPage.PageList.Add(item);
-                                               }
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                                    {
+                                                                        Type = Classes.ItemType.Divider
+                                                                    });
+                                                                    break;
+                                                                }
+                                                            }
 
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(0, proPage);
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(1, new Classes.TrendingClass
-                                               {
-                                                   Type = Classes.ItemType.Divider
-                                               });
-                                           }
-                                           else
-                                           {
-                                               foreach (var item in from item in result.PromotedPages let check = checkList.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
-                                               {
-                                                   checkList.PageList.Add(item);
-                                               }
-                                           }
-                                       }
+                                                            break;
+                                                        }
+                                                    }
 
-                                       // ProUsers
-                                       var respondListProUsers = result?.ProUsers?.Count;
-                                       if (respondListProUsers > 0 && AppSettings.ShowProUsersMembers)
-                                       {
-                                           var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ProUser);
-                                           if (checkList == null)
-                                           {
-                                               var proUser = new Classes.TrendingClass
-                                               {
-                                                   Id = 100,
-                                                   UserList = new List<UserDataObject>(),
-                                                   Type = Classes.ItemType.ProUser
-                                               };
+                                                    // PromotedPages
+                                                    var respondListPromotedPages = result.PromotedPages?.Count;
+                                                    switch (respondListPromotedPages)
+                                                    {
+                                                        case > 0 when AppSettings.ShowPromotedPages:
+                                                        {
+                                                            var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ProPage);
+                                                            switch (checkList)
+                                                            {
+                                                                case null:
+                                                                {
+                                                                    var proPage = new Classes.TrendingClass
+                                                                    {
+                                                                        Id = 200,
+                                                                        PageList = new List<PageClass>(),
+                                                                        Type = Classes.ItemType.ProPage
+                                                                    };
 
-                                               foreach (var item in from item in result.ProUsers let check = proUser.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                               {
-                                                   proUser.UserList.Add(item);
-                                               }
+                                                                    foreach (var item in from item in result.PromotedPages let check = proPage.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
+                                                                    {
+                                                                        proPage.PageList.Add(item);
+                                                                    }
 
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(0, proUser);
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(1, new Classes.TrendingClass
-                                               {
-                                                   Type = Classes.ItemType.Divider
-                                               });
-                                           }
-                                           else
-                                           {
-                                               foreach (var item in from item in result.ProUsers let check = checkList.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
-                                               {
-                                                   checkList.UserList.Add(item);
-                                               }
-                                           }
-                                       }
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(0, proPage);
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(1, new Classes.TrendingClass
+                                                                    {
+                                                                        Type = Classes.ItemType.Divider
+                                                                    });
+                                                                    break;
+                                                                }
+                                                                default:
+                                                                {
+                                                                    foreach (var item in from item in result.PromotedPages let check = checkList.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
+                                                                    {
+                                                                        checkList.PageList.Add(item);
+                                                                    }
 
-                                       if (AppSettings.ShowInfoCoronaVirus)
-                                       {
-                                           var check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.CoronaVirus);
-                                           if (check == null)
-                                           {
-                                               var coronaVirus = new Classes.TrendingClass
-                                               {
-                                                   Id = 20316,
-                                                   Type = Classes.ItemType.CoronaVirus
-                                               };
+                                                                    break;
+                                                                }
+                                                            }
 
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(0, coronaVirus);
-                                               GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(1, new Classes.TrendingClass
-                                               {
-                                                   Type = Classes.ItemType.Divider
-                                               });
-                                           }
-                                       }
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    // ProUsers
+                                                    var respondListProUsers = result?.ProUsers?.Count;
+                                                    switch (respondListProUsers)
+                                                    {
+                                                        case > 0 when AppSettings.ShowProUsersMembers:
+                                                        {
+                                                            var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ProUser);
+                                                            switch (checkList)
+                                                            {
+                                                                case null:
+                                                                {
+                                                                    var proUser = new Classes.TrendingClass
+                                                                    {
+                                                                        Id = 100,
+                                                                        UserList = new List<UserDataObject>(),
+                                                                        Type = Classes.ItemType.ProUser
+                                                                    };
+
+                                                                    foreach (var item in from item in result.ProUsers let check = proUser.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                                    {
+                                                                        proUser.UserList.Add(item);
+                                                                    }
+
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(0, proUser);
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(1, new Classes.TrendingClass
+                                                                    {
+                                                                        Type = Classes.ItemType.Divider
+                                                                    });
+                                                                    break;
+                                                                }
+                                                                default:
+                                                                {
+                                                                    foreach (var item in from item in result.ProUsers let check = checkList.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                                    {
+                                                                        checkList.UserList.Add(item);
+                                                                    }
+
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    switch (AppSettings.ShowInfoCoronaVirus)
+                                                    {
+                                                        case true:
+                                                        {
+                                                            var check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.CoronaVirus);
+                                                            switch (check)
+                                                            {
+                                                                case null:
+                                                                {
+                                                                    var coronaVirus = new Classes.TrendingClass
+                                                                    {
+                                                                        Id = 20316,
+                                                                        Type = Classes.ItemType.CoronaVirus
+                                                                    };
+
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(0, coronaVirus);
+                                                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Insert(1, new Classes.TrendingClass
+                                                                    {
+                                                                        Type = Classes.ItemType.Divider
+                                                                    });
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            break;
+                                                        }
+                                                    }
                                         
-                                       GlobalContext.TrendingTab.MAdapter.NotifyDataSetChanged();
-                                   }
+                                                    GlobalContext.TrendingTab.MAdapter.NotifyDataSetChanged();
+                                                    break;
+                                                }
+                                            }
                                      
-                                   MainScrollEvent.IsLoading = false;
-                                   ShowEmptyPage();
-                               }
-                               catch (Exception e)
-                               {
-                                   Methods.DisplayReportResultTrack(e);
-                               }
-                           }); 
-                            return (result.NewNotificationsCount, result.NewFriendRequestsCount, result.CountNewMessages, result.Announcement?.AnnouncementClass?.TextDecode);
+                                            MainScrollEvent.IsLoading = false;
+                                            ShowEmptyPage();
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Methods.DisplayReportResultTrack(e);
+                                        }
+                                    }); 
+                                    return (result.NewNotificationsCount, result.NewFriendRequestsCount, result.CountNewMessages, result.Announcement?.AnnouncementClass?.TextDecode);
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(Activity, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(Activity, respond);
 
                     Activity?.RunOnUiThread(ShowEmptyPage);
                     MainScrollEvent.IsLoading = false;
@@ -479,10 +577,12 @@ namespace WoWonder.Activities.Tabbes.Fragment
                     Inflated = EmptyStateLayout.Inflate();
                     EmptyStateInflater x = new EmptyStateInflater();
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    switch (x.EmptyStateButton.HasOnClickListeners)
                     {
-                         x.EmptyStateButton.Click += null!;
-                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        case false:
+                            x.EmptyStateButton.Click += null!;
+                            x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                            break;
                     }
 
                     Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -504,24 +604,29 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.NotificationsList.Count > 0)
+                switch (MAdapter.NotificationsList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoNotifications);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoNotifications);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

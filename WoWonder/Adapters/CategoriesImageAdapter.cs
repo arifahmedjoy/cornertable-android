@@ -62,13 +62,18 @@ namespace WoWonder.Adapters
         {
             try
             {
-                if (viewHolder is CategoriesImageAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = CategoriesList[position];
-                    if (item != null)
-                    { 
-                        holder.Name.Text = Methods.FunString.DecodeString(item.CategoriesName);
-                        holder.Image.SetColorFilter(Color.ParseColor(Methods.FunString.RandomColor()),PorterDuff.Mode.Screen); 
+                    case CategoriesImageAdapterViewHolder holder:
+                    {
+                        var item = CategoriesList[position];
+                        if (item != null)
+                        { 
+                            holder.Name.Text = Methods.FunString.DecodeString(item.CategoriesName);
+                            holder.Image.SetColorFilter(Color.ParseColor(Methods.FunString.RandomColor()),PorterDuff.Mode.Screen); 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -125,15 +130,11 @@ namespace WoWonder.Adapters
             {
                 var d = new List<string>();
                 var item = CategoriesList[p0];
-                if (item == null)
-                    return d;
-                else
+                return item switch
                 {
-                    //if (!string.IsNullOrEmpty(item.))
-                    //    d.Add(item.Avatar);
-
-                    return d;
-                }
+                    null => d,
+                    _ => d
+                };
             }
             catch (Exception e)
             {

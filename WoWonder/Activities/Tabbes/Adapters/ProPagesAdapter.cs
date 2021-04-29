@@ -72,20 +72,24 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-               
-                if (viewHolder is ProPagesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MProPagesList[position];
-                    if (item != null)
+                    case ProPagesAdapterViewHolder holder:
                     {
-                        //Dont Remove this code #####
+                        var item = MProPagesList[position];
+                        if (item != null)
+                        {
+                            //Dont Remove this code #####
                         
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosFlag);
+                            FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconPage, IonIconsFonts.IosFlag);
 
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                          
-                        string name = Methods.FunString.DecodeString(item.PageName);
-                        holder.Name.Text = name;
+                            string name = Methods.FunString.DecodeString(item.PageName);
+                            holder.Name.Text = name;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -101,9 +105,11 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is ProPagesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case ProPagesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -159,14 +165,21 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 var d = new List<string>();
                 var item = MProPagesList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

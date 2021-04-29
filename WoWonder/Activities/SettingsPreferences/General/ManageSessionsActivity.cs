@@ -228,16 +228,17 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.CloseItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.CloseItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.CloseItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.CloseItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -331,29 +332,35 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 var countList = MAdapter.SessionsList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.GetSessionsAsync();
-                if (apiStatus != 200 || (respond is not FetchSessionsObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not FetchSessionsObject result || result.Data == null)
                 {
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        foreach (var item in from item in result.Data let check = MAdapter.SessionsList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                        case > 0:
                         {
-                            if (item.Browser != null)
-                                MAdapter.SessionsList.Add(item);
-                        }
+                            foreach (var item in from item in result.Data let check = MAdapter.SessionsList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            {
+                                if (item.Browser != null)
+                                    MAdapter.SessionsList.Add(item);
+                            }
 
-                        if (countList > 0)
-                        { 
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.SessionsList.Count - countList); });
+                            switch (countList)
+                            {
+                                case > 0:
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.SessionsList.Count - countList); });
+                                    break;
+                                default:
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                            }
+
+                            break;
                         }
-                        else
-                        { 
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                        } 
                     }
                 }
 
@@ -364,10 +371,12 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -380,24 +389,29 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.SessionsList.Count > 0)
+                switch (MAdapter.SessionsList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoSessions);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoSessions);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)
@@ -430,9 +444,17 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 if (p1 == DialogAction.Positive)
                 {
-                    if (ItemSessionsDataObject == null) return;
+                    switch (ItemSessionsDataObject)
+                    {
+                        case null:
+                            return;
+                    }
                     var index = MAdapter.SessionsList.IndexOf(MAdapter.SessionsList.FirstOrDefault(a => a.Id == ItemSessionsDataObject.Id));
-                    if (index == -1) return;
+                    switch (index)
+                    {
+                        case -1:
+                            return;
+                    }
                     MAdapter.SessionsList.Remove(ItemSessionsDataObject);
                     MAdapter.NotifyItemRemoved(index);
 

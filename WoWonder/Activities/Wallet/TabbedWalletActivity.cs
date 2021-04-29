@@ -93,20 +93,40 @@ namespace WoWonder.Activities.Wallet
         {
             try
             {
-                if (AppSettings.ShowPaypal)
-                    AddFundsFragment?.InitPayPalPayment?.StopPayPalService();
+                switch (AppSettings.ShowPaypal)
+                {
+                    case true:
+                        AddFundsFragment?.InitPayPalPayment?.StopPayPalService();
+                        break;
+                }
 
-                if (AppSettings.ShowRazorPay)
-                    AddFundsFragment?.InitRazorPay?.StopRazorPay();
+                switch (AppSettings.ShowRazorPay)
+                {
+                    case true:
+                        AddFundsFragment?.InitRazorPay?.StopRazorPay();
+                        break;
+                }
 
-                if (AppSettings.ShowPayStack)
-                    AddFundsFragment?.PayStackPayment?.StopPayStack();
+                switch (AppSettings.ShowPayStack)
+                {
+                    case true:
+                        AddFundsFragment?.PayStackPayment?.StopPayStack();
+                        break;
+                }
                 
-                if (AppSettings.ShowCashFree)
-                    AddFundsFragment?.CashFreePayment?.StopCashFree();
+                switch (AppSettings.ShowCashFree)
+                {
+                    case true:
+                        AddFundsFragment?.CashFreePayment?.StopCashFree();
+                        break;
+                }
 
-                if (AppSettings.ShowPaySera)
-                    AddFundsFragment?.PaySeraPayment?.StopPaySera();
+                switch (AppSettings.ShowPaySera)
+                {
+                    case true:
+                        AddFundsFragment?.PaySeraPayment?.StopPaySera();
+                        break;
+                }
 
                 DestroyBasic();
                 base.OnDestroy();
@@ -233,10 +253,9 @@ namespace WoWonder.Activities.Wallet
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                if (TypeOpenPayment == "AddFundsFragment")
+                switch (TypeOpenPayment)
                 {
-                    if (requestCode == InitPayPalPayment.PayPalDataRequestCode)
-                    {
+                    case "AddFundsFragment" when requestCode == InitPayPalPayment.PayPalDataRequestCode:
                         switch (resultCode)
                         {
                             case Result.Ok:
@@ -252,23 +271,27 @@ namespace WoWonder.Activities.Wallet
                                     if (Methods.CheckConnectivity())
                                     {
                                         var (apiStatus, respond) = await RequestsAsync.Global.TopUpWalletAsync(UserDetails.UserId, AddFundsFragment?.TxtAmount.Text).ConfigureAwait(false);
-                                        if (apiStatus == 200)
+                                        switch (apiStatus)
                                         {
-                                            RunOnUiThread(() =>
-                                            {
-                                                try
+                                            case 200:
+                                                RunOnUiThread(() =>
                                                 {
-                                                    AddFundsFragment.TxtAmount.Text = string.Empty;
+                                                    try
+                                                    {
+                                                        AddFundsFragment.TxtAmount.Text = string.Empty;
 
-                                                    Toast.MakeText(this, GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
-                                                }
-                                                catch (Exception e)
-                                                {
-                                                    Methods.DisplayReportResultTrack(e);
-                                                }
-                                            });
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
+                                                    }
+                                                    catch (Exception e)
+                                                    {
+                                                        Methods.DisplayReportResultTrack(e);
+                                                    }
+                                                });
+                                                break;
+                                            default:
+                                                Methods.DisplayReportResult(this, respond);
+                                                break;
                                         }
-                                        else Methods.DisplayReportResult(this, respond);
                                     }
                                     else
                                     {
@@ -281,23 +304,46 @@ namespace WoWonder.Activities.Wallet
                                 Toast.MakeText(this, GetText(Resource.String.Lbl_Canceled), ToastLength.Long)?.Show();
                                 break;
                         }
-                    }
-                    else if (requestCode == PaymentActivity.ResultExtrasInvalid)
+
+                        break;
+                    case "AddFundsFragment":
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long)?.Show();
-                    }
-                }
-                else if (requestCode == 1202 && resultCode ==  Result.Ok)
-                {
-                    var userObject = data.GetStringExtra("DataUser");
-                    if (!string.IsNullOrEmpty(userObject))
-                    {
-                        var userData = JsonConvert.DeserializeObject<UserDataObject>(userObject);
-                        if (userData != null)
+                        switch (requestCode)
                         {
-                           SendMoneyFragment.TxtEmail.Text = WoWonderTools.GetNameFinal(userData);
-                           SendMoneyFragment.UserId = userData.UserId;
+                            case PaymentActivity.ResultExtrasInvalid:
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long)?.Show();
+                                break;
                         }
+
+                        break;
+                    }
+                    default:
+                    {
+                        switch (requestCode)
+                        {
+                            case 1202 when resultCode ==  Result.Ok:
+                            {
+                                var userObject = data.GetStringExtra("DataUser");
+                                switch (string.IsNullOrEmpty(userObject))
+                                {
+                                    case false:
+                                    {
+                                        var userData = JsonConvert.DeserializeObject<UserDataObject>(userObject);
+                                        if (userData != null)
+                                        {
+                                            SendMoneyFragment.TxtEmail.Text = WoWonderTools.GetNameFinal(userData);
+                                            SendMoneyFragment.UserId = userData.UserId;
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -340,9 +386,9 @@ namespace WoWonder.Activities.Wallet
             {
                 Console.WriteLine("razorpay : Payment Successful:" + razorpayPaymentId);
 
-                if (!string.IsNullOrEmpty(p1?.PaymentId))
+                switch (string.IsNullOrEmpty(p1?.PaymentId))
                 {
-                    if (Methods.CheckConnectivity())
+                    case false when Methods.CheckConnectivity():
                     {
                         var priceInt = Convert.ToInt32(AddFundsFragment?.Price) * 100;
                         var keyValues = new Dictionary<string, string>
@@ -351,27 +397,32 @@ namespace WoWonder.Activities.Wallet
                         };
 
                         var (apiStatus, respond) = await RequestsAsync.Global.RazorPay(p1.PaymentId, "wallet", keyValues).ConfigureAwait(false);
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            RunOnUiThread(() =>
-                            {
-                                try
+                            case 200:
+                                RunOnUiThread(() =>
                                 {
-                                    AddFundsFragment.TxtAmount.Text = string.Empty;
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e);
-                                }
-                            });
+                                    try
+                                    {
+                                        AddFundsFragment.TxtAmount.Text = string.Empty;
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                });
+                                break;
+                            default:
+                                Methods.DisplayReportResult(this, respond);
+                                break;
                         }
-                        else Methods.DisplayReportResult(this, respond);
+
+                        break;
                     }
-                    else
-                    {
+                    case false:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)

@@ -161,52 +161,66 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     switch (item.Type)
                     {
                         case Classes.ItemType.ProUser:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                                case TemplateRecyclerViewHolder holder:
                                 {
-                                    if (ProUsersAdapter == null)
+                                    switch (ProUsersAdapter)
                                     {
-                                        ProUsersAdapter = new ProUsersAdapter(ActivityContext)
+                                        case null:
                                         {
-                                            MProUsersList = new ObservableCollection<UserDataObject>()
-                                        };
-
-                                        LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
-                                        holder.MRecycler.SetLayoutManager(layoutManager);
-                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
-
-                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
-                                        var preLoader = new RecyclerViewPreloader<UserDataObject>(ActivityContext, ProUsersAdapter, sizeProvider, 10);
-                                        holder.MRecycler.AddOnScrollListener(preLoader);
-                                        holder.MRecycler.SetAdapter(ProUsersAdapter);
-                                        ProUsersAdapter.ItemClick += ProUsersAdapterOnItemClick;
-                                         
-                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Users);
-                                        holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                        holder.MoreText.Visibility = ViewStates.Invisible;
-
-                                        var isPro = ListUtils.MyProfileList?.FirstOrDefault()?.IsPro ?? "0";
-                                        if (isPro == "0" && ListUtils.SettingsSiteList?.Pro == "1" && AppSettings.ShowGoPro)
-                                        {
-                                            var dataOwner = ProUsersAdapter.MProUsersList.FirstOrDefault(a => a.Type == "Your");
-                                            if (dataOwner == null)
+                                            ProUsersAdapter = new ProUsersAdapter(ActivityContext)
                                             {
-                                                ProUsersAdapter.MProUsersList.Insert(0, new UserDataObject
-                                                {
-                                                    Avatar = UserDetails.Avatar,
-                                                    Type = "Your",
-                                                    Username = ActivityContext.GetText(Resource.String.Lbl_AddMe),
-                                                });
+                                                MProUsersList = new ObservableCollection<UserDataObject>()
+                                            };
 
-                                                ProUsersAdapter.NotifyDataSetChanged();
+                                            LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                            holder.MRecycler.SetLayoutManager(layoutManager);
+                                            holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+
+                                            var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                            var preLoader = new RecyclerViewPreloader<UserDataObject>(ActivityContext, ProUsersAdapter, sizeProvider, 10);
+                                            holder.MRecycler.AddOnScrollListener(preLoader);
+                                            holder.MRecycler.SetAdapter(ProUsersAdapter);
+                                            ProUsersAdapter.ItemClick += ProUsersAdapterOnItemClick;
+                                         
+                                            holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Users);
+                                            holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                            holder.MoreText.Visibility = ViewStates.Invisible;
+
+                                            var isPro = ListUtils.MyProfileList?.FirstOrDefault()?.IsPro ?? "0";
+                                            switch (isPro)
+                                            {
+                                                case "0" when ListUtils.SettingsSiteList?.Pro == "1" && AppSettings.ShowGoPro:
+                                                {
+                                                    var dataOwner = ProUsersAdapter.MProUsersList.FirstOrDefault(a => a.Type == "Your");
+                                                    switch (dataOwner)
+                                                    {
+                                                        case null:
+                                                            ProUsersAdapter.MProUsersList.Insert(0, new UserDataObject
+                                                            {
+                                                                Avatar = UserDetails.Avatar,
+                                                                Type = "Your",
+                                                                Username = ActivityContext.GetText(Resource.String.Lbl_AddMe),
+                                                            });
+
+                                                            ProUsersAdapter.NotifyDataSetChanged();
+                                                            break;
+                                                    }
+
+                                                    break;
+                                                }
                                             }
+
+                                            break;
                                         }
                                     }
 
                                     var countList = item.UserList.Count;
-                                    if (item.UserList.Count > 0)
+                                    switch (item.UserList.Count)
                                     {
-                                        if (countList > 0)
+                                        case > 0 when countList > 0:
                                         {
                                             foreach (var user in from user in item.UserList let check = ProUsersAdapter.MProUsersList.FirstOrDefault(a => a.UserId == user.UserId) where check == null select user)
                                             {
@@ -214,46 +228,56 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             }
 
                                             ProUsersAdapter.NotifyItemRangeInserted(countList, ProUsersAdapter.MProUsersList.Count - countList);
+                                            break;
                                         }
-                                        else
-                                        {
+                                        case > 0:
                                             ProUsersAdapter.MProUsersList = new ObservableCollection<UserDataObject>(item.UserList);
                                             ProUsersAdapter.NotifyDataSetChanged();
-                                        }
+                                            break;
                                     }
+
+                                    break;
                                 }
-                                break;
                             }
+
+                            break;
+                        }
                         case Classes.ItemType.ProPage:
-                            { 
-                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                        {
+                            switch (viewHolder)
+                            {
+                                case TemplateRecyclerViewHolder holder:
                                 {
-                                    if (ProPagesAdapter == null)
+                                    switch (ProPagesAdapter)
                                     {
-                                        ProPagesAdapter = new ProPagesAdapter(ActivityContext)
+                                        case null:
                                         {
-                                            MProPagesList = new ObservableCollection<PageClass>()
-                                        };
+                                            ProPagesAdapter = new ProPagesAdapter(ActivityContext)
+                                            {
+                                                MProPagesList = new ObservableCollection<PageClass>()
+                                            };
 
-                                        LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
-                                        holder.MRecycler.SetLayoutManager(layoutManager);
-                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                            LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                            holder.MRecycler.SetLayoutManager(layoutManager);
+                                            holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
 
-                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
-                                        var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, ProPagesAdapter, sizeProvider, 10);
-                                        holder.MRecycler.AddOnScrollListener(preLoader);
-                                        holder.MRecycler.SetAdapter(ProPagesAdapter);
-                                        ProPagesAdapter.ItemClick += ProPagesAdapterOnItemClick;
+                                            var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                            var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, ProPagesAdapter, sizeProvider, 10);
+                                            holder.MRecycler.AddOnScrollListener(preLoader);
+                                            holder.MRecycler.SetAdapter(ProPagesAdapter);
+                                            ProPagesAdapter.ItemClick += ProPagesAdapterOnItemClick;
                                          
-                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Pages);
-                                        holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                        holder.MoreText.Visibility = ViewStates.Invisible;
+                                            holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Pages);
+                                            holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                            holder.MoreText.Visibility = ViewStates.Invisible;
+                                            break;
+                                        }
                                     }
 
                                     var countList = item.PageList.Count;
-                                    if (item.PageList.Count > 0)
+                                    switch (item.PageList.Count)
                                     {
-                                        if (countList > 0)
+                                        case > 0 when countList > 0:
                                         {
                                             foreach (var page in from page in item.PageList let check = ProPagesAdapter.MProPagesList.FirstOrDefault(a => a.PageId == page.PageId) where check == null select page)
                                             {
@@ -261,56 +285,68 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             }
 
                                             ProPagesAdapter.NotifyItemRangeInserted(countList, ProPagesAdapter.MProPagesList.Count - countList);
+                                            break;
                                         }
-                                        else
-                                        {
+                                        case > 0:
                                             ProPagesAdapter.MProPagesList = new ObservableCollection<PageClass>(item.PageList);
                                             ProPagesAdapter.NotifyDataSetChanged();
-                                        }
+                                            break;
                                     }
+
+                                    break;
                                 }
-
-
-                                break;
                             }
+
+
+                            break;
+                        }
                         case Classes.ItemType.LastActivities:
-                            { 
-                                if (viewHolder is ActivitiesAdapterViewHolder holder)
-                                {
+                        {
+                            switch (viewHolder)
+                            {
+                                case ActivitiesAdapterViewHolder holder:
                                     InitializeLast(holder, item.LastActivities);
-                                } 
-                                break;
+                                    break;
                             }
+
+                            break;
+                        }
                         case Classes.ItemType.Shortcuts:
-                            { 
-                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                        {
+                            switch (viewHolder)
+                            {
+                                case TemplateRecyclerViewHolder holder:
                                 {
-                                    if (ShortcutsAdapter == null)
+                                    switch (ShortcutsAdapter)
                                     {
-                                        ShortcutsAdapter = new ShortcutsAdapter(ActivityContext)
+                                        case null:
                                         {
-                                            ShortcutsList = new ObservableCollection<Classes.ShortCuts>()
-                                        };
+                                            ShortcutsAdapter = new ShortcutsAdapter(ActivityContext)
+                                            {
+                                                ShortcutsList = new ObservableCollection<Classes.ShortCuts>()
+                                            };
 
-                                        LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
-                                        holder.MRecycler.SetLayoutManager(layoutManager);
-                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                            LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                            holder.MRecycler.SetLayoutManager(layoutManager);
+                                            holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
 
-                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
-                                        var preLoader = new RecyclerViewPreloader<Classes.ShortCuts>(ActivityContext, ShortcutsAdapter, sizeProvider, 10);
-                                        holder.MRecycler.AddOnScrollListener(preLoader);
-                                        holder.MRecycler.SetAdapter(ShortcutsAdapter);
-                                        ShortcutsAdapter.ItemClick += ShortcutsAdapterOnItemClick;
+                                            var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                            var preLoader = new RecyclerViewPreloader<Classes.ShortCuts>(ActivityContext, ShortcutsAdapter, sizeProvider, 10);
+                                            holder.MRecycler.AddOnScrollListener(preLoader);
+                                            holder.MRecycler.SetAdapter(ShortcutsAdapter);
+                                            ShortcutsAdapter.ItemClick += ShortcutsAdapterOnItemClick;
                                          
-                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_AllShortcuts);
-                                        holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                        holder.MoreText.Visibility = ViewStates.Invisible;
+                                            holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_AllShortcuts);
+                                            holder.TitleText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                            holder.MoreText.Visibility = ViewStates.Invisible;
+                                            break;
+                                        }
                                     }
 
                                     var countList = item.ShortcutsList.Count;
-                                    if (item.ShortcutsList.Count > 0)
+                                    switch (item.ShortcutsList.Count)
                                     {
-                                        if (countList > 0)
+                                        case > 0 when countList > 0:
                                         {
                                             foreach (var data in from data in item.ShortcutsList let check = ShortcutsAdapter.ShortcutsList.FirstOrDefault(a => a.Id == data.Id) where check == null select data)
                                             {
@@ -318,20 +354,25 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             }
 
                                             ShortcutsAdapter.NotifyItemRangeInserted(countList, ShortcutsAdapter.ShortcutsList.Count - countList);
+                                            break;
                                         }
-                                        else
-                                        {
+                                        case > 0:
                                             ShortcutsAdapter.ShortcutsList = new ObservableCollection<Classes.ShortCuts>(item.ShortcutsList);
                                             ShortcutsAdapter.NotifyDataSetChanged();
-                                        }
+                                            break;
                                     }
+
+                                    break;
                                 }
-                                 
-                                break;
                             }
+
+                            break;
+                        }
                         case Classes.ItemType.LastBlogs:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is TrendingAdapterViewHolder holder)
+                                case TrendingAdapterViewHolder holder:
                                 {
                                     GlideImageLoader.LoadImage(ActivityContext, item.LastBlogs.Thumbnail, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
@@ -343,76 +384,107 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
                                     holder.Username.Text = WoWonderTools.GetNameFinal(item.LastBlogs.Author);
 
-                                    if (item.LastBlogs.Author.Verified == "1") 
-                                        holder.Username.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                    switch (item.LastBlogs.Author.Verified)
+                                    {
+                                        case "1":
+                                            holder.Username.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                            break;
+                                    }
 
                                     holder.Time.Text = item.LastBlogs.Posted;
-                                     
+                                    break;
                                 }
-                                break;
                             }
-                        case Classes.ItemType.HashTag: 
+
+                            break;
+                        }
+                        case Classes.ItemType.HashTag:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is TrendingSearchAdapterViewHolder holder)
-                                {
+                                case TrendingSearchAdapterViewHolder holder:
                                     holder.Text.Text = "#" + item.HashTags.Tag;
                                     holder.CountPosts.Text = item.HashTags.TrendUseNum + " " + ActivityContext.GetText(Resource.String.Lbl_Post);
-                                }
-
-                                break;
+                                    break;
                             }
-                        case Classes.ItemType.FriendRequest: 
+
+                            break;
+                        }
+                        case Classes.ItemType.FriendRequest:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is FriendRequestViewHolder holder)
+                                case FriendRequestViewHolder holder:
                                 {
                                     holder.TxTFriendRequest.Text = ActivityContext.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_FollowRequest : Resource.String.Lbl_FriendRequest);
                                     holder.TxTFriendRequest.Text = ActivityContext.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_View_All_FollowRequest : Resource.String.Lbl_View_All_FriendRequest);
 
-                                    if (item.UserList.Count > 0)
+                                    switch (item.UserList.Count)
                                     {
-                                        holder.FriendRequestCount.Text = ListUtils.FriendRequestsList.Count.ToString();
-                                        holder.FriendRequestCount.Visibility = ViewStates.Visible;
+                                        case > 0:
+                                            holder.FriendRequestCount.Text = ListUtils.FriendRequestsList.Count.ToString();
+                                            holder.FriendRequestCount.Visibility = ViewStates.Visible;
+                                            break;
+                                        default:
+                                            holder.FriendRequestCount.Visibility = ViewStates.Gone;
+                                            break;
                                     }
-                                    else
-                                        holder.FriendRequestCount.Visibility = ViewStates.Gone;
 
                                     for (var i = 0; i < 4; i++)
                                         switch (i)
                                         {
                                             case 0:
-                                                if (item.UserList.Count > 0)
-                                                    GlideImageLoader.LoadImage(ActivityContext, item.UserList[i]?.Avatar, holder.FriendRequestImage3, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                switch (item.UserList.Count)
+                                                {
+                                                    case > 0:
+                                                        GlideImageLoader.LoadImage(ActivityContext, item.UserList[i]?.Avatar, holder.FriendRequestImage3, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                        break;
+                                                }
                                                 break;
                                             case 1:
-                                                if (item.UserList.Count > 1)
-                                                    GlideImageLoader.LoadImage(ActivityContext, item.UserList[i]?.Avatar, holder.FriendRequestImage2, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                switch (item.UserList.Count)
+                                                {
+                                                    case > 1:
+                                                        GlideImageLoader.LoadImage(ActivityContext, item.UserList[i]?.Avatar, holder.FriendRequestImage2, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                        break;
+                                                }
                                                 break;
                                             case 2:
-                                                if (item.UserList.Count > 2)
-                                                    GlideImageLoader.LoadImage(ActivityContext, item.UserList[i]?.Avatar, holder.FriendRequestImage1, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                switch (item.UserList.Count)
+                                                {
+                                                    case > 2:
+                                                        GlideImageLoader.LoadImage(ActivityContext, item.UserList[i]?.Avatar, holder.FriendRequestImage1, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                        break;
+                                                }
                                                 break;
-                                        } 
-                                }
+                                        }
 
-                                break;
+                                    break;
+                                }
                             }
-                        case Classes.ItemType.Weather: 
+
+                            break;
+                        }
+                        case Classes.ItemType.Weather:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is WeatherViewHolder holder)
+                                case WeatherViewHolder holder:
                                 {
-                                    if (!item.Weather.Current.Condition.Icon.Contains("http"))
-                                        item.Weather.Current.Condition.Icon = "http://" + item.Weather.Current.Condition.Icon;
+                                    item.Weather.Current.Condition.Icon =
+                                        item.Weather.Current.Condition.Icon.Contains("http") switch
+                                        {
+                                            false => "http://" + item.Weather.Current.Condition.Icon,
+                                            _ => item.Weather.Current.Condition.Icon
+                                        };
 
                                     Glide.With(ActivityContext).Load(item.Weather.Current.Condition.Icon).Apply(new RequestOptions()).Into(holder.Image);
-                                     
-                                    if (!string.IsNullOrEmpty(item.Weather.Location.Region))
+
+                                    holder.PlaceText.Text = string.IsNullOrEmpty(item.Weather.Location.Region) switch
                                     {
-                                        holder.PlaceText.Text = item.Weather.Location.Country + "/" + item.Weather.Location.Region;
-                                    }
-                                    else
-                                    {
-                                        holder.PlaceText.Text = item.Weather.Location.Country;
-                                    }
+                                        false => item.Weather.Location.Country + "/" + item.Weather.Location.Region,
+                                        _ => item.Weather.Location.Country
+                                    };
 
                                     holder.HeadText.Text = item.Weather.Current.Condition.Text;
                                     holder.SubText.Text = item.Weather.Current.TempC + "°";
@@ -424,27 +496,41 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                                       hourObject.Time.Contains("15:00") ||
                                                       hourObject.Time.Contains("19:00") ||
                                                       hourObject.Time.Contains("22:00")).ToList();
-                                  if (list?.Count > 0)
-                                  {
-                                        if (WeatherAdapter == null)
+                                    switch (list?.Count)
+                                    {
+                                        case > 0:
                                         {
-                                            WeatherAdapter = new WeatherAdapter(ActivityContext) {WeatherHourList = new ObservableCollection<HourObject>()};
-                                            LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
-                                            holder.MRecycler.SetLayoutManager(layoutManager);
-                                            holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true; 
-                                            holder.MRecycler.SetAdapter(WeatherAdapter); 
-                                        }
+                                            switch (WeatherAdapter)
+                                            {
+                                                case null:
+                                                {
+                                                    WeatherAdapter = new WeatherAdapter(ActivityContext) {WeatherHourList = new ObservableCollection<HourObject>()};
+                                                    LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                                    holder.MRecycler.SetLayoutManager(layoutManager);
+                                                    holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true; 
+                                                    holder.MRecycler.SetAdapter(WeatherAdapter);
+                                                    break;
+                                                }
+                                            }
 
-                                        WeatherAdapter.WeatherHourList = new ObservableCollection<HourObject>(list);
-                                        WeatherAdapter.NotifyDataSetChanged();
-                                    } 
-                                } 
-                                break;
+                                            WeatherAdapter.WeatherHourList = new ObservableCollection<HourObject>(list);
+                                            WeatherAdapter.NotifyDataSetChanged();
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
                             }
-                        case Classes.ItemType.ExchangeCurrency: 
+
+                            break;
+                        }
+                        case Classes.ItemType.ExchangeCurrency:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is ExchangeCurrencyViewHolder holder)
-                                { 
+                                case ExchangeCurrencyViewHolder holder:
+                                {
                                     if (item.ExchangeCurrency.Timestamp != null)
                                     { 
                                         holder.CurrencyTime.Text = ActivityContext.GetText(Resource.String.Lbl_UpdatedAt) + " : " + Methods.Time.TimeAgo(item.ExchangeCurrency.Timestamp.Value); 
@@ -477,26 +563,39 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             }
                                         }
                                     }
-                                } 
-                                break;
+
+                                    break;
+                                }
                             }
-                        case Classes.ItemType.Section: 
+
+                            break;
+                        }
+                        case Classes.ItemType.Section:
+                        {
+                            switch (viewHolder)
                             {
-                                if (viewHolder is SectionViewHolder holder)
+                                case SectionViewHolder holder:
                                 {
                                     holder.AboutHead.Text = item.Title;
                                     holder.AboutHead.SetTextColor(Color.ParseColor(AppSettings.MainColor));
 
-                                    if (item.SectionType == Classes.ItemType.LastActivities)
+                                    switch (item.SectionType)
                                     {
-                                        holder.AboutMore.Visibility = ViewStates.Visible;
-                                        holder.AboutMore.Text = ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                                        case Classes.ItemType.LastActivities:
+                                            holder.AboutMore.Visibility = ViewStates.Visible;
+                                            holder.AboutMore.Text = ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                                            break;
+                                        default:
+                                            holder.AboutMore.Visibility = ViewStates.Gone;
+                                            break;
                                     }
-                                    else
-                                        holder.AboutMore.Visibility = ViewStates.Gone;
-                                } 
-                                break;
+
+                                    break;
+                                }
                             }
+
+                            break;
+                        }
                         case Classes.ItemType.CoronaVirus:  
                         case Classes.ItemType.AdMob:  
                         case Classes.ItemType.EmptyPage: 
@@ -688,27 +787,32 @@ namespace WoWonder.Activities.Tabbes.Adapters
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = ShortcutsAdapter.GetItem(position);
-                    switch (item?.Type)
+                    case >= 0:
                     {
-                        case "Page":
+                        var item = ShortcutsAdapter.GetItem(position);
+                        switch (item?.Type)
                         {
-                            var intent = new Intent(ActivityContext, typeof(PageProfileActivity));
-                            intent.PutExtra("PageObject", JsonConvert.SerializeObject(item.PageClass));
-                            intent.PutExtra("PageId", item.PageClass.PageId);
-                            ActivityContext.StartActivity(intent);
-                            break;
+                            case "Page":
+                            {
+                                var intent = new Intent(ActivityContext, typeof(PageProfileActivity));
+                                intent.PutExtra("PageObject", JsonConvert.SerializeObject(item.PageClass));
+                                intent.PutExtra("PageId", item.PageClass.PageId);
+                                ActivityContext.StartActivity(intent);
+                                break;
+                            }
+                            case "Group":
+                            {
+                                var intent = new Intent(ActivityContext, typeof(GroupProfileActivity));
+                                intent.PutExtra("GroupObject", JsonConvert.SerializeObject(item.GroupClass));
+                                intent.PutExtra("GroupId", item.GroupClass.GroupId);
+                                ActivityContext.StartActivity(intent);
+                                break;
+                            }
                         }
-                        case "Group":
-                        {
-                            var intent = new Intent(ActivityContext, typeof(GroupProfileActivity));
-                            intent.PutExtra("GroupObject", JsonConvert.SerializeObject(item.GroupClass));
-                            intent.PutExtra("GroupId", item.GroupClass.GroupId);
-                            ActivityContext.StartActivity(intent);
-                            break;
-                        }
+
+                        break;
                     }
                 }
             }
@@ -723,15 +827,20 @@ namespace WoWonder.Activities.Tabbes.Adapters
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = ProPagesAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        var intent = new Intent(ActivityContext, typeof(PageProfileActivity));
-                        intent.PutExtra("PageObject", JsonConvert.SerializeObject(item));
-                        intent.PutExtra("PageId", item.PageId);
-                        ActivityContext.StartActivity(intent);
+                        var item = ProPagesAdapter.GetItem(position);
+                        if (item != null)
+                        {
+                            var intent = new Intent(ActivityContext, typeof(PageProfileActivity));
+                            intent.PutExtra("PageObject", JsonConvert.SerializeObject(item));
+                            intent.PutExtra("PageId", item.PageId);
+                            ActivityContext.StartActivity(intent);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -746,20 +855,28 @@ namespace WoWonder.Activities.Tabbes.Adapters
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = ProUsersAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        if (item.Type == "Your")
+                        var item = ProUsersAdapter.GetItem(position);
+                        if (item != null)
                         {
-                            var intent = new Intent(ActivityContext, typeof(GoProActivity));
-                            ActivityContext.StartActivity(intent);
+                            switch (item.Type)
+                            {
+                                case "Your":
+                                {
+                                    var intent = new Intent(ActivityContext, typeof(GoProActivity));
+                                    ActivityContext.StartActivity(intent);
+                                    break;
+                                }
+                                default:
+                                    WoWonderTools.OpenProfile(ActivityContext, item.UserId, item);
+                                    break;
+                            }
                         }
-                        else
-                        {
-                            WoWonderTools.OpenProfile(ActivityContext, item.UserId, item);
-                        }
+
+                        break;
                     }
                 }
             }
@@ -1092,7 +1209,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
                 TxTFriendRequest = (TextView)itemView.FindViewById(Resource.Id.tv_Friends_connection);
                 TxtAllFriendRequest = (TextView)itemView.FindViewById(Resource.Id.tv_Friends);
-                 
+
                 //Create an Event
                 itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
                 itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });

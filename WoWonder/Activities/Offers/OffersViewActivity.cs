@@ -64,9 +64,12 @@ namespace WoWonder.Activities.Offers
                 InitToolbar();
 
                 var dataObject = Intent?.GetStringExtra("OffersObject");
-                if (!string.IsNullOrEmpty(dataObject))
-                    DataInfoObject = JsonConvert.DeserializeObject<OffersDataObject>(dataObject);
-                 
+                DataInfoObject = string.IsNullOrEmpty(dataObject) switch
+                {
+                    false => JsonConvert.DeserializeObject<OffersDataObject>(dataObject),
+                    _ => DataInfoObject
+                };
+
                 BindOfferPost();
             }
             catch (Exception e)
@@ -187,8 +190,12 @@ namespace WoWonder.Activities.Offers
                     .LabelUnderLine(true)
                     .Build();
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -222,18 +229,19 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtMore.Click += TxtMoreOnClick;
-                    IconBack.Click += IconBackOnClick;
-                    Description.LongClick += DescriptionOnLongClick;
-                }
-                else
-                {
-                    TxtMore.Click -= TxtMoreOnClick;
-                    IconBack.Click -= IconBackOnClick;
-                    Description.LongClick -= DescriptionOnLongClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtMore.Click += TxtMoreOnClick;
+                        IconBack.Click += IconBackOnClick;
+                        Description.LongClick += DescriptionOnLongClick;
+                        break;
+                    default:
+                        TxtMore.Click -= TxtMoreOnClick;
+                        IconBack.Click -= IconBackOnClick;
+                        Description.LongClick -= DescriptionOnLongClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -357,9 +365,9 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                if (DialogType == "Delete")
+                switch (DialogType)
                 {
-                    if (p1 == DialogAction.Positive)
+                    case "Delete" when p1 == DialogAction.Positive:
                     {
                         // Send Api delete  
                         if (Methods.CheckConnectivity())
@@ -392,21 +400,30 @@ namespace WoWonder.Activities.Offers
                         {
                             Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
                         }
-                    }
-                    else if (p1 == DialogAction.Negative)
-                    {
-                        p0.Dismiss();
-                    }
-                }
-                else
-                {
-                    if (p1 == DialogAction.Positive)
-                    {
 
+                        break;
                     }
-                    else if (p1 == DialogAction.Negative)
+                    case "Delete":
                     {
-                        p0.Dismiss();
+                        if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        if (p1 == DialogAction.Positive)
+                        {
+
+                        }
+                        else if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -426,29 +443,34 @@ namespace WoWonder.Activities.Offers
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                  if (requestCode == 246 && resultCode == Result.Ok)
+                switch (requestCode)
                 {
-                    var offersItem = data.GetStringExtra("OffersItem") ?? "";
-                    if (string.IsNullOrEmpty(offersItem)) return;
-                    var dataObject = JsonConvert.DeserializeObject<OffersDataObject>(offersItem);
-                    if (dataObject != null)
+                    case 246 when resultCode == Result.Ok:
                     {
-                        DataInfoObject.DiscountType = dataObject.DiscountType;
-                        DataInfoObject.Currency = dataObject.Currency;
-                        DataInfoObject.ExpireDate = dataObject.ExpireDate;
-                        DataInfoObject.Time = dataObject.Time;
-                        DataInfoObject.Description = dataObject.Description;
-                        DataInfoObject.DiscountedItems = dataObject.DiscountedItems;
-                        DataInfoObject.Description = dataObject.Description;
-                        DataInfoObject.DiscountPercent = dataObject.DiscountPercent;
-                        DataInfoObject.DiscountAmount = dataObject.DiscountAmount;
-                        DataInfoObject.DiscountPercent = dataObject.DiscountPercent;
-                        DataInfoObject.Buy = dataObject.Buy;
-                        DataInfoObject.GetPrice = dataObject.GetPrice;
-                        DataInfoObject.Spend = dataObject.Spend;
-                        DataInfoObject.AmountOff = dataObject.AmountOff;
+                        var offersItem = data.GetStringExtra("OffersItem") ?? "";
+                        if (string.IsNullOrEmpty(offersItem)) return;
+                        var dataObject = JsonConvert.DeserializeObject<OffersDataObject>(offersItem);
+                        if (dataObject != null)
+                        {
+                            DataInfoObject.DiscountType = dataObject.DiscountType;
+                            DataInfoObject.Currency = dataObject.Currency;
+                            DataInfoObject.ExpireDate = dataObject.ExpireDate;
+                            DataInfoObject.Time = dataObject.Time;
+                            DataInfoObject.Description = dataObject.Description;
+                            DataInfoObject.DiscountedItems = dataObject.DiscountedItems;
+                            DataInfoObject.Description = dataObject.Description;
+                            DataInfoObject.DiscountPercent = dataObject.DiscountPercent;
+                            DataInfoObject.DiscountAmount = dataObject.DiscountAmount;
+                            DataInfoObject.DiscountPercent = dataObject.DiscountPercent;
+                            DataInfoObject.Buy = dataObject.Buy;
+                            DataInfoObject.GetPrice = dataObject.GetPrice;
+                            DataInfoObject.Spend = dataObject.Spend;
+                            DataInfoObject.AmountOff = dataObject.AmountOff;
 
-                        BindOfferPost();
+                            BindOfferPost();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -471,10 +493,11 @@ namespace WoWonder.Activities.Offers
                     GlideImageLoader.LoadImage(this, DataInfoObject.Page.Avatar, OfferAvatar, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
                     GlideImageLoader.LoadImage(this, DataInfoObject.Image, OfferCoverImage, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
 
-                    if (DataInfoObject.IsOwner)
+                    TxtMore.Visibility = DataInfoObject.IsOwner switch
                     {
-                        TxtMore.Visibility = ViewStates.Visible;
-                    }
+                        true => ViewStates.Visible,
+                        _ => TxtMore.Visibility
+                    };
 
                     if (DataInfoObject.Page != null)
                     {

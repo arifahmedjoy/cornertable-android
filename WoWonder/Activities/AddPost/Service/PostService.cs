@@ -113,49 +113,60 @@ namespace WoWonder.Activities.AddPost.Service
                 ActionPostService = intent.Action;
                 var data = intent.GetStringExtra("DataPost");
                 PagePost = intent.GetStringExtra("PagePost") ?? "";
-                if (!string.IsNullOrEmpty(data))
+                switch (string.IsNullOrEmpty(data))
                 {
-                    DataPost = JsonConvert.DeserializeObject<FileUpload>(data);
-                    if (ActionPostService == ActionPost)
+                    case false:
                     {
-                        if (DataPost != null)
+                        DataPost = JsonConvert.DeserializeObject<FileUpload>(data);
+                        if (ActionPostService == ActionPost)
                         {
-                            var attach = DataPost.AttachmentList.FirstOrDefault();
-                            if (AppSettings.EnableVideoCompress && attach?.TypeAttachment == "postVideo")
+                            if (DataPost != null)
                             {
-                                File destinationPath = new File(Methods.Path.FolderDcimVideo + "/Compressor");
+                                var attach = DataPost.AttachmentList.FirstOrDefault();
+                                switch (AppSettings.EnableVideoCompress)
+                                {
+                                    case true when attach?.TypeAttachment == "postVideo":
+                                    {
+                                        File destinationPath = new File(Methods.Path.FolderDcimVideo + "/Compressor");
 
-                                if (!Directory.Exists(destinationPath.Path))
-                                    Directory.CreateDirectory(destinationPath.Path);
+                                        if (!Directory.Exists(destinationPath.Path))
+                                            Directory.CreateDirectory(destinationPath.Path);
 
-                                new VideoCompressAsyncTask(this).Execute("false", attach.FileUrl, destinationPath.Path);
-                            } 
-                            else
-                            {
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { AddPost });
-                            } 
-                        }
-                    }
-                    else if (ActionPostService == ActionStory)
-                    { 
-                        if (DataPost != null)
-                        {
-                            if (AppSettings.EnableVideoCompress && DataPost.StoryFileType != "image")
-                            {
-                                File destinationPath = new File(Methods.Path.FolderDcimVideo + "/Compressor");
-
-                                if (!Directory.Exists(destinationPath.Path))
-                                    Directory.CreateDirectory(destinationPath.Path);
-
-                                Task.Factory.StartNew(() => new VideoCompressAsyncTask(this).Execute("false", DataPost.StoryFilePath, destinationPath.Path));
+                                        new VideoCompressAsyncTask(this).Execute("false", attach.FileUrl, destinationPath.Path);
+                                        break;
+                                    }
+                                    default:
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { AddPost });
+                                        break;
+                                }
                             }
-                            else
-                            {
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { AddStory });
-                            }
-
-                            UpdateNotification("Story"); 
                         }
+                        else if (ActionPostService == ActionStory)
+                        { 
+                            if (DataPost != null)
+                            {
+                                switch (AppSettings.EnableVideoCompress)
+                                {
+                                    case true when DataPost.StoryFileType != "image":
+                                    {
+                                        File destinationPath = new File(Methods.Path.FolderDcimVideo + "/Compressor");
+
+                                        if (!Directory.Exists(destinationPath.Path))
+                                            Directory.CreateDirectory(destinationPath.Path);
+
+                                        Task.Factory.StartNew(() => new VideoCompressAsyncTask(this).Execute("false", DataPost.StoryFilePath, destinationPath.Path));
+                                        break;
+                                    }
+                                    default:
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { AddStory });
+                                        break;
+                                }
+
+                                UpdateNotification("Story");
+                            }
+                        }
+
+                        break;
                     }
                 }
 
@@ -173,247 +184,265 @@ namespace WoWonder.Activities.AddPost.Service
             try
             {
                 var (apiStatus, respond) = await RequestsAsync.Posts.AddNewPostAsync(UserDetails.UserId , DataPost.IdPost, DataPost.PagePost, DataPost.Content, DataPost.PostPrivacy, DataPost.PostFeelingType, DataPost.PostFeelingText, DataPost.PlaceText, DataPost.AttachmentList, DataPost.AnswersList, DataPost.IdColor, DataPost.AlbumName);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is AddPostObject postObject)
+                    case 200:
                     {
-                        Toast.MakeText(Application.Context, Application.Context.GetText(Resource.String.Lbl_Post_Added), ToastLength.Short)?.Show();
-
-                        GlobalContextTabbed?.RunOnUiThread(() =>
+                        switch (respond)
                         {
-                            try
-                            {
-                                if (UserDetails.SoundControl)
-                                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("PopNotificationPost.mp3");
-                                 
-                                if (postObject.PostData != null)
+                            case AddPostObject postObject:
+                                Toast.MakeText(Application.Context, Application.Context.GetText(Resource.String.Lbl_Post_Added), ToastLength.Short)?.Show();
+
+                                GlobalContextTabbed?.RunOnUiThread(() =>
                                 {
-                                    switch (PagePost)
+                                    try
                                     {
-                                        case "Normal":
-                                        case "Normal_More":
-                                        case "Normal_Gallery":
+                                        switch (UserDetails.SoundControl)
+                                        {
+                                            case true:
+                                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("PopNotificationPost.mp3");
+                                                break;
+                                        }
+
+                                        if (postObject.PostData != null)
+                                        {
+                                            switch (PagePost)
                                             {
-                                                var countList = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
-
-                                                var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer, this);
-
-                                                var check = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
-                                                if (check != null)
-                                                    combine.CombineDefaultPostSections("Top");
-                                                else
-                                                    combine.CombineDefaultPostSections();
-
-                                                int countIndex = 1;
-                                                var model1 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                                var model2 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                                var model3 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                                var model4 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                                var model5 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                                                if (model5 != null)
-                                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                                                else if (model4 != null)
-                                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                                else if (model3 != null)
-                                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                                else if (model2 != null)
-                                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                                else if (model1 != null)
-                                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                                else
-                                                    countIndex = 0;
-
-                                                var emptyStateChecker = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                                if (emptyStateChecker != null && GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
-                                                    GlobalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
-
-                                                GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
-
-                                                if (DataPost.IdPost == UserDetails.UserId)
+                                                case "Normal":
+                                                case "Normal_More":
+                                                case "Normal_Gallery":
                                                 {
-                                                    MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
+                                                    var countList = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
 
-                                                    var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+                                                    var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer, this);
 
-                                                    var combine1 = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), myProfileActivity.PostFeedAdapter.ListDiffer, this);
-
-                                                    var check1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
-                                                    if (check1 != null)
-                                                        combine1.CombineDefaultPostSections("Top");
+                                                    var check = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                                    if (check != null)
+                                                        combine.CombineDefaultPostSections("Top");
                                                     else
-                                                        combine1.CombineDefaultPostSections();
+                                                        combine.CombineDefaultPostSections();
 
-                                                    int countIndex1 = 1;
-                                                    var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                                    var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                                    var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                                    var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                                    var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                                    int countIndex = 1;
+                                                    var model1 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                                    var model2 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                                    var model3 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                                    var model4 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                                    var model5 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
-                                                    if (model51 != null)
-                                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
-                                                    else if (model41 != null)
-                                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
-                                                    else if (model31 != null)
-                                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
-                                                    else if (model21 != null)
-                                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
-                                                    else if (model11 != null)
-                                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model11) + 1;
+                                                    if (model5 != null)
+                                                        countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                                    else if (model4 != null)
+                                                        countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                                    else if (model3 != null)
+                                                        countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                                    else if (model2 != null)
+                                                        countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                                    else if (model1 != null)
+                                                        countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
                                                     else
-                                                        countIndex1 = 0;
+                                                        countIndex = 0;
 
-                                                    var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                                    if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
-                                                        myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
+                                                    var emptyStateChecker = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                                    if (emptyStateChecker != null && GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
+                                                        GlobalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
 
-                                                    myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                                    GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
+
+                                                    if (DataPost.IdPost == UserDetails.UserId)
+                                                    {
+                                                        MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
+                                                        if (myProfileActivity == null)
+                                                            return;
+                                                        
+                                                        var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+
+                                                        var combine1 = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), myProfileActivity.PostFeedAdapter.ListDiffer, this);
+
+                                                        var check1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                                        if (check1 != null)
+                                                            combine1.CombineDefaultPostSections("Top");
+                                                        else
+                                                            combine1.CombineDefaultPostSections();
+
+                                                        int countIndex1 = 1;
+                                                        var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                                        var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                                        var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                                        var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                                        var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+
+                                                        if (model51 != null)
+                                                            countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
+                                                        else if (model41 != null)
+                                                            countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
+                                                        else if (model31 != null)
+                                                            countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
+                                                        else if (model21 != null)
+                                                            countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
+                                                        else if (model11 != null)
+                                                            countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model11) + 1;
+                                                        else
+                                                            countIndex1 = 0;
+
+                                                        var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                                        if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                                            myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
+
+                                                        myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                                    }
+                                                    break;
                                                 }
-                                                break;
+                                                case "SocialGroup":
+                                                case "SocialGroup_More":
+                                                case "SocialGroup_Gallery":
+                                                {
+                                                    GroupProfileActivity groupProfileActivity = GroupProfileActivity.GetInstance(); 
+                                                    if (groupProfileActivity == null)
+                                                        return;
+
+                                                    var countList = groupProfileActivity.PostFeedAdapter.ItemCount;
+
+                                                    var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), groupProfileActivity.PostFeedAdapter.ListDiffer, this);
+
+                                                    var check = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                                    if (check != null)
+                                                        combine.CombineDefaultPostSections("Top");
+                                                    else
+                                                        combine.CombineDefaultPostSections();
+
+                                                    int countIndex = 1;
+                                                    var model1 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                                    var model2 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                                    var model3 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                                    var model4 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                                    var model5 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+
+                                                    if (model5 != null)
+                                                        countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                                    else if (model4 != null)
+                                                        countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                                    else if (model3 != null)
+                                                        countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                                    else if (model2 != null)
+                                                        countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                                    else if (model1 != null)
+                                                        countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
+                                                    else
+                                                        countIndex = 0;
+
+                                                    var emptyStateChecker = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                                    if (emptyStateChecker != null && groupProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                                        groupProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
+
+                                                    groupProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex, groupProfileActivity.PostFeedAdapter.ListDiffer.Count - countList);
+                                                    break;
+                                                }
+                                                case "SocialPage":
+                                                case "SocialPage_More":
+                                                case "SocialPage_Gallery":
+                                                {
+                                                    PageProfileActivity pageProfileActivity = PageProfileActivity.GetInstance();
+                                                    if (pageProfileActivity == null)
+                                                        return;
+
+                                                    var countList = pageProfileActivity.PostFeedAdapter.ItemCount;
+
+                                                    var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), pageProfileActivity.PostFeedAdapter.ListDiffer, this);
+
+                                                    var check = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                                    if (check != null)
+                                                        combine.CombineDefaultPostSections("Top");
+                                                    else
+                                                        combine.CombineDefaultPostSections();
+
+                                                    int countIndex = 1;
+                                                    var model1 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                                    var model2 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                                    var model3 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                                    var model4 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                                    var model5 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+
+                                                    if (model5 != null)
+                                                        countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                                    else if (model4 != null)
+                                                        countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                                    else if (model3 != null)
+                                                        countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                                    else if (model2 != null)
+                                                        countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                                    else if (model1 != null)
+                                                        countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
+                                                    else
+                                                        countIndex = 0;
+
+                                                    var emptyStateChecker = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                                    if (emptyStateChecker != null && pageProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                                        pageProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
+
+                                                    pageProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex, pageProfileActivity.PostFeedAdapter.ListDiffer.Count - countList);
+                                                    break;
+                                                }
+                                                case "SocialEvent":
+                                                case "SocialEvent_More":
+                                                case "SocialEvent_Gallery":
+                                                {
+                                                    EventViewActivity eventViewActivity = EventViewActivity.GetInstance();
+                                                    if (eventViewActivity == null)
+                                                        return;
+
+                                                    var countList = eventViewActivity.PostFeedAdapter.ItemCount;
+
+                                                    var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), eventViewActivity.PostFeedAdapter.ListDiffer, this);
+
+                                                    var check = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                                    if (check != null)
+                                                        combine.CombineDefaultPostSections("Top");
+                                                    else
+                                                        combine.CombineDefaultPostSections();
+
+                                                    int countIndex = 1;
+                                                    var model1 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                                    var model2 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                                    var model3 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                                    var model4 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                                    var model5 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+
+                                                    if (model5 != null)
+                                                        countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                                    else if (model4 != null)
+                                                        countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                                    else if (model3 != null)
+                                                        countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                                    else if (model2 != null)
+                                                        countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                                    else if (model1 != null)
+                                                        countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
+                                                    else
+                                                        countIndex = 0;
+
+                                                    var emptyStateChecker = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                                    if (emptyStateChecker != null && eventViewActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                                        eventViewActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
+
+                                                    eventViewActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex, eventViewActivity.PostFeedAdapter.ListDiffer.Count - countList);
+                                                    break;
+                                                }
                                             }
-                                        case "SocialGroup":
-                                        case "SocialGroup_More":
-                                        case "SocialGroup_Gallery":
-                                            {
-                                                GroupProfileActivity groupProfileActivity = GroupProfileActivity.GetInstance();
-
-                                                var countList = groupProfileActivity.PostFeedAdapter.ItemCount;
-
-                                                var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), groupProfileActivity.PostFeedAdapter.ListDiffer, this);
-
-                                                var check = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
-                                                if (check != null)
-                                                    combine.CombineDefaultPostSections("Top");
-                                                else
-                                                    combine.CombineDefaultPostSections();
-
-                                                int countIndex = 1;
-                                                var model1 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                                var model2 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                                var model3 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                                var model4 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                                var model5 = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                                                if (model5 != null)
-                                                    countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                                                else if (model4 != null)
-                                                    countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                                else if (model3 != null)
-                                                    countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                                else if (model2 != null)
-                                                    countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                                else if (model1 != null)
-                                                    countIndex += groupProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                                else
-                                                    countIndex = 0;
-
-                                                var emptyStateChecker = groupProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                                if (emptyStateChecker != null && groupProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
-                                                    groupProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
-
-                                                groupProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex, groupProfileActivity.PostFeedAdapter.ListDiffer.Count - countList);
-                                                break;
-                                            }
-                                        case "SocialPage":
-                                        case "SocialPage_More":
-                                        case "SocialPage_Gallery":
-                                            {
-                                                PageProfileActivity pageProfileActivity = PageProfileActivity.GetInstance();
-
-                                                var countList = pageProfileActivity.PostFeedAdapter.ItemCount;
-
-                                                var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), pageProfileActivity.PostFeedAdapter.ListDiffer, this);
-
-                                                var check = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
-                                                if (check != null)
-                                                    combine.CombineDefaultPostSections("Top");
-                                                else
-                                                    combine.CombineDefaultPostSections();
-
-                                                int countIndex = 1;
-                                                var model1 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                                var model2 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                                var model3 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                                var model4 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                                var model5 = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                                                if (model5 != null)
-                                                    countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                                                else if (model4 != null)
-                                                    countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                                else if (model3 != null)
-                                                    countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                                else if (model2 != null)
-                                                    countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                                else if (model1 != null)
-                                                    countIndex += pageProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                                else
-                                                    countIndex = 0;
-
-                                                var emptyStateChecker = pageProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                                if (emptyStateChecker != null && pageProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
-                                                    pageProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
-
-                                                pageProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex, pageProfileActivity.PostFeedAdapter.ListDiffer.Count - countList);
-                                                break;
-                                            }
-                                        case "SocialEvent":
-                                        case "SocialEvent_More":
-                                        case "SocialEvent_Gallery":
-                                            {
-                                                EventViewActivity eventViewActivity = EventViewActivity.GetInstance();
-
-                                                var countList = eventViewActivity.PostFeedAdapter.ItemCount;
-
-                                                var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(postObject.PostData), eventViewActivity.PostFeedAdapter.ListDiffer, this);
-
-                                                var check = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
-                                                if (check != null)
-                                                    combine.CombineDefaultPostSections("Top");
-                                                else
-                                                    combine.CombineDefaultPostSections();
-
-                                                int countIndex = 1;
-                                                var model1 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                                var model2 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                                var model3 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                                var model4 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                                var model5 = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                                                if (model5 != null)
-                                                    countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                                                else if (model4 != null)
-                                                    countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                                else if (model3 != null)
-                                                    countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                                else if (model2 != null)
-                                                    countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                                else if (model1 != null)
-                                                    countIndex += eventViewActivity.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                                else
-                                                    countIndex = 0;
-
-                                                var emptyStateChecker = eventViewActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                                if (emptyStateChecker != null && eventViewActivity.PostFeedAdapter.ListDiffer.Count > 1)
-                                                    eventViewActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
-
-                                                eventViewActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex, eventViewActivity.PostFeedAdapter.ListDiffer.Count - countList);
-                                                break;
-                                            }
+                                        }
                                     }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        }); 
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                });
+                                break;
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    Methods.DisplayReportResult(GlobalContextPost, respond);
+                    default:
+                        Methods.DisplayReportResult(GlobalContextPost, respond);
+                        break;
                 }
                 RemoveNotification();
             }
@@ -442,377 +471,394 @@ namespace WoWonder.Activities.AddPost.Service
 
                     //just pass file_path and type video or image
                     var (apiStatus, respond) = await RequestsAsync.Story.Create_Story(DataPost.StoryTitle, DataPost.StoryDescription, DataPost.StoryFilePath, DataPost.StoryFileType, DataPost.StoryThumbnail);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateStoryObject result)
+                        case 200:
                         {
-                            Toast.MakeText(GlobalContextTabbed, GlobalContextTabbed.GetText(Resource.String.Lbl_Story_Added), ToastLength.Short)?.Show();
-
-                            var check = modelStory.StoryList?.FirstOrDefault(a => a.UserId == UserDetails.UserId);
-                            if (check != null)
+                            switch (respond)
                             {
-                                if (DataPost.StoryFileType == "image")
+                                case CreateStoryObject result:
                                 {
-                                    var item = new GetUserStoriesObject.StoryObject.Story
-                                    {
-                                        UserId = UserDetails.UserId,
-                                        Id = result.StoryId,
-                                        Description = DataPost.StoryDescription,
-                                        Title = DataPost.StoryTitle,
-                                        TimeText = time,
-                                        IsOwner = true,
-                                        Expire = "",
-                                        Posted = time2,
-                                        Thumbnail = DataPost.StoryFilePath,
-                                        UserData = userData,
-                                        Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                        Videos = new List<GetUserStoriesObject.StoryObject.Video>()
-                                    };
+                                    Toast.MakeText(GlobalContextTabbed, GlobalContextTabbed.GetText(Resource.String.Lbl_Story_Added), ToastLength.Short)?.Show();
 
-                                    if (check.DurationsList == null)
-                                        check.DurationsList = new List<long> { AppSettings.StoryDuration };
-                                    else
-                                        check.DurationsList.Add(AppSettings.StoryDuration);
-
-                                    check.Stories.Add(item);
-                                }
-                                else
-                                {
-                                    var item = new GetUserStoriesObject.StoryObject.Story
+                                    var check = modelStory.StoryList?.FirstOrDefault(a => a.UserId == UserDetails.UserId);
+                                    if (check != null)
                                     {
-                                        UserId = UserDetails.UserId,
-                                        Id = result.StoryId,
-                                        Description = DataPost.StoryDescription,
-                                        Title = DataPost.StoryTitle,
-                                        TimeText = time,
-                                        IsOwner = true,
-                                        Expire = "",
-                                        Posted = time2,
-                                        Thumbnail = DataPost.StoryThumbnail,
-                                        UserData = userData,
-                                        Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                        Videos = new List<GetUserStoriesObject.StoryObject.Video>
+                                        switch (DataPost.StoryFileType)
                                         {
-                                            new GetUserStoriesObject.StoryObject.Video
+                                            case "image":
                                             {
-                                                StoryId = result.StoryId,
-                                                Filename = DataPost.StoryFilePath,
-                                                Id = time2,
-                                                Expire = time2,
-                                                Type = "video",
+                                                var item = new GetUserStoriesObject.StoryObject.Story
+                                                {
+                                                    UserId = UserDetails.UserId,
+                                                    Id = result.StoryId,
+                                                    Description = DataPost.StoryDescription,
+                                                    Title = DataPost.StoryTitle,
+                                                    TimeText = time,
+                                                    IsOwner = true,
+                                                    Expire = "",
+                                                    Posted = time2,
+                                                    Thumbnail = DataPost.StoryFilePath,
+                                                    UserData = userData,
+                                                    Images = new List<GetUserStoriesObject.StoryObject.Image>(),
+                                                    Videos = new List<GetUserStoriesObject.StoryObject.Video>()
+                                                };
+
+                                                check.DurationsList ??= new List<long> { AppSettings.StoryDuration }; 
+                                                check.DurationsList.Add(AppSettings.StoryDuration);
+
+                                                check.Stories.Add(item);
+                                                            break;
+                                            }
+                                            default:
+                                            {
+                                                var item = new GetUserStoriesObject.StoryObject.Story
+                                                {
+                                                    UserId = UserDetails.UserId,
+                                                    Id = result.StoryId,
+                                                    Description = DataPost.StoryDescription,
+                                                    Title = DataPost.StoryTitle,
+                                                    TimeText = time,
+                                                    IsOwner = true,
+                                                    Expire = "",
+                                                    Posted = time2,
+                                                    Thumbnail = DataPost.StoryThumbnail,
+                                                    UserData = userData,
+                                                    Images = new List<GetUserStoriesObject.StoryObject.Image>(),
+                                                    Videos = new List<GetUserStoriesObject.StoryObject.Video>
+                                                    {
+                                                        new GetUserStoriesObject.StoryObject.Video
+                                                        {
+                                                            StoryId = result.StoryId,
+                                                            Filename = DataPost.StoryFilePath,
+                                                            Id = time2,
+                                                            Expire = time2,
+                                                            Type = "video",
+                                                        }
+                                                    }
+                                                };
+
+                                                var duration = WoWonderTools.GetDuration(DataPost.StoryFilePath);
+
+                                                check.DurationsList ??= new List<long> { Long.ParseLong(duration) };
+                                                check.DurationsList.Add(Long.ParseLong(duration)); 
+                                                         
+                                                check.Stories.Add(item);
+                                                break;
                                             }
                                         }
-                                    };
-
-                                    var duration = WoWonderTools.GetDuration(DataPost.StoryFilePath);
-
-                                    if (check.DurationsList == null)
-                                        check.DurationsList = new List<long> { Long.ParseLong(duration) };
+                                    }
                                     else
-                                        check.DurationsList.Add(Long.ParseLong(duration));
-
-                                    check.Stories.Add(item);
-                                }
-                            }
-                            else
-                            {
-                                if (DataPost.StoryFileType == "image")
-                                {
-                                    var item = new GetUserStoriesObject.StoryObject
                                     {
-                                        Type = "image",
-                                        Stories = new List<GetUserStoriesObject.StoryObject.Story>
+                                        switch (DataPost.StoryFileType)
                                         {
-                                            new GetUserStoriesObject.StoryObject.Story
+                                            case "image":
                                             {
-                                                UserId = UserDetails.UserId,
-                                                Id = result.StoryId,
-                                                Description = DataPost.StoryDescription,
-                                                Title = DataPost.StoryTitle,
-                                                TimeText = time,
-                                                IsOwner = true,
-                                                Expire = "",
-                                                Posted = time2,
-                                                Thumbnail = DataPost.StoryFilePath,
-                                                UserData = userData,
-                                                Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                                Videos = new List<GetUserStoriesObject.StoryObject.Video>(),
-                                            }
-
-                                        },
-                                        UserId = userData?.UserId,
-                                        Username = userData?.Username,
-                                        Email = userData?.Email,
-                                        FirstName = userData?.FirstName,
-                                        LastName = userData?.LastName,
-                                        Avatar = userData?.Avatar,
-                                        Cover = userData?.Cover,
-                                        BackgroundImage = userData?.BackgroundImage,
-                                        RelationshipId = userData?.RelationshipId,
-                                        Address = userData?.Address,
-                                        Working = userData?.Working,
-                                        Gender = userData?.Gender,
-                                        Facebook = userData?.Facebook,
-                                        Google = userData?.Google,
-                                        Twitter = userData?.Twitter,
-                                        Linkedin = userData?.Linkedin,
-                                        Website = userData?.Website,
-                                        Instagram = userData?.Instagram,
-                                        WebDeviceId = userData?.WebDeviceId,
-                                        Language = userData?.Language,
-                                        IpAddress = userData?.IpAddress,
-                                        PhoneNumber = userData?.PhoneNumber,
-                                        Timezone = userData?.Timezone,
-                                        Lat = userData?.Lat,
-                                        Lng = userData?.Lng,
-                                        About = userData?.About,
-                                        Birthday = userData?.Birthday,
-                                        Registered = userData?.Registered,
-                                        Lastseen = userData?.Lastseen,
-                                        LastLocationUpdate = userData?.LastLocationUpdate,
-                                        Balance = userData?.Balance,
-                                        Verified = userData?.Verified,
-                                        Status = userData?.Status,
-                                        Active = userData?.Active,
-                                        Admin = userData?.Admin,
-                                        IsPro = userData?.IsPro,
-                                        ProType = userData?.ProType,
-                                        School = userData?.School,
-                                        Name = userData?.Name,
-                                        AndroidMDeviceId = userData?.AndroidMDeviceId,
-                                        ECommented = userData?.ECommented,
-                                        AndroidNDeviceId = userData?.AndroidMDeviceId,
-                                        AvatarFull = userData?.AvatarFull,
-                                        BirthPrivacy = userData?.BirthPrivacy,
-                                        CanFollow = userData?.CanFollow,
-                                        ConfirmFollowers = userData?.ConfirmFollowers,
-                                        CountryId = userData?.CountryId,
-                                        EAccepted = userData?.EAccepted,
-                                        EFollowed = userData?.EFollowed,
-                                        EJoinedGroup = userData?.EJoinedGroup,
-                                        ELastNotif = userData?.ELastNotif,
-                                        ELiked = userData?.ELiked,
-                                        ELikedPage = userData?.ELikedPage,
-                                        EMentioned = userData?.EMentioned,
-                                        EProfileWallPost = userData?.EProfileWallPost,
-                                        ESentmeMsg = userData?.ESentmeMsg,
-                                        EShared = userData?.EShared,
-                                        EVisited = userData?.EVisited,
-                                        EWondered = userData?.EWondered,
-                                        EmailNotification = userData?.EmailNotification,
-                                        FollowPrivacy = userData?.FollowPrivacy,
-                                        FriendPrivacy = userData?.FriendPrivacy,
-                                        GenderText = userData?.GenderText,
-                                        InfoFile = userData?.InfoFile,
-                                        IosMDeviceId = userData?.IosMDeviceId,
-                                        IosNDeviceId = userData?.IosNDeviceId,
-                                        IsFollowing = userData?.IsFollowing,
-                                        IsFollowingMe = userData?.IsFollowingMe,
-                                        LastAvatarMod = userData?.LastAvatarMod,
-                                        LastCoverMod = userData?.LastCoverMod,
-                                        LastDataUpdate = userData?.LastDataUpdate,
-                                        LastFollowId = userData?.LastFollowId,
-                                        LastLoginData = userData?.LastLoginData,
-                                        LastseenStatus = userData?.LastseenStatus,
-                                        LastseenTimeText = userData?.LastseenTimeText,
-                                        LastseenUnixTime = userData?.LastseenUnixTime,
-                                        MessagePrivacy = userData?.MessagePrivacy,
-                                        NewEmail = userData?.NewEmail,
-                                        NewPhone = userData?.NewPhone,
-                                        NotificationSettings = userData?.NotificationSettings,
-                                        NotificationsSound = userData?.NotificationsSound,
-                                        OrderPostsBy = userData?.OrderPostsBy,
-                                        PaypalEmail = userData?.PaypalEmail,
-                                        PostPrivacy = userData?.PostPrivacy,
-                                        Referrer = userData?.Referrer,
-                                        ShareMyData = userData?.ShareMyData,
-                                        ShareMyLocation = userData?.ShareMyLocation,
-                                        ShowActivitiesPrivacy = userData?.ShowActivitiesPrivacy,
-                                        TwoFactor = userData?.TwoFactor,
-                                        TwoFactorVerified = userData?.TwoFactorVerified,
-                                        Url = userData?.Url,
-                                        VisitPrivacy = userData?.VisitPrivacy,
-                                        Vk = userData?.Vk,
-                                        Wallet = userData?.Wallet,
-                                        WorkingLink = userData?.WorkingLink,
-                                        Youtube = userData?.Youtube,
-                                        City = userData?.City,
-                                        Points = userData?.Points,
-                                        DailyPoints = userData?.DailyPoints,
-                                        PointDayExpire = userData?.PointDayExpire,
-                                        State = userData?.State,
-                                        Zip = userData?.Zip,
-                                        Details = new DetailsUnion
-                                        {
-                                            DetailsClass = new Details(),
-                                        },
-                                    };
-
-                                    if (item.DurationsList == null)
-                                        item.DurationsList = new List<long> { AppSettings.StoryDuration };
-                                    else
-                                        item.DurationsList.Add(AppSettings.StoryDuration);
-
-                                    modelStory.StoryList?.Add(item);
-                                }
-                                else
-                                {
-                                    var item = new GetUserStoriesObject.StoryObject
-                                    {
-                                        Type = "video",
-                                        Stories = new List<GetUserStoriesObject.StoryObject.Story>
-                                        {
-                                            new GetUserStoriesObject.StoryObject.Story
-                                            {
-                                                UserId = UserDetails.UserId,
-                                                Id = result.StoryId,
-                                                Description = DataPost.StoryDescription,
-                                                Title = DataPost.StoryTitle,
-                                                TimeText = time,
-                                                IsOwner = true,
-                                                Expire = "",
-                                                Posted = time2,
-                                                Thumbnail = DataPost.StoryThumbnail,
-                                                UserData = userData,
-                                                Images = new List<GetUserStoriesObject.StoryObject.Image>(),
-                                                Videos = new List<GetUserStoriesObject.StoryObject.Video>
+                                                var item = new GetUserStoriesObject.StoryObject
                                                 {
-                                                    new GetUserStoriesObject.StoryObject.Video
+                                                    Type = "image",
+                                                    Stories = new List<GetUserStoriesObject.StoryObject.Story>
                                                     {
-                                                        StoryId = result.StoryId,
-                                                        Filename = DataPost.StoryFilePath,
-                                                        Id = time2,
-                                                        Expire = time2,
-                                                        Type = "video",
-                                                    }
-                                                }
-                                            },
-                                        },
-                                        UserId = userData?.UserId,
-                                        Username = userData?.Username,
-                                        Email = userData?.Email,
-                                        FirstName = userData?.FirstName,
-                                        LastName = userData?.LastName,
-                                        Avatar = userData?.Avatar,
-                                        Cover = userData?.Cover,
-                                        BackgroundImage = userData?.BackgroundImage,
-                                        RelationshipId = userData?.RelationshipId,
-                                        Address = userData?.Address,
-                                        Working = userData?.Working,
-                                        Gender = userData?.Gender,
-                                        Facebook = userData?.Facebook,
-                                        Google = userData?.Google,
-                                        Twitter = userData?.Twitter,
-                                        Linkedin = userData?.Linkedin,
-                                        Website = userData?.Website,
-                                        Instagram = userData?.Instagram,
-                                        WebDeviceId = userData?.WebDeviceId,
-                                        Language = userData?.Language,
-                                        IpAddress = userData?.IpAddress,
-                                        PhoneNumber = userData?.PhoneNumber,
-                                        Timezone = userData?.Timezone,
-                                        Lat = userData?.Lat,
-                                        Lng = userData?.Lng,
-                                        About = userData?.About,
-                                        Birthday = userData?.Birthday,
-                                        Registered = userData?.Registered,
-                                        Lastseen = userData?.Lastseen,
-                                        LastLocationUpdate = userData?.LastLocationUpdate,
-                                        Balance = userData?.Balance,
-                                        Verified = userData?.Verified,
-                                        Status = userData?.Status,
-                                        Active = userData?.Active,
-                                        Admin = userData?.Admin,
-                                        IsPro = userData?.IsPro,
-                                        ProType = userData?.ProType,
-                                        School = userData?.School,
-                                        Name = userData?.Name,
-                                        AndroidMDeviceId = userData?.AndroidMDeviceId,
-                                        ECommented = userData?.ECommented,
-                                        AndroidNDeviceId = userData?.AndroidMDeviceId,
-                                        AvatarFull = userData?.AvatarFull,
-                                        BirthPrivacy = userData?.BirthPrivacy,
-                                        CanFollow = userData?.CanFollow,
-                                        ConfirmFollowers = userData?.ConfirmFollowers,
-                                        CountryId = userData?.CountryId,
-                                        EAccepted = userData?.EAccepted,
-                                        EFollowed = userData?.EFollowed,
-                                        EJoinedGroup = userData?.EJoinedGroup,
-                                        ELastNotif = userData?.ELastNotif,
-                                        ELiked = userData?.ELiked,
-                                        ELikedPage = userData?.ELikedPage,
-                                        EMentioned = userData?.EMentioned,
-                                        EProfileWallPost = userData?.EProfileWallPost,
-                                        ESentmeMsg = userData?.ESentmeMsg,
-                                        EShared = userData?.EShared,
-                                        EVisited = userData?.EVisited,
-                                        EWondered = userData?.EWondered,
-                                        EmailNotification = userData?.EmailNotification,
-                                        FollowPrivacy = userData?.FollowPrivacy,
-                                        FriendPrivacy = userData?.FriendPrivacy,
-                                        GenderText = userData?.GenderText,
-                                        InfoFile = userData?.InfoFile,
-                                        IosMDeviceId = userData?.IosMDeviceId,
-                                        IosNDeviceId = userData?.IosNDeviceId,
-                                        IsFollowing = userData?.IsFollowing,
-                                        IsFollowingMe = userData?.IsFollowingMe,
-                                        LastAvatarMod = userData?.LastAvatarMod,
-                                        LastCoverMod = userData?.LastCoverMod,
-                                        LastDataUpdate = userData?.LastDataUpdate,
-                                        LastFollowId = userData?.LastFollowId,
-                                        LastLoginData = userData?.LastLoginData,
-                                        LastseenStatus = userData?.LastseenStatus,
-                                        LastseenTimeText = userData?.LastseenTimeText,
-                                        LastseenUnixTime = userData?.LastseenUnixTime,
-                                        MessagePrivacy = userData?.MessagePrivacy,
-                                        NewEmail = userData?.NewEmail,
-                                        NewPhone = userData?.NewPhone,
-                                        NotificationSettings = userData?.NotificationSettings,
-                                        NotificationsSound = userData?.NotificationsSound,
-                                        OrderPostsBy = userData?.OrderPostsBy,
-                                        PaypalEmail = userData?.PaypalEmail,
-                                        PostPrivacy = userData?.PostPrivacy,
-                                        Referrer = userData?.Referrer,
-                                        ShareMyData = userData?.ShareMyData,
-                                        ShareMyLocation = userData?.ShareMyLocation,
-                                        ShowActivitiesPrivacy = userData?.ShowActivitiesPrivacy,
-                                        TwoFactor = userData?.TwoFactor,
-                                        TwoFactorVerified = userData?.TwoFactorVerified,
-                                        Url = userData?.Url,
-                                        VisitPrivacy = userData?.VisitPrivacy,
-                                        Vk = userData?.Vk,
-                                        Wallet = userData?.Wallet,
-                                        WorkingLink = userData?.WorkingLink,
-                                        Youtube = userData?.Youtube,
-                                        City = userData?.City,
-                                        Points = userData?.Points,
-                                        DailyPoints = userData?.DailyPoints,
-                                        State = userData?.State,
-                                        Zip = userData?.Zip,
-                                        Details = new DetailsUnion
-                                        {
-                                            DetailsClass = new Details(),
-                                        },
-                                    };
+                                                        new GetUserStoriesObject.StoryObject.Story
+                                                        {
+                                                            UserId = UserDetails.UserId,
+                                                            Id = result.StoryId,
+                                                            Description = DataPost.StoryDescription,
+                                                            Title = DataPost.StoryTitle,
+                                                            TimeText = time,
+                                                            IsOwner = true,
+                                                            Expire = "",
+                                                            Posted = time2,
+                                                            Thumbnail = DataPost.StoryFilePath,
+                                                            UserData = userData,
+                                                            Images = new List<GetUserStoriesObject.StoryObject.Image>(),
+                                                            Videos = new List<GetUserStoriesObject.StoryObject.Video>(),
+                                                        }
 
-                                    var duration = WoWonderTools.GetDuration(DataPost.StoryFilePath);
+                                                    },
+                                                    UserId = userData?.UserId,
+                                                    Username = userData?.Username,
+                                                    Email = userData?.Email,
+                                                    FirstName = userData?.FirstName,
+                                                    LastName = userData?.LastName,
+                                                    Avatar = userData?.Avatar,
+                                                    Cover = userData?.Cover,
+                                                    BackgroundImage = userData?.BackgroundImage,
+                                                    RelationshipId = userData?.RelationshipId,
+                                                    Address = userData?.Address,
+                                                    Working = userData?.Working,
+                                                    Gender = userData?.Gender,
+                                                    Facebook = userData?.Facebook,
+                                                    Google = userData?.Google,
+                                                    Twitter = userData?.Twitter,
+                                                    Linkedin = userData?.Linkedin,
+                                                    Website = userData?.Website,
+                                                    Instagram = userData?.Instagram,
+                                                    WebDeviceId = userData?.WebDeviceId,
+                                                    Language = userData?.Language,
+                                                    IpAddress = userData?.IpAddress,
+                                                    PhoneNumber = userData?.PhoneNumber,
+                                                    Timezone = userData?.Timezone,
+                                                    Lat = userData?.Lat,
+                                                    Lng = userData?.Lng,
+                                                    About = userData?.About,
+                                                    Birthday = userData?.Birthday,
+                                                    Registered = userData?.Registered,
+                                                    Lastseen = userData?.Lastseen,
+                                                    LastLocationUpdate = userData?.LastLocationUpdate,
+                                                    Balance = userData?.Balance,
+                                                    Verified = userData?.Verified,
+                                                    Status = userData?.Status,
+                                                    Active = userData?.Active,
+                                                    Admin = userData?.Admin,
+                                                    IsPro = userData?.IsPro,
+                                                    ProType = userData?.ProType,
+                                                    School = userData?.School,
+                                                    Name = userData?.Name,
+                                                    AndroidMDeviceId = userData?.AndroidMDeviceId,
+                                                    ECommented = userData?.ECommented,
+                                                    AndroidNDeviceId = userData?.AndroidMDeviceId,
+                                                    AvatarFull = userData?.AvatarFull,
+                                                    BirthPrivacy = userData?.BirthPrivacy,
+                                                    CanFollow = userData?.CanFollow,
+                                                    ConfirmFollowers = userData?.ConfirmFollowers,
+                                                    CountryId = userData?.CountryId,
+                                                    EAccepted = userData?.EAccepted,
+                                                    EFollowed = userData?.EFollowed,
+                                                    EJoinedGroup = userData?.EJoinedGroup,
+                                                    ELastNotif = userData?.ELastNotif,
+                                                    ELiked = userData?.ELiked,
+                                                    ELikedPage = userData?.ELikedPage,
+                                                    EMentioned = userData?.EMentioned,
+                                                    EProfileWallPost = userData?.EProfileWallPost,
+                                                    ESentmeMsg = userData?.ESentmeMsg,
+                                                    EShared = userData?.EShared,
+                                                    EVisited = userData?.EVisited,
+                                                    EWondered = userData?.EWondered,
+                                                    EmailNotification = userData?.EmailNotification,
+                                                    FollowPrivacy = userData?.FollowPrivacy,
+                                                    FriendPrivacy = userData?.FriendPrivacy,
+                                                    GenderText = userData?.GenderText,
+                                                    InfoFile = userData?.InfoFile,
+                                                    IosMDeviceId = userData?.IosMDeviceId,
+                                                    IosNDeviceId = userData?.IosNDeviceId,
+                                                    IsFollowing = userData?.IsFollowing,
+                                                    IsFollowingMe = userData?.IsFollowingMe,
+                                                    LastAvatarMod = userData?.LastAvatarMod,
+                                                    LastCoverMod = userData?.LastCoverMod,
+                                                    LastDataUpdate = userData?.LastDataUpdate,
+                                                    LastFollowId = userData?.LastFollowId,
+                                                    LastLoginData = userData?.LastLoginData,
+                                                    LastseenStatus = userData?.LastseenStatus,
+                                                    LastseenTimeText = userData?.LastseenTimeText,
+                                                    LastseenUnixTime = userData?.LastseenUnixTime,
+                                                    MessagePrivacy = userData?.MessagePrivacy,
+                                                    NewEmail = userData?.NewEmail,
+                                                    NewPhone = userData?.NewPhone,
+                                                    NotificationSettings = userData?.NotificationSettings,
+                                                    NotificationsSound = userData?.NotificationsSound,
+                                                    OrderPostsBy = userData?.OrderPostsBy,
+                                                    PaypalEmail = userData?.PaypalEmail,
+                                                    PostPrivacy = userData?.PostPrivacy,
+                                                    Referrer = userData?.Referrer,
+                                                    ShareMyData = userData?.ShareMyData,
+                                                    ShareMyLocation = userData?.ShareMyLocation,
+                                                    ShowActivitiesPrivacy = userData?.ShowActivitiesPrivacy,
+                                                    TwoFactor = userData?.TwoFactor,
+                                                    TwoFactorVerified = userData?.TwoFactorVerified,
+                                                    Url = userData?.Url,
+                                                    VisitPrivacy = userData?.VisitPrivacy,
+                                                    Vk = userData?.Vk,
+                                                    Wallet = userData?.Wallet,
+                                                    WorkingLink = userData?.WorkingLink,
+                                                    Youtube = userData?.Youtube,
+                                                    City = userData?.City,
+                                                    Points = userData?.Points,
+                                                    DailyPoints = userData?.DailyPoints,
+                                                    PointDayExpire = userData?.PointDayExpire,
+                                                    State = userData?.State,
+                                                    Zip = userData?.Zip,
+                                                    Details = new DetailsUnion
+                                                    {
+                                                        DetailsClass = new Details(),
+                                                    },
+                                                };
 
-                                    if (item.DurationsList == null)
-                                        item.DurationsList = new List<long> { Long.ParseLong(duration) };
-                                    else
-                                        item.DurationsList.Add(Long.ParseLong(duration));
+                                                item.DurationsList ??= new List<long> { AppSettings.StoryDuration };
+                                                item.DurationsList.Add(AppSettings.StoryDuration);
 
-                                    modelStory.StoryList?.Add(item);
+                                                modelStory.StoryList?.Add(item);
+                                                break;
+                                            }
+                                            default:
+                                            {
+                                                var item = new GetUserStoriesObject.StoryObject
+                                                {
+                                                    Type = "video",
+                                                    Stories = new List<GetUserStoriesObject.StoryObject.Story>
+                                                    {
+                                                        new GetUserStoriesObject.StoryObject.Story
+                                                        {
+                                                            UserId = UserDetails.UserId,
+                                                            Id = result.StoryId,
+                                                            Description = DataPost.StoryDescription,
+                                                            Title = DataPost.StoryTitle,
+                                                            TimeText = time,
+                                                            IsOwner = true,
+                                                            Expire = "",
+                                                            Posted = time2,
+                                                            Thumbnail = DataPost.StoryThumbnail,
+                                                            UserData = userData,
+                                                            Images = new List<GetUserStoriesObject.StoryObject.Image>(),
+                                                            Videos = new List<GetUserStoriesObject.StoryObject.Video>
+                                                            {
+                                                                new GetUserStoriesObject.StoryObject.Video
+                                                                {
+                                                                    StoryId = result.StoryId,
+                                                                    Filename = DataPost.StoryFilePath,
+                                                                    Id = time2,
+                                                                    Expire = time2,
+                                                                    Type = "video",
+                                                                }
+                                                            }
+                                                        },
+                                                    },
+                                                    UserId = userData?.UserId,
+                                                    Username = userData?.Username,
+                                                    Email = userData?.Email,
+                                                    FirstName = userData?.FirstName,
+                                                    LastName = userData?.LastName,
+                                                    Avatar = userData?.Avatar,
+                                                    Cover = userData?.Cover,
+                                                    BackgroundImage = userData?.BackgroundImage,
+                                                    RelationshipId = userData?.RelationshipId,
+                                                    Address = userData?.Address,
+                                                    Working = userData?.Working,
+                                                    Gender = userData?.Gender,
+                                                    Facebook = userData?.Facebook,
+                                                    Google = userData?.Google,
+                                                    Twitter = userData?.Twitter,
+                                                    Linkedin = userData?.Linkedin,
+                                                    Website = userData?.Website,
+                                                    Instagram = userData?.Instagram,
+                                                    WebDeviceId = userData?.WebDeviceId,
+                                                    Language = userData?.Language,
+                                                    IpAddress = userData?.IpAddress,
+                                                    PhoneNumber = userData?.PhoneNumber,
+                                                    Timezone = userData?.Timezone,
+                                                    Lat = userData?.Lat,
+                                                    Lng = userData?.Lng,
+                                                    About = userData?.About,
+                                                    Birthday = userData?.Birthday,
+                                                    Registered = userData?.Registered,
+                                                    Lastseen = userData?.Lastseen,
+                                                    LastLocationUpdate = userData?.LastLocationUpdate,
+                                                    Balance = userData?.Balance,
+                                                    Verified = userData?.Verified,
+                                                    Status = userData?.Status,
+                                                    Active = userData?.Active,
+                                                    Admin = userData?.Admin,
+                                                    IsPro = userData?.IsPro,
+                                                    ProType = userData?.ProType,
+                                                    School = userData?.School,
+                                                    Name = userData?.Name,
+                                                    AndroidMDeviceId = userData?.AndroidMDeviceId,
+                                                    ECommented = userData?.ECommented,
+                                                    AndroidNDeviceId = userData?.AndroidMDeviceId,
+                                                    AvatarFull = userData?.AvatarFull,
+                                                    BirthPrivacy = userData?.BirthPrivacy,
+                                                    CanFollow = userData?.CanFollow,
+                                                    ConfirmFollowers = userData?.ConfirmFollowers,
+                                                    CountryId = userData?.CountryId,
+                                                    EAccepted = userData?.EAccepted,
+                                                    EFollowed = userData?.EFollowed,
+                                                    EJoinedGroup = userData?.EJoinedGroup,
+                                                    ELastNotif = userData?.ELastNotif,
+                                                    ELiked = userData?.ELiked,
+                                                    ELikedPage = userData?.ELikedPage,
+                                                    EMentioned = userData?.EMentioned,
+                                                    EProfileWallPost = userData?.EProfileWallPost,
+                                                    ESentmeMsg = userData?.ESentmeMsg,
+                                                    EShared = userData?.EShared,
+                                                    EVisited = userData?.EVisited,
+                                                    EWondered = userData?.EWondered,
+                                                    EmailNotification = userData?.EmailNotification,
+                                                    FollowPrivacy = userData?.FollowPrivacy,
+                                                    FriendPrivacy = userData?.FriendPrivacy,
+                                                    GenderText = userData?.GenderText,
+                                                    InfoFile = userData?.InfoFile,
+                                                    IosMDeviceId = userData?.IosMDeviceId,
+                                                    IosNDeviceId = userData?.IosNDeviceId,
+                                                    IsFollowing = userData?.IsFollowing,
+                                                    IsFollowingMe = userData?.IsFollowingMe,
+                                                    LastAvatarMod = userData?.LastAvatarMod,
+                                                    LastCoverMod = userData?.LastCoverMod,
+                                                    LastDataUpdate = userData?.LastDataUpdate,
+                                                    LastFollowId = userData?.LastFollowId,
+                                                    LastLoginData = userData?.LastLoginData,
+                                                    LastseenStatus = userData?.LastseenStatus,
+                                                    LastseenTimeText = userData?.LastseenTimeText,
+                                                    LastseenUnixTime = userData?.LastseenUnixTime,
+                                                    MessagePrivacy = userData?.MessagePrivacy,
+                                                    NewEmail = userData?.NewEmail,
+                                                    NewPhone = userData?.NewPhone,
+                                                    NotificationSettings = userData?.NotificationSettings,
+                                                    NotificationsSound = userData?.NotificationsSound,
+                                                    OrderPostsBy = userData?.OrderPostsBy,
+                                                    PaypalEmail = userData?.PaypalEmail,
+                                                    PostPrivacy = userData?.PostPrivacy,
+                                                    Referrer = userData?.Referrer,
+                                                    ShareMyData = userData?.ShareMyData,
+                                                    ShareMyLocation = userData?.ShareMyLocation,
+                                                    ShowActivitiesPrivacy = userData?.ShowActivitiesPrivacy,
+                                                    TwoFactor = userData?.TwoFactor,
+                                                    TwoFactorVerified = userData?.TwoFactorVerified,
+                                                    Url = userData?.Url,
+                                                    VisitPrivacy = userData?.VisitPrivacy,
+                                                    Vk = userData?.Vk,
+                                                    Wallet = userData?.Wallet,
+                                                    WorkingLink = userData?.WorkingLink,
+                                                    Youtube = userData?.Youtube,
+                                                    City = userData?.City,
+                                                    Points = userData?.Points,
+                                                    DailyPoints = userData?.DailyPoints,
+                                                    State = userData?.State,
+                                                    Zip = userData?.Zip,
+                                                    Details = new DetailsUnion
+                                                    {
+                                                        DetailsClass = new Details(),
+                                                    },
+                                                };
+
+                                                var duration = WoWonderTools.GetDuration(DataPost.StoryFilePath);
+
+                                                item.DurationsList ??= new List<long> { Long.ParseLong(duration) };
+                                                item.DurationsList.Add(Long.ParseLong(duration));
+
+                                                modelStory.StoryList?.Add(item);
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    modelStory.NotifyDataSetChanged();
+
+                                    switch (UserDetails.SoundControl)
+                                    {
+                                        case true:
+                                            Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("PopNotificationPost.mp3");
+                                            break;
+                                    }
+                                    break;
                                 }
                             }
 
-                            modelStory.NotifyDataSetChanged();
-
-                            if (UserDetails.SoundControl)
-                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("PopNotificationPost.mp3");
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(GlobalContextTabbed, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(GlobalContextTabbed, respond);
                 }
 
                 RemoveNotification();
@@ -853,15 +899,19 @@ namespace WoWonder.Activities.AddPost.Service
                 NotificationBuilder.SetVibrate(new[] { 0L });
                 NotificationBuilder.SetVisibility(NotificationCompat.VisibilityPublic);
 
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                switch (Build.VERSION.SdkInt)
                 {
-                    var importance = NotificationImportance.High;
-                    NotificationChannel notificationChannel = new NotificationChannel(NotificationChannelId, AppSettings.ApplicationName, importance);
-                    notificationChannel.EnableLights(false);
-                    notificationChannel.EnableVibration(false);
-                    NotificationBuilder.SetChannelId(NotificationChannelId);
+                    case >= BuildVersionCodes.O:
+                    {
+                        var importance = NotificationImportance.High;
+                        NotificationChannel notificationChannel = new NotificationChannel(NotificationChannelId, AppSettings.ApplicationName, importance);
+                        notificationChannel.EnableLights(false);
+                        notificationChannel.EnableVibration(false);
+                        NotificationBuilder.SetChannelId(NotificationChannelId);
 
-                    MNotificationManager?.CreateNotificationChannel(notificationChannel);
+                        MNotificationManager?.CreateNotificationChannel(notificationChannel);
+                        break;
+                    }
                 }
 
                 MNotificationManager?.Notify(2020, NotificationBuilder.Build());
@@ -940,16 +990,19 @@ namespace WoWonder.Activities.AddPost.Service
             {
                 //This bellow is just a temporary solution to test that method call works
                 var b = bool.Parse(paths[0]);
-                if (b)
+                switch (b)
                 {
-                    filePath = SiliCompressor.With(MContext).CompressVideo(paths[1], paths[2]);
-                }
-                else
-                {
-                    Android.Net.Uri videoContentUri = Android.Net.Uri.Parse(paths[1]);
+                    case true:
+                        filePath = SiliCompressor.With(MContext).CompressVideo(paths[1], paths[2]);
+                        break;
+                    default:
+                    {
+                        Android.Net.Uri videoContentUri = Android.Net.Uri.Parse(paths[1]);
 
-                    // Example using the bitrate and video size parameters = >> filePath = SiliCompressor.with(mContext).compressVideo(videoContentUri, paths[2], 1280,720,1500000);*/
-                    filePath = SiliCompressor.With(MContext).CompressVideo(videoContentUri?.ToString(), paths[2]);
+                        // Example using the bitrate and video size parameters = >> filePath = SiliCompressor.with(mContext).compressVideo(videoContentUri, paths[2], 1280,720,1500000);*/
+                        filePath = SiliCompressor.With(MContext).CompressVideo(videoContentUri?.ToString(), paths[2]);
+                        break;
+                    }
                 }
             }
             catch (URISyntaxException e)
@@ -984,11 +1037,13 @@ namespace WoWonder.Activities.AddPost.Service
                 if (Service.ActionPostService == PostService.ActionPost)
                 {
                     var attach = Service.DataPost.AttachmentList.FirstOrDefault();
-                    if (attach?.TypeAttachment == "postVideo")
+                    switch (attach?.TypeAttachment)
                     {
-                        attach.FileUrl = imageFile.Path;
+                        case "postVideo":
+                            attach.FileUrl = imageFile.Path;
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { Service.AddPost });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { Service.AddPost });
+                            break;
                     }
                 }
                 else if (Service.ActionPostService == PostService.ActionStory)

@@ -100,28 +100,46 @@ namespace WoWonder.Activities.Market
                     {
                         DistanceBar.Max = 300;
 
-                        if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                            DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.MarketDistanceCount) ? 300 : Convert.ToInt32(UserDetails.MarketDistanceCount), true);
-                        else  // For API < 24 
-                            DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.MarketDistanceCount) ? 300 : Convert.ToInt32(UserDetails.MarketDistanceCount);
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case >= BuildVersionCodes.N:
+                                DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.MarketDistanceCount) ? 300 : Convert.ToInt32(UserDetails.MarketDistanceCount), true);
+                                break;
+                            // For API < 24 
+                            default:
+                                DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.MarketDistanceCount) ? 300 : Convert.ToInt32(UserDetails.MarketDistanceCount);
+                                break;
+                        }
                         break;
                     }
                     case "NearbyShops":
                     {
                         DistanceBar.Max = 1000;
-                        if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                            DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.NearbyShopsDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyShopsDistanceCount), true);
-                        else  // For API < 24 
-                            DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.NearbyShopsDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyShopsDistanceCount);
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case >= BuildVersionCodes.N:
+                                DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.NearbyShopsDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyShopsDistanceCount), true);
+                                break;
+                            // For API < 24 
+                            default:
+                                DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.NearbyShopsDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyShopsDistanceCount);
+                                break;
+                        }
                         break;
                     }
                     case "NearbyBusiness":
                     {
                         DistanceBar.Max = 1000;
-                        if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                            DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.NearbyBusinessDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyBusinessDistanceCount), true);
-                        else  // For API < 24 
-                            DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.NearbyBusinessDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyBusinessDistanceCount);
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case >= BuildVersionCodes.N:
+                                DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.NearbyBusinessDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyBusinessDistanceCount), true);
+                                break;
+                            // For API < 24 
+                            default:
+                                DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.NearbyBusinessDistanceCount) ? 1000 : Convert.ToInt32(UserDetails.NearbyBusinessDistanceCount);
+                                break;
+                        }
                         break;
                     }
                 } 

@@ -256,18 +256,19 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtCreate.Click += TxtCreateOnClick;
-                    TxtCategories.Touch += TxtCategoryOnClick;
-                    TxtSubCategories.Touch += TxtSubCategoriesOnTouch;
-                }
-                else
-                {
-                    TxtCreate.Click -= TxtCreateOnClick;
-                    TxtCategories.Touch -= TxtCategoryOnClick;
-                    TxtSubCategories.Touch -= TxtSubCategoriesOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtCreate.Click += TxtCreateOnClick;
+                        TxtCategories.Touch += TxtCategoryOnClick;
+                        TxtSubCategories.Touch += TxtSubCategoriesOnTouch;
+                        break;
+                    default:
+                        TxtCreate.Click -= TxtCreateOnClick;
+                        TxtCategories.Touch -= TxtCategoryOnClick;
+                        TxtSubCategories.Touch -= TxtSubCategoriesOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -321,29 +322,33 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesGroup.Count > 0)
+                switch (CategoriesController.ListCategoriesGroup.Count)
                 {
-                    TypeDialog = "SubCategories";
-
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                    var arrayAdapter = new List<string>();
-
-                    var subCat = CategoriesController.ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == CategoryId)?.SubList;
-                    if (subCat?.Count > 0)
+                    case > 0:
                     {
-                        arrayAdapter = subCat.Select(item => item.Lang).ToList();
-                    }
+                        TypeDialog = "SubCategories";
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+
+                        var arrayAdapter = new List<string>();
+
+                        var subCat = CategoriesController.ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == CategoryId)?.SubList;
+                        arrayAdapter = subCat?.Count switch
+                        {
+                            > 0 => subCat.Select(item => item.Lang).ToList(),
+                            _ => arrayAdapter
+                        };
+
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -358,23 +363,26 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesGroup.Count > 0)
+                switch (CategoriesController.ListCategoriesGroup.Count)
                 {
-                    TypeDialog = "Categories";
+                    case > 0:
+                    {
+                        TypeDialog = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -426,43 +434,56 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                     {"sub_category", SubCategoryId},
                 };
 
-                if (MAdapter.FieldList.Count > 0)
+                switch (MAdapter.FieldList.Count)
                 {
-                    foreach (var field in MAdapter.FieldList)
-                    { 
-                        dictionary.Add(field.Fid, field.FieldAnswer);
-                    } 
+                    case > 0:
+                    {
+                        foreach (var field in MAdapter.FieldList)
+                        { 
+                            dictionary.Add(field.Fid, field.FieldAnswer);
+                        }
+
+                        break;
+                    }
                 }
 
                 var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Data(GroupsId, dictionary);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is MessageObject result)
+                    case 200:
                     {
-                        AndHUD.Shared.Dismiss(this);
+                        switch (respond)
+                        {
+                            case MessageObject result:
+                            {
+                                AndHUD.Shared.Dismiss(this);
 
-                        Console.WriteLine(result.Message);
-                        GroupData.GroupName = TxtUrl.Text;
-                        GroupData.GroupTitle = TxtTitle.Text;
-                        GroupData.Username = TxtUrl.Text;
-                        GroupData.About = TxtAbout.Text;
-                        GroupData.CategoryId = CategoryId;
-                        GroupData.Category = TxtCategories.Text;
+                                Console.WriteLine(result.Message);
+                                GroupData.GroupName = TxtUrl.Text;
+                                GroupData.GroupTitle = TxtTitle.Text;
+                                GroupData.Username = TxtUrl.Text;
+                                GroupData.About = TxtAbout.Text;
+                                GroupData.CategoryId = CategoryId;
+                                GroupData.Category = TxtCategories.Text;
 
-                        GroupProfileActivity.GroupDataClass = GroupData;
+                                GroupProfileActivity.GroupDataClass = GroupData;
 
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short)?.Show();
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short)?.Show();
 
-                        Intent returnIntent = new Intent();
-                        returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(GroupData));
-                        SetResult(Result.Ok, returnIntent);
+                                Intent returnIntent = new Intent();
+                                returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(GroupData));
+                                SetResult(Result.Ok, returnIntent);
 
-                        Finish();
+                                Finish();
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    Methods.DisplayAndHudErrorResult(this, respond);
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 }
             }
             catch (Exception exception)
@@ -489,16 +510,17 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                         {
                             CategoryId = category.CategoriesId;
 
-                            if (category.SubList.Count > 0)
+                            switch (category.SubList.Count)
                             {
-                                SubCategoriesLayout.Visibility = ViewStates.Visible;
-                                TxtSubCategories.Text = "";
-                                SubCategoryId = "";
-                            }
-                            else
-                            {
-                                SubCategoriesLayout.Visibility = ViewStates.Gone;
-                                SubCategoryId = "";
+                                case > 0:
+                                    SubCategoriesLayout.Visibility = ViewStates.Visible;
+                                    TxtSubCategories.Text = "";
+                                    SubCategoryId = "";
+                                    break;
+                                default:
+                                    SubCategoriesLayout.Visibility = ViewStates.Gone;
+                                    SubCategoryId = "";
+                                    break;
                             }
                         }
                         TxtCategories.Text = itemString.ToString();
@@ -557,23 +579,30 @@ namespace WoWonder.Activities.Communities.Groups.Settings
 
                     CategoryId = GroupData.CategoryId;
 
-                    if (!string.IsNullOrEmpty(GroupData.SubCategory))
+                    switch (string.IsNullOrEmpty(GroupData.SubCategory))
                     {
-                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.CategoryId == GroupData.SubCategory);
-                        if (category != null)
+                        case false:
                         {
-                            SubCategoriesLayout.Visibility = ViewStates.Visible;
-                            TxtSubCategories.Text = category.Lang;
-                            SubCategoryId = category.CategoryId;
+                            var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.CategoryId == GroupData.SubCategory);
+                            if (category != null)
+                            {
+                                SubCategoriesLayout.Visibility = ViewStates.Visible;
+                                TxtSubCategories.Text = category.Lang;
+                                SubCategoryId = category.CategoryId;
+                            }
+
+                            break;
                         }
                     }
                     
-                    if (ListUtils.SettingsSiteList?.GroupCustomFields?.Count > 0)
-                    { 
-                        MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList.GroupCustomFields);
-                        MAdapter.NotifyDataSetChanged();
+                    switch (ListUtils.SettingsSiteList?.GroupCustomFields?.Count)
+                    {
+                        case > 0:
+                            MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList.GroupCustomFields);
+                            MAdapter.NotifyDataSetChanged();
 
-                        MRecycler.Visibility = ViewStates.Visible;
+                            MRecycler.Visibility = ViewStates.Visible;
+                            break;
                     }
                 }
             }

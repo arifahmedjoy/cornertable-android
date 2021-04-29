@@ -92,13 +92,14 @@ namespace WoWonder.Activities.Live.Page
             try
             {
                 SurfaceView surface = DT.Xamarin.Agora.RtcEngine.CreateRendererView(ApplicationContext);
-                if (local)
+                switch (local)
                 {
-                    RtcEngine().SetupLocalVideo(new VideoCanvas(surface, VideoCanvas.RenderModeHidden, Config().GetChannelName(), 0, Constants.VideoMirrorModes[Config().GetMirrorLocalIndex()]));
-                }
-                else
-                {
-                    RtcEngine().SetupRemoteVideo(new VideoCanvas(surface, VideoCanvas.RenderModeHidden, Config().GetChannelName(), uid, Constants.VideoMirrorModes[Config().GetMirrorRemoteIndex()]));
+                    case true:
+                        RtcEngine().SetupLocalVideo(new VideoCanvas(surface, VideoCanvas.RenderModeHidden, Config().GetChannelName(), 0, Constants.VideoMirrorModes[Config().GetMirrorLocalIndex()]));
+                        break;
+                    default:
+                        RtcEngine().SetupRemoteVideo(new VideoCanvas(surface, VideoCanvas.RenderModeHidden, Config().GetChannelName(), uid, Constants.VideoMirrorModes[Config().GetMirrorRemoteIndex()]));
+                        break;
                 }
                 return surface;
             }
@@ -113,13 +114,14 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (local)
+                switch (local)
                 {
-                    RtcEngine().SetupLocalVideo(null);
-                }
-                else
-                {
-                    RtcEngine().SetupRemoteVideo(new VideoCanvas(null, VideoCanvas.RenderModeHidden, uid));
+                    case true:
+                        RtcEngine().SetupLocalVideo(null);
+                        break;
+                    default:
+                        RtcEngine().SetupRemoteVideo(new VideoCanvas(null, VideoCanvas.RenderModeHidden, uid));
+                        break;
                 }
             }
             catch (Exception e)

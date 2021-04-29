@@ -62,39 +62,44 @@ namespace WoWonder.Activities.Suggested.Adapters
         {
             try
             {
-                if (viewHolder is SuggestedGroupAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = GroupList[position];
-                    if (item != null)
+                    case SuggestedGroupAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Cover, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-
-                        holder.Name.Text = Methods.FunString.DecodeString(item.GroupName);
-                        holder.CountMembers.Text = Methods.FunString.FormatPriceValue(item.Members) +  " " +ActivityContext.GetString(Resource.String.Lbl_Members);
-
-                        if (item.IsOwner != null && item.IsOwner.Value || item.UserId == UserDetails.UserId)
+                        var item = GroupList[position];
+                        if (item != null)
                         {
-                            holder.JoinButton.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            if (WoWonderTools.IsJoinedGroup(item))
+                            GlideImageLoader.LoadImage(ActivityContext, item.Cover, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+
+                            holder.Name.Text = Methods.FunString.DecodeString(item.GroupName);
+                            holder.CountMembers.Text = Methods.FunString.FormatPriceValue(item.Members) +  " " +ActivityContext.GetString(Resource.String.Lbl_Members);
+
+                            if (item.IsOwner != null && item.IsOwner.Value || item.UserId == UserDetails.UserId)
                             {
-                                holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
-                                holder.JoinButton.SetTextColor(Color.White);
-                                holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Joined);
-                                holder.JoinButton.Tag = "true";
+                                holder.JoinButton.Visibility = ViewStates.Gone;
                             }
                             else
                             {
-                                holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlat);
-                                holder.JoinButton.SetTextColor(Color.White);
-                                holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Join_Group);
-                                holder.JoinButton.Tag = "false";
+                                if (WoWonderTools.IsJoinedGroup(item))
+                                {
+                                    holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
+                                    holder.JoinButton.SetTextColor(Color.White);
+                                    holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Joined);
+                                    holder.JoinButton.Tag = "true";
+                                }
+                                else
+                                {
+                                    holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlat);
+                                    holder.JoinButton.SetTextColor(Color.White);
+                                    holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Join_Group);
+                                    holder.JoinButton.Tag = "false";
+                                }
                             }
-                        }
 
                         
+                        }
+
+                        break;
                     }
                 }
             }
@@ -111,9 +116,11 @@ namespace WoWonder.Activities.Suggested.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is SuggestedGroupAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case SuggestedGroupAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -166,14 +173,21 @@ namespace WoWonder.Activities.Suggested.Adapters
             {
                 var d = new List<string>();
                 var item = GroupList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)
@@ -204,7 +218,7 @@ namespace WoWonder.Activities.Suggested.Adapters
 
         #endregion
 
-        public SuggestedGroupAdapterViewHolder(View itemView, Action<SuggestedGroupAdapterClickEventArgs> JoinButtonClickListener, Action<SuggestedGroupAdapterClickEventArgs> clickListener, Action<SuggestedGroupAdapterClickEventArgs> longClickListener) : base(itemView)
+        public SuggestedGroupAdapterViewHolder(View itemView, Action<SuggestedGroupAdapterClickEventArgs> joinButtonClickListener, Action<SuggestedGroupAdapterClickEventArgs> clickListener, Action<SuggestedGroupAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
@@ -216,7 +230,7 @@ namespace WoWonder.Activities.Suggested.Adapters
                 JoinButton = MainView.FindViewById<Button>(Resource.Id.JoinButton);
 
                 //Event
-                JoinButton.Click += (sender, e) => JoinButtonClickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = AdapterPosition , JoinButton = JoinButton });
+                JoinButton.Click += (sender, e) => joinButtonClickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = AdapterPosition , JoinButton = JoinButton });
                 itemView.Click += (sender, e) => clickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
                 Console.WriteLine(longClickListener);
             }

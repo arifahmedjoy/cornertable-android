@@ -55,13 +55,20 @@ namespace WoWonder.Activities.AddPost.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is GifAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = GifList[position];
-                    if (!string.IsNullOrEmpty(item?.Images?.PreviewGif.Url))
+                    case GifAdapterViewHolder holder:
                     {
-                        Glide.With(ActivityContext).Load(item.Images.FixedHeightDownsampled.Url).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder).Override(AppSettings.ImagePostSize)).Into(holder.Image); 
+                        var item = GifList[position];
+                        switch (string.IsNullOrEmpty(item?.Images?.PreviewGif.Url))
+                        {
+                            case false:
+                                Glide.With(ActivityContext).Load(item.Images.FixedHeightDownsampled.Url).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder).Override(AppSettings.ImagePostSize)).Into(holder.Image);
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -77,8 +84,12 @@ namespace WoWonder.Activities.AddPost.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is GifAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                switch (holder)
+                {
+                    case GifAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
+                }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)

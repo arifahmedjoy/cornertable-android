@@ -78,60 +78,69 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                if (!string.IsNullOrEmpty(EmailEditext.Text))
+                switch (string.IsNullOrEmpty(EmailEditext.Text))
                 {
-                    if (Methods.CheckConnectivity())
+                    case false when Methods.CheckConnectivity():
                     {
                         var check = Methods.FunString.IsEmailValid(EmailEditext.Text);
-                        if (!check)
+                        switch (check)
                         {
-                            Methods.DialogPopup.InvokeAndShowDialog(this,
-                                GetText(Resource.String.Lbl_Security),
-                                GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
-                        }
-                        else
-                        {
-                            HideKeyboard();
-                            ProgressBar.Visibility = ViewStates.Visible;
-                            var (apiStatus, respond) = await RequestsAsync.Global.Get_Reset_Password_Email(EmailEditext.Text);
-                            switch (apiStatus)
-                            {
-                                case 200:
+                            case false:
+                                Methods.DialogPopup.InvokeAndShowDialog(this,
+                                    GetText(Resource.String.Lbl_Security),
+                                    GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
+                                break;
+                            default:
+                                HideKeyboard();
+                                ProgressBar.Visibility = ViewStates.Visible;
+                                var (apiStatus, respond) = await RequestsAsync.Global.Get_Reset_Password_Email(EmailEditext.Text);
+                                switch (apiStatus)
                                 {
-                                    if (respond is StatusObject result)
+                                    case 200:
                                     {
-                                        Console.WriteLine(result);
+                                        switch (respond)
+                                        {
+                                            case StatusObject result:
+                                                Console.WriteLine(result);
+                                                ProgressBar.Visibility = ViewStates.Invisible;
+                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Email_Has_Been_Send), GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                    case 400:
+                                    {
+                                        switch (respond)
+                                        {
+                                            case ErrorObject error:
+                                            {
+                                                var errorText = error.Error.ErrorText;
+                                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                            }
+                                        }
+
                                         ProgressBar.Visibility = ViewStates.Invisible;
-                                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Email_Has_Been_Send), GetText(Resource.String.Lbl_Ok));
+                                        break;
                                     }
-
-                                    break;
+                                    case 404:
+                                        ProgressBar.Visibility = ViewStates.Invisible;
+                                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
+                                            GetText(Resource.String.Lbl_Error_Login), GetText(Resource.String.Lbl_Ok));
+                                        break;
                                 }
-                                case 400:
-                                {
-                                    if (respond is ErrorObject error)
-                                    {
-                                        var errorText = error.Error.ErrorText;
-                                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
-                                    }
 
-                                    ProgressBar.Visibility = ViewStates.Invisible;
-                                    break;
-                                }
-                                case 404:
-                                    ProgressBar.Visibility = ViewStates.Invisible;
-                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security),
-                                        GetText(Resource.String.Lbl_Error_Login), GetText(Resource.String.Lbl_Ok));
-                                    break;
-                            }
+                                break;
                         }
+
+                        break;
                     }
-                    else
-                    {
+                    case false:
                         ProgressBar.Visibility = ViewStates.Invisible;
                         Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed),
                             GetText(Resource.String.Lbl_something_went_wrong), GetText(Resource.String.Lbl_Ok));
-                    }
+                        break;
                 }
             }
             catch (Exception exception)

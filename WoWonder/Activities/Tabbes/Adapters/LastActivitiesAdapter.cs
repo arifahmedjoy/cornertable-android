@@ -62,12 +62,17 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-                if (viewHolder is LastActivitiesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = LastActivitiesList[position];
-                    if (item != null)
+                    case LastActivitiesAdapterViewHolder holder:
                     {
-                        InitializeLast(holder, item);
+                        var item = LastActivitiesList[position];
+                        if (item != null)
+                        {
+                            InitializeLast(holder, item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -253,9 +258,11 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is LastActivitiesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.ActivitiesImage);
+                    case LastActivitiesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.ActivitiesImage);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -313,14 +320,21 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 var d = new List<string>();
                 var item = LastActivitiesList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Activator.Avatar))
-                        d.Add(item.Activator.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Activator.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Activator.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

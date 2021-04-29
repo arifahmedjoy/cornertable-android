@@ -236,18 +236,19 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtWithdrawMethod.Touch += TxtWithdrawMethodOnTouch;
-                    TxtCountry.Touch += TxtCountryOnTouch;
-                    BtnRequestWithdrawal.Click += BtnRequestWithdrawalOnClick;
-                }
-                else
-                {
-                    TxtWithdrawMethod.Touch -= TxtWithdrawMethodOnTouch;
-                    TxtCountry.Touch -= TxtCountryOnTouch;
-                    BtnRequestWithdrawal.Click -= BtnRequestWithdrawalOnClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtWithdrawMethod.Touch += TxtWithdrawMethodOnTouch;
+                        TxtCountry.Touch += TxtCountryOnTouch;
+                        BtnRequestWithdrawal.Click += BtnRequestWithdrawalOnClick;
+                        break;
+                    default:
+                        TxtWithdrawMethod.Touch -= TxtWithdrawMethodOnTouch;
+                        TxtCountry.Touch -= TxtCountryOnTouch;
+                        BtnRequestWithdrawal.Click -= BtnRequestWithdrawalOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -396,18 +397,27 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Global.WithdrawAsync(dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                             Console.WriteLine(result.Message);
-                            AndHUD.Shared.Dismiss(this);
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_RequestSentWithdrawals), ToastLength.Long)?.Show();
+                            switch (respond)
+                            {
+                                case MessageObject result:
+                                    Console.WriteLine(result.Message);
+                                    AndHUD.Shared.Dismiss(this);
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_RequestSentWithdrawals), ToastLength.Long)?.Show();
 
-                            Finish(); 
+                                    Finish();
+                                    break;
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayAndHudErrorResult(this, respond);
                 }
                 else
                 {
@@ -486,8 +496,12 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                if (ListUtils.MyProfileList?.Count == 0)
-                    await ApiRequest.Get_MyProfileData_Api(this);
+                switch (ListUtils.MyProfileList?.Count)
+                {
+                    case 0:
+                        await ApiRequest.Get_MyProfileData_Api(this);
+                        break;
+                }
 
                 var local = ListUtils.MyProfileList?.FirstOrDefault();
                 if (local != null)

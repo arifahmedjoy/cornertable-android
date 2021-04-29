@@ -211,48 +211,74 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             if (Methods.CheckConnectivity())
             {
-                if (AppSettings.ShowLastActivities) 
+                switch (AppSettings.ShowLastActivities)
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Global.Get_Activities("6", offset);
-                    if (apiStatus == 200)
+                    case true:
                     {
-                        if (respond is LastActivitiesObject result)
-                        { 
-                            // LastActivities
-                            var respondListLastActivities = result.Activities.Count;
-                            if (respondListLastActivities > 0)
+                        var (apiStatus, respond) = await RequestsAsync.Global.Get_Activities("6", offset);
+                        switch (apiStatus)
+                        {
+                            case 200:
                             {
-                                var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastActivities);
-                                if (checkList == null)
+                                switch (respond)
                                 {
-                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                    case LastActivitiesObject result:
                                     {
-                                        Id = 900,
-                                        Title = Activity.GetText(Resource.String.Lbl_LastActivities),
-                                        SectionType = Classes.ItemType.LastActivities,
-                                        Type = Classes.ItemType.Section,
-                                    });
-
-                                    var list = result.Activities.Take(5).ToList();
-
-                                    foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastActivities?.Id == item.Id && a.Type == Classes.ItemType.LastActivities) where check == null select item)
-                                    {
-                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                        // LastActivities
+                                        var respondListLastActivities = result.Activities.Count;
+                                        switch (respondListLastActivities)
                                         {
-                                            Id = long.Parse(item.Id),
-                                            LastActivities = item,
-                                            Type = Classes.ItemType.LastActivities
-                                        });
+                                            case > 0:
+                                            {
+                                                var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastActivities);
+                                                switch (checkList)
+                                                {
+                                                    case null:
+                                                    {
+                                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                        {
+                                                            Id = 900,
+                                                            Title = Activity.GetText(Resource.String.Lbl_LastActivities),
+                                                            SectionType = Classes.ItemType.LastActivities,
+                                                            Type = Classes.ItemType.Section,
+                                                        });
+
+                                                        var list = result.Activities.Take(5).ToList();
+
+                                                        foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastActivities?.Id == item.Id && a.Type == Classes.ItemType.LastActivities) where check == null select item)
+                                                        {
+                                                            GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                            {
+                                                                Id = long.Parse(item.Id),
+                                                                LastActivities = item,
+                                                                Type = Classes.ItemType.LastActivities
+                                                            });
+                                                        }
+                                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                                        {
+                                                            Type = Classes.ItemType.Divider
+                                                        });
+                                                        break;
+                                                    }
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        break;
                                     }
-                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                    {
-                                        Type = Classes.ItemType.Divider
-                                    });
-                                }  
-                            } 
-                        } 
+                                }
+
+                                break;
+                            }
+                            default:
+                                Methods.DisplayReportResult(Activity, respond);
+                                break;
+                        }
+
+                        break;
                     }
-                    else Methods.DisplayReportResult(Activity, respond);
                 }
 
                 await GetWeatherApi();
@@ -271,76 +297,92 @@ namespace WoWonder.Activities.Tabbes.Fragment
         //}
 
         private async Task GetWeatherApi()
-        {  
-            if (AppSettings.ShowWeather && Methods.CheckConnectivity())
-            {  
-                GetWeatherObject respond = await ApiRequest.GetWeather();
-                if (respond != null)
-                { 
-                    var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Weather);
-                    if (checkList == null)
+        {
+            switch (AppSettings.ShowWeather)
+            {
+                case true when Methods.CheckConnectivity():
+                {
+                    GetWeatherObject respond = await ApiRequest.GetWeather();
+                    if (respond != null)
                     {
-                        var weather = new Classes.TrendingClass
+                        var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Weather);
+                        switch (checkList)
                         {
-                            Id = 600,
-                            Weather = respond,
-                            Type = Classes.ItemType.Weather
-                        };
+                            case null:
+                            {
+                                var weather = new Classes.TrendingClass
+                                {
+                                    Id = 600,
+                                    Weather = respond,
+                                    Type = Classes.ItemType.Weather
+                                };
                          
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(weather);
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                        {
-                            Type = Classes.ItemType.Divider
-                        });
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(weather);
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Type = Classes.ItemType.Divider
+                                });
+                                break;
+                            }
+                            default:
+                                checkList.Weather = respond;
+                                break;
+                        }
                     }
-                    else
-                    {
-                        checkList.Weather = respond;
-                    } 
-                }
 
-                Activity?.RunOnUiThread(() => MAdapter.NotifyDataSetChanged());
-            } 
+                    Activity?.RunOnUiThread(() => MAdapter.NotifyDataSetChanged());
+                    break;
+                }
+            }
         }
         
         private async Task GetExchangeCurrencyApi()
-        {  
-            if (AppSettings.ShowExchangeCurrency && Methods.CheckConnectivity())
+        {
+            switch (AppSettings.ShowExchangeCurrency)
             {
-                var (apiStatus, respond) = await ApiRequest.GetExchangeCurrencyAsync();
-                if (apiStatus != 200 || (respond is not Classes.ExchangeCurrencyObject result) || result.Rates == null)
+                case true when Methods.CheckConnectivity():
                 {
-                    if (AppSettings.SetApisReportMode && apiStatus != 400 && respond is Classes.ExErrorObject error)
+                    var (apiStatus, respond) = await ApiRequest.GetExchangeCurrencyAsync();
+                    if (apiStatus != 200 || respond is not Classes.ExchangeCurrencyObject result || result.Rates == null)
                     {
-                        Methods.DialogPopup.InvokeAndShowDialog(Activity, "ReportMode", error?.Description, "Close"); 
-                    }
-                }
-                else
-                { 
-                    var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ExchangeCurrency);
-                    if (checkList == null)
-                    { 
-                        var exchangeCurrency = new Classes.TrendingClass
+                        switch (AppSettings.SetApisReportMode)
                         {
-                            Id = 2013,
-                            ExchangeCurrency = result,
-                            Type = Classes.ItemType.ExchangeCurrency
-                        };
-                         
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(exchangeCurrency);
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                        {
-                            Type = Classes.ItemType.Divider
-                        });
+                            case true when apiStatus != 400 && respond is Classes.ExErrorObject error:
+                                Methods.DialogPopup.InvokeAndShowDialog(Activity, "ReportMode", error?.Description, "Close");
+                                break;
+                        }
                     }
                     else
                     {
-                        checkList.ExchangeCurrency = result;
-                    } 
-                }
+                        var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ExchangeCurrency);
+                        switch (checkList)
+                        {
+                            case null:
+                            {
+                                var exchangeCurrency = new Classes.TrendingClass
+                                {
+                                    Id = 2013,
+                                    ExchangeCurrency = result,
+                                    Type = Classes.ItemType.ExchangeCurrency
+                                };
+                         
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(exchangeCurrency);
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Type = Classes.ItemType.Divider
+                                });
+                                break;
+                            }
+                            default:
+                                checkList.ExchangeCurrency = result;
+                                break;
+                        }
+                    }
 
-                Activity?.RunOnUiThread(() => MAdapter.NotifyDataSetChanged());
-            } 
+                    Activity?.RunOnUiThread(() => MAdapter.NotifyDataSetChanged());
+                    break;
+                }
+            }
         }
 
         private void ShowEmptyPage()
@@ -348,83 +390,111 @@ namespace WoWonder.Activities.Tabbes.Fragment
             try
             {  
                 var respondListShortcuts = ListUtils.ShortCutsList.Count;
-                if (respondListShortcuts > 0 && AppSettings.ShowShortcuts)
+                switch (respondListShortcuts)
                 {
-                    var listSort = ListUtils.ShortCutsList.OrderBy(a => a.Name).ToList();
+                    case > 0 when AppSettings.ShowShortcuts:
+                    {
+                        var listSort = ListUtils.ShortCutsList.OrderBy(a => a.Name).ToList();
                      
-                    var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Shortcuts);
-                    if (checkList == null)
-                    { 
-                        var shortcuts = new Classes.TrendingClass
+                        var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Shortcuts);
+                        switch (checkList)
                         {
-                            Id = 700,
-                            ShortcutsList = new List<Classes.ShortCuts>(),
-                            Type = Classes.ItemType.Shortcuts
-                        };
+                            case null:
+                            {
+                                var shortcuts = new Classes.TrendingClass
+                                {
+                                    Id = 700,
+                                    ShortcutsList = new List<Classes.ShortCuts>(),
+                                    Type = Classes.ItemType.Shortcuts
+                                };
 
-                        foreach (var item in from item in listSort let check = shortcuts.ShortcutsList.FirstOrDefault(a => a.SocialId == item.SocialId && a.Type == item.Type) where check == null select item)
-                        {
-                            shortcuts.ShortcutsList.Add(item);
+                                foreach (var item in from item in listSort let check = shortcuts.ShortcutsList.FirstOrDefault(a => a.SocialId == item.SocialId && a.Type == item.Type) where check == null select item)
+                                {
+                                    shortcuts.ShortcutsList.Add(item);
+                                }
+
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(shortcuts);
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Type = Classes.ItemType.Divider
+                                });
+                                break;
+                            }
                         }
 
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(shortcuts);
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                        {
-                            Type = Classes.ItemType.Divider
-                        });
-                    } 
+                        break;
+                    }
                 }
 
                 var respondLastBlogs = ListUtils.ListCachedDataArticle.Count;
-                if (respondLastBlogs > 0)
-                { 
-                    var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastBlogs);
-                    if (checkList == null)
-                    { 
-                        var item = ListUtils.ListCachedDataArticle.FirstOrDefault(); 
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                        {
-                            Id = 1200,
-                            LastBlogs = item,
-                            Type = Classes.ItemType.LastBlogs
-                        });
-                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                        {
-                            Type = Classes.ItemType.Divider
-                        });
-                    } 
-                }
-
-                if (MAdapter.TrendingList.Count > 0)
-                { 
-                    var emptyStateChecker = MAdapter.TrendingList.FirstOrDefault(a => a.Type == Classes.ItemType.EmptyPage);
-                    if (emptyStateChecker != null)
-                    {
-                        MAdapter.TrendingList.Remove(emptyStateChecker);
-                    }
-
-                    var adMob = MAdapter.TrendingList.FirstOrDefault(a => a.Type == Classes.ItemType.AdMob);
-                    if (adMob == null && AppSettings.ShowAdMobBanner)
-                    {
-                        MAdapter.TrendingList.Add(new Classes.TrendingClass
-                        {
-                            Type = Classes.ItemType.AdMob
-                        });
-                    }
-                     
-                    MAdapter.NotifyDataSetChanged();
-                }
-                else
+                switch (respondLastBlogs)
                 {
-                    var emptyStateChecker = MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.EmptyPage);
-                    if (emptyStateChecker == null)
+                    case > 0:
                     {
-                        MAdapter.TrendingList.Add(new Classes.TrendingClass
+                        var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastBlogs);
+                        switch (checkList)
                         {
-                            Id = 1000,
-                            Type = Classes.ItemType.EmptyPage
-                        });
-                        MAdapter.NotifyDataSetChanged(); 
+                            case null:
+                            {
+                                var item = ListUtils.ListCachedDataArticle.FirstOrDefault(); 
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Id = 1200,
+                                    LastBlogs = item,
+                                    Type = Classes.ItemType.LastBlogs
+                                });
+                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Type = Classes.ItemType.Divider
+                                });
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+
+                switch (MAdapter.TrendingList.Count)
+                {
+                    case > 0:
+                    {
+                        var emptyStateChecker = MAdapter.TrendingList.FirstOrDefault(a => a.Type == Classes.ItemType.EmptyPage);
+                        if (emptyStateChecker != null)
+                        {
+                            MAdapter.TrendingList.Remove(emptyStateChecker);
+                        }
+
+                        var adMob = MAdapter.TrendingList.FirstOrDefault(a => a.Type == Classes.ItemType.AdMob);
+                        switch (adMob)
+                        {
+                            case null when AppSettings.ShowAdMobBanner:
+                                MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Type = Classes.ItemType.AdMob
+                                });
+                                break;
+                        }
+                     
+                        MAdapter.NotifyDataSetChanged();
+                        break;
+                    }
+                    default:
+                    {
+                        var emptyStateChecker = MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.EmptyPage);
+                        switch (emptyStateChecker)
+                        {
+                            case null:
+                                MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                {
+                                    Id = 1000,
+                                    Type = Classes.ItemType.EmptyPage
+                                });
+                                MAdapter.NotifyDataSetChanged();
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }

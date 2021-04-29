@@ -284,8 +284,11 @@ namespace WoWonder.Helpers.Fonts
         {
             try
             {
-                if (item == null)
-                    return null!;
+                switch (item)
+                {
+                    case null:
+                        return null!;
+                }
 
                 UserDataObject publisher = item.Publisher ?? item.UserData;
 
@@ -294,49 +297,81 @@ namespace WoWonder.Helpers.Fonts
                 string textEvent;
                 string textImageChange = string.Empty, textShare = string.Empty;
 
-                if (publisher.Verified == "1") 
-                    textHighLighter += " " + "[img src=icon_checkmark_small_vector/]"; 
-
-                if (publisher.IsPro == "1")
+                switch (publisher.Verified)
                 {
-                    var textIsPro = " " + "[img src=post_icon_flash/]";
-                    textHighLighter += textIsPro;
+                    case "1":
+                        textHighLighter += " " + "[img src=icon_checkmark_small_vector/]";
+                        break;
+                } 
+
+                switch (publisher.IsPro)
+                {
+                    case "1":
+                    {
+                        var textIsPro = " " + "[img src=post_icon_flash/]";
+                        textHighLighter += textIsPro;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.PostFeeling) && item.SharedInfo.SharedInfoClass == null)
+                switch (string.IsNullOrEmpty(item.PostFeeling))
                 {
-                    var textFeelings = " " + mainContext.GetString(Resource.String.Lbl_IsFeeling) + " " + PostFunctions.GetFeelingTypeIcon(item.PostFeeling) + " " + PostFunctions.GetFeelingTypeTextString(item.PostFeeling, mainContext);
-                    textHighLighter += textFeelings;
+                    case false when item.SharedInfo.SharedInfoClass == null:
+                    {
+                        var textFeelings = " " + mainContext.GetString(Resource.String.Lbl_IsFeeling) + " " + PostFunctions.GetFeelingTypeIcon(item.PostFeeling) + " " + PostFunctions.GetFeelingTypeTextString(item.PostFeeling, mainContext);
+                        textHighLighter += textFeelings;
+                        break;
+                    }
                 }
                  
-                if (!string.IsNullOrEmpty(item.PostTraveling))
+                switch (string.IsNullOrEmpty(item.PostTraveling))
                 {
-                    var textTraveling = "  " + "[img src=post_icon_airplane/]" + " " + mainContext.GetText(Resource.String.Lbl_IsTravelingTo) + " " + item.PostTraveling;
-                    textHighLighter += textTraveling;
+                    case false:
+                    {
+                        var textTraveling = "  " + "[img src=post_icon_airplane/]" + " " + mainContext.GetText(Resource.String.Lbl_IsTravelingTo) + " " + item.PostTraveling;
+                        textHighLighter += textTraveling;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.PostWatching))
+                switch (string.IsNullOrEmpty(item.PostWatching))
                 {
-                    var textWatching = "  " + "[img src=post_icon_eye/]" + " " + mainContext.GetText(Resource.String.Lbl_IsWatching) + " " + item.PostWatching;
-                    textHighLighter += textWatching;
+                    case false:
+                    {
+                        var textWatching = "  " + "[img src=post_icon_eye/]" + " " + mainContext.GetText(Resource.String.Lbl_IsWatching) + " " + item.PostWatching;
+                        textHighLighter += textWatching;
+                        break;
+                    }
                 }
                  
-                if (!string.IsNullOrEmpty(item.PostPlaying))
+                switch (string.IsNullOrEmpty(item.PostPlaying))
                 {
-                    var textPlaying = "  " + "[img src=post_icon_game_controller_b/]" + " " + mainContext.GetText(Resource.String.Lbl_IsPlaying) + " " + item.PostPlaying;
-                    textHighLighter += textPlaying;
+                    case false:
+                    {
+                        var textPlaying = "  " + "[img src=post_icon_game_controller_b/]" + " " + mainContext.GetText(Resource.String.Lbl_IsPlaying) + " " + item.PostPlaying;
+                        textHighLighter += textPlaying;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.PostListening))
+                switch (string.IsNullOrEmpty(item.PostListening))
                 {
-                    var textListening = "  " + "[img src=post_icon_musical_notes/]" + " " + mainContext.GetText(Resource.String.Lbl_IsListeningTo) + " " + item.PostListening;
-                    textHighLighter += textListening;
+                    case false:
+                    {
+                        var textListening = "  " + "[img src=post_icon_musical_notes/]" + " " + mainContext.GetText(Resource.String.Lbl_IsListeningTo) + " " + item.PostListening;
+                        textHighLighter += textListening;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.PostMap))
+                switch (string.IsNullOrEmpty(item.PostMap))
                 {
-                    var textLocation = "  " + "[img src=post_icon_pin/]" + " " + item.PostMap.Replace("/", "");
-                    textHighLighter += textLocation;
+                    case false:
+                    {
+                        var textLocation = "  " + "[img src=post_icon_pin/]" + " " + item.PostMap.Replace("/", "");
+                        textHighLighter += textLocation;
+                        break;
+                    }
                 }
 
                 switch (item.PostType)
@@ -351,18 +386,22 @@ namespace WoWonder.Helpers.Fonts
                         break;
                 }
 
-                if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName))
+                switch (string.IsNullOrEmpty(item.PostType))
                 {
-                    if (item?.LiveTime != null && item.LiveTime.Value > 0)
+                    case false when item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName):
                     {
-                        textImageChange += " " + mainContext.GetText(Resource.String.Lbl_IsLiveNow) + " ";
-                    }
-                    else
-                    {
-                        textImageChange += " " + mainContext.GetText(Resource.String.Lbl_WasLive) + " ";
-                    }
+                        if (item?.LiveTime != null && item.LiveTime.Value > 0)
+                        {
+                            textImageChange += " " + mainContext.GetText(Resource.String.Lbl_IsLiveNow) + " ";
+                        }
+                        else
+                        {
+                            textImageChange += " " + mainContext.GetText(Resource.String.Lbl_WasLive) + " ";
+                        }
                    
-                    textHighLighter += textImageChange;
+                        textHighLighter += textImageChange;
+                        break;
+                    }
                 }
 
                 if (item.Product != null && item.SharedInfo.SharedInfoClass == null)
@@ -389,10 +428,14 @@ namespace WoWonder.Helpers.Fonts
                     textHighLighter += textEvent;
                 }
 
-                if (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName != null && item.SharedInfo.SharedInfoClass == null)
+                switch (string.IsNullOrEmpty(item.AlbumName))
                 {
-                    var textAlbumName = " " + mainContext.GetText(Resource.String.Lbl_addedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName);
-                    textHighLighter += textAlbumName;
+                    case false when item.AlbumName != null && item.SharedInfo.SharedInfoClass == null:
+                    {
+                        var textAlbumName = " " + mainContext.GetText(Resource.String.Lbl_addedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName);
+                        textHighLighter += textAlbumName;
+                        break;
+                    }
                 }
 
                 if (item.FundData?.FundDataClass != null && item.SharedInfo.SharedInfoClass == null)
@@ -486,12 +529,18 @@ namespace WoWonder.Helpers.Fonts
                     return;
 
                 var indexFrom = content.IndexOf(content, StringComparison.Ordinal);
-                if (indexFrom <= -1)
-                    indexFrom = 0;
+                indexFrom = indexFrom switch
+                {
+                    <= -1 => 0,
+                    _ => indexFrom
+                };
 
                 var indexLast = indexFrom + content.Length;
-                if (indexLast <= -1)
-                    indexLast = 0;
+                indexLast = indexLast switch
+                {
+                    <= -1 => 0,
+                    _ => indexLast
+                };
 
                 DecoratedContent.SetSpan(new ForegroundColorSpan(Color.ParseColor(color)), indexFrom, indexLast, SpanTypes.ExclusiveExclusive);
             }

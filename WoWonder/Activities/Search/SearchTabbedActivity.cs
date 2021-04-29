@@ -79,21 +79,36 @@ namespace WoWonder.Activities.Search
                 InitComponent();
                 InitToolbar();
                 
-                if (SearchText == "Random" || SearchText == "Random_Groups" || SearchText == "Random_Pages")
+                switch (SearchText)
                 {
-                    SearchText = "a";
-                }
-                else if (!string.IsNullOrEmpty(SearchText))
-                {
-                    Search(SearchText);
-                }
-                else
-                {
-                    if (SearchView == null) 
-                        return;
-                    //SearchView.SetQuery(SearchText, false);
-                    SearchView.ClearFocus();
-                    //SearchView.OnActionViewCollapsed();
+                    case "Random":
+                    case "Random_Groups":
+                    case "Random_Pages":
+                        SearchText = "a";
+                        break;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(SearchText))
+                        {
+                            case false:
+                                Search(SearchText);
+                                break;
+                            default:
+                            {
+                                switch (SearchView)
+                                {
+                                    case null:
+                                        return;
+                                }
+                                //SearchView.SetQuery(SearchText, false);
+                                SearchView.ClearFocus();
+                                //SearchView.OnActionViewCollapsed();
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
                 } 
             }
             catch (Exception e)
@@ -203,10 +218,9 @@ namespace WoWonder.Activities.Search
                  
                 HashRecyclerView = FindViewById<RecyclerView>(Resource.Id.HashRecyler);
 
-                if (AppSettings.ShowTrendingHashTags)
+                switch (AppSettings.ShowTrendingHashTags)
                 {
-                    if (ListUtils.HashTagList?.Count > 0)
-                    {
+                    case true when ListUtils.HashTagList?.Count > 0:
                         HashTagUserAdapter = new HashtagUserAdapter(this)
                         {
                             MHashtagList = new ObservableCollection<TrendingHashtag>(ListUtils.HashTagList)
@@ -216,15 +230,13 @@ namespace WoWonder.Activities.Search
                         HashTagUserAdapter.ItemClick += HashTagUserAdapterOnItemClick;  
 
                         HashRecyclerView.Visibility = ViewStates.Visible;
-                    }
-                    else
-                    {
+                        break;
+                    case true:
                         HashRecyclerView.Visibility = ViewStates.Gone;
-                    }
-                }
-                else
-                {
-                    HashRecyclerView.Visibility = ViewStates.Gone;
+                        break;
+                    default:
+                        HashRecyclerView.Visibility = ViewStates.Gone;
+                        break;
                 }
 
                 FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
@@ -273,14 +285,15 @@ namespace WoWonder.Activities.Search
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    FloatingActionButtonView.Click += FloatingActionButtonViewOnClick;
-                }
-                else
-                {
-                    FloatingActionButtonView.Click -= FloatingActionButtonViewOnClick;
+                    // true +=  // false -=
+                    case true:
+                        FloatingActionButtonView.Click += FloatingActionButtonViewOnClick;
+                        break;
+                    default:
+                        FloatingActionButtonView.Click -= FloatingActionButtonViewOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -327,10 +340,18 @@ namespace WoWonder.Activities.Search
 
                 var adapter = new MainTabAdapter(SupportFragmentManager);
                 adapter.AddFragment(UserTab, GetText(Resource.String.Lbl_Users));
-                if (AppSettings.ShowCommunitiesPages)
-                    adapter.AddFragment(PagesTab, GetText(Resource.String.Lbl_Pages));
-                if (AppSettings.ShowCommunitiesGroups)
-                    adapter.AddFragment(GroupsTab, GetText(Resource.String.Lbl_Groups));
+                switch (AppSettings.ShowCommunitiesPages)
+                {
+                    case true:
+                        adapter.AddFragment(PagesTab, GetText(Resource.String.Lbl_Pages));
+                        break;
+                }
+                switch (AppSettings.ShowCommunitiesGroups)
+                {
+                    case true:
+                        adapter.AddFragment(GroupsTab, GetText(Resource.String.Lbl_Groups));
+                        break;
+                }
 
                 viewPager.OffscreenPageLimit = adapter.Count;
                 viewPager.Adapter = adapter;
@@ -350,17 +371,22 @@ namespace WoWonder.Activities.Search
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = HashTagUserAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        string id = item.Hash.Replace("#", "").Replace("_", " ");
-                        string tag = item?.Tag?.Replace("#", "");
-                        var intent = new Intent(this, typeof(HashTagPostsActivity));
-                        intent.PutExtra("Id", id);
-                        intent.PutExtra("Tag", tag);
-                        StartActivity(intent);
+                        var item = HashTagUserAdapter.GetItem(position);
+                        if (item != null)
+                        {
+                            string id = item.Hash.Replace("#", "").Replace("_", " ");
+                            string tag = item?.Tag?.Replace("#", "");
+                            var intent = new Intent(this, typeof(HashTagPostsActivity));
+                            intent.PutExtra("Id", id);
+                            intent.PutExtra("Tag", tag);
+                            StartActivity(intent);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -395,16 +421,20 @@ namespace WoWonder.Activities.Search
                 UserTab.MAdapter.UserList.Clear();
                 UserTab.MAdapter.NotifyDataSetChanged();
 
-                if (AppSettings.ShowCommunitiesPages)
+                switch (AppSettings.ShowCommunitiesPages)
                 {
-                    PagesTab.MAdapter.PageList.Clear();
-                    PagesTab.MAdapter.NotifyDataSetChanged();
+                    case true:
+                        PagesTab.MAdapter.PageList.Clear();
+                        PagesTab.MAdapter.NotifyDataSetChanged();
+                        break;
                 }
                    
-                if (AppSettings.ShowCommunitiesGroups)
+                switch (AppSettings.ShowCommunitiesGroups)
                 {
-                    GroupsTab.MAdapter.GroupList.Clear();
-                    GroupsTab.MAdapter.NotifyDataSetChanged();
+                    case true:
+                        GroupsTab.MAdapter.GroupList.Clear();
+                        GroupsTab.MAdapter.NotifyDataSetChanged();
+                        break;
                 }
                    
                 OffsetUser = "0";
@@ -418,20 +448,28 @@ namespace WoWonder.Activities.Search
 
                     UserTab.EmptyStateLayout.Visibility = ViewStates.Gone;
 
-                    if (AppSettings.ShowCommunitiesPages)
+                    switch (AppSettings.ShowCommunitiesPages)
                     {
-                        if (PagesTab.ProgressBarLoader != null)
-                            PagesTab.ProgressBarLoader.Visibility = ViewStates.Visible;
+                        case true:
+                        {
+                            if (PagesTab.ProgressBarLoader != null)
+                                PagesTab.ProgressBarLoader.Visibility = ViewStates.Visible;
 
-                        PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        }
                     }
                       
-                    if (AppSettings.ShowCommunitiesGroups)
+                    switch (AppSettings.ShowCommunitiesGroups)
                     {
-                        if (GroupsTab.ProgressBarLoader != null)
-                            GroupsTab.ProgressBarLoader.Visibility = ViewStates.Visible;
+                        case true:
+                        {
+                            if (GroupsTab.ProgressBarLoader != null)
+                                GroupsTab.ProgressBarLoader.Visibility = ViewStates.Visible;
 
-                        GroupsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            GroupsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                            break;
+                        }
                     }
                        
                     StartApiService();
@@ -442,11 +480,13 @@ namespace WoWonder.Activities.Search
 
                     EmptyStateInflater x = new EmptyStateInflater();
                     x.InflateLayout(UserTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    switch (x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                        x.EmptyStateButton.Click -= TryAgainButton_Click;
-                         x.EmptyStateButton.Click += null!;
+                        case false:
+                            x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                            x.EmptyStateButton.Click -= TryAgainButton_Click;
+                            x.EmptyStateButton.Click += null!;
+                            break;
                     }
 
                     x.EmptyStateButton.Click += TryAgainButton_Click;
@@ -470,109 +510,138 @@ namespace WoWonder.Activities.Search
             {
                 SearchText = text;
 
-                if (!string.IsNullOrEmpty(SearchText))
-                {  
-                    if (Methods.CheckConnectivity())
-                    {
-                        UserTab.MAdapter?.UserList?.Clear();
-                        UserTab.MAdapter?.NotifyDataSetChanged();
-                          
-                        if (UserTab.ProgressBarLoader != null)
-                            UserTab.ProgressBarLoader.Visibility = ViewStates.Visible;
-                         
-                        UserTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-
-                        if (AppSettings.ShowCommunitiesPages)
-                        {
-                            PagesTab.MAdapter?.PageList?.Clear();
-                            PagesTab.MAdapter?.NotifyDataSetChanged();
-
-                            if (PagesTab.ProgressBarLoader != null)
-                                PagesTab.ProgressBarLoader.Visibility = ViewStates.Visible;
-
-                            PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                          
-                        if (AppSettings.ShowCommunitiesGroups)
-                        {
-                            GroupsTab.MAdapter?.GroupList?.Clear();
-                            GroupsTab.MAdapter?.NotifyDataSetChanged();
-
-                            if (GroupsTab.ProgressBarLoader != null)
-                                GroupsTab.ProgressBarLoader.Visibility = ViewStates.Visible;
-
-                            GroupsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                         
-                        StartApiService(); 
-                    }
-                }
-                else
+                switch (string.IsNullOrEmpty(SearchText))
                 {
-                    UserTab.Inflated ??= UserTab.EmptyStateLayout?.Inflate();
-
-                    EmptyStateInflater x1 = new EmptyStateInflater();
-                    x1.InflateLayout(UserTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                    if (!x1.EmptyStateButton.HasOnClickListeners)
+                    case false:
                     {
-                        x1.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                        x1.EmptyStateButton.Click -= TryAgainButton_Click;
-                        x1.EmptyStateButton.Click += null!;
+                        if (Methods.CheckConnectivity())
+                        {
+                            UserTab.MAdapter?.UserList?.Clear();
+                            UserTab.MAdapter?.NotifyDataSetChanged();
+                          
+                            if (UserTab.ProgressBarLoader != null)
+                                UserTab.ProgressBarLoader.Visibility = ViewStates.Visible;
+                         
+                            UserTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+
+                            switch (AppSettings.ShowCommunitiesPages)
+                            {
+                                case true:
+                                {
+                                    PagesTab.MAdapter?.PageList?.Clear();
+                                    PagesTab.MAdapter?.NotifyDataSetChanged();
+
+                                    if (PagesTab.ProgressBarLoader != null)
+                                        PagesTab.ProgressBarLoader.Visibility = ViewStates.Visible;
+
+                                    PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                    break;
+                                }
+                            }
+                          
+                            switch (AppSettings.ShowCommunitiesGroups)
+                            {
+                                case true:
+                                {
+                                    GroupsTab.MAdapter?.GroupList?.Clear();
+                                    GroupsTab.MAdapter?.NotifyDataSetChanged();
+
+                                    if (GroupsTab.ProgressBarLoader != null)
+                                        GroupsTab.ProgressBarLoader.Visibility = ViewStates.Visible;
+
+                                    GroupsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                    break;
+                                }
+                            }
+                         
+                            StartApiService(); 
+                        }
+
+                        break;
                     }
-
-                    x1.EmptyStateButton.Click += TryAgainButton_Click;
-                    if (UserTab.EmptyStateLayout != null)
+                    default:
                     {
-                        UserTab.EmptyStateLayout.Visibility = ViewStates.Visible;
-                    } 
+                        UserTab.Inflated ??= UserTab.EmptyStateLayout?.Inflate();
 
-                    UserTab.ProgressBarLoader.Visibility = ViewStates.Gone;
-
-                    //============================================== 
-                    if (AppSettings.ShowCommunitiesPages)
-                    {
-                        PagesTab.Inflated ??= PagesTab.EmptyStateLayout?.Inflate();
-
-                        EmptyStateInflater x2 = new EmptyStateInflater();
-                        x2.InflateLayout(PagesTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                        if (!x2.EmptyStateButton.HasOnClickListeners)
+                        EmptyStateInflater x1 = new EmptyStateInflater();
+                        x1.InflateLayout(UserTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
+                        switch (x1.EmptyStateButton.HasOnClickListeners)
                         {
-                            x2.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                            x2.EmptyStateButton.Click -= TryAgainButton_Click;
-                            x2.EmptyStateButton.Click += null!;
+                            case false:
+                                x1.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                x1.EmptyStateButton.Click -= TryAgainButton_Click;
+                                x1.EmptyStateButton.Click += null!;
+                                break;
                         }
 
-                        x2.EmptyStateButton.Click += TryAgainButton_Click;
-                        if (PagesTab.EmptyStateLayout != null)
+                        x1.EmptyStateButton.Click += TryAgainButton_Click;
+                        if (UserTab.EmptyStateLayout != null)
                         {
-                            PagesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                            UserTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                        } 
+
+                        UserTab.ProgressBarLoader.Visibility = ViewStates.Gone;
+
+                        switch (AppSettings.ShowCommunitiesPages)
+                        {
+                            //============================================== 
+                            case true:
+                            {
+                                PagesTab.Inflated ??= PagesTab.EmptyStateLayout?.Inflate();
+
+                                EmptyStateInflater x2 = new EmptyStateInflater();
+                                x2.InflateLayout(PagesTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
+                                switch (x2.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x2.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                        x2.EmptyStateButton.Click -= TryAgainButton_Click;
+                                        x2.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+
+                                x2.EmptyStateButton.Click += TryAgainButton_Click;
+                                if (PagesTab.EmptyStateLayout != null)
+                                {
+                                    PagesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                }
+
+                                PagesTab.ProgressBarLoader.Visibility = ViewStates.Gone;
+                                break;
+                            }
                         }
 
-                        PagesTab.ProgressBarLoader.Visibility = ViewStates.Gone;
+                        switch (AppSettings.ShowCommunitiesGroups)
+                        {
+                            //============================================== 
+                            case true:
+                            {
+                                GroupsTab.Inflated ??= GroupsTab.EmptyStateLayout?.Inflate();
+
+                                EmptyStateInflater x3 = new EmptyStateInflater();
+                                x3.InflateLayout(GroupsTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
+                                switch (x3.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x3.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                        x3.EmptyStateButton.Click -= TryAgainButton_Click;
+                                        x3.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+
+                                x3.EmptyStateButton.Click += TryAgainButton_Click;
+                                if (GroupsTab.EmptyStateLayout != null)
+                                {
+                                    GroupsTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                }
+
+                                GroupsTab.ProgressBarLoader.Visibility = ViewStates.Gone;
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-
-                    //============================================== 
-                    if (AppSettings.ShowCommunitiesGroups)
-                    {
-                        GroupsTab.Inflated ??= GroupsTab.EmptyStateLayout?.Inflate();
-
-                        EmptyStateInflater x3 = new EmptyStateInflater();
-                        x3.InflateLayout(GroupsTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                        if (!x3.EmptyStateButton.HasOnClickListeners)
-                        {
-                            x3.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                            x3.EmptyStateButton.Click -= TryAgainButton_Click;
-                            x3.EmptyStateButton.Click += null!;
-                        }
-
-                        x3.EmptyStateButton.Click += TryAgainButton_Click;
-                        if (GroupsTab.EmptyStateLayout != null)
-                        {
-                            GroupsTab.EmptyStateLayout.Visibility = ViewStates.Visible;
-                        }
-
-                        GroupsTab.ProgressBarLoader.Visibility = ViewStates.Gone;
-                    }   
                 }
             }
             catch (Exception e)
@@ -591,14 +660,23 @@ namespace WoWonder.Activities.Search
 
         private async Task StartSearchRequest()
         {
-            if (UserTab.MainScrollEvent.IsLoading)
-                return;
+            switch (UserTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             UserTab.MainScrollEvent.IsLoading = true;
-            if (AppSettings.ShowCommunitiesPages)
-                PagesTab.MainScrollEvent.IsLoading = true;
-            if (AppSettings.ShowCommunitiesGroups)
-                GroupsTab.MainScrollEvent.IsLoading = true;
+            PagesTab.MainScrollEvent.IsLoading = AppSettings.ShowCommunitiesPages switch
+            {
+                true => true,
+                _ => PagesTab.MainScrollEvent.IsLoading
+            };
+            GroupsTab.MainScrollEvent.IsLoading = AppSettings.ShowCommunitiesGroups switch
+            {
+                true => true,
+                _ => GroupsTab.MainScrollEvent.IsLoading
+            };
 
             int countUserList = UserTab.MAdapter.UserList.Count;
             int countPageList = PagesTab.MAdapter.PageList.Count;
@@ -623,97 +701,143 @@ namespace WoWonder.Activities.Search
             };
 
             var (apiStatus, respond) = await RequestsAsync.Global.Get_Search(dictionary);
-            if (apiStatus == 200)
+            switch (apiStatus)
             {
-                if (respond is GetSearchObject result)
+                case 200:
                 {
-                    var respondUserList = result.Users?.Count;
-                    if (respondUserList > 0)
+                    switch (respond)
                     {
-                        if (countUserList > 0)
+                        case GetSearchObject result:
                         {
-                            foreach (var item in from item in result.Users let check = UserTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                            var respondUserList = result.Users?.Count;
+                            switch (respondUserList)
                             {
-                                UserTab.MAdapter.UserList.Add(item);
-                            }
-
-                            RunOnUiThread(() => { UserTab.MAdapter.NotifyItemRangeInserted(countUserList, UserTab.MAdapter.UserList.Count - countUserList); });
-                        }
-                        else
-                        {
-                            UserTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Users);
-                            RunOnUiThread(() => { UserTab.MAdapter.NotifyDataSetChanged(); }); 
-                        }
-                    }
-                    else
-                    {
-                        if (UserTab.MAdapter.UserList.Count > 10 && !UserTab.MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                    }
-
-                    if (AppSettings.ShowCommunitiesPages)
-                    {
-                        var respondPageList = result.Pages?.Count;
-                        if (respondPageList > 0)
-                        {
-                            if (countPageList > 0)
-                            {
-                                foreach (var item in from item in result.Pages let check = PagesTab.MAdapter.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
+                                case > 0 when countUserList > 0:
                                 {
-                                    PagesTab.MAdapter.PageList.Add(item);
-                                }
+                                    foreach (var item in from item in result.Users let check = UserTab.MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                    {
+                                        UserTab.MAdapter.UserList.Add(item);
+                                    }
 
-                                RunOnUiThread(() => { PagesTab.MAdapter.NotifyItemRangeInserted(countPageList, PagesTab.MAdapter.PageList.Count - countPageList); });
+                                    RunOnUiThread(() => { UserTab.MAdapter.NotifyItemRangeInserted(countUserList, UserTab.MAdapter.UserList.Count - countUserList); });
+                                    break;
+                                }
+                                case > 0:
+                                    UserTab.MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Users);
+                                    RunOnUiThread(() => { UserTab.MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                                default:
+                                {
+                                    switch (UserTab.MAdapter.UserList.Count)
+                                    {
+                                        case > 10 when !UserTab.MRecycler.CanScrollVertically(1):
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                            break;
+                                    }
+
+                                    break;
+                                }
                             }
-                            else
+
+                            switch (AppSettings.ShowCommunitiesPages)
                             {
-                                PagesTab.MAdapter.PageList = new ObservableCollection<PageClass>(result.Pages);
-                                RunOnUiThread(() => { PagesTab.MAdapter.NotifyDataSetChanged(); });
+                                case true:
+                                {
+                                    var respondPageList = result.Pages?.Count;
+                                    switch (respondPageList)
+                                    {
+                                        case > 0 when countPageList > 0:
+                                        {
+                                            foreach (var item in from item in result.Pages let check = PagesTab.MAdapter.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
+                                            {
+                                                PagesTab.MAdapter.PageList.Add(item);
+                                            }
+
+                                            RunOnUiThread(() => { PagesTab.MAdapter.NotifyItemRangeInserted(countPageList, PagesTab.MAdapter.PageList.Count - countPageList); });
+                                            break;
+                                        }
+                                        case > 0:
+                                            PagesTab.MAdapter.PageList = new ObservableCollection<PageClass>(result.Pages);
+                                            RunOnUiThread(() => { PagesTab.MAdapter.NotifyDataSetChanged(); });
+                                            break;
+                                        default:
+                                        {
+                                            switch (PagesTab.MAdapter.PageList.Count)
+                                            {
+                                                case > 10 when !PagesTab.MRecycler.CanScrollVertically(1):
+                                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMorePages), ToastLength.Short)?.Show();
+                                                    break;
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
                             }
-                        }
-                        else
-                        {
-                            if (PagesTab.MAdapter.PageList.Count > 10 && !PagesTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMorePages), ToastLength.Short)?.Show();
+
+                            switch (AppSettings.ShowCommunitiesGroups)
+                            {
+                                case true:
+                                {
+                                    var respondGroupList = result.Groups?.Count;
+                                    switch (respondGroupList)
+                                    {
+                                        case > 0 when countGroupList > 0:
+                                        {
+                                            foreach (var item in from item in result.Groups let check = GroupsTab.MAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                            {
+                                                GroupsTab.MAdapter.GroupList.Add(item);
+                                            }
+
+                                            RunOnUiThread(() => { GroupsTab.MAdapter.NotifyItemRangeInserted(countGroupList, GroupsTab.MAdapter.GroupList.Count - countGroupList); });
+                                            break;
+                                        }
+                                        case > 0:
+                                            GroupsTab.MAdapter.GroupList = new ObservableCollection<GroupClass>(result.Groups);
+                                            RunOnUiThread(() => { GroupsTab.MAdapter.NotifyDataSetChanged(); });
+                                            break;
+                                        default:
+                                        {
+                                            switch (GroupsTab.MAdapter.GroupList.Count)
+                                            {
+                                                case > 10 when !GroupsTab.MRecycler.CanScrollVertically(1):
+                                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                                    break;
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
                     }
 
-                    if (AppSettings.ShowCommunitiesGroups)
-                    {
-                        var respondGroupList = result.Groups?.Count;
-                        if (respondGroupList > 0)
-                        {
-                            if (countGroupList > 0)
-                            {
-                                foreach (var item in from item in result.Groups let check = GroupsTab.MAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
-                                {
-                                    GroupsTab.MAdapter.GroupList.Add(item);
-                                }
-
-                                RunOnUiThread(() => { GroupsTab.MAdapter.NotifyItemRangeInserted(countGroupList, GroupsTab.MAdapter.GroupList.Count - countGroupList); });
-                            }
-                            else
-                            {
-                                GroupsTab.MAdapter.GroupList = new ObservableCollection<GroupClass>(result.Groups);
-                                RunOnUiThread(() => { GroupsTab.MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (GroupsTab.MAdapter.GroupList.Count > 10 && !GroupsTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
-                        }
-                    } 
+                    break;
                 }
+                default:
+                    Methods.DisplayReportResult(this, respond);
+                    break;
             }
-            else Methods.DisplayReportResult(this, respond);
              
             RunOnUiThread(ShowEmptyPage);
             UserTab.MainScrollEvent.IsLoading = false;
-            if (AppSettings.ShowCommunitiesPages)
-                PagesTab.MainScrollEvent.IsLoading = false;
-            if (AppSettings.ShowCommunitiesGroups)
-                GroupsTab.MainScrollEvent.IsLoading = false;
+            PagesTab.MainScrollEvent.IsLoading = AppSettings.ShowCommunitiesPages switch
+            {
+                true => false,
+                _ => PagesTab.MainScrollEvent.IsLoading
+            };
+            GroupsTab.MainScrollEvent.IsLoading = AppSettings.ShowCommunitiesGroups switch
+            {
+                true => false,
+                _ => GroupsTab.MainScrollEvent.IsLoading
+            };
         }
 
         private void ShowEmptyPage()
@@ -721,75 +845,90 @@ namespace WoWonder.Activities.Search
             try
             {
                 UserTab.ProgressBarLoader.Visibility = ViewStates.Gone;
-                if (AppSettings.ShowCommunitiesPages)
-                    PagesTab.ProgressBarLoader.Visibility = ViewStates.Gone;
-                if (AppSettings.ShowCommunitiesGroups)
-                    GroupsTab.ProgressBarLoader.Visibility = ViewStates.Gone;
-
-                if (UserTab.MAdapter.UserList.Count > 0)
+                PagesTab.ProgressBarLoader.Visibility = AppSettings.ShowCommunitiesPages switch
                 {
-                    UserTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
+                    true => ViewStates.Gone,
+                    _ => PagesTab.ProgressBarLoader.Visibility
+                };
+                GroupsTab.ProgressBarLoader.Visibility = AppSettings.ShowCommunitiesGroups switch
                 {
-                    UserTab.Inflated ??= UserTab.EmptyStateLayout.Inflate();
+                    true => ViewStates.Gone,
+                    _ => GroupsTab.ProgressBarLoader.Visibility
+                };
 
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(UserTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (UserTab.MAdapter.UserList.Count)
+                {
+                    case > 0:
+                        UserTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                        x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                        x.EmptyStateButton.Click -= TryAgainButton_Click;
+                        UserTab.Inflated ??= UserTab.EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(UserTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                x.EmptyStateButton.Click -= TryAgainButton_Click;
+                                break;
+                        }
+
+                        x.EmptyStateButton.Click += TryAgainButton_Click;
+                        UserTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-
-                    x.EmptyStateButton.Click += TryAgainButton_Click;
-                    UserTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
 
-                if (AppSettings.ShowCommunitiesPages)
+                switch (AppSettings.ShowCommunitiesPages)
                 {
-                    if (PagesTab.MAdapter.PageList.Count > 0)
-                    {
+                    case true when PagesTab.MAdapter.PageList.Count > 0:
                         PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        break;
+                    case true:
                     {
                         PagesTab.Inflated ??= PagesTab.EmptyStateLayout.Inflate();
 
                         EmptyStateInflater x = new EmptyStateInflater();
                         x.InflateLayout(PagesTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        switch (x.EmptyStateButton.HasOnClickListeners)
                         {
-                            x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                            x.EmptyStateButton.Click -= TryAgainButton_Click;
+                            case false:
+                                x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                x.EmptyStateButton.Click -= TryAgainButton_Click;
+                                break;
                         }
 
                         x.EmptyStateButton.Click += TryAgainButton_Click;
                         PagesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
                 }
 
-                if (AppSettings.ShowCommunitiesGroups)
+                switch (AppSettings.ShowCommunitiesGroups)
                 {
-                    if (GroupsTab.MAdapter.GroupList.Count > 0)
-                    {
+                    case true when GroupsTab.MAdapter.GroupList.Count > 0:
                         GroupsTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                    }
-                    else
+                        break;
+                    case true:
                     {
                         GroupsTab.Inflated ??= GroupsTab.EmptyStateLayout.Inflate();
 
                         EmptyStateInflater x = new EmptyStateInflater();
                         x.InflateLayout(GroupsTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                        if (!x.EmptyStateButton.HasOnClickListeners)
+                        switch (x.EmptyStateButton.HasOnClickListeners)
                         {
-                            x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                            x.EmptyStateButton.Click -= TryAgainButton_Click;
-                            x.EmptyStateButton.Click += null!;
+                            case false:
+                                x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                x.EmptyStateButton.Click -= TryAgainButton_Click;
+                                x.EmptyStateButton.Click += null!;
+                                break;
                         }
 
                         x.EmptyStateButton.Click += TryAgainButton_Click;
                         GroupsTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
                 } 
             }
@@ -824,16 +963,20 @@ namespace WoWonder.Activities.Search
                 SearchView.ClearFocus();
                 UserTab.MAdapter.UserList.Clear();
                 UserTab.MAdapter.NotifyDataSetChanged();
-                if (AppSettings.ShowCommunitiesPages)
+                switch (AppSettings.ShowCommunitiesPages)
                 {
-                    PagesTab.MAdapter.PageList.Clear();
-                    PagesTab.MAdapter.NotifyDataSetChanged();
+                    case true:
+                        PagesTab.MAdapter.PageList.Clear();
+                        PagesTab.MAdapter.NotifyDataSetChanged();
+                        break;
                 }
                    
-                if (AppSettings.ShowCommunitiesGroups)
+                switch (AppSettings.ShowCommunitiesGroups)
                 {
-                    GroupsTab.MAdapter.GroupList.Clear();
-                    GroupsTab.MAdapter.NotifyDataSetChanged();
+                    case true:
+                        GroupsTab.MAdapter.GroupList.Clear();
+                        GroupsTab.MAdapter.NotifyDataSetChanged();
+                        break;
                 }
                     
                 OffsetUser = "0";
@@ -859,11 +1002,13 @@ namespace WoWonder.Activities.Search
 
                     EmptyStateInflater x = new EmptyStateInflater();
                     x.InflateLayout(UserTab.Inflated, EmptyStateInflater.Type.NoSearchResult);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    switch (x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                        x.EmptyStateButton.Click -= TryAgainButton_Click;
-                        x.EmptyStateButton.Click += null!;
+                        case false:
+                            x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                            x.EmptyStateButton.Click -= TryAgainButton_Click;
+                            x.EmptyStateButton.Click += null!;
+                            break;
                     }
 
                     x.EmptyStateButton.Click += TryAgainButton_Click;
@@ -881,24 +1026,25 @@ namespace WoWonder.Activities.Search
 
         public bool OnEditorAction(TextView v, [GeneratedEnum] ImeAction actionId, KeyEvent e)
         {
-            if (actionId == ImeAction.Search)
+            switch (actionId)
             {
-                SearchText = v.Text;
+                case ImeAction.Search:
+                    SearchText = v.Text;
 
-                SearchView.ClearFocus();
-                v.ClearFocus();
+                    SearchView.ClearFocus();
+                    v.ClearFocus();
 
-                SearchViewOnQueryTextSubmit(SearchText);
+                    SearchViewOnQueryTextSubmit(SearchText);
 
-                SearchView.ClearFocus();
-                v.ClearFocus();
+                    SearchView.ClearFocus();
+                    v.ClearFocus();
 
-                HideKeyboard();
+                    HideKeyboard();
 
-                return true;
+                    return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
 
         private void HideKeyboard()

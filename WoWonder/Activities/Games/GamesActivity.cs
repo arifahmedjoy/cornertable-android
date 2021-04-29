@@ -129,11 +129,17 @@ namespace WoWonder.Activities.Games
         {
             try
             {
-                if (GamesTab.MAdapter.GamesList.Count > 0)
-                    ListUtils.ListCachedDataGames = GamesTab.MAdapter.GamesList;
+                ListUtils.ListCachedDataGames = GamesTab.MAdapter.GamesList.Count switch
+                {
+                    > 0 => GamesTab.MAdapter.GamesList,
+                    _ => ListUtils.ListCachedDataGames
+                };
 
-                if (MyGamesTab.MAdapter.GamesList.Count > 0)
-                    ListUtils.ListCachedDataMyGames = MyGamesTab.MAdapter.GamesList;
+                ListUtils.ListCachedDataMyGames = MyGamesTab.MAdapter.GamesList.Count switch
+                {
+                    > 0 => MyGamesTab.MAdapter.GamesList,
+                    _ => ListUtils.ListCachedDataMyGames
+                };
 
                 DestroyBasic();
                 base.OnDestroy();
@@ -288,14 +294,13 @@ namespace WoWonder.Activities.Games
         {
             try
             {
-                // true +=  // false -=
-                if (addGames)
+                switch (addGames)
                 {
-                    
-                }
-                else
-                {
-                    
+                    // true +=  // false -=
+                    case true:
+                        break;
+                    default:
+                        break;
                 }
             }
             catch (Exception e)
@@ -391,8 +396,11 @@ namespace WoWonder.Activities.Games
 
         public async Task GetGames(string offset = "0")
         {
-            if (GamesTab.MainScrollEvent.IsLoading)
-                return;
+            switch (GamesTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -400,36 +408,54 @@ namespace WoWonder.Activities.Games
                 var countList = GamesTab.MAdapter.GamesList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Games.FetchGames("6", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is FetchGamesObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case FetchGamesObject result:
                             {
-                                foreach (var item in from item in result.Data let check = GamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    GamesTab.MAdapter.GamesList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = GamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            GamesTab.MAdapter.GamesList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        GamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
+                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (GamesTab.MAdapter.GamesList.Count)
+                                        {
+                                            case > 10 when !GamesTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
-                            }
-                            else
-                            {
-                                GamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
-                                RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (GamesTab.MAdapter.GamesList.Count > 10 && !GamesTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(() => ShowEmptyPage("GetGames"));
             }
@@ -438,10 +464,12 @@ namespace WoWonder.Activities.Games
                 GamesTab.Inflated = GamesTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -451,8 +479,11 @@ namespace WoWonder.Activities.Games
 
         public async Task GetMyGames(string offset = "0")
         {
-            if (MyGamesTab.MainScrollEvent.IsLoading)
-                return;
+            switch (MyGamesTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -460,36 +491,54 @@ namespace WoWonder.Activities.Games
                 var countList = MyGamesTab.MAdapter.GamesList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Games.FetchMyhGames("6", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is FetchGamesObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case FetchGamesObject result:
                             {
-                                foreach (var item in from item in result.Data let check = MyGamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    MyGamesTab.MAdapter.GamesList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MyGamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MyGamesTab.MAdapter.GamesList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MyGamesTab.MAdapter.NotifyItemRangeInserted(countList, MyGamesTab.MAdapter.GamesList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MyGamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
+                                        RunOnUiThread(() => { MyGamesTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MyGamesTab.MAdapter.GamesList.Count)
+                                        {
+                                            case > 10 when !MyGamesTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MyGamesTab.MAdapter.NotifyItemRangeInserted(countList, MyGamesTab.MAdapter.GamesList.Count - countList); });
-                            }
-                            else
-                            {
-                                MyGamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
-                                RunOnUiThread(() => { MyGamesTab.MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MyGamesTab.MAdapter.GamesList.Count > 10 && !MyGamesTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(()=> ShowEmptyPage("GetMyGames"));
             }
@@ -498,10 +547,12 @@ namespace WoWonder.Activities.Games
                 MyGamesTab.Inflated = MyGamesTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(MyGamesTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -511,8 +562,11 @@ namespace WoWonder.Activities.Games
 
         public async Task SearchGames(string offset = "0")
         {
-            if (GamesTab.MainScrollEvent.IsLoading)
-                return;
+            switch (GamesTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -520,36 +574,54 @@ namespace WoWonder.Activities.Games
                 var countList = GamesTab.MAdapter.GamesList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Games.SearchGames(SearchKey,"15", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is FetchGamesObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case FetchGamesObject result:
                             {
-                                foreach (var item in from item in result.Data let check = GamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    GamesTab.MAdapter.GamesList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = GamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            GamesTab.MAdapter.GamesList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        GamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
+                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (GamesTab.MAdapter.GamesList.Count)
+                                        {
+                                            case > 10 when !GamesTab.MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
-                            }
-                            else
-                            {
-                                GamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
-                                RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (GamesTab.MAdapter.GamesList.Count > 10 && !GamesTab.MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(() => ShowEmptyPage("GetGames"));
             }
@@ -558,10 +630,12 @@ namespace WoWonder.Activities.Games
                 GamesTab.Inflated = GamesTab.EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -580,25 +654,33 @@ namespace WoWonder.Activities.Games
                         GamesTab.MainScrollEvent.IsLoading = false;
                         GamesTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (GamesTab.MAdapter.GamesList.Count > 0)
+                        switch (GamesTab.MAdapter.GamesList.Count)
                         {
-                            GamesTab.MRecycler.Visibility = ViewStates.Visible;
-                            GamesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            GamesTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (GamesTab.Inflated == null)
-                                GamesTab.Inflated = GamesTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoGames);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                GamesTab.MRecycler.Visibility = ViewStates.Visible;
+                                GamesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!; 
+                                GamesTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                GamesTab.Inflated = GamesTab.Inflated switch
+                                {
+                                    null => GamesTab.EmptyStateLayout.Inflate(),
+                                    _ => GamesTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoGames);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+                                GamesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            GamesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -608,25 +690,33 @@ namespace WoWonder.Activities.Games
                         MyGamesTab.MainScrollEvent.IsLoading = false;
                         MyGamesTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (MyGamesTab.MAdapter.GamesList.Count > 0)
+                        switch (MyGamesTab.MAdapter.GamesList.Count)
                         {
-                            MyGamesTab.MRecycler.Visibility = ViewStates.Visible;
-                            MyGamesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            MyGamesTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (MyGamesTab.Inflated == null)
-                                MyGamesTab.Inflated = MyGamesTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(MyGamesTab.Inflated, EmptyStateInflater.Type.NoGames);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                MyGamesTab.MRecycler.Visibility = ViewStates.Visible;
+                                MyGamesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!; 
+                                MyGamesTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                MyGamesTab.Inflated = MyGamesTab.Inflated switch
+                                {
+                                    null => MyGamesTab.EmptyStateLayout.Inflate(),
+                                    _ => MyGamesTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(MyGamesTab.Inflated, EmptyStateInflater.Type.NoGames);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+                                MyGamesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            MyGamesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;

@@ -153,21 +153,27 @@ namespace WoWonder.Helpers.Ads
                 //}
 
                 float primaryTextSize = Styles.GetPrimaryTextSize();
-                if (primaryTextSize > 0)
+                switch (primaryTextSize)
                 {
-                    PrimaryView?.SetTextSize(ComplexUnitType.Sp, primaryTextSize);
+                    case > 0:
+                        PrimaryView?.SetTextSize(ComplexUnitType.Sp, primaryTextSize);
+                        break;
                 }
 
                 float secondaryTextSize = Styles.GetSecondaryTextSize();
-                if (secondaryTextSize > 0)
+                switch (secondaryTextSize)
                 {
-                    SecondaryView?.SetTextSize(ComplexUnitType.Sp, secondaryTextSize);
+                    case > 0:
+                        SecondaryView?.SetTextSize(ComplexUnitType.Sp, secondaryTextSize);
+                        break;
                 }
 
                 float tertiaryTextSize = Styles.GetTertiaryTextSize();
-                if (tertiaryTextSize > 0)
+                switch (tertiaryTextSize)
                 {
-                    TertiaryView?.SetTextSize(ComplexUnitType.Sp, tertiaryTextSize);
+                    case > 0:
+                        TertiaryView?.SetTextSize(ComplexUnitType.Sp, tertiaryTextSize);
+                        break;
                 }
 
                 //Drawable ctaBackground = Styles.GetCallToActionBackgroundColor();
@@ -312,15 +318,12 @@ namespace WoWonder.Helpers.Ads
 
         public string GetTemplateTypeName()
         {
-            switch (TemplateType)
+            return TemplateType switch
             {
-                case Resource.Layout.gnt_medium_template_view:
-                    return MediumTemplate;
-                case Resource.Layout.gnt_NativeContentAd_view:
-                    return NativeContentAd;
-                default:
-                    return "";
-            }
+                Resource.Layout.gnt_medium_template_view => MediumTemplate,
+                Resource.Layout.gnt_NativeContentAd_view => NativeContentAd,
+                _ => ""
+            };
         }
 
         private void InitView(Context context, IAttributeSet attributeSet)
@@ -355,23 +358,26 @@ namespace WoWonder.Helpers.Ads
 
                 NativeAdView = (UnifiedNativeAdView)FindViewById(Resource.Id.native_ad_view);
 
-                if (!AppSettings.ShowAdMobNative)
+                switch (AppSettings.ShowAdMobNative)
                 {
-                    if (NativeAdView != null) NativeAdView.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    PrimaryView = (TextView)FindViewById(Resource.Id.primary);
-                    SecondaryView = (TextView)FindViewById(Resource.Id.secondary);
-                    TertiaryView = (TextView)FindViewById(Resource.Id.body);
+                    case false:
+                    {
+                        if (NativeAdView != null) NativeAdView.Visibility = ViewStates.Gone;
+                        break;
+                    }
+                    default:
+                        PrimaryView = (TextView)FindViewById(Resource.Id.primary);
+                        SecondaryView = (TextView)FindViewById(Resource.Id.secondary);
+                        TertiaryView = (TextView)FindViewById(Resource.Id.body);
 
-                    //RatingBar = (RatingBar)FindViewById(Resource.Id.rating_bar);
-                    //RatingBar.Enabled=false;
+                        //RatingBar = (RatingBar)FindViewById(Resource.Id.rating_bar);
+                        //RatingBar.Enabled=false;
 
-                    //CallToActionView = (Button)FindViewById(Resource.Id.cta);
-                    IconView = (ImageView)FindViewById(Resource.Id.icon);
-                    MediaView = (MediaView)FindViewById(Resource.Id.media_view);
-                    Background = (LinearLayout)FindViewById(Resource.Id.background);
+                        //CallToActionView = (Button)FindViewById(Resource.Id.cta);
+                        IconView = (ImageView)FindViewById(Resource.Id.icon);
+                        MediaView = (MediaView)FindViewById(Resource.Id.media_view);
+                        Background = (LinearLayout)FindViewById(Resource.Id.background);
+                        break;
                 }
             }
             catch (Exception e)
@@ -419,26 +425,30 @@ namespace WoWonder.Helpers.Ads
                     ((Button)NativeAdView.CallToActionView).Text = nativeAd.CallToAction;
                 }
 
-                if (nativeAd.Icon == null)
+                switch (nativeAd.Icon)
                 {
-                    NativeAdView.IconView.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    ((ImageView)NativeAdView.IconView).SetImageDrawable(nativeAd.Icon.Drawable);
-                    NativeAdView.IconView.Visibility = ViewStates.Visible;
+                    case null:
+                        NativeAdView.IconView.Visibility = ViewStates.Gone;
+                        break;
+                    default:
+                        ((ImageView)NativeAdView.IconView).SetImageDrawable(nativeAd.Icon.Drawable);
+                        NativeAdView.IconView.Visibility = ViewStates.Visible;
+                        break;
                 }
 
-                if (nativeAd.Images?.Count == 0)
+                switch (nativeAd.Images?.Count)
                 {
-                    NativeAdView.IconView.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    if (nativeAd.Images != null)
-                        ((ImageView)NativeAdView.ImageView).SetImageDrawable(nativeAd.Images[0].Drawable);
+                    case 0:
+                        NativeAdView.IconView.Visibility = ViewStates.Gone;
+                        break;
+                    default:
+                    {
+                        if (nativeAd.Images != null)
+                            ((ImageView)NativeAdView.ImageView).SetImageDrawable(nativeAd.Images[0].Drawable);
 
-                    NativeAdView.ImageView.Visibility = ViewStates.Visible;
+                        NativeAdView.ImageView.Visibility = ViewStates.Visible;
+                        break;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(nativeAd.Advertiser))
@@ -459,20 +469,20 @@ namespace WoWonder.Helpers.Ads
                 // have a video asset.
                 VideoController vc = nativeAd.VideoController;
 
-                // Updates the UI to say whether or not this ad has a video asset.
-                if (vc.HasVideoContent)
+                switch (vc.HasVideoContent)
                 {
-                    //"Video status: Ad contains a %.2f:1 video asset."
+                    // Updates the UI to say whether or not this ad has a video asset.
+                    case true:
+                        //"Video status: Ad contains a %.2f:1 video asset."
 
-                    // Create a new VideoLifecycleCallbacks object and pass it to the VideoController. The
-                    // VideoController will call methods on this object when events occur in the video
-                    // lifecycle.
-                    vc.SetVideoLifecycleCallbacks(new VideoController.VideoLifecycleCallbacks());
-
-                }
-                else
-                {
-                    //"Video status: Ad does not contain a video asset."
+                        // Create a new VideoLifecycleCallbacks object and pass it to the VideoController. The
+                        // VideoController will call methods on this object when events occur in the video
+                        // lifecycle.
+                        vc.SetVideoLifecycleCallbacks(new VideoController.VideoLifecycleCallbacks());
+                        break;
+                    default:
+                        //"Video status: Ad does not contain a video asset."
+                        break;
                 }
             }
             catch (Exception e)

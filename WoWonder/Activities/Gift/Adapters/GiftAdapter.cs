@@ -69,24 +69,32 @@ namespace WoWonder.Activities.Gift.Adapters
         {
             try
             {
-                if (viewHolder is GiftAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = GiftsList[position];
-                    if (item != null)
+                    case GiftAdapterViewHolder holder:
                     {
-                        var imageSplit = item.MediaFile.Split('/').Last(); 
-                        string getImage = Methods.MultiMedia.GetMediaFrom_Disk(Methods.Path.FolderDiskGif, imageSplit);
-                        if (getImage == "File Dont Exists")
+                        var item = GiftsList[position];
+                        if (item != null)
                         {
-                            Glide.With(ActivityContext).Load(item.MediaFile).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)).Into(holder.ImgGift);
-                            Methods.MultiMedia.DownloadMediaTo_DiskAsync(Methods.Path.FolderDiskGif, item.MediaFile);
+                            var imageSplit = item.MediaFile.Split('/').Last(); 
+                            string getImage = Methods.MultiMedia.GetMediaFrom_Disk(Methods.Path.FolderDiskGif, imageSplit);
+                            switch (getImage)
+                            {
+                                case "File Dont Exists":
+                                    Glide.With(ActivityContext).Load(item.MediaFile).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)).Into(holder.ImgGift);
+                                    Methods.MultiMedia.DownloadMediaTo_DiskAsync(Methods.Path.FolderDiskGif, item.MediaFile);
+                                    break;
+                                default:
+                                {
+                                    File file2 = new File(getImage);
+                                    var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                    Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)).Into(holder.ImgGift);
+                                    break;
+                                }
+                            } 
                         }
-                        else
-                        {
-                            File file2 = new File(getImage);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)).Into(holder.ImgGift);
-                        } 
+
+                        break;
                     }
                 }
             }
@@ -102,10 +110,12 @@ namespace WoWonder.Activities.Gift.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is GiftAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.ImgGift);
-                }
+                 switch (holder)
+                 {
+                     case GiftAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.ImgGift);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -161,8 +171,11 @@ namespace WoWonder.Activities.Gift.Adapters
                 var d = new List<string>();
                 var item = GiftsList[p0];
 
-                if (item == null)
-                   return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.MediaFile != "")
                 {

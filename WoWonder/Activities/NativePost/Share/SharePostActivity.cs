@@ -201,14 +201,15 @@ namespace WoWonder.Activities.NativePost.Share
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSharePost.Click += TxtSharePostOnClick;
-                }
-                else
-                {
-                    TxtSharePost.Click -= TxtSharePostOnClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtSharePost.Click += TxtSharePostOnClick;
+                        break;
+                    default:
+                        TxtSharePost.Click -= TxtSharePostOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -240,28 +241,43 @@ namespace WoWonder.Activities.NativePost.Share
                     case "Group":
                     {
                         (int apiStatus, dynamic respond) = await RequestsAsync.Posts.SharePostToAsync(PostData.PostId, GroupData.GroupId, "share_post_on_group", TxtContentPost.Text);
-                        if (apiStatus == 200) 
-                            ResultApi(apiStatus, respond);
-                        else 
-                            Methods.DisplayAndHudErrorResult(this, respond);
+                        switch (apiStatus)
+                        {
+                            case 200:
+                                ResultApi(apiStatus, respond);
+                                break;
+                            default:
+                                Methods.DisplayAndHudErrorResult(this, respond);
+                                break;
+                        }
                         break;
                     }
                     case "Page":
                     {
                         (int apiStatus, dynamic respond) = await RequestsAsync.Posts.SharePostToAsync(PostData.PostId, PageData.PageId, "share_post_on_page",TxtContentPost.Text);
-                        if (apiStatus == 200) 
-                            ResultApi(apiStatus, respond);
-                        else 
-                            Methods.DisplayAndHudErrorResult(this, respond);
+                        switch (apiStatus)
+                        {
+                            case 200:
+                                ResultApi(apiStatus, respond);
+                                break;
+                            default:
+                                Methods.DisplayAndHudErrorResult(this, respond);
+                                break;
+                        }
                         break;
                     }
                     case "MyTimeline":
                     {
                         (int apiStatus, dynamic respond) = await RequestsAsync.Posts.SharePostToAsync(PostData.PostId, UserDetails.UserId, "share_post_on_timeline", TxtContentPost.Text);
-                        if (apiStatus == 200)
-                            ResultApi(apiStatus, respond);
-                        else
-                            Methods.DisplayAndHudErrorResult(this, respond);
+                        switch (apiStatus)
+                        {
+                            case 200:
+                                ResultApi(apiStatus, respond);
+                                break;
+                            default:
+                                Methods.DisplayAndHudErrorResult(this, respond);
+                                break;
+                        }
                         break;
                     }
                 } 
@@ -276,107 +292,127 @@ namespace WoWonder.Activities.NativePost.Share
         {
             try
             {
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is SharePostToObject result)
+                    case 200:
                     {
-                        AndHUD.Shared.Dismiss(this);
-
-                        //if (result.Data.SharedInfo.SharedInfoClass == null)
-                        //{
-                        //    result.Data.ParentId = PostData.PostId;
-
-                        //    result.Data.SharedInfo = new SharedInfoUnion
-                        //    {
-                        //        SharedInfoClass = PostData
-                        //    };
-                        //}
-
-                        //var globalContextTabbed = TabbedMainActivity.GetInstance();
-
-                        //var countList = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
-
-                        //var combine = new FeedCombiner(result.Data, globalContextTabbed?.NewsFeedTab?.PostFeedAdapter?.ListDiffer, this);
-                        //combine.CombineDefaultPostSections("Top");
-
-                        //int countIndex = 1;
-                        //var model1 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                        //var model2 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                        //var model3 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                        //var model4 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                        //var model5 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                        //if (model5 != null)
-                        //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                        //else if (model4 != null)
-                        //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                        //else if (model3 != null)
-                        //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                        //else if (model2 != null)
-                        //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                        //else if (model1 != null)
-                        //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                        //else
-                        //    countIndex = 0;
-
-                        //var emptyStateChecker = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                        //if (emptyStateChecker != null && globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
-                        //    globalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
-
-                        //globalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
-
-                        if (TypePost == "MyTimeline")
+                        switch (respond)
                         {
-                            MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
-                            if (myProfileActivity != null)
+                            case SharePostToObject result:
                             {
-                                var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+                                AndHUD.Shared.Dismiss(this);
 
-                                var combine1 = new FeedCombiner(result.Data, myProfileActivity.PostFeedAdapter.ListDiffer, this);
+                                //if (result.Data.SharedInfo.SharedInfoClass == null)
+                                //{
+                                //    result.Data.ParentId = PostData.PostId;
 
-                                var check1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
-                                if (check1 != null)
-                                    combine1.CombineDefaultPostSections("Top");
-                                else
-                                    combine1.CombineDefaultPostSections();
+                                //    result.Data.SharedInfo = new SharedInfoUnion
+                                //    {
+                                //        SharedInfoClass = PostData
+                                //    };
+                                //}
 
-                                int countIndex1 = 1;
-                                var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                //var globalContextTabbed = TabbedMainActivity.GetInstance();
 
-                                if (model51 != null)
-                                    countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
-                                else if (model41 != null)
-                                    countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
-                                else if (model31 != null)
-                                    countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
-                                else if (model21 != null)
-                                    countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
-                                else if (model11 != null)
-                                    countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model11) + 1;
-                                else
-                                    countIndex1 = 0;
+                                //var countList = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
 
-                                var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
-                                    myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
+                                //var combine = new FeedCombiner(result.Data, globalContextTabbed?.NewsFeedTab?.PostFeedAdapter?.ListDiffer, this);
+                                //combine.CombineDefaultPostSections("Top");
 
-                                myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
-                            } 
+                                //int countIndex = 1;
+                                //var model1 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                //var model2 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                //var model3 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                //var model4 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                //var model5 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+
+                                //if (model5 != null)
+                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                //else if (model4 != null)
+                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                //else if (model3 != null)
+                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                //else if (model2 != null)
+                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                //else if (model1 != null)
+                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
+                                //else
+                                //    countIndex = 0;
+
+                                //var emptyStateChecker = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                //if (emptyStateChecker != null && globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
+                                //    globalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
+
+                                //globalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
+
+                                switch (TypePost)
+                                {
+                                    case "MyTimeline":
+                                    {
+                                        MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
+                                        if (myProfileActivity != null)
+                                        {
+                                            var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+
+                                            var combine1 = new FeedCombiner(result.Data, myProfileActivity.PostFeedAdapter.ListDiffer, this);
+
+                                            var check1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                            if (check1 != null)
+                                                combine1.CombineDefaultPostSections("Top");
+                                            else
+                                                combine1.CombineDefaultPostSections();
+
+                                            int countIndex1 = 1;
+                                            var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                            var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                            var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                            var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                            var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+
+                                            if (model51 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
+                                            else if (model41 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
+                                            else if (model31 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
+                                            else if (model21 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
+                                            else if (model11 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model11) + 1;
+                                            else
+                                                countIndex1 = 0;
+
+                                            var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                            if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                                myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
+
+                                            myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_PostSuccessfullyShared), ToastLength.Short)?.Show();
+
+                                switch (UserDetails.SoundControl)
+                                {
+                                    case true:
+                                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("PopNotificationPost.mp3");
+                                        break;
+                                }
+
+                                Finish();
+                                break;
+                            }
                         }
 
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_PostSuccessfullyShared), ToastLength.Short)?.Show();
-
-                        if (UserDetails.SoundControl)
-                            Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("PopNotificationPost.mp3");
-
-                        Finish();
+                        break;
                     }
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayAndHudErrorResult(this, respond);
             }
             catch (Exception e)
             {

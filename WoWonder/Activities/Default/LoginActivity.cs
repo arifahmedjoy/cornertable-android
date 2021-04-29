@@ -78,24 +78,28 @@ namespace WoWonder.Activities.Default
                 InitSocialLogins();
                 GetTimezone();
 
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    LoadConfigSettings(); 
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
+                        LoadConfigSettings();
+                        break;
+                    default:
                     {
-                        LoadConfigSettings(); 
-                    }
-                    else
-                    {
-                        RequestPermissions(new[]
+                        if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
                         {
-                            Manifest.Permission.ReadExternalStorage,
-                            Manifest.Permission.WriteExternalStorage
-                        }, 101);
+                            LoadConfigSettings(); 
+                        }
+                        else
+                        {
+                            RequestPermissions(new[]
+                            {
+                                Manifest.Permission.ReadExternalStorage,
+                                Manifest.Permission.WriteExternalStorage
+                            }, 101);
+                        }
+
+                        break;
                     }
                 }
 
@@ -218,9 +222,12 @@ namespace WoWonder.Activities.Default
                 ProgressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
                 ProgressBar.Visibility = ViewStates.Gone;
                 MButtonViewSignIn.Visibility = ViewStates.Visible;
-                
-                if (!AppSettings.EnableRegisterSystem)
-                    LayoutCreateAccount.Visibility = ViewStates.Gone;
+
+                LayoutCreateAccount.Visibility = AppSettings.EnableRegisterSystem switch
+                {
+                    false => ViewStates.Gone,
+                    _ => LayoutCreateAccount.Visibility
+                };
             }
             catch (Exception e)
             {
@@ -232,20 +239,21 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MButtonViewSignIn.Click += BtnLoginOnClick;
-                    MTextViewCreateAccount.Click += RegisterButton_Click;
-                    MTextViewSignUp.Click += RegisterButton_Click;
-                    MTextViewForgotPwd.Click += TxtForgetPassOnClick;
-                }
-                else
-                {
-                    MButtonViewSignIn.Click -= BtnLoginOnClick;
-                    MTextViewCreateAccount.Click -= RegisterButton_Click;
-                    MTextViewSignUp.Click -= RegisterButton_Click;
-                    MTextViewForgotPwd.Click -= TxtForgetPassOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MButtonViewSignIn.Click += BtnLoginOnClick;
+                        MTextViewCreateAccount.Click += RegisterButton_Click;
+                        MTextViewSignUp.Click += RegisterButton_Click;
+                        MTextViewForgotPwd.Click += TxtForgetPassOnClick;
+                        break;
+                    default:
+                        MButtonViewSignIn.Click -= BtnLoginOnClick;
+                        MTextViewCreateAccount.Click -= RegisterButton_Click;
+                        MTextViewSignUp.Click -= RegisterButton_Click;
+                        MTextViewForgotPwd.Click -= TxtForgetPassOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -258,64 +266,72 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                //#Facebook
-                if (AppSettings.ShowFacebookLogin)
+                switch (AppSettings.ShowFacebookLogin)
                 {
-                    //FacebookSdk.SdkInitialize(this);
-
-                    ProfileTracker = new FbMyProfileTracker();
-                    ProfileTracker.StartTracking();
-                    ProfileTracker.MOnProfileChanged += ProfileTrackerOnMOnProfileChanged;
-
-                    BtnFbLogin = FindViewById<LoginButton>(Resource.Id.fblogin_button);
-                    BtnFbLogin.Visibility = ViewStates.Visible;
-                    BtnFbLogin.SetPermissions(new List<string>
+                    //#Facebook
+                    case true:
                     {
-                        "email",
-                        "public_profile"
-                    });
+                        //FacebookSdk.SdkInitialize(this);
 
-                    MFbCallManager = CallbackManagerFactory.Create();
-                    BtnFbLogin.RegisterCallback(MFbCallManager, this);
+                        ProfileTracker = new FbMyProfileTracker();
+                        ProfileTracker.StartTracking();
+                        ProfileTracker.MOnProfileChanged += ProfileTrackerOnMOnProfileChanged;
 
-                    //FB accessToken
-                    var accessToken = AccessToken.CurrentAccessToken;
-                    var isLoggedIn = accessToken != null && !accessToken.IsExpired;
-                    if (isLoggedIn && Profile.CurrentProfile != null)
-                    {
-                        LoginManager.Instance.LogOut();
+                        BtnFbLogin = FindViewById<LoginButton>(Resource.Id.fblogin_button);
+                        BtnFbLogin.Visibility = ViewStates.Visible;
+                        BtnFbLogin.SetPermissions(new List<string>
+                        {
+                            "email",
+                            "public_profile"
+                        });
+
+                        MFbCallManager = CallbackManagerFactory.Create();
+                        BtnFbLogin.RegisterCallback(MFbCallManager, this);
+
+                        //FB accessToken
+                        var accessToken = AccessToken.CurrentAccessToken;
+                        var isLoggedIn = accessToken != null && !accessToken.IsExpired;
+                        switch (isLoggedIn)
+                        {
+                            case true when Profile.CurrentProfile != null:
+                                LoginManager.Instance.LogOut();
+                                break;
+                        }
+
+                        string hash = Methods.App.GetKeyHashesConfigured(this);
+                        Console.WriteLine(hash);
+                        break;
                     }
-
-                    string hash = Methods.App.GetKeyHashesConfigured(this);
-                    Console.WriteLine(hash);
+                    default:
+                        BtnFbLogin = FindViewById<LoginButton>(Resource.Id.fblogin_button);
+                        BtnFbLogin.Visibility = ViewStates.Gone;
+                        break;
                 }
-                else
+
+                switch (AppSettings.ShowGoogleLogin)
                 {
-                    BtnFbLogin = FindViewById<LoginButton>(Resource.Id.fblogin_button);
-                    BtnFbLogin.Visibility = ViewStates.Gone;
-                }
+                    //#Google
+                    case true:
+                    {
+                        // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+                        var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+                            .RequestIdToken(AppSettings.ClientId)
+                            .RequestScopes(new Scope(Scopes.Profile))
+                            .RequestScopes(new Scope(Scopes.PlusMe))
+                            .RequestScopes(new Scope(Scopes.DriveAppfolder))
+                            .RequestServerAuthCode(AppSettings.ClientId)
+                            .RequestProfile().RequestEmail().Build();
 
-                //#Google
-                if (AppSettings.ShowGoogleLogin)
-                { 
-                    // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-                    var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
-                        .RequestIdToken(AppSettings.ClientId)
-                        .RequestScopes(new Scope(Scopes.Profile))
-                        .RequestScopes(new Scope(Scopes.PlusMe))
-                        .RequestScopes(new Scope(Scopes.DriveAppfolder))
-                        .RequestServerAuthCode(AppSettings.ClientId)
-                        .RequestProfile().RequestEmail().Build();
+                        MGoogleSignInClient = GoogleSignIn.GetClient(this, gso);
 
-                    MGoogleSignInClient = GoogleSignIn.GetClient(this, gso);
-
-                    MGoogleSignIn = FindViewById<SignInButton>(Resource.Id.Googlelogin_button);
-                    MGoogleSignIn.Click += GoogleSignInButtonOnClick;
-                }
-                else
-                {
-                    MGoogleSignIn = FindViewById<SignInButton>(Resource.Id.Googlelogin_button);
-                    MGoogleSignIn.Visibility = ViewStates.Gone;
+                        MGoogleSignIn = FindViewById<SignInButton>(Resource.Id.Googlelogin_button);
+                        MGoogleSignIn.Click += GoogleSignInButtonOnClick;
+                        break;
+                    }
+                    default:
+                        MGoogleSignIn = FindViewById<SignInButton>(Resource.Id.Googlelogin_button);
+                        MGoogleSignIn.Visibility = ViewStates.Gone;
+                        break;
                 }
             }
             catch (Exception e)
@@ -354,18 +370,22 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                if (MGoogleSignInClient == null)
+                switch (MGoogleSignInClient)
                 {
-                    // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-                    var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
-                        .RequestIdToken(AppSettings.ClientId)
-                        .RequestScopes(new Scope(Scopes.Profile))
-                        .RequestScopes(new Scope(Scopes.PlusMe))
-                        .RequestScopes(new Scope(Scopes.DriveAppfolder))
-                        .RequestServerAuthCode(AppSettings.ClientId)
-                        .RequestProfile().RequestEmail().Build();
+                    case null:
+                    {
+                        // Configure sign-in to request the user's ID, email address, and basic profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+                        var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+                            .RequestIdToken(AppSettings.ClientId)
+                            .RequestScopes(new Scope(Scopes.Profile))
+                            .RequestScopes(new Scope(Scopes.PlusMe))
+                            .RequestScopes(new Scope(Scopes.DriveAppfolder))
+                            .RequestServerAuthCode(AppSettings.ClientId)
+                            .RequestProfile().RequestEmail().Build();
 
-                    MGoogleSignInClient ??= GoogleSignIn.GetClient(this, gso);
+                        MGoogleSignInClient ??= GoogleSignIn.GetClient(this, gso);
+                        break;
+                    }
                 }
 
                 var signInIntent = MGoogleSignInClient.SignInIntent;
@@ -431,111 +451,127 @@ namespace WoWonder.Activities.Default
                             case 200 when respond is AuthObject auth:
                             {
                                 var emailValidation = ListUtils.SettingsSiteList?.EmailValidation ?? "0";
-                                if (emailValidation == "1")
+                                IsActiveUser = emailValidation switch
                                 {
-                                    IsActiveUser = await CheckIsActiveUser(auth.UserId); 
-                                }
+                                    "1" => await CheckIsActiveUser(auth.UserId),
+                                    _ => IsActiveUser
+                                };
 
-                                if (IsActiveUser)
+                                switch (IsActiveUser)
                                 {
-                                    SetDataLogin(auth);
-
-                                    if (auth.Membership != null && auth.Membership.Value)
+                                    case true:
                                     {
-                                        var intent = new Intent(this, typeof(GoProActivity));
-                                        intent.PutExtra("class", "login");
-                                        StartActivity(intent);
-                                    }
-                                    else
-                                    { 
-                                        if (AppSettings.ShowWalkTroutPage)
+                                        SetDataLogin(auth);
+
+                                        if (auth.Membership != null && auth.Membership.Value)
                                         {
-                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                            newIntent?.PutExtra("class", "login");
-                                            StartActivity(newIntent);
+                                            var intent = new Intent(this, typeof(GoProActivity));
+                                            intent.PutExtra("class", "login");
+                                            StartActivity(intent);
                                         }
                                         else
                                         {
-                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                            switch (AppSettings.ShowWalkTroutPage)
+                                            {
+                                                case true:
+                                                {
+                                                    Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                                    newIntent?.PutExtra("class", "login");
+                                                    StartActivity(newIntent);
+                                                    break;
+                                                }
+                                                default:
+                                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                                    break;
+                                            }
                                         }
-                                    }
                                    
-                                    ProgressBar.Visibility = ViewStates.Gone;
-                                    MButtonViewSignIn.Visibility = ViewStates.Visible;
-                                    Finish();
-                                }
-                                else
-                                {
-                                    ProgressBar.Visibility = ViewStates.Gone;
-                                    MButtonViewSignIn.Visibility = ViewStates.Visible;
+                                        ProgressBar.Visibility = ViewStates.Gone;
+                                        MButtonViewSignIn.Visibility = ViewStates.Visible;
+                                        Finish();
+                                        break;
+                                    }
+                                    default:
+                                        ProgressBar.Visibility = ViewStates.Gone;
+                                        MButtonViewSignIn.Visibility = ViewStates.Visible;
+                                        break;
                                 }
 
                                 break;
                             }
                             case 200:
                             {
-                                if (respond is AuthMessageObject messageObject)
+                                switch (respond)
                                 {
-                                    UserDetails.Username = MEditTextEmail.Text;
-                                    UserDetails.FullName = MEditTextEmail.Text;
-                                    UserDetails.Password = MEditTextPassword.Text;
-                                    UserDetails.UserId = messageObject.UserId;
-                                    UserDetails.Status = "Pending";
-                                    UserDetails.Email = MEditTextEmail.Text;
-
-                                    //Insert user data to database
-                                    var user = new DataTables.LoginTb
+                                    case AuthMessageObject messageObject:
                                     {
-                                        UserId = UserDetails.UserId,
-                                        AccessToken = "",
-                                        Cookie = "",
-                                        Username = MEditTextEmail.Text,
-                                        Password = MEditTextPassword.Text,
-                                        Status = "Pending",
-                                        Lang = "",
-                                        DeviceId = UserDetails.DeviceId,
-                                    };
-                                    ListUtils.DataUserLoginList.Add(user);
+                                        UserDetails.Username = MEditTextEmail.Text;
+                                        UserDetails.FullName = MEditTextEmail.Text;
+                                        UserDetails.Password = MEditTextPassword.Text;
+                                        UserDetails.UserId = messageObject.UserId;
+                                        UserDetails.Status = "Pending";
+                                        UserDetails.Email = MEditTextEmail.Text;
 
-                                    var dbDatabase = new SqLiteDatabase();
-                                    dbDatabase.InsertOrUpdateLogin_Credentials(user);
+                                        //Insert user data to database
+                                        var user = new DataTables.LoginTb
+                                        {
+                                            UserId = UserDetails.UserId,
+                                            AccessToken = "",
+                                            Cookie = "",
+                                            Username = MEditTextEmail.Text,
+                                            Password = MEditTextPassword.Text,
+                                            Status = "Pending",
+                                            Lang = "",
+                                            DeviceId = UserDetails.DeviceId,
+                                        };
+                                        ListUtils.DataUserLoginList.Add(user);
+
+                                        var dbDatabase = new SqLiteDatabase();
+                                        dbDatabase.InsertOrUpdateLogin_Credentials(user);
                                 
 
-                                    Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
-                                    newIntent?.PutExtra("TypeCode", "TwoFactor");
-                                    StartActivity(newIntent);
+                                        Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
+                                        newIntent?.PutExtra("TypeCode", "TwoFactor");
+                                        StartActivity(newIntent);
+                                        break;
+                                    }
                                 }
 
                                 break;
                             }
                             case 400:
                             {
-                                if (respond is ErrorObject error)
+                                switch (respond)
                                 {
-                                    var errorText = error.Error.ErrorText;
-                                    var errorId = error.Error.ErrorId;
-                                    switch (errorId)
+                                    case ErrorObject error:
                                     {
-                                        case "3":
-                                            Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                GetText(Resource.String.Lbl_Security),
-                                                GetText(Resource.String.Lbl_ErrorLogin_3), GetText(Resource.String.Lbl_Ok));
-                                            break;
-                                        case "4":
-                                            Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                GetText(Resource.String.Lbl_Security),
-                                                GetText(Resource.String.Lbl_ErrorLogin_4), GetText(Resource.String.Lbl_Ok));
-                                            break;
-                                        case "5":
-                                            Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                GetText(Resource.String.Lbl_Security),
-                                                GetText(Resource.String.Lbl_ErrorLogin_5), GetText(Resource.String.Lbl_Ok));
-                                            break;
-                                        default:
-                                            Methods.DialogPopup.InvokeAndShowDialog(this,
-                                                GetText(Resource.String.Lbl_Security), errorText,
-                                                GetText(Resource.String.Lbl_Ok));
-                                            break;
+                                        var errorText = error.Error.ErrorText;
+                                        var errorId = error.Error.ErrorId;
+                                        switch (errorId)
+                                        {
+                                            case "3":
+                                                Methods.DialogPopup.InvokeAndShowDialog(this,
+                                                    GetText(Resource.String.Lbl_Security),
+                                                    GetText(Resource.String.Lbl_ErrorLogin_3), GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                            case "4":
+                                                Methods.DialogPopup.InvokeAndShowDialog(this,
+                                                    GetText(Resource.String.Lbl_Security),
+                                                    GetText(Resource.String.Lbl_ErrorLogin_4), GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                            case "5":
+                                                Methods.DialogPopup.InvokeAndShowDialog(this,
+                                                    GetText(Resource.String.Lbl_Security),
+                                                    GetText(Resource.String.Lbl_ErrorLogin_5), GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                            default:
+                                                Methods.DialogPopup.InvokeAndShowDialog(this,
+                                                    GetText(Resource.String.Lbl_Security), errorText,
+                                                    GetText(Resource.String.Lbl_Ok));
+                                                break;
+                                        }
+
+                                        break;
                                     }
                                 }
 
@@ -602,16 +638,19 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                base.OnActivityResult(requestCode, resultCode, data); 
-                if (requestCode == 0)
+                base.OnActivityResult(requestCode, resultCode, data);
+                switch (requestCode)
                 {
-                    var task = await GoogleSignIn.GetSignedInAccountFromIntentAsync(data);
-                    SetContentGoogle(task);
-                }
-                else
-                {
-                    // Logins Facebook
-                    MFbCallManager.OnActivityResult(requestCode, (int) resultCode, data);
+                    case 0:
+                    {
+                        var task = await GoogleSignIn.GetSignedInAccountFromIntentAsync(data);
+                        SetContentGoogle(task);
+                        break;
+                    }
+                    default:
+                        // Logins Facebook
+                        MFbCallManager.OnActivityResult(requestCode, (int) resultCode, data);
+                        break;
                 }
             }
             catch (Exception e)
@@ -627,17 +666,15 @@ namespace WoWonder.Activities.Default
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 101)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
-                        LoadConfigSettings(); 
-                    }
-                    else
-                    {
+                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        LoadConfigSettings();
+                        break;
+                    case 101:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
                         Finish();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -724,33 +761,44 @@ namespace WoWonder.Activities.Default
                     {
                         case 200:
                         {
-                            if (respond is AuthObject auth)
+                            switch (respond)
                             {
-                                SetDataLogin(auth);
+                                case AuthObject auth:
+                                {
+                                    SetDataLogin(auth);
 
-                                if (AppSettings.ShowWalkTroutPage)
-                                {
-                                    Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                    newIntent?.PutExtra("class", "login");
-                                    StartActivity(newIntent);
+                                    switch (AppSettings.ShowWalkTroutPage)
+                                    {
+                                        case true:
+                                        {
+                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                            newIntent?.PutExtra("class", "login");
+                                            StartActivity(newIntent);
+                                            break;
+                                        }
+                                        default:
+                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                            break;
+                                    }
+                                    ProgressBar.Visibility = ViewStates.Gone;
+                                    MButtonViewSignIn.Visibility = ViewStates.Visible;
+                                    break;
                                 }
-                                else
-                                {
-                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                }
-                                ProgressBar.Visibility = ViewStates.Gone;
-                                MButtonViewSignIn.Visibility = ViewStates.Visible; 
                             }
                             Finish();
                             break;
                         }
                         case 400:
                         {
-                            if (respond is ErrorObject error)
+                            switch (respond)
                             {
-                                var errorText = error.Error.ErrorText;
+                                case ErrorObject error:
+                                {
+                                    var errorText = error.Error.ErrorText;
                              
-                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                    break;
+                                }
                             }
 
                             break;
@@ -796,54 +844,67 @@ namespace WoWonder.Activities.Default
                     GServerCode = acct.ServerAuthCode;
                     Console.WriteLine(GServerCode);
 
-                    if (!string.IsNullOrEmpty(GAccessToken))
+                    switch (string.IsNullOrEmpty(GAccessToken))
                     {
-                        var (apiStatus, respond) = await RequestsAsync.Global.Get_SocialLogin(GAccessToken, "google", UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                        switch (apiStatus)
-                        {
-                            case 200:
+                        case false:
+                            var (apiStatus, respond) = await RequestsAsync.Global.Get_SocialLogin(GAccessToken, "google", UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                            switch (apiStatus)
                             {
-                                if (respond is AuthObject auth)
+                                case 200:
                                 {
-                                    SetDataLogin(auth);
+                                    switch (respond)
+                                    {
+                                        case AuthObject auth:
+                                        {
+                                            SetDataLogin(auth);
 
-                                    if (AppSettings.ShowWalkTroutPage)
-                                    {
-                                        Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                        newIntent?.PutExtra("class", "login");
-                                        StartActivity(newIntent);
+                                            switch (AppSettings.ShowWalkTroutPage)
+                                            {
+                                                case true:
+                                                {
+                                                    Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                                    newIntent?.PutExtra("class", "login");
+                                                    StartActivity(newIntent);
+                                                    break;
+                                                }
+                                                default:
+                                                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                                    break;
+                                            }
+                                            ProgressBar.Visibility = ViewStates.Gone;
+                                            MButtonViewSignIn.Visibility = ViewStates.Visible;
+                                            break;
+                                        }
                                     }
-                                    else
-                                    {
-                                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                    }
-                                    ProgressBar.Visibility = ViewStates.Gone;
-                                    MButtonViewSignIn.Visibility = ViewStates.Visible; 
+                                    Finish();
+                                    break;
                                 }
-                                Finish();
-                                break;
-                            }
-                            case 400:
-                            {
-                                if (respond is ErrorObject error)
+                                case 400:
                                 {
-                                    var errorText = error.Error.ErrorText;
+                                    switch (respond)
+                                    {
+                                        case ErrorObject error:
+                                        {
+                                            var errorText = error.Error.ErrorText;
 
-                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), errorText, GetText(Resource.String.Lbl_Ok));
+                                            break;
+                                        }
+                                    }
+
+                                    break;
                                 }
-
-                                break;
+                                case 404:
+                                {
+                                    var error = respond.ToString();
+                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), error, GetText(Resource.String.Lbl_Ok));
+                                    break;
+                                }
                             }
-                            case 404:
-                            {
-                                var error = respond.ToString();
-                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), error, GetText(Resource.String.Lbl_Ok));
-                                break;
-                            }
-                        }
 
-                        ProgressBar.Visibility = ViewStates.Gone;
-                        MButtonViewSignIn.Visibility = ViewStates.Visible;
+                            ProgressBar.Visibility = ViewStates.Gone;
+                            MButtonViewSignIn.Visibility = ViewStates.Visible;
+                            break;
                     }
                 }
             }
@@ -901,21 +962,26 @@ namespace WoWonder.Activities.Default
                         return true;
                     case 400:
                     {
-                        if (respond is ErrorObject error)
+                        switch (respond)
                         {
-                            var errorText = error.Error.ErrorText;
-                            var errorId = error.Error.ErrorId;
-                            switch (errorId)
+                            case ErrorObject error:
                             {
-                                case "5":
-                                    Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_ThisUserNotActive), GetText(Resource.String.Lbl_Ok));
-                                    break;
-                                case "4":
-                                    Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_UserNotFound), GetText(Resource.String.Lbl_Ok));
-                                    break;
-                                default:
-                                    Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security), errorText,GetText(Resource.String.Lbl_Ok));
-                                    break;
+                                var errorText = error.Error.ErrorText;
+                                var errorId = error.Error.ErrorId;
+                                switch (errorId)
+                                {
+                                    case "5":
+                                        Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_ThisUserNotActive), GetText(Resource.String.Lbl_Ok));
+                                        break;
+                                    case "4":
+                                        Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security),GetText(Resource.String.Lbl_UserNotFound), GetText(Resource.String.Lbl_Ok));
+                                        break;
+                                    default:
+                                        Methods.DialogPopup.InvokeAndShowDialog(this,GetText(Resource.String.Lbl_Security), errorText,GetText(Resource.String.Lbl_Ok));
+                                        break;
+                                }
+
+                                break;
                             }
                         }
 

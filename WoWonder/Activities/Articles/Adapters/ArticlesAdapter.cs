@@ -70,11 +70,14 @@ namespace WoWonder.Activities.Articles.Adapters
         {
             try
             {
-               
-                if (viewHolder is ArticlesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = ArticlesList[position];
-                    if (item != null) Initialize(holder, item);
+                    case ArticlesAdapterViewHolder holder:
+                    {
+                        var item = ArticlesList[position];
+                        if (item != null) Initialize(holder, item);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -113,8 +116,12 @@ namespace WoWonder.Activities.Articles.Adapters
 
                 holder.Username.Text = WoWonderTools.GetNameFinal(item.Author);
 
-                if (item.Author.Verified == "1")
-                    holder.Username.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                switch (item.Author.Verified)
+                {
+                    case "1":
+                        holder.Username.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                        break;
+                }
 
                 holder.ViewMore.Text = ActivityContext.GetText(Resource.String.Lbl_ReadMore) + " >"; //READ MORE &gt; 
                 holder.Time.Text = item.Posted; 
@@ -128,11 +135,14 @@ namespace WoWonder.Activities.Articles.Adapters
         {
             try
             {
-                if (holder is ArticlesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                    Glide.With(ActivityContext).Clear(viewHolder.UserImageProfile);
+                    case ArticlesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        Glide.With(ActivityContext).Clear(viewHolder.UserImageProfile);
+                        break;
                 }
+
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -193,8 +203,11 @@ namespace WoWonder.Activities.Articles.Adapters
                 var d = new List<string>();
                 var item = ArticlesList[p0];
 
-                if (item == null)
-                   return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Thumbnail != "")
                 {
@@ -220,7 +233,7 @@ namespace WoWonder.Activities.Articles.Adapters
 
     public class ArticlesAdapterViewHolder : RecyclerView.ViewHolder
     {
-        public ArticlesAdapterViewHolder(View itemView, Action<ArticlesAdapterClickEventArgs> UserClickListener, Action<ArticlesAdapterClickEventArgs> clickListener,Action<ArticlesAdapterClickEventArgs> longClickListener) : base(itemView)
+        public ArticlesAdapterViewHolder(View itemView, Action<ArticlesAdapterClickEventArgs> userClickListener, Action<ArticlesAdapterClickEventArgs> clickListener,Action<ArticlesAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
@@ -238,7 +251,7 @@ namespace WoWonder.Activities.Articles.Adapters
                 ViewMore = MainView.FindViewById<TextView>(Resource.Id.View_more);
 
                 //Event
-                UserItem.Click += (sender, e) => UserClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                UserItem.Click += (sender, e) => userClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
                 itemView.Click += (sender, e) => clickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
                 itemView.LongClick += (sender, e) => longClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
             }

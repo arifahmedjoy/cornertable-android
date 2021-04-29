@@ -239,18 +239,19 @@ namespace WoWonder.Activities.Suggested.Groups
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    MAdapter.JoinButtonItemClick += MAdapterOnJoinButtonItemClick;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    MAdapter.JoinButtonItemClick -= MAdapterOnJoinButtonItemClick;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        MAdapter.JoinButtonItemClick += MAdapterOnJoinButtonItemClick;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        MAdapter.JoinButtonItemClick -= MAdapterOnJoinButtonItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -348,44 +349,65 @@ namespace WoWonder.Activities.Suggested.Groups
 
         private async Task LoadGroup(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.GroupList.Count;
                 var (respondCode, respondString) = await RequestsAsync.Group.GetGroupsByCategory(CategoryId, "10", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is ListGroupsObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case ListGroupsObject result:
                             {
-                                foreach (var item in from item in result.Data let check = MAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.GroupList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                        {
+                                            MAdapter.GroupList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GroupList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.GroupList = new ObservableCollection<GroupClass>(result.Data);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.GroupList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GroupList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.GroupList = new ObservableCollection<GroupClass>(result.Data);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.GroupList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -394,10 +416,12 @@ namespace WoWonder.Activities.Suggested.Groups
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -413,24 +437,29 @@ namespace WoWonder.Activities.Suggested.Groups
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.GroupList.Count > 0)
+                switch (MAdapter.GroupList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

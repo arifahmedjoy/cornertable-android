@@ -240,16 +240,17 @@ namespace WoWonder.Activities.CommonThings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh; 
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh; 
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -346,15 +347,18 @@ namespace WoWonder.Activities.CommonThings
 
         private async Task LoadCommonThingsAsync(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true; 
                 var countList = MAdapter.CommonThingsList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.FetchCommonThings("10", offset);
-                if (apiStatus != 200 || (respond is not FetchCommonThingsObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not FetchCommonThingsObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -362,9 +366,9 @@ namespace WoWonder.Activities.CommonThings
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapter.CommonThingsList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
                             {
@@ -372,17 +376,23 @@ namespace WoWonder.Activities.CommonThings
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.CommonThingsList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.CommonThingsList = new ObservableCollection<CommonThingsObject>(result.Data);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                        } 
-                    }
-                    else
-                    {
-                        if (MAdapter.CommonThingsList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.CommonThingsList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
+                        }
                     }
                 }
 
@@ -393,10 +403,12 @@ namespace WoWonder.Activities.CommonThings
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -411,24 +423,29 @@ namespace WoWonder.Activities.CommonThings
                 MainScrollEvent.IsLoading = false; 
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.CommonThingsList.Count > 0)
+                switch (MAdapter.CommonThingsList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoCommonThings);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoCommonThings);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

@@ -38,21 +38,22 @@ namespace WoWonder.Activities
         {
             try
             {
-                if (!string.IsNullOrEmpty(AppSettings.Lang))
+                switch (string.IsNullOrEmpty(AppSettings.Lang))
                 {
-                    LangController.SetApplicationLang(this, AppSettings.Lang);
-                }
-                else
-                {
-                    #pragma warning disable 618
-                    UserDetails.LangName = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale?.Language.ToLower() : Resources?.Configuration?.Locales.Get(0)?.Language.ToLower() ?? Resources?.Configuration?.Locale?.Language.ToLower();
-                    #pragma warning restore 618
-                    LangController.SetApplicationLang(this, UserDetails.LangName);
+                    case false:
+                        LangController.SetApplicationLang(this, AppSettings.Lang);
+                        break;
+                    default:
+#pragma warning disable 618
+                        UserDetails.LangName = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale?.Language.ToLower() : Resources?.Configuration?.Locales.Get(0)?.Language.ToLower() ?? Resources?.Configuration?.Locale?.Language.ToLower();
+#pragma warning restore 618
+                        LangController.SetApplicationLang(this, UserDetails.LangName);
+                        break;
                 }
                   
-                if (!string.IsNullOrEmpty(UserDetails.AccessToken))
+                switch (string.IsNullOrEmpty(UserDetails.AccessToken))
                 {
-                    if (Intent?.Data?.Path != null)
+                    case false when Intent?.Data?.Path != null:
                     {
                         if (Intent.Data.Path.Contains("register") && UserDetails.Status != "Active" && UserDetails.Status != "Pending")
                         {
@@ -79,9 +80,10 @@ namespace WoWonder.Activities
                                     break;
                             }
                         }
+
+                        break;
                     }
-                    else
-                    {
+                    case false:
                         switch (UserDetails.Status)
                         {
                             case "Active":
@@ -92,11 +94,11 @@ namespace WoWonder.Activities
                                 StartActivity(new Intent(Application.Context, typeof(FirstActivity)));
                                 break;
                         }
-                    }
-                }
-                else
-                {
-                    StartActivity(new Intent(Application.Context, typeof(FirstActivity)));
+
+                        break;
+                    default:
+                        StartActivity(new Intent(Application.Context, typeof(FirstActivity)));
+                        break;
                 }
 
                 OverridePendingTransition(Resource.Animation.abc_fade_in, Resource.Animation.abc_fade_out);

@@ -57,16 +57,18 @@ namespace WoWonder.Adapters
         {
             try
             {
-                if (viewHolder is CustomFieldsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = FieldList[position];
-                    if (item != null)
+                    case CustomFieldsAdapterViewHolder holder:
                     {
-                        holder.DescriptionOfField.Text = Methods.FunString.DecodeString(item.Description);
-
-                        switch (item.Type)
+                        var item = FieldList[position];
+                        if (item != null)
                         {
-                            case "selectbox":
+                            holder.DescriptionOfField.Text = Methods.FunString.DecodeString(item.Description);
+
+                            switch (item.Type)
+                            {
+                                case "selectbox":
                                 {
                                     holder.EdtField1.Hint = Methods.FunString.DecodeString(item.Name);
                                     holder.EdtField1.Text = Methods.FunString.DecodeString(item.FieldAnswer);
@@ -111,7 +113,7 @@ namespace WoWonder.Adapters
                                      
                                     break;
                                 } 
-                            case "textbox":
+                                case "textbox":
                                 {
                                     holder.EdtField1.Hint = Methods.FunString.DecodeString(item.Name);
                                     holder.EdtField1.Text = Methods.FunString.DecodeString(item.FieldAnswer);
@@ -121,7 +123,7 @@ namespace WoWonder.Adapters
                                     
                                     break;
                                 }
-                            case "textarea":
+                                case "textarea":
                                 {
                                     holder.EdtField2.Hint = Methods.FunString.DecodeString(item.Name);
                                     holder.EdtField2.Text = Methods.FunString.DecodeString(item.FieldAnswer);
@@ -131,31 +133,34 @@ namespace WoWonder.Adapters
 
                                     break;
                                 }
-                        }
+                            }
                          
-                        holder.EdtField1.TextChanged += (sender, args) =>
-                        {
-                            try
+                            holder.EdtField1.TextChanged += (sender, args) =>
                             {
-                                item.FieldAnswer = args.Text.ToString();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                try
+                                {
+                                    item.FieldAnswer = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
 
-                        holder.EdtField2.TextChanged += (sender, args) =>
-                        {
-                            try
+                            holder.EdtField2.TextChanged += (sender, args) =>
                             {
-                                item.FieldAnswer = args.Text.ToString();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                try
+                                {
+                                    item.FieldAnswer = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
+                        }
+
+                        break;
                     }
                 }
             }

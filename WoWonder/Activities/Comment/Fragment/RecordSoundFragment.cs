@@ -70,11 +70,19 @@ namespace WoWonder.Activities.Comment.Fragment
         {
             try
             {
-                if (!string.IsNullOrEmpty(RecordFilePath))
-                    AudioPlayerClass.StopAudioPlay();
+                switch (string.IsNullOrEmpty(RecordFilePath))
+                {
+                    case false:
+                        AudioPlayerClass.StopAudioPlay();
+                        break;
+                }
 
-                if (UserDetails.SoundControl)
-                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                        break;
+                }
 
                 var fragmentHolder = Activity.FindViewById<FrameLayout>(Resource.Id.TopFragmentHolder);
 
@@ -96,10 +104,9 @@ namespace WoWonder.Activities.Comment.Fragment
         {
             try
             {
-                if (!string.IsNullOrEmpty(RecordFilePath))
+                switch (string.IsNullOrEmpty(RecordFilePath))
                 {
-                    if (RecordPlayButton?.Tag?.ToString() == "Stop")
-                    {
+                    case false when RecordPlayButton?.Tag?.ToString() == "Stop":
                         RecordPlayButton.Tag = "Playing";
                         RecordPlayButton.SetColor(Color.ParseColor("#efefef"));
                         RecordPlayButton.SetImageResource(Resource.Drawable.ic_stop_dark_arrow);
@@ -109,11 +116,10 @@ namespace WoWonder.Activities.Comment.Fragment
                         TimerSound.Interval = 1000;
                         TimerSound.Elapsed += TimerSound_Elapsed;
                         TimerSound.Start();
-                    }
-                    else
-                    {
+                        break;
+                    case false:
                         RestPlayButton();
-                    }
+                        break;
                 }
             }
             catch (Exception exception)

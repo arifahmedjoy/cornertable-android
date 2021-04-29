@@ -60,52 +60,59 @@ namespace WoWonder.Activities.Tabbes.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is ProUsersAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = MProUsersList[position];
-                    if (item != null)
+                    case ProUsersAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.UserImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = MProUsersList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.UserImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                        if (item.Type == "Your")
-                        {
-                            //holder.ViewIcon.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor("#444444"));
-                            holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient5);
-                            holder.ImageIcon.SetImageResource(Resource.Drawable.ic_add);
-                            holder.Name.Text = ActivityContext.GetText(Resource.String.Lbl_AddMe);
-                            holder.Name.Visibility = ViewStates.Visible;
-                        }
-                        else
-                        {
-                            switch (item.ProType)
+                            switch (item.Type)
                             {
-                                //  STAR
-                                case "1":
-                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient6);
-                                    holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_1);
-                                    break;
-                                // HOT
-                                case "2":
-                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient4);
-                                    holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_2);
-                                    break;
-                                // ULTIMA
-                                case "3":
-                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient);
-                                    holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_3);
-                                    break;
-                                // VIP
-                                case "4":
-                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient2);
-                                    holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_4);
+                                case "Your":
+                                    //holder.ViewIcon.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor("#444444"));
+                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient5);
+                                    holder.ImageIcon.SetImageResource(Resource.Drawable.ic_add);
+                                    holder.Name.Text = ActivityContext.GetText(Resource.String.Lbl_AddMe);
+                                    holder.Name.Visibility = ViewStates.Visible;
                                     break;
                                 default:
-                                    holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient2);
-                                    holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_4); 
+                                    switch (item.ProType)
+                                    {
+                                        //  STAR
+                                        case "1":
+                                            holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient6);
+                                            holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_1);
+                                            break;
+                                        // HOT
+                                        case "2":
+                                            holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient4);
+                                            holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_2);
+                                            break;
+                                        // ULTIMA
+                                        case "3":
+                                            holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient);
+                                            holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_3);
+                                            break;
+                                        // VIP
+                                        case "4":
+                                            holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient2);
+                                            holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_4);
+                                            break;
+                                        default:
+                                            holder.ViewIcon.SetImageResource(Resource.Drawable.circlegradient2);
+                                            holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_4); 
+                                            break;
+                                    }
+
                                     break;
                             }
-                        } 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -122,9 +129,11 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is ProUsersAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.UserImage);
+                    case ProUsersAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.UserImage);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -181,14 +190,21 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 var d = new List<string>();
                 var item = MProUsersList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

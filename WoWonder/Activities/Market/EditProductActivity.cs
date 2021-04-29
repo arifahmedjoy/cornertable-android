@@ -269,28 +269,29 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.DeleteItemClick += MAdapterOnDeleteItemClick;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    RbNew.CheckedChange += RbNewOnCheckedChange;
-                    RbUsed.CheckedChange += RbUsedOnCheckedChange;
-                    TxtAdd.Click += TxtAddOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                    TxtCategory.Touch += TxtCategoryOnClick;
-                    TxtCurrency.Touch += TxtCurrencyOnTouch;
-                }
-                else
-                {
-                    MAdapter.DeleteItemClick -= MAdapterOnDeleteItemClick;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    RbNew.CheckedChange -= RbNewOnCheckedChange;
-                    RbUsed.CheckedChange -= RbUsedOnCheckedChange;
-                    TxtAdd.Click -= TxtAddOnClick;
-                    TxtLocation.OnFocusChangeListener = null!; 
-                    TxtCategory.Touch -= TxtCategoryOnClick;
-                    TxtCurrency.Touch -= TxtCurrencyOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.DeleteItemClick += MAdapterOnDeleteItemClick;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        RbNew.CheckedChange += RbNewOnCheckedChange;
+                        RbUsed.CheckedChange += RbUsedOnCheckedChange;
+                        TxtAdd.Click += TxtAddOnClick;
+                        TxtLocation.OnFocusChangeListener = this; 
+                        TxtCategory.Touch += TxtCategoryOnClick;
+                        TxtCurrency.Touch += TxtCurrencyOnTouch;
+                        break;
+                    default:
+                        MAdapter.DeleteItemClick -= MAdapterOnDeleteItemClick;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        RbNew.CheckedChange -= RbNewOnCheckedChange;
+                        RbUsed.CheckedChange -= RbUsedOnCheckedChange;
+                        TxtAdd.Click -= TxtAddOnClick;
+                        TxtLocation.OnFocusChangeListener = null!; 
+                        TxtCategory.Touch -= TxtCategoryOnClick;
+                        TxtCurrency.Touch -= TxtCurrencyOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -343,13 +344,18 @@ namespace WoWonder.Activities.Market
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        DeletedImagesIds += item.Id + ",";
-                        MAdapter.Remove(item);
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
+                        {
+                            DeletedImagesIds += item.Id + ",";
+                            MAdapter.Remove(item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -365,12 +371,20 @@ namespace WoWonder.Activities.Market
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item == null) return;
-                    if (item.TypeAttachment != "Default") return;
-                    OpenDialogGallery(); //requestCode >> 500 => Image Gallery
+                    case >= 0:
+                    {
+                        var item = MAdapter.GetItem(position);
+                        switch (item)
+                        {
+                            case null:
+                                return;
+                        }
+                        if (item.TypeAttachment != "Default") return;
+                        OpenDialogGallery(); //requestCode >> 500 => Image Gallery
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -390,15 +404,19 @@ namespace WoWonder.Activities.Market
                     TypeDialog = "Currency";
 
                     var arrayAdapter = WoWonderTools.GetCurrencySymbolList();
-                    if (arrayAdapter?.Count > 0)
+                    switch (arrayAdapter?.Count)
                     {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        case > 0:
+                        {
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
  
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                            dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
+                            dialogList.Items(arrayAdapter);
+                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                            dialogList.AlwaysCallSingleChoiceCallback();
+                            dialogList.ItemsCallback(this).Build().Show();
+                            break;
+                        }
                     } 
                 }
                 else
@@ -417,24 +435,27 @@ namespace WoWonder.Activities.Market
             try
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
-               
-                if (CategoriesController.ListCategoriesProducts.Count > 0)
+
+                switch (CategoriesController.ListCategoriesProducts.Count)
                 {
-                    TypeDialog = "Categories";
+                    case > 0:
+                    {
+                        TypeDialog = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesProducts.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesProducts.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Products");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Products");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -447,22 +468,26 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Location when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Location when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -513,65 +538,80 @@ namespace WoWonder.Activities.Market
                     }
                        
                     var list = MAdapter.AttachmentList.Where(a => a.TypeAttachment != "Default").ToList();
-                    if (list.Count == 0)
+                    switch (list.Count)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
-                    }
-                    else
-                    {
-                        //Show a progress
-                        AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
-
-                        if (!string.IsNullOrEmpty(DeletedImagesIds))
-                            DeletedImagesIds = DeletedImagesIds.Remove(DeletedImagesIds.Length - 1, 1);
-                         
-                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(ProductData.Currency);
-                        Console.WriteLine(currency);
-                        var price = TxtPrice.Text.Replace(currencyIcon, "").Replace(" ", "");
-                        var (apiStatus, respond) = await RequestsAsync.Market.Edit_Product(ProductData.Id, TxtTitle.Text, TxtAbout.Text, TxtLocation.Text, price, CurrencyId, CategoryId, ProductType, list, DeletedImagesIds);
-                        if (apiStatus == 200)
+                        case 0:
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                            break;
+                        default:
                         {
-                            if (respond is MessageObject result)
+                            //Show a progress
+                            AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
+
+                            DeletedImagesIds = string.IsNullOrEmpty(DeletedImagesIds) switch
                             {
-                                AndHUD.Shared.Dismiss(this);
-                                Console.WriteLine(result.Message);
-                                var listImage = list.Select(productPathImage => new Images {Id = "", ProductId = ProductData.Id, Image = productPathImage.FileSimple, ImageOrg = productPathImage.FileSimple}).ToList();
+                                false => DeletedImagesIds.Remove(DeletedImagesIds.Length - 1, 1),
+                                _ => DeletedImagesIds
+                            };
 
-                                //Add new item to my Event list
-                                var user = ListUtils.MyProfileList?.FirstOrDefault();
-                                 
-                                if (TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter?.MarketList != null)
+                            var (currency, currencyIcon) = WoWonderTools.GetCurrency(ProductData.Currency);
+                            Console.WriteLine(currency);
+                            var price = TxtPrice.Text.Replace(currencyIcon, "").Replace(" ", "");
+                            var (apiStatus, respond) = await RequestsAsync.Market.Edit_Product(ProductData.Id, TxtTitle.Text, TxtAbout.Text, TxtLocation.Text, price, CurrencyId, CategoryId, ProductType, list, DeletedImagesIds);
+                            switch (apiStatus)
+                            {
+                                case 200:
                                 {
-                                    var data = TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter.MarketList?.FirstOrDefault(a => a.Id == ProductData.Id);
-                                    if (data != null)
+                                    switch (respond)
                                     {
-                                        data.Id = ProductData.Id;
-                                        data.Name = TxtTitle.Text;
-                                        data.UserId = UserDetails.UserId;
-                                        data.Location = TxtLocation.Text;
-                                        data.Description = TxtAbout.Text;
-                                        data.Category = CategoryId;
-                                        data.Images = listImage;
-                                        data.Price = TxtPrice.Text;
-                                        data.Type = ProductType;
-                                        data.Seller = user;
+                                        case MessageObject result:
+                                        {
+                                            AndHUD.Shared.Dismiss(this);
+                                            Console.WriteLine(result.Message);
+                                            var listImage = list.Select(productPathImage => new Images {Id = "", ProductId = ProductData.Id, Image = productPathImage.FileSimple, ImageOrg = productPathImage.FileSimple}).ToList();
 
-                                        TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter?.NotifyItemChanged(TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.MarketList.IndexOf(data));
+                                            //Add new item to my Event list
+                                            var user = ListUtils.MyProfileList?.FirstOrDefault();
+                                 
+                                            if (TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter?.MarketList != null)
+                                            {
+                                                var data = TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter.MarketList?.FirstOrDefault(a => a.Id == ProductData.Id);
+                                                if (data != null)
+                                                {
+                                                    data.Id = ProductData.Id;
+                                                    data.Name = TxtTitle.Text;
+                                                    data.UserId = UserDetails.UserId;
+                                                    data.Location = TxtLocation.Text;
+                                                    data.Description = TxtAbout.Text;
+                                                    data.Category = CategoryId;
+                                                    data.Images = listImage;
+                                                    data.Price = TxtPrice.Text;
+                                                    data.Type = ProductType;
+                                                    data.Seller = user;
 
-                                        Intent intent = new Intent();
-                                        intent.PutExtra("itemData", JsonConvert.SerializeObject(data));
-                                        SetResult(Result.Ok, intent);
-                                    }
-                                }
+                                                    TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter?.NotifyItemChanged(TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.MarketList.IndexOf(data));
+
+                                                    Intent intent = new Intent();
+                                                    intent.PutExtra("itemData", JsonConvert.SerializeObject(data));
+                                                    SetResult(Result.Ok, intent);
+                                                }
+                                            }
  
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_ProductSuccessfullyEdited), ToastLength.Short)?.Show();
+                                            Toast.MakeText(this, GetString(Resource.String.Lbl_ProductSuccessfullyEdited), ToastLength.Short)?.Show();
 
-                                Finish(); 
+                                            Finish();
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    Methods.DisplayAndHudErrorResult(this, respond);
+                                    break;
                             }
-                        }
-                        else
-                        {
-                            Methods.DisplayAndHudErrorResult(this, respond);
+
+                            break;
                         }
                     }
                 }
@@ -588,10 +628,12 @@ namespace WoWonder.Activities.Market
             try
             {
                 var isChecked = RbUsed.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RbNew.Checked = false;
-                    ProductType = "1";
+                    case true:
+                        RbNew.Checked = false;
+                        ProductType = "1";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -605,10 +647,12 @@ namespace WoWonder.Activities.Market
             try
             {
                 var isChecked = RbNew.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RbUsed.Checked = false;
-                    ProductType = "0";
+                    case true:
+                        RbUsed.Checked = false;
+                        ProductType = "0";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -637,30 +681,43 @@ namespace WoWonder.Activities.Market
                     {
                         var result = CropImage.GetActivityResult(data);
 
-                        if (resultCode == Result.Ok)
+                        switch (resultCode)
                         {
-                            if (result.IsSuccessful)
+                            case Result.Ok:
                             {
-                                var resultUri = result.Uri;
-
-                                if (!string.IsNullOrEmpty(resultUri.Path))
+                                switch (result.IsSuccessful)
                                 {
-                                    var productPathImage = resultUri.Path;
-                                    var attach = new Attachments
+                                    case true:
                                     {
-                                        Id = MAdapter.AttachmentList.Count + 1,
-                                        TypeAttachment = "postPhotos[]",
-                                        FileSimple = productPathImage,
-                                        FileUrl = productPathImage
-                                    };
+                                        var resultUri = result.Uri;
 
-                                    MAdapter.Add(attach);
+                                        switch (string.IsNullOrEmpty(resultUri.Path))
+                                        {
+                                            case false:
+                                            {
+                                                var productPathImage = resultUri.Path;
+                                                var attach = new Attachments
+                                                {
+                                                    Id = MAdapter.AttachmentList.Count + 1,
+                                                    TypeAttachment = "postPhotos[]",
+                                                    FileSimple = productPathImage,
+                                                    FileUrl = productPathImage
+                                                };
+
+                                                MAdapter.Add(attach);
+                                                break;
+                                            }
+                                            default:
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                                }
-                            } 
+
+                                break;
+                            }
                         }
 
                         break;
@@ -710,16 +767,17 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                if (TypeDialog == "Categories")
+                switch (TypeDialog)
                 {
-                    CategoryId = CategoriesController.ListCategoriesProducts.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
-                    TxtCategory.Text = itemString.ToString();
+                    case "Categories":
+                        CategoryId = CategoriesController.ListCategoriesProducts.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
+                        TxtCategory.Text = itemString.ToString();
+                        break;
+                    default:
+                        TxtCurrency.Text = itemString.ToString();
+                        CurrencyId = WoWonderTools.GetIdCurrency(itemString.ToString());
+                        break;
                 }
-                else
-                {
-                    TxtCurrency.Text = itemString.ToString();
-                    CurrencyId = WoWonderTools.GetIdCurrency(itemString.ToString());
-                } 
             }
             catch (Exception e)
             {
@@ -752,14 +810,21 @@ namespace WoWonder.Activities.Market
             try
             {
                 var placeAddress = data.GetStringExtra("Address") ?? "";
-                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                if (!string.IsNullOrEmpty(placeAddress))
+                switch (string.IsNullOrEmpty(placeAddress))
                 {
-                    if (!string.IsNullOrEmpty(PlaceText))
-                        PlaceText = string.Empty;
+                    //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                    case false:
+                    {
+                        PlaceText = string.IsNullOrEmpty(PlaceText) switch
+                        {
+                            false => string.Empty,
+                            _ => PlaceText
+                        };
 
-                    PlaceText = placeAddress;
-                    TxtLocation.Text = PlaceText;
+                        PlaceText = placeAddress;
+                        TxtLocation.Text = PlaceText;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -772,25 +837,10 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -803,10 +853,31 @@ namespace WoWonder.Activities.Market
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -848,17 +919,20 @@ namespace WoWonder.Activities.Market
                     CategoryId = ProductData.Category; 
                     TxtCategory.Text = CategoriesController.ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == ProductData.Category)?.CategoriesName; 
                      
-                    if (ProductData.Type == "0") // New
+                    switch (ProductData.Type)
                     {
-                        RbNew.Checked = true;
-                        RbUsed.Checked = false;
-                        ProductType = "0";
-                    }
-                    else // Used
-                    {
-                        RbNew.Checked = false;
-                        RbUsed.Checked = true;
-                        ProductType = "1";
+                        // New
+                        case "0":
+                            RbNew.Checked = true;
+                            RbUsed.Checked = false;
+                            ProductType = "0";
+                            break;
+                        // Used
+                        default:
+                            RbNew.Checked = false;
+                            RbUsed.Checked = true;
+                            ProductType = "1";
+                            break;
                     } 
                 }
             }

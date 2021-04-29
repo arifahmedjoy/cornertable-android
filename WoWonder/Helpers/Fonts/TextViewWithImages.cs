@@ -109,22 +109,25 @@ namespace WoWonder.Helpers.Fonts
                         }
                     }
 
-                    if (set)
-                    { 
-                        string resName = spendable.SubSequence(matcher.Start(1), matcher.End(1))?.Trim();
-                        int id = context.Resources.GetIdentifier(resName, "drawable", context.PackageName);
-
-                        var d = ContextCompat.GetDrawable(context, id);
-                        if (d != null)
+                    switch (set)
+                    {
+                        case true:
                         {
-                            d.SetBounds(0, 0, d.IntrinsicWidth, d.IntrinsicHeight);
-                            spendable.SetSpan(new ImageSpan(d, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
-                        }
-                        else
-                            spendable.SetSpan(new ImageSpan(context, id, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
-                         
-                        //hasChanges = true;
+                            string resName = spendable.SubSequence(matcher.Start(1), matcher.End(1))?.Trim();
+                            int id = context.Resources.GetIdentifier(resName, "drawable", context.PackageName);
 
+                            var d = ContextCompat.GetDrawable(context, id);
+                            if (d != null)
+                            {
+                                d.SetBounds(0, 0, d.IntrinsicWidth, d.IntrinsicHeight);
+                                spendable.SetSpan(new ImageSpan(d, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
+                            }
+                            else
+                                spendable.SetSpan(new ImageSpan(context, id, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
+                         
+                            //hasChanges = true;
+                            break;
+                        }
                     }
                 }
 
@@ -193,9 +196,11 @@ namespace WoWonder.Helpers.Fonts
                 {
                     SetTextColor(spendable ,context.GetText(Resource.String.Lbl_SharedPost), "#888888");
                 }
-                else if (!string.IsNullOrEmpty(item.PostMap) && spendable.ToString()!.Contains(item.PostMap.Replace("/", "")))
+                else switch (string.IsNullOrEmpty(item.PostMap))
                 {
-                    SetTextColor(spendable, item.PostMap.Replace("/", ""), "#888888");
+                    case false when spendable.ToString()!.Contains(item.PostMap.Replace("/", "")):
+                        SetTextColor(spendable, item.PostMap.Replace("/", ""), "#888888");
+                        break;
                 }
                 return spendable;
             }
@@ -215,13 +220,19 @@ namespace WoWonder.Helpers.Fonts
                     return;
                  
                 var indexFrom = content.IndexOf(texts, StringComparison.Ordinal);
-                if (indexFrom <= -1)
-                    indexFrom = 0;
+                indexFrom = indexFrom switch
+                {
+                    <= -1 => 0,
+                    _ => indexFrom
+                };
 
                 var indexLast = indexFrom + texts.Length;
-                if (indexLast <= -1)
-                    indexLast = 0;
-                 
+                indexLast = indexLast switch
+                {
+                    <= -1 => 0,
+                    _ => indexLast
+                };
+
                 spendable.SetSpan(new ForegroundColorSpan(Color.ParseColor(color)), indexFrom, indexLast, SpanTypes.ExclusiveExclusive);
                 spendable.SetSpan(new RelativeSizeSpan(proportion), indexFrom, indexLast, SpanTypes.ExclusiveExclusive);
             }
@@ -240,12 +251,18 @@ namespace WoWonder.Helpers.Fonts
                     return;
 
                 var indexFrom = content.IndexOf(texts, StringComparison.Ordinal);
-                if (indexFrom <= -1)
-                    indexFrom = 0;
+                indexFrom = indexFrom switch
+                {
+                    <= -1 => 0,
+                    _ => indexFrom
+                };
 
                 var indexLast = indexFrom + texts.Length;
-                if (indexLast <= -1)
-                    indexLast = 0;
+                indexLast = indexLast switch
+                {
+                    <= -1 => 0,
+                    _ => indexLast
+                };
 
                 spendable.SetSpan(new StyleSpan(style), indexFrom, indexLast, SpanTypes.ExclusiveExclusive);
             }
@@ -291,12 +308,18 @@ namespace WoWonder.Helpers.Fonts
                     return spendable;
 
                 var indexFrom = content.IndexOf(texts, StringComparison.Ordinal);
-                if (indexFrom <= -1)
-                    indexFrom = 0;
+                indexFrom = indexFrom switch
+                {
+                    <= -1 => 0,
+                    _ => indexFrom
+                };
 
                 var indexLast = indexFrom + texts.Length;
-                if (indexLast <= -1)
-                    indexLast = 0;
+                indexLast = indexLast switch
+                {
+                    <= -1 => 0,
+                    _ => indexLast
+                };
 
                 Console.WriteLine(indexFrom);
                 spendable.SetSpan(new ClickSpanClass(type, viewHolder), indexFrom, indexLast, SpanTypes.ExclusiveExclusive);

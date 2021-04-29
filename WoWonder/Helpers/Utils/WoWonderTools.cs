@@ -45,16 +45,21 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (dataUser == null)
-                    return "";
-
-                if (!string.IsNullOrEmpty(dataUser.Name) && !string.IsNullOrWhiteSpace(dataUser.Name))
-                    return Methods.FunString.DecodeString(dataUser.Name);
-
-                if (!string.IsNullOrEmpty(dataUser.Username) && !string.IsNullOrWhiteSpace(dataUser.Username))
-                    return Methods.FunString.DecodeString(dataUser.Username);
-
-                return Methods.FunString.DecodeString(dataUser.Username);
+                return dataUser switch
+                {
+                    null => "",
+                    _ => string.IsNullOrEmpty(dataUser.Name) switch
+                    {
+                        false when !string.IsNullOrWhiteSpace(dataUser.Name) => Methods.FunString.DecodeString(
+                            dataUser.Name),
+                        _ => string.IsNullOrEmpty(dataUser.Username) switch
+                        {
+                            false when !string.IsNullOrWhiteSpace(dataUser.Username) => Methods.FunString.DecodeString(
+                                dataUser.Username),
+                            _ => Methods.FunString.DecodeString(dataUser.Username)
+                        }
+                    }
+                };
             }
             catch (Exception e)
             {
@@ -67,13 +72,18 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (dataUser == null)
-                    return Application.Context.Resources?.GetString(Resource.String.Lbl_DefaultAbout) + " " + AppSettings.ApplicationName;
-
-                if (!string.IsNullOrEmpty(dataUser.About) && !string.IsNullOrWhiteSpace(dataUser.About))
-                    return Methods.FunString.DecodeString(dataUser.About);
-
-                return Application.Context.Resources?.GetString(Resource.String.Lbl_DefaultAbout) + " " + AppSettings.ApplicationName;
+                return dataUser switch
+                {
+                    null => Application.Context.Resources?.GetString(Resource.String.Lbl_DefaultAbout) + " " +
+                            AppSettings.ApplicationName,
+                    _ => string.IsNullOrEmpty(dataUser.About) switch
+                    {
+                        false when !string.IsNullOrWhiteSpace(dataUser.About) => Methods.FunString.DecodeString(
+                            dataUser.About),
+                        _ => Application.Context.Resources?.GetString(Resource.String.Lbl_DefaultAbout) + " " +
+                             AppSettings.ApplicationName
+                    }
+                };
             }
             catch (Exception e)
             {
@@ -93,112 +103,212 @@ namespace WoWonder.Helpers.Utils
                     {
                         case "USD":
                         case "$":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("USD") || a.Contains("$")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("USD") || a.Value.Contains("$")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("USD") || a.Contains("$")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("USD") || a.Value.Contains("$"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "Jpy":
                         case "¥":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("Jpy") || a.Contains("¥")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("Jpy") || a.Value.Contains("¥")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("Jpy") || a.Contains("¥")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("Jpy") || a.Value.Contains("¥"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "EUR":
                         case "€":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("EUR") || a.Contains("€")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("EUR") || a.Value.Contains("€")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("EUR") || a.Contains("€")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("EUR") || a.Value.Contains("€"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "TRY":
                         case "₺":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("TRY") || a.Contains("₺")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("TRY") || a.Value.Contains("₺")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("TRY") || a.Contains("₺")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("TRY") || a.Value.Contains("₺"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "GBP":
                         case "£":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("GBP") || a.Contains("£")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("GBP") || a.Value.Contains("£")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("GBP") || a.Contains("£")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("GBP") || a.Value.Contains("£"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "RUB":
                         case "₽":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("RUB") || a.Contains("₽")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("RUB") || a.Value.Contains("₽")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("RUB") || a.Contains("₽")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("RUB") || a.Value.Contains("₽"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "PLN":
                         case "zł":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("PLN") || a.Contains("zł")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("PLN") || a.Value.Contains("zł")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("PLN") || a.Contains("zł")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("PLN") || a.Value.Contains("zł"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "ILS":
                         case "₪":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("ILS") || a.Contains("₪")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("ILS") || a.Value.Contains("₪")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("ILS") || a.Contains("₪")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("ILS") || a.Value.Contains("₪"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "BRL":
                         case "R$":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("BRL") || a.Contains("R$")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("BRL") || a.Value.Contains("R$")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("BRL") || a.Contains("R$")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("BRL") || a.Value.Contains("R$"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         case "INR":
                         case "₹":
-                            if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0)
+                            switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
                             {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("INR") || a.Contains("₹")).ToString();
-                            }
-                            else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                            {
-                                currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Value.Contains("INR") || a.Value.Contains("₹")).Key;
+                                case > 0:
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList.FindIndex(a => a.Contains("INR") || a.Contains("₹")).ToString();
+                                    break;
+                                default:
+                                {
+                                    currencyIcon = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                    {
+                                        > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                            ?.FirstOrDefault(a => a.Value.Contains("INR") || a.Value.Contains("₹"))
+                                            .Key,
+                                        _ => currencyIcon
+                                    };
+
+                                    break;
+                                }
                             }
                             break;
                         default:
@@ -222,26 +332,44 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (AppSettings.CurrencyStatic) return (AppSettings.CurrencyCodeStatic, AppSettings.CurrencyIconStatic);
+                switch (AppSettings.CurrencyStatic)
+                {
+                    case true:
+                        return (AppSettings.CurrencyCodeStatic, AppSettings.CurrencyIconStatic);
+                }
 
                 string currency = AppSettings.CurrencyCodeStatic;
                 bool success = int.TryParse(idCurrency, out var number);
-                if (success)
+                switch (success)
                 {
-                    Console.WriteLine("Converted '{0}' to {1}.", idCurrency, number);
-                    if (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count > 0 && ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count >= number)
+                    case true:
                     {
-                        currency = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList[number] ?? AppSettings.CurrencyCodeStatic;
+                        Console.WriteLine("Converted '{0}' to {1}.", idCurrency, number);
+                        switch (ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count)
+                        {
+                            case > 0 when ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList?.Count >= number:
+                                currency = ListUtils.SettingsSiteList?.CurrencyArray.CurrencyList[number] ?? AppSettings.CurrencyCodeStatic;
+                                break;
+                            default:
+                            {
+                                currency = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count switch
+                                {
+                                    > 0 => ListUtils.SettingsSiteList?.CurrencyArray.StringMap
+                                        ?.FirstOrDefault(a => a.Key == number.ToString())
+                                        .Value ?? AppSettings.CurrencyCodeStatic,
+                                    _ => currency
+                                };
+
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                    else if (ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.Count > 0)
-                    {
-                        currency = ListUtils.SettingsSiteList?.CurrencyArray.StringMap?.FirstOrDefault(a => a.Key == number.ToString()).Value  ?? AppSettings.CurrencyCodeStatic;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Attempted conversion of '{0}' failed.", idCurrency ?? "<null>");
-                    currency = idCurrency;
+                    default:
+                        Console.WriteLine("Attempted conversion of '{0}' failed.", idCurrency ?? "<null>");
+                        currency = idCurrency;
+                        break;
                 }
 
                 if (ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList != null)
@@ -301,43 +429,84 @@ namespace WoWonder.Helpers.Utils
             {
                 var arrayAdapter = new List<string>();
 
-                if (AppSettings.CurrencyStatic)
+                switch (AppSettings.CurrencyStatic)
                 {
-                    arrayAdapter.Add(AppSettings.CurrencyIconStatic);
-                    return arrayAdapter; 
+                    case true:
+                        arrayAdapter.Add(AppSettings.CurrencyIconStatic);
+                        return arrayAdapter;
                 }
 
                 if (ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList != null)
                 {
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Usd))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Usd ?? "$");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Usd))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Usd ?? "$");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Jpy))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Jpy ?? "¥");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Jpy))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Jpy ?? "¥");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Eur))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Eur ?? "€");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Eur))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Eur ?? "€");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Try))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Try ?? "₺");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Try))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Try ?? "₺");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Gbp))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Gbp ?? "£");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Gbp))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Gbp ?? "£");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Rub))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Rub ?? "₽");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Rub))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Rub ?? "₽");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Pln))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Pln ?? "zł");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Pln))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Pln ?? "zł");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Ils))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Ils ?? "₪");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Ils))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Ils ?? "₪");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Brl))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Brl ?? "R$");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Brl))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Brl ?? "R$");
+                            break;
+                    }
 
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Inr))
-                        arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Inr ?? "₹");
+                    switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Inr))
+                    {
+                        case false:
+                            arrayAdapter.Add(ListUtils.SettingsSiteList?.CurrencySymbolArray.CurrencyList.Inr ?? "₹");
+                            break;
+                    }
                 }
 
                 return arrayAdapter;
@@ -398,9 +567,17 @@ namespace WoWonder.Helpers.Utils
                 }
                 else
                 {
-                    if (PostClickListener.OpenMyProfile) return;
-                    var intent = new Intent(activity, typeof(MyProfileActivity));
-                    activity.StartActivity(intent);
+                    switch (PostClickListener.OpenMyProfile)
+                    {
+                        case true:
+                            return;
+                        default:
+                        {
+                            var intent = new Intent(activity, typeof(MyProfileActivity));
+                            activity.StartActivity(intent);
+                            break;
+                        }
+                    }
                 }
             }
             catch (Exception e)
@@ -428,8 +605,11 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (!jobInfoObject.Image.Contains(Client.WebsiteUrl))
-                    jobInfoObject.Image = GetTheFinalLink(jobInfoObject.Image);
+                jobInfoObject.Image = jobInfoObject.Image.Contains(Client.WebsiteUrl) switch
+                {
+                    false => GetTheFinalLink(jobInfoObject.Image),
+                    _ => jobInfoObject.Image
+                };
 
                 jobInfoObject.IsOwner = jobInfoObject.UserId == UserDetails.UserId;
 
@@ -813,31 +993,44 @@ namespace WoWonder.Helpers.Utils
             try
             {
                 var allowedExtenstionStatic = "jpg,png,jpeg,gif,mp4,m4v,webm,flv,mov,mpeg,mp3,wav";
-                if (!string.IsNullOrEmpty(path))
+                switch (string.IsNullOrEmpty(path))
                 {
-                    var fileName = path.Split('/').Last();
-                    var fileNameWithExtension = fileName.Split('.').Last();
-
-                    if (!string.IsNullOrEmpty(ListUtils.SettingsSiteList?.MimeTypes))
+                    case false:
                     {
-                        var allowedExtenstion = ListUtils.SettingsSiteList?.AllowedExtenstion; //jpg,png,jpeg,gif,mkv,docx,zip,rar,pdf,doc,mp3,mp4,flv,wav,txt,mov,avi,webm,wav,mpeg
-                        var mimeTypes = ListUtils.SettingsSiteList?.MimeTypes; //video/mp4,video/mov,video/mpeg,video/flv,video/avi,video/webm,audio/wav,audio/mpeg,video/quicktime,audio/mp3,image/png,image/jpeg,image/gif,application/pdf,application/msword,application/zip,application/x-rar-compressed,text/pdf,application/x-pointplus,text/css
+                        var fileName = path.Split('/').Last();
+                        var fileNameWithExtension = fileName.Split('.').Last();
 
-                        var getMimeType = MimeTypeMap.GetMimeType(fileNameWithExtension);
-
-                        if (allowedExtenstion.Contains(fileNameWithExtension) && mimeTypes.Contains(getMimeType))
+                        switch (string.IsNullOrEmpty(ListUtils.SettingsSiteList?.MimeTypes))
                         {
-                            var type = Methods.AttachmentFiles.Check_FileExtension(path);
+                            case false:
+                            {
+                                var allowedExtenstion = ListUtils.SettingsSiteList?.AllowedExtenstion; //jpg,png,jpeg,gif,mkv,docx,zip,rar,pdf,doc,mp3,mp4,flv,wav,txt,mov,avi,webm,wav,mpeg
+                                var mimeTypes = ListUtils.SettingsSiteList?.MimeTypes; //video/mp4,video/mov,video/mpeg,video/flv,video/avi,video/webm,audio/wav,audio/mpeg,video/quicktime,audio/mp3,image/png,image/jpeg,image/gif,application/pdf,application/msword,application/zip,application/x-rar-compressed,text/pdf,application/x-pointplus,text/css
 
-                            var check = CheckAllowedFileSharingInServer(type);
-                            if (check)  // Allowed
-                                return true;
+                                var getMimeType = MimeTypeMap.GetMimeType(fileNameWithExtension);
+
+                                if (allowedExtenstion.Contains(fileNameWithExtension) && mimeTypes.Contains(getMimeType))
+                                {
+                                    var type = Methods.AttachmentFiles.Check_FileExtension(path);
+
+                                    var check = CheckAllowedFileSharingInServer(type);
+                                    switch (check)
+                                    {
+                                        // Allowed
+                                        case true:
+                                            return true;
+                                    }
+                                }
+
+                                break;
+                            }
                         }
-                    }
 
-                    //just this Allowed : >> jpg,png,jpeg,gif,mp4,m4v,webm,flv,mov,mpeg,mp3,wav
-                    if (allowedExtenstionStatic.Contains(fileNameWithExtension))
-                        return true;
+                        //just this Allowed : >> jpg,png,jpeg,gif,mp4,m4v,webm,flv,mov,mpeg,mp3,wav
+                        if (allowedExtenstionStatic.Contains(fileNameWithExtension))
+                            return true;
+                        break;
+                    }
                 }
 
                 return false;
@@ -870,10 +1063,11 @@ namespace WoWonder.Helpers.Utils
                     {
                         try
                         {
-                            if (e.Cancelled)
+                            switch (e.Cancelled)
                             {
-                                //Downloading Cancelled
-                                return;
+                                case true:
+                                    //Downloading Cancelled
+                                    return;
                             }
 
                             if (e.Error != null)
@@ -924,14 +1118,15 @@ namespace WoWonder.Helpers.Utils
                 }
 
                 string imageFile = Methods.MultiMedia.GetMediaFrom_Gallery(folderDestination, filename);
-                if (imageFile == "File Dont Exists")
+                switch (imageFile)
                 {
-                    //This code runs on a new thread, control is returned to the caller on the UI thread.
-                    Task.Factory.StartNew(() => { SaveFile(id, folder, filename, url); });
-                    return url;
+                    case "File Dont Exists":
+                        //This code runs on a new thread, control is returned to the caller on the UI thread.
+                        Task.Factory.StartNew(() => { SaveFile(id, folder, filename, url); });
+                        return url;
+                    default:
+                        return imageFile;
                 }
-
-                return imageFile;
             }
             catch (Exception e)
             {
@@ -949,10 +1144,15 @@ namespace WoWonder.Helpers.Utils
                 if (mediaFile.Contains("http"))
                 {
                     retriever = new MediaMetadataRetriever();
-                    if ((int)Build.VERSION.SdkInt >= 14)
-                        retriever.SetDataSource(mediaFile, new Dictionary<string, string>());
-                    else
-                        retriever.SetDataSource(mediaFile);
+                    switch ((int)Build.VERSION.SdkInt)
+                    {
+                        case >= 14:
+                            retriever.SetDataSource(mediaFile, new Dictionary<string, string>());
+                            break;
+                        default:
+                            retriever.SetDataSource(mediaFile);
+                            break;
+                    }
 
                     duration = retriever.ExtractMetadata(MetadataKey.Duration); //time In Millisec 
                     retriever.Release();
@@ -983,13 +1183,17 @@ namespace WoWonder.Helpers.Utils
         public static string GetRelationship(int index)
         {
             try
-            { 
-                if (index > -1)
+            {
+                switch (index)
                 {
-                    string name = RelationshipLocal[index];
-                    return name;
+                    case > -1:
+                    {
+                        string name = RelationshipLocal[index];
+                        return name;
+                    }
+                    default:
+                        return RelationshipLocal?.First() ?? "";
                 }
-                return RelationshipLocal?.First() ?? "";
             }
             catch (Exception e)
             {
@@ -1003,15 +1207,16 @@ namespace WoWonder.Helpers.Utils
             try
             {
                 bool flag;
-                if (password.Length >= 8 && password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsNumber) && password.Any(char.IsSymbol))
+                switch (password.Length)
                 {
-                    Console.WriteLine("valid");
-                    flag = true;
-                }
-                else
-                {
-                    Console.WriteLine("invalid");
-                    flag = false; 
+                    case >= 8 when password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsNumber) && password.Any(char.IsSymbol):
+                        Console.WriteLine("valid");
+                        flag = true;
+                        break;
+                    default:
+                        Console.WriteLine("invalid");
+                        flag = false;
+                        break;
                 }
 
                 return flag;
@@ -1027,17 +1232,20 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (!string.IsNullOrEmpty(pageData?.IsLiked.String))
+                switch (string.IsNullOrEmpty(pageData?.IsLiked.String))
                 {
-                    switch (pageData.IsLiked.String.ToLower())
-                    {
-                        case "no":
-                            return false;
-                        case "yes":
-                            return true;
-                    }
+                    case false:
+                        switch (pageData.IsLiked.String.ToLower())
+                        {
+                            case "no":
+                                return false;
+                            case "yes":
+                                return true;
+                        }
+
+                        break;
                 }
-                 
+
                 return pageData?.IsLiked.Bool != null && pageData.IsLiked.Bool.Value;
             }
             catch (Exception e)
@@ -1051,18 +1259,21 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (!string.IsNullOrEmpty(pageData?.IsJoined.String))
+                switch (string.IsNullOrEmpty(pageData?.IsJoined.String))
                 {
-                    switch (pageData.IsJoined.String.ToLower())
-                    {
-                        case "no":
-                            return false;
-                        case "yes":
-                            return true;
-                    }
+                    case false:
+                        switch (pageData.IsJoined.String.ToLower())
+                        {
+                            case "no":
+                                return false;
+                            case "yes":
+                                return true;
+                        }
+
+                        break;
                 }
 
-                return pageData?.IsJoined.Bool != null && pageData.IsJoined.Bool.Value; 
+                return pageData?.IsJoined.Bool != null && pageData.IsJoined.Bool.Value;
             }
             catch (Exception e)
             {
@@ -1088,33 +1299,40 @@ namespace WoWonder.Helpers.Utils
 
                 var path = media; 
                 var config = ListUtils.SettingsSiteList;
-                if (!string.IsNullOrEmpty(config?.AmazoneS3) && config?.AmazoneS3 == "1")
-                { 
-                    path = config.S3SiteUrl + "/" + media;
-                    return path;
+                switch (string.IsNullOrEmpty(config?.AmazoneS3))
+                {
+                    case false when config?.AmazoneS3 == "1":
+                        path = config.S3SiteUrl + "/" + media;
+                        return path;
                 }
 
-                if (!string.IsNullOrEmpty(config?.Spaces) && config?.Spaces == "1")
+                switch (string.IsNullOrEmpty(config?.Spaces))
                 {
-                    path = "https://" + config.SpaceName + "." + config.SpaceRegion + ".digitaloceanspaces.com/" + media;
-                    return path;
+                    case false when config?.Spaces == "1":
+                        path = "https://" + config.SpaceName + "." + config.SpaceRegion + ".digitaloceanspaces.com/" + media;
+                        return path;
                 }
                
-                if (!string.IsNullOrEmpty(config?.FtpUpload) && config?.FtpUpload == "1")
+                switch (string.IsNullOrEmpty(config?.FtpUpload))
                 {
-                    path = "http://" + config.FtpEndpoint + "/" + media;
-                    return path;
+                    case false when config?.FtpUpload == "1":
+                        path = "http://" + config.FtpEndpoint + "/" + media;
+                        return path;
                 }
                 
-                if (!string.IsNullOrEmpty(config?.CloudUpload) && config?.CloudUpload == "1")
+                switch (string.IsNullOrEmpty(config?.CloudUpload))
                 {
-                    path = "https://storage.cloud.google.com/" + config.BucketName + "/" + media;
-                    return path;
+                    case false when config?.CloudUpload == "1":
+                        path = "https://storage.cloud.google.com/" + config.BucketName + "/" + media;
+                        return path;
                 }
 
-                if (!media.Contains(Client.WebsiteUrl))
-                    path = Client.WebsiteUrl + "/" + media;
-            
+                path = media.Contains(Client.WebsiteUrl) switch
+                {
+                    false => Client.WebsiteUrl + "/" + media,
+                    _ => path
+                };
+
                 return path;
             }
             catch (Exception e)
@@ -1128,8 +1346,11 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (item.IsFollowing == null)
-                    item.IsFollowing = "0";
+                item.IsFollowing = item.IsFollowing switch
+                {
+                    null => "0",
+                    _ => item.IsFollowing
+                };
 
                 var dbDatabase = new SqLiteDatabase();
                 string isFollowing;
@@ -1260,35 +1481,45 @@ namespace WoWonder.Helpers.Utils
                 }
 
                 var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(groupId);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is JoinGroupObject result)
+                    case 200:
                     {
-                        if (result.JoinStatus == "requested")
+                        switch (respond)
                         {
-                            button.SetTextColor(Color.ParseColor("#444444"));
-                            button.Text = Application.Context.GetText(Resource.String.Lbl_Request);
-                            button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                        }
-                        else
-                        {
-                            var isJoined = result.JoinStatus == "left" ? "false" : "true";
-                            button.Text = activity.GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
-
-                            if (isJoined == "yes" || isJoined == "true")
-                            {
-                                button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                                button.SetTextColor(Color.White);
-                            }
-                            else
-                            {
+                            case JoinGroupObject result when result.JoinStatus == "requested":
+                                button.SetTextColor(Color.ParseColor("#444444"));
+                                button.Text = Application.Context.GetText(Resource.String.Lbl_Request);
                                 button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                                button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                break;
+                            case JoinGroupObject result:
+                            {
+                                var isJoined = result.JoinStatus == "left" ? "false" : "true";
+                                button.Text = activity.GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
+
+                                switch (isJoined)
+                                {
+                                    case "yes":
+                                    case "true":
+                                        button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                                        button.SetTextColor(Color.White);
+                                        break;
+                                    default:
+                                        button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
+                                        button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                        break;
+                                }
+
+                                break;
                             }
                         }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(activity, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(activity, respond);
             }
             catch (Exception e)
             {
@@ -1306,19 +1537,20 @@ namespace WoWonder.Helpers.Utils
                     return;
                 }
 
-                if (button?.Tag?.ToString() == "false")
+                switch (button?.Tag?.ToString())
                 {
-                    button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                    button.SetTextColor(Color.ParseColor("#ffffff"));
-                    button.Text = activity.GetText(Resource.String.Btn_Unlike);
-                    button.Tag = "true";
-                }
-                else
-                {
-                    button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                    button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                    button.Text = activity.GetText(Resource.String.Btn_Like);
-                    button.Tag = "false";
+                    case "false":
+                        button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                        button.SetTextColor(Color.ParseColor("#ffffff"));
+                        button.Text = activity.GetText(Resource.String.Btn_Unlike);
+                        button.Tag = "true";
+                        break;
+                    default:
+                        button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
+                        button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        button.Text = activity.GetText(Resource.String.Btn_Like);
+                        button.Tag = "false";
+                        break;
                 }
 
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.Like_Page(pageId) });
@@ -1336,7 +1568,7 @@ namespace WoWonder.Helpers.Utils
                 if (item != null)
                 {
                     var userAdminPage = item.UserId;
-                    string userId; 
+                    string userId;
 
                     if (item.LastMessage?.ToData != null)
                     {
@@ -1360,7 +1592,7 @@ namespace WoWonder.Helpers.Utils
                         var name = item.PageName;
                         item.PageName = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(name), 25);
                     }
-                       
+
                     //wael change after add in api 
                     item.IsMute = CheckMute(item.PageId + userId, "page");
                     item.IsPin = CheckPin(item.PageId + userId, "page");
@@ -1606,12 +1838,12 @@ namespace WoWonder.Helpers.Utils
                             item.LastMessage.LastMessageClass.Seen = item.LastMessage.LastMessageClass.Seen;
                         }
                         else switch (item.LastMessage.LastMessageClass.Seen)
-                        {
-                            case "0" when item.LastMessage.LastMessageClass.Seen == "2":
-                            case "1" when item.LastMessage.LastMessageClass.Seen == "2":
-                                item.LastMessage.LastMessageClass.Seen = "0";
-                                break;
-                        }
+                            {
+                                case "0" when item.LastMessage.LastMessageClass.Seen == "2":
+                                case "1" when item.LastMessage.LastMessageClass.Seen == "2":
+                                    item.LastMessage.LastMessageClass.Seen = "0";
+                                    break;
+                            }
 
                         item.LastMessage.LastMessageClass.ChatColor = item.LastMessage.LastMessageClass?.ChatColor ?? AppSettings.MainColor;
 
@@ -2177,6 +2409,7 @@ namespace WoWonder.Helpers.Utils
                 return null;
             }
         }
+
 
 
         #region MaterialDialog

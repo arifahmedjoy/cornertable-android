@@ -213,18 +213,19 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtGender.Touch += TxtGenderOnTouch;
-                    TxtSave.Click += SaveData_OnClick;
-                    TxtCountry.Touch += TxtCountryOnTouch;
-                }
-                else
-                {
-                    TxtGender.Touch -= TxtGenderOnTouch;
-                    TxtSave.Click -= SaveData_OnClick;
-                    TxtCountry.Touch -= TxtCountryOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtGender.Touch += TxtGenderOnTouch;
+                        TxtSave.Click += SaveData_OnClick;
+                        TxtCountry.Touch += TxtCountryOnTouch;
+                        break;
+                    default:
+                        TxtGender.Touch -= TxtGenderOnTouch;
+                        TxtSave.Click -= SaveData_OnClick;
+                        TxtCountry.Touch -= TxtCountryOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -295,14 +296,15 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 var arrayAdapter = new List<string>();
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                if (ListUtils.SettingsSiteList?.Genders?.Count > 0)
+                switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
-                    arrayAdapter.AddRange(from item in ListUtils.SettingsSiteList?.Genders select item.Value);
-                }
-                else
-                {
-                    arrayAdapter.Add(GetText(Resource.String.Radio_Male));
-                    arrayAdapter.Add(GetText(Resource.String.Radio_Female));
+                    case > 0:
+                        arrayAdapter.AddRange(from item in ListUtils.SettingsSiteList?.Genders select item.Value);
+                        break;
+                    default:
+                        arrayAdapter.Add(GetText(Resource.String.Radio_Male));
+                        arrayAdapter.Add(GetText(Resource.String.Radio_Female));
+                        break;
                 }
 
                 dialogList.Title(GetText(Resource.String.Lbl_Gender));
@@ -336,62 +338,77 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     };
 
                     string newFormat = "";
-                    if (!string.IsNullOrEmpty(TxtBirthday.Text))
+                    switch (string.IsNullOrEmpty(TxtBirthday.Text))
                     {
-                        var date = TxtBirthday.Text.Split(new char[] {'-' , '/' });
-                        if (date.Length > 0)
+                        case false:
                         {
-                            newFormat = date[0] + "-" + date[1] + "-" + date[2];
+                            var date = TxtBirthday.Text.Split(new char[] {'-' , '/' });
+                            newFormat = date.Length switch
+                            {
+                                > 0 => date[0] + "-" + date[1] + "-" + date[2],
+                                _ => newFormat
+                            };
+
+                            dictionary.Add("birthday", newFormat);
+                            break;
                         }
-                         
-                        dictionary.Add("birthday", newFormat);
                     }
                     
                     var (apiStatus, respond) = await WoWonderClient.Requests.RequestsAsync.Global.Update_User_Data(dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                            if (result.Message.Contains("updated"))
+                            switch (respond)
                             {
-                                Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
-
-                                var local = ListUtils.MyProfileList?.FirstOrDefault();
-                                if (local != null)
+                                case MessageObject result when result.Message.Contains("updated"):
                                 {
-                                    local.Username = TxtUsername.Text.Replace(" ", "");
+                                    Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
 
-                                    if (!string.IsNullOrEmpty(newFormat))
-                                        local.Birthday = newFormat;
-
-                                    local.Gender = GenderStatus;
-                                    local.GenderText = TxtGender.Text;
-                                    local.CountryId = CountryId;
-
-                                    if (ListUtils.SettingsSiteList?.EmailValidation == "1" && local.Email != TxtEmail.Text)
+                                    var local = ListUtils.MyProfileList?.FirstOrDefault();
+                                    if (local != null)
                                     {
-                                        //wael send code Email Validation
-                                    }
-                                    else
-                                        local.Email = TxtEmail.Text;
+                                        local.Username = TxtUsername.Text.Replace(" ", "");
+
+                                        local.Birthday = string.IsNullOrEmpty(newFormat) switch
+                                        {
+                                            false => newFormat,
+                                            _ => local.Birthday
+                                        };
+
+                                        local.Gender = GenderStatus;
+                                        local.GenderText = TxtGender.Text;
+                                        local.CountryId = CountryId;
+
+                                        switch (ListUtils.SettingsSiteList?.EmailValidation)
+                                        {
+                                            case "1" when local.Email != TxtEmail.Text:
+                                                //wael send code Email Validation
+                                                break;
+                                            default:
+                                                local.Email = TxtEmail.Text;
+                                                break;
+                                        }
                                      
-                                    var sqLiteDatabase = new SqLiteDatabase(); 
-                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(local);
+                                        var sqLiteDatabase = new SqLiteDatabase(); 
+                                        sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(local);
                                     
-                                }
+                                    }
                                 
-                                AndHUD.Shared.Dismiss(this);
+                                    AndHUD.Shared.Dismiss(this);
+                                    break;
+                                }
+                                case MessageObject result:
+                                    //Show a Error image with a message
+                                    AndHUD.Shared.ShowError(this, result.Message, MaskType.Clear, TimeSpan.FromSeconds(1));
+                                    break;
                             }
-                            else
-                            {
-                                //Show a Error image with a message
-                                AndHUD.Shared.ShowError(this, result.Message, MaskType.Clear, TimeSpan.FromSeconds(1));
-                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
                 else
@@ -433,43 +450,54 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     }
 
 
-                    if (!string.IsNullOrEmpty(local.CountryId) && local.CountryId != "0")
+                    switch (string.IsNullOrEmpty(local.CountryId))
                     {
-                        var countryName = WoWonderTools.GetCountryList(this).FirstOrDefault(a => a.Key == local.CountryId).Value;
+                        case false when local.CountryId != "0":
+                        {
+                            var countryName = WoWonderTools.GetCountryList(this).FirstOrDefault(a => a.Key == local.CountryId).Value;
 
-                        TxtCountry.Text = countryName;
+                            TxtCountry.Text = countryName;
+                            break;
+                        }
                     }
 
-                    if (ListUtils.SettingsSiteList?.Genders?.Count > 0)
+                    switch (ListUtils.SettingsSiteList?.Genders?.Count)
                     {
-                        var value = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Key == local.Gender).Value;
-                        if (value != null)
+                        case > 0:
                         {
-                            TxtGender.Text = value;
-                            GenderStatus = local.Gender;
+                            var value = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Key == local.Gender).Value;
+                            if (value != null)
+                            {
+                                TxtGender.Text = value;
+                                GenderStatus = local.Gender;
+                            }
+                            else
+                            {
+                                TxtGender.Text = GetText(Resource.String.Radio_Male);
+                                GenderStatus = "male";
+                            }
+
+                            break;
                         }
-                        else
+                        default:
                         {
-                            TxtGender.Text = GetText(Resource.String.Radio_Male);
-                            GenderStatus = "male";
-                        }
-                    }
-                    else
-                    {
-                        if (local.Gender == GetText(Resource.String.Radio_Male))
-                        {
-                            TxtGender.Text = GetText(Resource.String.Radio_Male);
-                            GenderStatus = "male";
-                        }
-                        else if (local.Gender == GetText(Resource.String.Radio_Female))
-                        {
-                            TxtGender.Text = GetText(Resource.String.Radio_Female);
-                            GenderStatus = "female";
-                        }
-                        else
-                        {
-                            TxtGender.Text = GetText(Resource.String.Radio_Male);
-                            GenderStatus = "male";
+                            if (local.Gender == GetText(Resource.String.Radio_Male))
+                            {
+                                TxtGender.Text = GetText(Resource.String.Radio_Male);
+                                GenderStatus = "male";
+                            }
+                            else if (local.Gender == GetText(Resource.String.Radio_Female))
+                            {
+                                TxtGender.Text = GetText(Resource.String.Radio_Female);
+                                GenderStatus = "female";
+                            }
+                            else
+                            {
+                                TxtGender.Text = GetText(Resource.String.Radio_Male);
+                                GenderStatus = "male";
+                            }
+
+                            break;
                         }
                     } 
                 }

@@ -77,43 +77,57 @@ namespace WoWonder.Activities.Live.Ui
         {
             try
             {
-                if (surfaceView == null)
+                switch (surfaceView)
                 {
-                    return;
+                    case null:
+                        return;
                 }
 
                 int id = -1;
-                if (isLocal)
+                switch (isLocal)
                 {
-                    if (MUidList.Contains(0))
+                    case true:
                     {
-                        MUidList.Remove(0);
-                        MUserViewList.Remove(0);
-                    }
+                        if (MUidList.Contains(0))
+                        {
+                            MUidList.Remove(0);
+                            MUserViewList.Remove(0);
+                        }
 
-                    if (MUidList.Count == MaxUser)
-                    {
-                        MUidList.Remove(0);
-                        MUserViewList.Remove(0);
+                        if (MUidList.Count == MaxUser)
+                        {
+                            MUidList.Remove(0);
+                            MUserViewList.Remove(0);
+                        }
+                        id = 0;
+                        break;
                     }
-                    id = 0;
+                    default:
+                    {
+                        if (MUidList.Contains(uid))
+                        {
+                            MUidList.Remove(uid);
+                            MUserViewList.Remove(uid);
+                        }
+
+                        if (MUidList.Count < MaxUser)
+                        {
+                            id = uid;
+                        }
+
+                        break;
+                    }
                 }
-                else
+
+                switch (id)
                 {
-                    if (MUidList.Contains(uid))
-                    {
-                        MUidList.Remove(uid);
-                        MUserViewList.Remove(uid);
-                    }
-
-                    if (MUidList.Count < MaxUser)
-                    {
-                        id = uid;
-                    }
+                    case 0:
+                        MUidList.Add(uid);
+                        break;
+                    default:
+                        MUidList.Add(uid);
+                        break;
                 }
-
-                if (id == 0) MUidList.Add(uid);
-                else MUidList.Add(uid);
 
                 if (id != -1)
                 {
@@ -169,23 +183,32 @@ namespace WoWonder.Activities.Live.Ui
         {
             try
             {
-                if (isLocal && MUidList.Contains(0))
+                switch (isLocal)
                 {
-                    MUidList.Remove(0);
-                    MUserViewList.Remove(0);
-                }
-                else if (MUidList.Contains(uid))
-                {
-                    MUidList.Remove(uid);
-                    MUserViewList.Remove(uid);
+                    case true when MUidList.Contains(0):
+                        MUidList.Remove(0);
+                        MUserViewList.Remove(0);
+                        break;
+                    default:
+                    {
+                        if (MUidList.Contains(uid))
+                        {
+                            MUidList.Remove(uid);
+                            MUserViewList.Remove(uid);
+                        }
+
+                        break;
+                    }
                 }
 
                 MStatsManager.RemoveUserStats(uid);
                 RequestGridLayout();
 
-                if (ChildCount == 0)
+                switch (ChildCount)
                 {
-                    MHandler.RemoveCallbacks(this);
+                    case 0:
+                        MHandler.RemoveCallbacks(this);
+                        break;
                 }
             }
             catch (Exception e)

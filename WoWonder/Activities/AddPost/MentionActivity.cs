@@ -306,18 +306,19 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnAction.Click += BtnActionOnClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                }
-                else
-                {
-                    BtnAction.Click -= BtnActionOnClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnAction.Click += BtnActionOnClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        BtnAction.Click -= BtnActionOnClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -360,9 +361,15 @@ namespace WoWonder.Activities.AddPost
             try
             {
                 var item = MAdapter.GetItem(e.Position);
-                if (item == null) return;
-                item.Selected = !item.Selected;
-                MAdapter.NotifyItemChanged(e.Position);
+                switch (item)
+                {
+                    case null:
+                        return;
+                    default:
+                        item.Selected = !item.Selected;
+                        MAdapter.NotifyItemChanged(e.Position);
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -457,15 +464,18 @@ namespace WoWonder.Activities.AddPost
 
         private async Task LoadContactsAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.MentionList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserDetails.UserId, "following", "10", offset);
-                if (apiStatus != 200 || (respond is not GetFriendsObject result) || result.DataFriends == null)
+                if (apiStatus != 200 || respond is not GetFriendsObject result || result.DataFriends == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -473,9 +483,9 @@ namespace WoWonder.Activities.AddPost
                 else
                 {
                     var respondList = result.DataFriends.Following.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.DataFriends.Following let check = MAdapter.MentionList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
                             {
@@ -483,17 +493,23 @@ namespace WoWonder.Activities.AddPost
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.MentionList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.MentionList = new ObservableCollection<UserDataObject>(result.DataFriends.Following);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.MentionList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.MentionList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -504,10 +520,12 @@ namespace WoWonder.Activities.AddPost
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -522,28 +540,34 @@ namespace WoWonder.Activities.AddPost
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.MentionList.Count > 0)
+                switch (MAdapter.MentionList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-
-                    var sqlEntity = new SqLiteDatabase();
-                    sqlEntity.Insert_Or_Replace_MyContactTable(MAdapter.MentionList);
-                    
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+
+                        var sqlEntity = new SqLiteDatabase();
+                        sqlEntity.Insert_Or_Replace_MyContactTable(MAdapter.MentionList);
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
+                    default:
+                    {
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -575,43 +599,60 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                if (!string.IsNullOrEmpty(SearchText))
+                switch (string.IsNullOrEmpty(SearchText))
                 {
-                    if (Methods.CheckConnectivity())
+                    case false:
                     {
-                        MAdapter?.MentionList?.Clear();
-                        MAdapter?.NotifyDataSetChanged();
+                        if (Methods.CheckConnectivity())
+                        {
+                            MAdapter?.MentionList?.Clear();
+                            MAdapter?.NotifyDataSetChanged();
 
-                        if (!SwipeRefreshLayout.Refreshing)
-                            SwipeRefreshLayout.Refreshing = true;
+                            SwipeRefreshLayout.Refreshing = SwipeRefreshLayout.Refreshing switch
+                            {
+                                false => true,
+                                _ => SwipeRefreshLayout.Refreshing
+                            };
 
+                            if (EmptyStateLayout != null)
+                                EmptyStateLayout.Visibility = ViewStates.Gone;
+
+                            StartSearchRequest();
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        Inflated = Inflated switch
+                        {
+                            null => EmptyStateLayout?.Inflate(),
+                            _ => Inflated
+                        };
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoSearchResult);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
+                                x.EmptyStateButton.Click -= TryAgainButton_Click;
+                                break;
+                        }
+
+                        x.EmptyStateButton.Click += TryAgainButton_Click;
                         if (EmptyStateLayout != null)
-                            EmptyStateLayout.Visibility = ViewStates.Gone;
+                        {
+                            EmptyStateLayout.Visibility = ViewStates.Visible;
+                        }
 
-                        StartSearchRequest();
+                        SwipeRefreshLayout.Refreshing = SwipeRefreshLayout.Refreshing switch
+                        {
+                            true => false,
+                            _ => SwipeRefreshLayout.Refreshing
+                        };
+                        break;
                     }
-                }
-                else
-                {
-                    if (Inflated == null)
-                        Inflated = EmptyStateLayout?.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoSearchResult);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
-                    {
-                        x.EmptyStateButton.Click -= EmptyStateButtonOnClick;
-                        x.EmptyStateButton.Click -= TryAgainButton_Click;
-                    }
-
-                    x.EmptyStateButton.Click += TryAgainButton_Click;
-                    if (EmptyStateLayout != null)
-                    {
-                        EmptyStateLayout.Visibility = ViewStates.Visible;
-                    }
-
-                    if (SwipeRefreshLayout.Refreshing)
-                        SwipeRefreshLayout.Refreshing = false;
                 }
             }
             catch (Exception e)
@@ -636,36 +677,54 @@ namespace WoWonder.Activities.AddPost
                 };
 
                 var (apiStatus, respond) = await RequestsAsync.Global.Get_Search(dictionary);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetSearchObject result)
+                    case 200:
                     {
-                        var respondUserList = result.Users?.Count;
-                        if (respondUserList > 0)
+                        switch (respond)
                         {
-                            if (countUserList > 0)
+                            case GetSearchObject result:
                             {
-                                foreach (var item in from item in result.Users let check = MAdapter.MentionList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                var respondUserList = result.Users?.Count;
+                                switch (respondUserList)
                                 {
-                                    MAdapter.MentionList.Add(item);
+                                    case > 0 when countUserList > 0:
+                                    {
+                                        foreach (var item in from item in result.Users let check = MAdapter.MentionList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                        {
+                                            MAdapter.MentionList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countUserList - 1, MAdapter.MentionList.Count - countUserList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.MentionList = new ObservableCollection<UserDataObject>(result.Users);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.MentionList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countUserList - 1, MAdapter.MentionList.Count - countUserList); });
-                            }
-                            else
-                            {
-                                MAdapter.MentionList = new ObservableCollection<UserDataObject>(result.Users);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.MentionList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 MainScrollEvent.IsLoading = false;
 

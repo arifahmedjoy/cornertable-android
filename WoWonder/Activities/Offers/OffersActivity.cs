@@ -243,16 +243,17 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -349,47 +350,65 @@ namespace WoWonder.Activities.Offers
 
         private async Task LoadOffers(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.OffersList.Count;
                 var (respondCode, respondString) = await RequestsAsync.Offers.FetchOffersPost("15", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is FetchOffersObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case FetchOffersObject result:
                             {
-                                foreach (var item in from item in result.Data let check = MAdapter.OffersList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.OffersList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MAdapter.OffersList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MAdapter.OffersList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.OffersList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.OffersList = new ObservableCollection<OffersDataObject>(result.Data);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.OffersList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreOffers), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.OffersList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.OffersList = new ObservableCollection<OffersDataObject>(result.Data);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.OffersList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreOffers), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
-                }
-                else
-                { 
-                    MainScrollEvent.IsLoading = false;
-                    Methods.DisplayReportResult(this, respondString);
+                    default:
+                        MainScrollEvent.IsLoading = false;
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
                 
                 RunOnUiThread(ShowEmptyPage);
@@ -399,10 +418,12 @@ namespace WoWonder.Activities.Offers
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -417,24 +438,29 @@ namespace WoWonder.Activities.Offers
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.OffersList.Count > 0)
+                switch (MAdapter.OffersList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoOffers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoOffers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

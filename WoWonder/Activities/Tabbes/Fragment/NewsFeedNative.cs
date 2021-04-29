@@ -53,9 +53,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 base.OnCreate(savedInstanceState);
                 // Create your fragment here 
-                GlobalContext = (TabbedMainActivity)Activity ?? TabbedMainActivity.GetInstance();
-
-              
+                GlobalContext = (TabbedMainActivity)Activity ?? TabbedMainActivity.GetInstance(); 
             }
             catch (Exception e)
             {
@@ -157,10 +155,15 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 PostFeedAdapter = new NativePostAdapter(Activity, UserDetails.UserId, MainRecyclerView, NativeFeedType.Global);
                 MainRecyclerView?.SetXAdapter(PostFeedAdapter, SwipeRefreshLayout);
-                if (AppSettings.ShowNewPostOnNewsFeed)
-                    MainRecyclerView?.SetXPopupBubble(PopupBubbleView); 
-                else
-                    PopupBubbleView.Visibility = ViewStates.Gone;
+                switch (AppSettings.ShowNewPostOnNewsFeed)
+                {
+                    case true:
+                        MainRecyclerView?.SetXPopupBubble(PopupBubbleView);
+                        break;
+                    default:
+                        PopupBubbleView.Visibility = ViewStates.Gone;
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -185,13 +188,17 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 MainRecyclerView?.StopVideo();
 
                 var combiner = new FeedCombiner(null, PostFeedAdapter.ListDiffer, Activity);
-                 
-                if (AppSettings.ShowStory)
-                {
-                    combiner.AddStoryPostView();
-                }
 
                 combiner.AddPostBoxPostView("feed", -1);
+
+                switch (AppSettings.ShowStory)
+                {
+                    case true:
+                        combiner.AddStoryPostView("feed", -1);
+                        break;
+                }
+
+                //combiner.AddPostBoxPostView("feed", -1);
 
                 var checkSectionAlertBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
                 {
@@ -226,53 +233,85 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 var combiner = new FeedCombiner(null, PostFeedAdapter.ListDiffer, Activity);
 
-                combiner.AddStoryPostView();
+                //combiner.AddStoryPostView();
                 combiner.AddPostBoxPostView("feed", -1);
-                if (local)
-                    combiner.AddGreetingAlertPostView();
+
+                switch (AppSettings.ShowStory)
+                {
+                    case true:
+                        combiner.AddStoryPostView("feed", -1);
+                        break;
+                }
+
+                switch (local)
+                {
+                    case true:
+                        combiner.AddGreetingAlertPostView();
+                        break;
+                }
 
                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
                 var json = dbDatabase.GetDataPost();
 
-                if (!string.IsNullOrEmpty(json) && local)
+                switch (string.IsNullOrEmpty(json))
                 {
-                    var postObject = JsonConvert.DeserializeObject<PostObject>(json);
-                    if (postObject?.Data.Count > 0)
+                    case false when local:
                     {
-                        MainRecyclerView.ApiPostAsync.LoadDataApi(postObject.Status, postObject, "0"); 
-                        MainRecyclerView.ScrollToPosition(0); 
-                    }
+                        var postObject = JsonConvert.DeserializeObject<PostObject>(json);
+                        switch (postObject?.Data.Count)
+                        {
+                            case > 0:
+                                MainRecyclerView.ApiPostAsync.LoadDataApi(postObject.Status, postObject, "0"); 
+                                MainRecyclerView.ScrollToPosition(0);
+                                break;
+                        }
 
-                    //Start Updating the news feed every few minus 
-                    StartHandler();
-                    return;
+                        //Start Updating the news feed every few minus 
+                        StartApiService();
+                        StartHandler();
+                        return;
+                    }
                 }
 
-                if (PostFeedAdapter.ListDiffer.Count <= 5)
+                switch (PostFeedAdapter.ListDiffer.Count)
                 {
-                    StartApiService();
-                }
-                else
-                {
-                    var item = PostFeedAdapter.ListDiffer.LastOrDefault();
-
-                    var lastItem = PostFeedAdapter.ListDiffer.IndexOf(item);
-
-                    item = PostFeedAdapter.ListDiffer[lastItem];
-
-                    string offset;
-                    if (item.TypeView == PostModelType.Divider || item.TypeView == PostModelType.ViewProgress || item.TypeView == PostModelType.AdMob1 || item.TypeView == PostModelType.AdMob2 || item.TypeView == PostModelType.FbAdNative || item.TypeView == PostModelType.AdsPost || item.TypeView == PostModelType.SuggestedGroupsBox || item.TypeView == PostModelType.SuggestedUsersBox || item.TypeView == PostModelType.CommentSection || item.TypeView == PostModelType.AddCommentSection)
+                    case <= 5:
+                        StartApiService();
+                        break;
+                    default:
                     {
-                        item = PostFeedAdapter.ListDiffer.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
-                        offset = item?.PostData?.Id ?? "0";
-                        Console.WriteLine(offset);
-                    }
-                    else
-                    {
-                        offset = item.PostData?.Id ?? "0";
-                    }
+                        var item = PostFeedAdapter.ListDiffer.LastOrDefault();
 
-                    StartApiService(offset, "Insert");
+                        var lastItem = PostFeedAdapter.ListDiffer.IndexOf(item);
+
+                        item = PostFeedAdapter.ListDiffer[lastItem];
+
+                        string offset;
+                        switch (item.TypeView)
+                        {
+                            case PostModelType.Divider:
+                            case PostModelType.ViewProgress:
+                            case PostModelType.AdMob1:
+                            case PostModelType.AdMob2:
+                            case PostModelType.AdMob3:
+                            case PostModelType.FbAdNative:
+                            case PostModelType.AdsPost:
+                            case PostModelType.SuggestedGroupsBox:
+                            case PostModelType.SuggestedUsersBox:
+                            case PostModelType.CommentSection:
+                            case PostModelType.AddCommentSection:
+                                item = PostFeedAdapter.ListDiffer.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
+                                offset = item?.PostData?.PostId ?? "0";
+                                Console.WriteLine(offset);
+                                break;
+                            default:
+                                offset = item.PostData?.PostId ?? "0";
+                                break;
+                        }
+
+                        StartApiService(offset, "Insert");
+                        break;
+                    }
                 }
 
                 //Start Updating the news feed every few minus
@@ -292,14 +331,14 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadStory, () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts(offset , typeRun) }); 
         }
 
-        private static bool isCanceledHandler;
+        private static bool IsCanceledHandler;
         public void StartHandler()
         {
             try
             {
                 MainHandler ??= new Handler(Looper.MainLooper);
                 MainHandler?.PostDelayed(new ApiPostUpdaterHelper(Activity, MainRecyclerView, new Handler(Looper.MainLooper)), 30000);
-                isCanceledHandler = false;
+                IsCanceledHandler = false;
             }
             catch (Exception e)
             {
@@ -313,7 +352,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 MainHandler?.RemoveCallbacks(new ApiPostUpdaterHelper(Activity, MainRecyclerView, new Handler(Looper.MainLooper)));
                 MainHandler = null;
-                isCanceledHandler = true;
+                IsCanceledHandler = true;
             }
             catch (Exception e)
             {
@@ -338,12 +377,12 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(Current.AccessToken) || !Methods.CheckConnectivity() || isCanceledHandler)
+                    if (string.IsNullOrEmpty(Current.AccessToken) || !Methods.CheckConnectivity() || IsCanceledHandler)
                         return;
 
                     if (MainRecyclerView?.ApiPostAsync != null)
                         await MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts("0", "Insert");
-
+                  
                     var instance = TabbedMainActivity.GetInstance();
                     if (instance != null)
                     {
@@ -366,9 +405,12 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
         private async Task LoadStory()
         {
-            if (!AppSettings.ShowStory)
-                return;
-             
+            switch (AppSettings.ShowStory)
+            {
+                case false:
+                    return;
+            }
+
             if (Methods.CheckConnectivity())
             {
                 var checkSection = PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
@@ -377,92 +419,101 @@ namespace WoWonder.Activities.Tabbes.Fragment
                     checkSection.StoryList ??= new ObservableCollection<GetUserStoriesObject.StoryObject>();
 
                     var (apiStatus, respond) = await RequestsAsync.Story.Get_UserStories();
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetUserStoriesObject result)
+                        case 200:
                         {
-                            await Task.Factory.StartNew(() =>
+                            switch (respond)
                             {
-                                try
-                                { 
-                                    foreach (var item in result.Stories)
-                                    {
-                                        var check = checkSection.StoryList.FirstOrDefault(a => a.UserId == item.UserId);
-                                        if (check != null)
-                                        {
-                                            foreach (var item2 in item.Stories)
-                                            {
-                                                item.DurationsList ??= new List<long>();
-
-                                                //image and video
-                                                var mediaFile = !item2.Thumbnail.Contains("avatar") && item2.Videos.Count == 0 ? item2.Thumbnail : item2.Videos[0].Filename;
-
-                                                var type = Methods.AttachmentFiles.Check_FileExtension(mediaFile);
-                                                if (type != "Video")
-                                                {
-                                                    Glide.With(Context).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
-                                                    item.DurationsList.Add(10000L);
-                                                }
-                                                else
-                                                {
-                                                    var fileName = mediaFile.Split('/').Last();
-                                                    mediaFile = WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, mediaFile);
-
-                                                    var duration = WoWonderTools.GetDuration(mediaFile);
-                                                    item.DurationsList.Add(Long.ParseLong(duration));
-                                                }
-                                            }
-
-                                            check.Stories = item.Stories;
-                                        }
-                                        else
-                                        {
-                                            foreach (var item1 in item.Stories)
-                                            {
-                                                item.DurationsList ??= new List<long>();
-
-                                                //image and video
-                                                var mediaFile = !item1.Thumbnail.Contains("avatar") && item1.Videos.Count == 0 ? item1.Thumbnail : item1.Videos[0].Filename;
-
-                                                var type1 = Methods.AttachmentFiles.Check_FileExtension(mediaFile);
-                                                if (type1 != "Video")
-                                                {
-                                                    Glide.With(Context).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
-                                                    item.DurationsList.Add(10000L);
-                                                }
-                                                else
-                                                {
-                                                    var fileName = mediaFile.Split('/').Last();
-                                                    WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, mediaFile);
-
-                                                    var duration = WoWonderTools.GetDuration(mediaFile);
-                                                    item.DurationsList.Add(Long.ParseLong(duration));
-                                                }
-                                            }
-
-                                            checkSection.StoryList.Add(item);
-                                        }
-                                    }
-                                    Activity?.RunOnUiThread(() => 
+                                case GetUserStoriesObject result:
+                                    await Task.Factory.StartNew(() =>
                                     {
                                         try
-                                        {
-                                            PostFeedAdapter.HolderStory.AboutMore.Visibility = checkSection.StoryList.Count > 4 ? ViewStates.Visible : ViewStates.Invisible;
+                                        { 
+                                            foreach (var item in result.Stories)
+                                            {
+                                                var check = checkSection.StoryList.FirstOrDefault(a => a.UserId == item.UserId);
+                                                if (check != null)
+                                                {
+                                                    foreach (var item2 in item.Stories)
+                                                    {
+                                                        item.DurationsList ??= new List<long>();
+
+                                                        //image and video
+                                                        var mediaFile = !item2.Thumbnail.Contains("avatar") && item2.Videos.Count == 0 ? item2.Thumbnail : item2.Videos[0].Filename;
+
+                                                        var type = Methods.AttachmentFiles.Check_FileExtension(mediaFile);
+                                                        if (type != "Video")
+                                                        {
+                                                            Glide.With(Context).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
+                                                            item.DurationsList.Add(10000L);
+                                                        }
+                                                        else
+                                                        {
+                                                            var fileName = mediaFile.Split('/').Last();
+                                                            mediaFile = WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, mediaFile);
+
+                                                            var duration = WoWonderTools.GetDuration(mediaFile);
+                                                            item.DurationsList.Add(Long.ParseLong(duration));
+                                                        }
+                                                    }
+
+                                                    check.Stories = item.Stories;
+                                                }
+                                                else
+                                                {
+                                                    foreach (var item1 in item.Stories)
+                                                    {
+                                                        item.DurationsList ??= new List<long>();
+
+                                                        //image and video
+                                                        var mediaFile = !item1.Thumbnail.Contains("avatar") && item1.Videos.Count == 0 ? item1.Thumbnail : item1.Videos[0].Filename;
+
+                                                        var type1 = Methods.AttachmentFiles.Check_FileExtension(mediaFile);
+                                                        if (type1 != "Video")
+                                                        {
+                                                            Glide.With(Context).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
+                                                            item.DurationsList.Add(10000L);
+                                                        }
+                                                        else
+                                                        {
+                                                            var fileName = mediaFile.Split('/').Last();
+                                                            WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, mediaFile);
+
+                                                            var duration = WoWonderTools.GetDuration(mediaFile);
+                                                            item.DurationsList.Add(Long.ParseLong(duration));
+                                                        }
+                                                    }
+
+                                                    checkSection.StoryList.Add(item);
+                                                }
+                                            }
+                                            Activity?.RunOnUiThread(() => 
+                                            {
+                                                try
+                                                {
+                                                    PostFeedAdapter.HolderStory.AboutMore.Visibility = checkSection.StoryList.Count > 4 ? ViewStates.Visible : ViewStates.Invisible;
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Console.WriteLine(e);
+                                                }
+                                            });
                                         }
                                         catch (Exception e)
                                         {
-                                            Console.WriteLine(e);
+                                            Methods.DisplayReportResultTrack(e);
                                         }
-                                    });
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e);
-                                }
-                            }).ConfigureAwait(false); 
+                                    }).ConfigureAwait(false);
+                                    break;
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(Activity, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(Activity, respond);
                     var d = new Runnable(() => { PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(checkSection)); }); d.Run();
                 }
             }
@@ -533,36 +584,50 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         var postText = data.GetStringExtra("PostText") ?? "";
                         var diff = PostFeedAdapter.ListDiffer;
                         List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        if (dataGlobal.Count > 0)
+                        switch (dataGlobal.Count)
                         {
-                            foreach (var postData in dataGlobal)
+                            case > 0:
                             {
-                                postData.PostData.Orginaltext = postText;
-                                var index = diff.IndexOf(postData);
-                                if (index > -1)
+                                foreach (var postData in dataGlobal)
                                 {
-                                    PostFeedAdapter.NotifyItemChanged(index);
+                                    postData.PostData.Orginaltext = postText;
+                                    var index = diff.IndexOf(postData);
+                                    switch (index)
+                                    {
+                                        case > -1:
+                                            PostFeedAdapter.NotifyItemChanged(index);
+                                            break;
+                                    }
                                 }
-                            }
 
-                            var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                            if (checkTextSection == null)
-                            {
-                                var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                var item = new AdapterModelsClass
+                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
+                                switch (checkTextSection)
                                 {
-                                    TypeView = PostModelType.TextSectionPostPart,
-                                    Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true
-                                };
+                                    case null:
+                                    {
+                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
+                                        var item = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.TextSectionPostPart,
+                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true
+                                        };
 
-                                var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                if (headerPostIndex > -1)
-                                {
-                                    diff.Insert(headerPostIndex + 1, item);
-                                    PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
+                                        switch (headerPostIndex)
+                                        {
+                                            case > -1:
+                                                diff.Insert(headerPostIndex + 1, item);
+                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
+
+                                break;
                             }
                         }
 
@@ -577,20 +642,29 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         {
                             var diff = PostFeedAdapter.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            if (dataGlobal.Count > 0)
+                            switch (dataGlobal.Count)
                             {
-                                foreach (var postData in dataGlobal)
+                                case > 0:
                                 {
-                                    var index = diff.IndexOf(postData);
-                                    if (index > -1)
+                                    foreach (var postData in dataGlobal)
                                     {
-                                        var productUnion = postData.PostData.Product?.ProductClass;
-                                        if (productUnion != null) productUnion.Id = item.Id;
-                                        productUnion = item;
-                                        Console.WriteLine(productUnion);
+                                        var index = diff.IndexOf(postData);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                            {
+                                                var productUnion = postData.PostData.Product?.ProductClass;
+                                                if (productUnion != null) productUnion.Id = item.Id;
+                                                productUnion = item;
+                                                Console.WriteLine(productUnion);
 
-                                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    break;
                                 }
                             }
                         }

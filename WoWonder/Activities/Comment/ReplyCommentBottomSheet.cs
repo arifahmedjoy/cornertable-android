@@ -203,8 +203,12 @@ namespace WoWonder.Activities.Comment
 
                 ReplyCountTextView = FindViewById<TextView>(Resource.Id.replyCountTextview);
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
+                }
 
                 ImgGallery.Visibility = ViewStates.Gone;
                  
@@ -286,32 +290,33 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    switch (Type)
-                    {
-                        case "Article":
-                            ImgSent.Click += ImgSentArticlesOnClick;
-                            break;
-                        case "Movies":
-                            ImgSent.Click += ImgSentMoviesOnClick;
-                            break;
-                    }
-                    ImgBack.Click += ImgBackOnClick;
-                }
-                else
-                {
-                    switch (Type)
-                    {
-                        case "Article":
-                            ImgSent.Click -= ImgSentArticlesOnClick;
-                            break;
-                        case "Movies":
-                            ImgSent.Click -= ImgSentMoviesOnClick;
-                            break;
-                    }
-                    ImgBack.Click -= ImgBackOnClick;
+                    // true +=  // false -=
+                    case true:
+                        switch (Type)
+                        {
+                            case "Article":
+                                ImgSent.Click += ImgSentArticlesOnClick;
+                                break;
+                            case "Movies":
+                                ImgSent.Click += ImgSentMoviesOnClick;
+                                break;
+                        }
+                        ImgBack.Click += ImgBackOnClick;
+                        break;
+                    default:
+                        switch (Type)
+                        {
+                            case "Article":
+                                ImgSent.Click -= ImgSentArticlesOnClick;
+                                break;
+                            case "Movies":
+                                ImgSent.Click -= ImgSentMoviesOnClick;
+                                break;
+                        }
+                        ImgBack.Click -= ImgBackOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -341,7 +346,11 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if (ArticlesObject == null) return;
+                switch (ArticlesObject)
+                {
+                    case null:
+                        return;
+                }
                  
                 CommentLayout.LayoutResource = Resource.Layout.Style_Comment; 
                 CommentLayoutView = CommentLayout.Inflate();
@@ -370,7 +379,11 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if (MoviesObject == null) return;
+                switch (MoviesObject)
+                {
+                    case null:
+                        return;
+                }
 
                 CommentLayout.LayoutResource = Resource.Layout.Style_Comment;
                 CommentLayoutView = CommentLayout.Inflate();
@@ -445,9 +458,11 @@ namespace WoWonder.Activities.Comment
                     MAdapterArticles.CommentList.Add(comment);
 
                     var index = MAdapterArticles.CommentList.IndexOf(comment);
-                    if (index > -1)
+                    switch (index)
                     {
-                        MAdapterArticles.NotifyItemInserted(index);
+                        case > -1:
+                            MAdapterArticles.NotifyItemInserted(index);
+                            break;
                     }
 
                     MRecycler.Visibility = ViewStates.Visible;
@@ -465,28 +480,42 @@ namespace WoWonder.Activities.Comment
                     TxtComment.Text = "";
 
                     var (apiStatus, respond) = await RequestsAsync.Article.CreateReply(ArticlesObject.BlogId, IdComment, text);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetCommentsArticlesObject result)
+                        case 200:
                         {
-                            var date = MAdapterArticles.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapterArticles.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
-                            if (date != null)
+                            switch (respond)
                             {
-                                date = result.Data[0];
-                                date.Id = result.Data[0].Id;
-
-                                index = MAdapterArticles.CommentList.IndexOf(MAdapterArticles.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
-                                if (index > -1)
+                                case GetCommentsArticlesObject result:
                                 {
-                                    MAdapterArticles.CommentList[index] = result.Data[0];
+                                    var date = MAdapterArticles.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapterArticles.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
+                                    if (date != null)
+                                    {
+                                        date = result.Data[0];
+                                        date.Id = result.Data[0].Id;
 
-                                    //MAdapter.NotifyItemChanged(index);
-                                    MRecycler.ScrollToPosition(index);
+                                        index = MAdapterArticles.CommentList.IndexOf(MAdapterArticles.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                                MAdapterArticles.CommentList[index] = result.Data[0];
+
+                                                //MAdapter.NotifyItemChanged(index);
+                                                MRecycler.ScrollToPosition(index);
+                                                break;
+                                        }
+                                    }
+
+                                    break;
                                 }
                             }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
 
                     //Hide keyboard
                     TxtComment.Text = "";
@@ -535,9 +564,11 @@ namespace WoWonder.Activities.Comment
                     MAdapterMovies.CommentList.Add(comment);
 
                     var index = MAdapterMovies.CommentList.IndexOf(comment);
-                    if (index > -1)
+                    switch (index)
                     {
-                        MAdapterMovies.NotifyItemInserted(index);
+                        case > -1:
+                            MAdapterMovies.NotifyItemInserted(index);
+                            break;
                     }
 
                     MRecycler.Visibility = ViewStates.Visible;
@@ -555,28 +586,42 @@ namespace WoWonder.Activities.Comment
                     TxtComment.Text = "";
 
                     var (apiStatus, respond) = await RequestsAsync.Movies.CreateReply(MoviesObject.MovieId, IdComment, text);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetCommentsMoviesObject result)
+                        case 200:
                         {
-                            var date = MAdapterMovies.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapterMovies.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
-                            if (date != null)
+                            switch (respond)
                             {
-                                date = result.Data[0];
-                                date.Id = result.Data[0].Id;
-
-                                index = MAdapterMovies.CommentList.IndexOf(MAdapterMovies.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
-                                if (index > -1)
+                                case GetCommentsMoviesObject result:
                                 {
-                                    MAdapterMovies.CommentList[index] = result.Data[0];
+                                    var date = MAdapterMovies.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapterMovies.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
+                                    if (date != null)
+                                    {
+                                        date = result.Data[0];
+                                        date.Id = result.Data[0].Id;
 
-                                    //MAdapter.NotifyItemChanged(index);
-                                    MRecycler.ScrollToPosition(index);
+                                        index = MAdapterMovies.CommentList.IndexOf(MAdapterMovies.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                                MAdapterMovies.CommentList[index] = result.Data[0];
+
+                                                //MAdapter.NotifyItemChanged(index);
+                                                MRecycler.ScrollToPosition(index);
+                                                break;
+                                        }
+                                    }
+
+                                    break;
                                 }
                             }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
 
                     //Hide keyboard
                     TxtComment.Text = "";
@@ -642,15 +687,18 @@ namespace WoWonder.Activities.Comment
 
         private async Task LoadDataCommentReplyArticle(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapterArticles.CommentList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Article.GetReply(IdComment, "25", offset);
-                if (apiStatus != 200 || (respond is not GetCommentsArticlesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not GetCommentsArticlesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -658,9 +706,9 @@ namespace WoWonder.Activities.Comment
                 else
                 {
                     var respondList = result.Data?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapterArticles.CommentList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -668,12 +716,12 @@ namespace WoWonder.Activities.Comment
                             }
 
                             RunOnUiThread(() => { MAdapterArticles.NotifyItemRangeInserted(countList, MAdapterArticles.CommentList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapterArticles.CommentList = new ObservableCollection<CommentsArticlesObject>(result.Data);
                             RunOnUiThread(() => { MAdapterArticles.NotifyDataSetChanged(); });
-                        }
+                            break;
                     }
                 }
 
@@ -683,15 +731,18 @@ namespace WoWonder.Activities.Comment
         
         private async Task LoadDataCommentReplyMovies(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapterMovies.CommentList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Movies.GetReply(IdComment, "25", offset);
-                if (apiStatus != 200 || (respond is not GetCommentsMoviesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not GetCommentsMoviesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -699,9 +750,9 @@ namespace WoWonder.Activities.Comment
                 else
                 {
                     var respondList = result.Data?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapterMovies.CommentList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -709,12 +760,12 @@ namespace WoWonder.Activities.Comment
                             }
 
                             RunOnUiThread(() => { MAdapterMovies.NotifyItemRangeInserted(countList, MAdapterMovies.CommentList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapterMovies.CommentList = new ObservableCollection<CommentsMoviesObject>(result.Data);
                             RunOnUiThread(() => { MAdapterMovies.NotifyDataSetChanged(); });
-                        }
+                            break;
                     }
                 }
 
@@ -730,39 +781,51 @@ namespace WoWonder.Activities.Comment
                 switch (Type)
                 {
                     case "Article":
-                        if (MAdapterArticles.CommentList.Count > 0)
+                        switch (MAdapterArticles.CommentList.Count)
                         {
-                            var emptyStateChecker = MAdapterArticles.CommentList.FirstOrDefault(a => a.Text == MAdapterArticles.EmptyState);
-                            if (emptyStateChecker != null && MAdapterArticles.CommentList.Count > 1)
+                            case > 0:
                             {
-                                MAdapterArticles.CommentList.Remove(emptyStateChecker);
-                                MAdapterArticles.NotifyDataSetChanged();
+                                var emptyStateChecker = MAdapterArticles.CommentList.FirstOrDefault(a => a.Text == MAdapterArticles.EmptyState);
+                                if (emptyStateChecker != null && MAdapterArticles.CommentList.Count > 1)
+                                {
+                                    MAdapterArticles.CommentList.Remove(emptyStateChecker);
+                                    MAdapterArticles.NotifyDataSetChanged();
+                                }
+
+                                break;
                             }
-                        }
-                        else
-                        {
-                            MAdapterArticles.CommentList.Clear();
-                            var d = new CommentsArticlesObject { Text = MAdapterArticles.EmptyState };
-                            MAdapterArticles.CommentList.Add(d);
-                            MAdapterArticles.NotifyDataSetChanged();
+                            default:
+                            {
+                                MAdapterArticles.CommentList.Clear();
+                                var d = new CommentsArticlesObject { Text = MAdapterArticles.EmptyState };
+                                MAdapterArticles.CommentList.Add(d);
+                                MAdapterArticles.NotifyDataSetChanged();
+                                break;
+                            }
                         }
                         break;
                     case "Movies":
-                        if (MAdapterMovies.CommentList.Count > 0)
+                        switch (MAdapterMovies.CommentList.Count)
                         {
-                            var emptyStateChecker = MAdapterMovies.CommentList.FirstOrDefault(a => a.Text == MAdapterMovies.EmptyState);
-                            if (emptyStateChecker != null && MAdapterMovies.CommentList.Count > 1)
+                            case > 0:
                             {
-                                MAdapterMovies.CommentList.Remove(emptyStateChecker);
-                                MAdapterMovies.NotifyDataSetChanged();
+                                var emptyStateChecker = MAdapterMovies.CommentList.FirstOrDefault(a => a.Text == MAdapterMovies.EmptyState);
+                                if (emptyStateChecker != null && MAdapterMovies.CommentList.Count > 1)
+                                {
+                                    MAdapterMovies.CommentList.Remove(emptyStateChecker);
+                                    MAdapterMovies.NotifyDataSetChanged();
+                                }
+
+                                break;
                             }
-                        }
-                        else
-                        {
-                            MAdapterMovies.CommentList.Clear();
-                            var d = new CommentsMoviesObject { Text = MAdapterMovies.EmptyState };
-                            MAdapterMovies.CommentList.Add(d);
-                            MAdapterMovies.NotifyDataSetChanged();
+                            default:
+                            {
+                                MAdapterMovies.CommentList.Clear();
+                                var d = new CommentsMoviesObject { Text = MAdapterMovies.EmptyState };
+                                MAdapterMovies.CommentList.Add(d);
+                                MAdapterMovies.NotifyDataSetChanged();
+                                break;
+                            }
                         }
                         break;
                 }

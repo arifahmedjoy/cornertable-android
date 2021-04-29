@@ -120,16 +120,17 @@ namespace WoWonder.Activities.Wallet.Fragment
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnContinue.Click += BtnContinueOnClick;
-                    TxtEmail.Touch += TxtEmailOnTouch;
-                }
-                else
-                {
-                    BtnContinue.Click -= BtnContinueOnClick;
-                    TxtEmail.Touch -= TxtEmailOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        BtnContinue.Click += BtnContinueOnClick;
+                        TxtEmail.Touch += TxtEmailOnTouch;
+                        break;
+                    default:
+                        BtnContinue.Click -= BtnContinueOnClick;
+                        TxtEmail.Touch -= TxtEmailOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -188,15 +189,19 @@ namespace WoWonder.Activities.Wallet.Fragment
                 AndHUD.Shared.Show(Activity, GetText(Resource.String.Lbl_Loading));
 
                 var (apiStatus, respond) = await RequestsAsync.Global.SendMoneyWalletAsync(UserId, TxtAmount.Text);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    TxtAmount.Text = string.Empty;
-                    TxtEmail.Text = string.Empty;
+                    case 200:
+                        TxtAmount.Text = string.Empty;
+                        TxtEmail.Text = string.Empty;
 
-                    AndHUD.Shared.Dismiss(Activity);
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_MoneySentSuccessfully), ToastLength.Short)?.Show(); 
+                        AndHUD.Shared.Dismiss(Activity);
+                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_MoneySentSuccessfully), ToastLength.Short)?.Show();
+                        break;
+                    default:
+                        Methods.DisplayAndHudErrorResult(Activity, respond);
+                        break;
                 }
-                else Methods.DisplayAndHudErrorResult(Activity, respond);
             }
             catch (Exception exception)
             {

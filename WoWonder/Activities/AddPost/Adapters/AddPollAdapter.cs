@@ -57,11 +57,15 @@ namespace WoWonder.Activities.AddPost.Adapters
             try
             {
                 Position = position;
-                if (viewHolder is AddPollAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var itemcount = Position + 1;
-                    holder.Number.Text = itemcount.ToString(); 
-                    holder.Input.Hint = ActivityContext.GetText(Resource.String.Lbl2_Answer) + " " + itemcount;
+                    case AddPollAdapterViewHolder holder:
+                    {
+                        var itemcount = Position + 1;
+                        holder.Number.Text = itemcount.ToString(); 
+                        holder.Input.Hint = ActivityContext.GetText(Resource.String.Lbl2_Answer) + " " + itemcount;
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -120,18 +124,22 @@ namespace WoWonder.Activities.AddPost.Adapters
 
         private void CloseClickListener(AddPollAdapterClickEventArgs args)
         {
-            if (AnswersList.Count > 2)
+            switch (AnswersList.Count)
             {
-                var item = AnswersList[args.Position];
-                AnswersList.Remove(item);
-                NotifyDataSetChanged();
-                ItemLongClick?.Invoke(this, args);
-            }
-            else
-            {
-                
-                Snackbar mySnackbar = Snackbar.Make(args.View, ActivityContext.GetText(Resource.String.Lbl2_PollsLimitTwo), BaseTransientBottomBar.LengthShort);
-                mySnackbar.Show();
+                case > 2:
+                {
+                    var item = AnswersList[args.Position];
+                    AnswersList.Remove(item);
+                    NotifyDataSetChanged();
+                    ItemLongClick?.Invoke(this, args);
+                    break;
+                }
+                default:
+                {
+                    Snackbar mySnackbar = Snackbar.Make(args.View, ActivityContext.GetText(Resource.String.Lbl2_PollsLimitTwo), BaseTransientBottomBar.LengthShort);
+                    mySnackbar.Show();
+                    break;
+                }
             }
         }
     }

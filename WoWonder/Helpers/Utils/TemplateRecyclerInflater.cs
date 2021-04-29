@@ -52,30 +52,38 @@ namespace WoWonder.Helpers.Utils
             {
                 InitComponent(inflated);
 
-                if (showTitle)
+                switch (showTitle)
                 {
-                    MainLinear.Visibility = ViewStates.Visible;
-
-                    if (string.IsNullOrEmpty(titleText))
+                    case true:
                     {
-                        TitleText.Visibility = ViewStates.Gone;
-                        IconTitle.Visibility = ViewStates.Gone;
-                    }
-                    else
-                    {
-                        TitleText.Text = titleText; 
-                    }
+                        MainLinear.Visibility = ViewStates.Visible;
 
-                    if (string.IsNullOrEmpty(descriptionText))
-                        DescriptionText.Visibility = ViewStates.Gone;
-                    else
-                        DescriptionText.Text = descriptionText;
+                        if (string.IsNullOrEmpty(titleText))
+                        {
+                            TitleText.Visibility = ViewStates.Gone;
+                            IconTitle.Visibility = ViewStates.Gone;
+                        }
+                        else
+                        {
+                            TitleText.Text = titleText; 
+                        }
 
-                    if (showMore)
-                        MoreText.Visibility = ViewStates.Visible;
+                        if (string.IsNullOrEmpty(descriptionText))
+                            DescriptionText.Visibility = ViewStates.Gone;
+                        else
+                            DescriptionText.Text = descriptionText;
+
+                        MoreText.Visibility = showMore switch
+                        {
+                            true => ViewStates.Visible,
+                            _ => MoreText.Visibility
+                        };
+                        break;
+                    }
+                    default:
+                        MainLinear.Visibility = ViewStates.Gone;
+                        break;
                 }
-                else
-                    MainLinear.Visibility = ViewStates.Gone;
 
                 switch (manager)
                 {

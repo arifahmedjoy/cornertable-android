@@ -61,47 +61,57 @@ namespace WoWonder.Activities.Fundings.Adapters
         {
             try
             {
-                if (viewHolder is FundingAdaptersViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = FundingList[position];
-                    if (item != null)
-                    {  
-                        GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                    case FundingAdaptersViewHolder holder:
+                    {
+                        var item = FundingList[position];
+                        if (item != null)
+                        {  
+                            GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
-                        holder.Title.Text = Methods.FunString.DecodeString(item.Title);
+                            holder.Title.Text = Methods.FunString.DecodeString(item.Title);
                          
-                        if (item.UserData != null)
-                            holder.Username.Text = WoWonderTools.GetNameFinal(item.UserData);
-                        else
-                            holder.Username.Visibility = ViewStates.Gone;
+                            if (item.UserData != null)
+                                holder.Username.Text = WoWonderTools.GetNameFinal(item.UserData);
+                            else
+                                holder.Username.Visibility = ViewStates.Gone;
 
-                        try
-                        {
-                            item.Raised = item.Raised.Replace(AppSettings.CurrencyFundingPriceStatic, "");
-                            item.Amount = item.Amount.Replace(AppSettings.CurrencyFundingPriceStatic, "");
+                            try
+                            {
+                                item.Raised = item.Raised.Replace(AppSettings.CurrencyFundingPriceStatic, "");
+                                item.Amount = item.Amount.Replace(AppSettings.CurrencyFundingPriceStatic, "");
                              
-                            decimal d = decimal.Parse(item.Raised, CultureInfo.InvariantCulture);
-                            holder.Raised.Text = AppSettings.CurrencyFundingPriceStatic + d.ToString("0.00");
+                                decimal d = decimal.Parse(item.Raised, CultureInfo.InvariantCulture);
+                                holder.Raised.Text = AppSettings.CurrencyFundingPriceStatic + d.ToString("0.00");
 
-                            decimal amount = decimal.Parse(item.Amount, CultureInfo.InvariantCulture);
-                            holder.TottalAmount.Text = AppSettings.CurrencyFundingPriceStatic + amount.ToString("0.00");
-                             
-                            holder.Progress.Progress = Convert.ToInt32(item.Bar?.ToString("0") ?? "0");
-                        }
-                        catch (Exception exception)
-                        {
-                            holder.Raised.Text = AppSettings.CurrencyFundingPriceStatic + item.Raised;
-                            holder.TottalAmount.Text = AppSettings.CurrencyFundingPriceStatic + item.Amount;
-                            holder.Progress.Progress = Convert.ToInt32(item.Bar);
-                            Methods.DisplayReportResultTrack(exception);
-                        }
+                                decimal amount = decimal.Parse(item.Amount, CultureInfo.InvariantCulture);
+                                holder.TottalAmount.Text = AppSettings.CurrencyFundingPriceStatic + amount.ToString("0.00");
+
+                                holder.Progress.Progress = Convert.ToInt32(item.Bar?.ToString("0") ?? "0");
+                            }
+                            catch (Exception exception)
+                            {
+                                holder.Raised.Text = AppSettings.CurrencyFundingPriceStatic + item.Raised;
+                                holder.TottalAmount.Text = AppSettings.CurrencyFundingPriceStatic + item.Amount;
+                                holder.Progress.Progress = Convert.ToInt32(item.Bar);
+                                Methods.DisplayReportResultTrack(exception);
+                            }
                         
-                        holder.DonationTime.Text = IonIconsFonts.Time + "  " + Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
+                            holder.DonationTime.Text = IonIconsFonts.Time + "  " + Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
                          
-                        if (!string.IsNullOrEmpty(item.Description))
-                            holder.Description.Text = Methods.FunString.DecodeString(item.Description);
-                        else
-                            ActivityContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                            switch (string.IsNullOrEmpty(item.Description))
+                            {
+                                case false:
+                                    holder.Description.Text = Methods.FunString.DecodeString(item.Description);
+                                    break;
+                                default:
+                                    ActivityContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                                    break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -117,9 +127,11 @@ namespace WoWonder.Activities.Fundings.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is FundingAdaptersViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case FundingAdaptersViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -170,14 +182,21 @@ namespace WoWonder.Activities.Fundings.Adapters
             {
                 var d = new List<string>();
                 var item = FundingList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Image))
-                        d.Add(item.Image);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Image))
+                        {
+                            case false:
+                                d.Add(item.Image);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

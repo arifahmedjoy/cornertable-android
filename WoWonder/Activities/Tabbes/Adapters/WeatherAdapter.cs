@@ -57,19 +57,27 @@ namespace WoWonder.Activities.Tabbes.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is WeatherAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = WeatherHourList[position];
-                    if (item != null)
+                    case WeatherAdapterViewHolder holder:
                     {
-                        if (!item.Condition.Icon.Contains("http"))
-                            item.Condition.Icon = "http://" + item.Condition.Icon;
+                        var item = WeatherHourList[position];
+                        if (item != null)
+                        {
+                            item.Condition.Icon = item.Condition.Icon.Contains("http") switch
+                            {
+                                false => "http://" + item.Condition.Icon,
+                                _ => item.Condition.Icon
+                            };
 
-                        Glide.With(ActivityContext).Load(item.Condition.Icon).Apply(new RequestOptions()).Into(holder.Icon);
+                            Glide.With(ActivityContext).Load(item.Condition.Icon).Apply(new RequestOptions()).Into(holder.Icon);
                          
-                        holder.Temp.Text = Methods.Time.TimeAgo(item.TimeEpoch);
-                        holder.Time.Text = item.TempC + "°";
+                            holder.Temp.Text = Methods.Time.TimeAgo(item.TimeEpoch);
+                            holder.Time.Text = item.TempC + "°";
+                        }
+
+                        break;
                     }
                 }
             }

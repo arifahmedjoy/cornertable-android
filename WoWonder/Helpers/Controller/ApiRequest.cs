@@ -62,12 +62,13 @@ namespace WoWonder.Helpers.Controller
 
                 (var apiStatus, dynamic respond) = await Current.GetSettings();
 
-                if (apiStatus != 200 || (respond is not GetSiteSettingsObject result) || result.Config == null)
+                if (apiStatus != 200 || respond is not GetSiteSettingsObject result || result.Config == null)
                     return Methods.DisplayReportResult(context, respond);
 
                 ListUtils.SettingsSiteList = result.Config;
                  
                 AppSettings.OneSignalAppId = result.Config.AndroidNPushId;
+                AppSettings.MsgOneSignalAppId = result.Config.AndroidMPushId;
                 OneSignalNotification.RegisterNotificationDevice();
 
                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
@@ -87,26 +88,39 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         CategoriesController.ListCategoriesPage.Clear();
-                        if (listPage?.Count > 0)
-                            CategoriesController.ListCategoriesPage = new ObservableCollection<Classes.Categories>(listPage);
-
-                        if (result.Config.PageSubCategories?.SubCategoriesList?.Count > 0)
+                        CategoriesController.ListCategoriesPage = listPage?.Count switch
                         {
-                            //Sub Categories Page
-                            foreach (var sub in result.Config.PageSubCategories?.SubCategoriesList)
+                            > 0 => new ObservableCollection<Classes.Categories>(listPage),
+                            _ => CategoriesController.ListCategoriesPage
+                        };
+
+                        switch (result.Config.PageSubCategories?.SubCategoriesList?.Count)
+                        {
+                            case > 0:
                             {
-                                var subCategories = result.Config.PageSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
-                                if (subCategories?.Count > 0)
+                                //Sub Categories Page
+                                foreach (var sub in result.Config.PageSubCategories?.SubCategoriesList)
                                 {
-                                    var cat = CategoriesController.ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == sub.Key);
-                                    if (cat != null)
+                                    var subCategories = result.Config.PageSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
+                                    switch (subCategories?.Count)
                                     {
-                                        foreach (var pairs in subCategories)
+                                        case > 0:
                                         {
-                                            cat.SubList.Add(pairs);
+                                            var cat = CategoriesController.ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == sub.Key);
+                                            if (cat != null)
+                                            {
+                                                foreach (var pairs in subCategories)
+                                                {
+                                                    cat.SubList.Add(pairs);
+                                                }
+                                            }
+
+                                            break;
                                         }
                                     }
                                 }
+
+                                break;
                             }
                         }
 
@@ -120,33 +134,48 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         CategoriesController.ListCategoriesGroup.Clear();
-                        if (listGroup?.Count > 0)
-                            CategoriesController.ListCategoriesGroup = new ObservableCollection<Classes.Categories>(listGroup);
-
-                        if (result.Config.GroupSubCategories?.SubCategoriesList?.Count > 0)
+                        CategoriesController.ListCategoriesGroup = listGroup?.Count switch
                         {
-                            //Sub Categories Group
-                            foreach (var sub in result.Config.GroupSubCategories?.SubCategoriesList)
+                            > 0 => new ObservableCollection<Classes.Categories>(listGroup),
+                            _ => CategoriesController.ListCategoriesGroup
+                        };
+
+                        switch (result.Config.GroupSubCategories?.SubCategoriesList?.Count)
+                        {
+                            case > 0:
                             {
-                                var subCategories = result.Config.GroupSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
-                                if (subCategories?.Count > 0)
+                                //Sub Categories Group
+                                foreach (var sub in result.Config.GroupSubCategories?.SubCategoriesList)
                                 {
-                                    var cat = CategoriesController.ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == sub.Key);
-                                    if (cat != null)
+                                    var subCategories = result.Config.GroupSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
+                                    switch (subCategories?.Count)
                                     {
-                                        foreach (var pairs in subCategories)
+                                        case > 0:
                                         {
-                                            cat.SubList.Add(pairs);
+                                            var cat = CategoriesController.ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == sub.Key);
+                                            if (cat != null)
+                                            {
+                                                foreach (var pairs in subCategories)
+                                                {
+                                                    cat.SubList.Add(pairs);
+                                                }
+                                            }
+
+                                            break;
                                         }
                                     }
                                 }
+
+                                break;
                             }
                         }
 
-                        if (CategoriesController.ListCategoriesGroup.Count == 0 && CategoriesController.ListCategoriesPage.Count > 0)
+                        CategoriesController.ListCategoriesGroup = CategoriesController.ListCategoriesGroup.Count switch
                         {
-                            CategoriesController.ListCategoriesGroup = new ObservableCollection<Classes.Categories>(CategoriesController.ListCategoriesPage);
-                        }
+                            0 when CategoriesController.ListCategoriesPage.Count > 0 => new
+                                ObservableCollection<Classes.Categories>(CategoriesController.ListCategoriesPage),
+                            _ => CategoriesController.ListCategoriesGroup
+                        };
 
                         //Blog Categories
                         var listBlog = result.Config.BlogCategories?.Select(cat => new Classes.Categories
@@ -158,8 +187,11 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         CategoriesController.ListCategoriesBlog.Clear();
-                        if (listBlog?.Count > 0)
-                            CategoriesController.ListCategoriesBlog = new ObservableCollection<Classes.Categories>(listBlog);
+                        CategoriesController.ListCategoriesBlog = listBlog?.Count switch
+                        {
+                            > 0 => new ObservableCollection<Classes.Categories>(listBlog),
+                            _ => CategoriesController.ListCategoriesBlog
+                        };
 
                         //Products Categories
                         var listProducts = result.Config.ProductsCategories?.Select(cat => new Classes.Categories
@@ -171,26 +203,39 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         CategoriesController.ListCategoriesProducts.Clear();
-                        if (listProducts?.Count > 0)
-                            CategoriesController.ListCategoriesProducts = new ObservableCollection<Classes.Categories>(listProducts);
-
-                        if (result.Config.ProductsSubCategories?.SubCategoriesList?.Count > 0)
+                        CategoriesController.ListCategoriesProducts = listProducts?.Count switch
                         {
-                            //Sub Categories Products
-                            foreach (var sub in result.Config.ProductsSubCategories?.SubCategoriesList)
+                            > 0 => new ObservableCollection<Classes.Categories>(listProducts),
+                            _ => CategoriesController.ListCategoriesProducts
+                        };
+
+                        switch (result.Config.ProductsSubCategories?.SubCategoriesList?.Count)
+                        {
+                            case > 0:
                             {
-                                var subCategories = result.Config.ProductsSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
-                                if (subCategories?.Count > 0)
+                                //Sub Categories Products
+                                foreach (var sub in result.Config.ProductsSubCategories?.SubCategoriesList)
                                 {
-                                    var cat = CategoriesController.ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == sub.Key);
-                                    if (cat != null)
+                                    var subCategories = result.Config.ProductsSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
+                                    switch (subCategories?.Count)
                                     {
-                                        foreach (var pairs in subCategories)
+                                        case > 0:
                                         {
-                                            cat.SubList.Add(pairs);
+                                            var cat = CategoriesController.ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == sub.Key);
+                                            if (cat != null)
+                                            {
+                                                foreach (var pairs in subCategories)
+                                                {
+                                                    cat.SubList.Add(pairs);
+                                                }
+                                            }
+
+                                            break;
                                         }
                                     }
                                 }
+
+                                break;
                             }
                         }
 
@@ -204,8 +249,11 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         CategoriesController.ListCategoriesJob.Clear();
-                        if (listJob?.Count > 0)
-                            CategoriesController.ListCategoriesJob = new ObservableCollection<Classes.Categories>(listJob);
+                        CategoriesController.ListCategoriesJob = listJob?.Count switch
+                        {
+                            > 0 => new ObservableCollection<Classes.Categories>(listJob),
+                            _ => CategoriesController.ListCategoriesJob
+                        };
 
                         //Family
                         var listFamily = result.Config.Family?.Select(cat => new Classes.Family
@@ -215,8 +263,11 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         ListUtils.FamilyList.Clear();
-                        if (listFamily?.Count > 0)
-                            ListUtils.FamilyList = new ObservableCollection<Classes.Family>(listFamily);
+                        ListUtils.FamilyList = listFamily?.Count switch
+                        {
+                            > 0 => new ObservableCollection<Classes.Family>(listFamily),
+                            _ => ListUtils.FamilyList
+                        };
 
                         //Movie Category
                         var listMovie = result.Config.MovieCategory?.Select(cat => new Classes.Categories
@@ -228,37 +279,58 @@ namespace WoWonder.Helpers.Controller
                         }).ToList();
 
                         CategoriesController.ListCategoriesMovies.Clear();
-                        if (listMovie?.Count > 0)
-                            CategoriesController.ListCategoriesMovies = new ObservableCollection<Classes.Categories>(listMovie);
-
-                        if (AppSettings.SetApisReportMode)
+                        CategoriesController.ListCategoriesMovies = listMovie?.Count switch
                         {
-                            if (CategoriesController.ListCategoriesPage.Count == 0)
-                            {
-                                Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "List Categories Page Not Found, Please check api get_site_settings ", "Close");
-                            }
+                            > 0 => new ObservableCollection<Classes.Categories>(listMovie),
+                            _ => CategoriesController.ListCategoriesMovies
+                        };
 
-                            if (CategoriesController.ListCategoriesGroup.Count == 0)
+                        switch (AppSettings.SetApisReportMode)
+                        {
+                            case true:
                             {
-                                Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "List Categories Group Not Found, Please check api get_site_settings ", "Close");
-                            }
-
-                            if (CategoriesController.ListCategoriesProducts.Count == 0)
-                            {
-                                Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "List Categories Products Not Found, Please check api get_site_settings ", "Close");
-                            }
-
-                            if (ListUtils.FamilyList.Count == 0)
-                            {
-                                Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "Family List Not Found, Please check api get_site_settings ", "Close");
-                            }
-
-                            if (AppSettings.SetApisReportMode && AppSettings.ShowColor)
-                            {
-                                if (ListUtils.SettingsSiteList?.PostColors != null && ListUtils.SettingsSiteList?.PostColors.Value.PostColorsList != null && ListUtils.SettingsSiteList?.PostColors.Value.PostColorsList.Count == 0)
+                                switch (CategoriesController.ListCategoriesPage.Count)
                                 {
-                                    Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "PostColors Not Found, Please check api get_site_settings ", "Close");
+                                    case 0:
+                                        Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "List Categories Page Not Found, Please check api get_site_settings ", "Close");
+                                        break;
                                 }
+
+                                switch (CategoriesController.ListCategoriesGroup.Count)
+                                {
+                                    case 0:
+                                        Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "List Categories Group Not Found, Please check api get_site_settings ", "Close");
+                                        break;
+                                }
+
+                                switch (CategoriesController.ListCategoriesProducts.Count)
+                                {
+                                    case 0:
+                                        Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "List Categories Products Not Found, Please check api get_site_settings ", "Close");
+                                        break;
+                                }
+
+                                switch (ListUtils.FamilyList.Count)
+                                {
+                                    case 0:
+                                        Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "Family List Not Found, Please check api get_site_settings ", "Close");
+                                        break;
+                                }
+
+                                switch (AppSettings.SetApisReportMode)
+                                {
+                                    case true when AppSettings.ShowColor:
+                                    {
+                                        if (ListUtils.SettingsSiteList?.PostColors != null && ListUtils.SettingsSiteList?.PostColors.Value.PostColorsList != null && ListUtils.SettingsSiteList?.PostColors.Value.PostColorsList.Count == 0)
+                                        {
+                                            Methods.DialogPopup.InvokeAndShowDialog(context, "ReportMode", "PostColors Not Found, Please check api get_site_settings ", "Close");
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                break;
                             }
                         }
                     }
@@ -284,35 +356,49 @@ namespace WoWonder.Helpers.Controller
                 if (Methods.CheckConnectivity())
                 {
                     var (apiStatus, respond) = await RequestsAsync.Global.FetchGiftAsync();
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GiftObject result)
+                        case 200:
                         {
-                            if (result.Data.Count > 0)
-                            { 
-                                ListUtils.GiftsList = new ObservableCollection<GiftObject.DataGiftObject>(result.Data);
+                            switch (respond)
+                            {
+                                case GiftObject result:
+                                {
+                                    switch (result.Data.Count)
+                                    {
+                                        case > 0:
+                                        {
+                                            ListUtils.GiftsList = new ObservableCollection<GiftObject.DataGiftObject>(result.Data);
 
-                                SqLiteDatabase sqLiteDatabase = new SqLiteDatabase();
-                                sqLiteDatabase.InsertAllGifts(ListUtils.GiftsList);
+                                            SqLiteDatabase sqLiteDatabase = new SqLiteDatabase();
+                                            sqLiteDatabase.InsertAllGifts(ListUtils.GiftsList);
                                 
 
-                                await Task.Factory.StartNew(() =>
-                                {
-                                    try
-                                    {
-                                        foreach (var item in result.Data)
-                                        {
-                                            Methods.MultiMedia.DownloadMediaTo_DiskAsync(Methods.Path.FolderDiskGif, item.MediaFile);
+                                            await Task.Factory.StartNew(() =>
+                                            {
+                                                try
+                                                {
+                                                    foreach (var item in result.Data)
+                                                    {
+                                                        Methods.MultiMedia.DownloadMediaTo_DiskAsync(Methods.Path.FolderDiskGif, item.MediaFile);
 
-                                            Glide.With(Application.Context).Load(item.MediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
+                                                        Glide.With(Application.Context).Load(item.MediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Methods.DisplayReportResultTrack(e);
+                                                }
+                                            });
+                                            break;
                                         }
                                     }
-                                    catch (Exception e)
-                                    {
-                                        Methods.DisplayReportResultTrack(e);
-                                    }
-                                }); 
+
+                                    break;
+                                }
                             }
+
+                            break;
                         }
                     }
                 }
@@ -331,21 +417,22 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                if (AppSettings.AutoCodeTimeZone)
+                switch (AppSettings.AutoCodeTimeZone)
                 {
-                    var client = new HttpClient();
-                    var response = await client.GetAsync(ApiGetTimeZone);
-                    string json = await response.Content.ReadAsStringAsync();
-                    var data = JsonConvert.DeserializeObject<TimeZoneObject>(json);
+                    case true:
+                    {
+                        var client = new HttpClient();
+                        var response = await client.GetAsync(ApiGetTimeZone);
+                        string json = await response.Content.ReadAsStringAsync();
+                        var data = JsonConvert.DeserializeObject<TimeZoneObject>(json);
 
-                    UserDetails.Country = data.Country;
-                    UserDetails.City = data.City;
+                        UserDetails.Country = data.Country;
+                        UserDetails.City = data.City;
 
-                    return data?.Timezone;
-                }
-                else
-                {
-                    return AppSettings.CodeTimeZone;
+                        return data?.Timezone;
+                    }
+                    default:
+                        return AppSettings.CodeTimeZone;
                 }
             }
             catch (Exception e)
@@ -444,14 +531,13 @@ namespace WoWonder.Helpers.Controller
                     string json = await response.Content.ReadAsStringAsync();
                     var data = JsonConvert.DeserializeObject<GifGiphyClass>(json);
 
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    return response.StatusCode switch
                     {
-                        return data.DataMeta.Status == 200 ? new ObservableCollection<GifGiphyClass.Datum>(data.Data) : null;
-                    }
-                    else
-                    {
-                        return null!;
-                    }
+                        HttpStatusCode.OK => data.DataMeta.Status == 200
+                            ? new ObservableCollection<GifGiphyClass.Datum>(data.Data)
+                            : null,
+                        _ => null!
+                    };
                 }
             }
             catch (Exception e)
@@ -476,14 +562,13 @@ namespace WoWonder.Helpers.Controller
                     string json = await response.Content.ReadAsStringAsync();
                     var data = JsonConvert.DeserializeObject<GifGiphyClass>(json);
 
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    return response.StatusCode switch
                     {
-                        return data.DataMeta.Status == 200 ? new ObservableCollection<GifGiphyClass.Datum>(data.Data) : null;
-                    }
-                    else
-                    {
-                        return null!;
-                    }
+                        HttpStatusCode.OK => data.DataMeta.Status == 200
+                            ? new ObservableCollection<GifGiphyClass.Datum>(data.Data)
+                            : null,
+                        _ => null!
+                    };
                 }
             }
             catch (Exception e)
@@ -511,15 +596,12 @@ namespace WoWonder.Helpers.Controller
                      
                     var response = await RestHttp.Client.GetAsync(ApiGetWeatherApi + AppSettings.KeyWeatherApi +"&q=" + UserDetails.City + "&lang=" + UserDetails.LangName);
                     string json = await response.Content.ReadAsStringAsync();
-                    var data = JsonConvert.DeserializeObject<GetWeatherObject>(json); 
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    var data = JsonConvert.DeserializeObject<GetWeatherObject>(json);
+                    return response.StatusCode switch
                     {
-                        return data;
-                    }
-                    else
-                    {
-                        return null!;
-                    }
+                        HttpStatusCode.OK => data,
+                        _ => null!
+                    };
                 }
             }
             catch (Exception e)
@@ -592,46 +674,64 @@ namespace WoWonder.Helpers.Controller
             {
                 var (apiStatus, respond) = await RequestsAsync.Global.Get_User_Data(UserDetails.UserId);
 
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetUserDataObject result)
+                    case 200:
                     {
-                        UserDetails.Avatar = result.UserData.Avatar;
-                        UserDetails.Cover = result.UserData.Cover;
-                        UserDetails.Username = result.UserData.Username;
-                        UserDetails.FullName = result.UserData.Name;
-                        UserDetails.Email = result.UserData.Email;
-
-                        ListUtils.MyProfileList = new ObservableCollection<UserDataObject> {result.UserData};
-
-                        if (result.Followers?.Count > 0)
-                            ListUtils.MyFollowersList = new ObservableCollection<UserDataObject>(result.Followers);
-
-                        context?.RunOnUiThread(() =>
+                        switch (respond)
                         {
-                            try
+                            case GetUserDataObject result:
                             {
-                                Glide.With(Application.Context).Load(UserDetails.Avatar).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CircleCrop()).Preload();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e); 
-                            }
-                        });
+                                UserDetails.Avatar = result.UserData.Avatar;
+                                UserDetails.Cover = result.UserData.Cover;
+                                UserDetails.Username = result.UserData.Username;
+                                UserDetails.FullName = result.UserData.Name;
+                                UserDetails.Email = result.UserData.Email;
+
+                                ListUtils.MyProfileList = new ObservableCollection<UserDataObject> {result.UserData};
+
+                                ListUtils.MyFollowersList = result.Followers?.Count switch
+                                {
+                                    > 0 => new ObservableCollection<UserDataObject>(result.Followers),
+                                    _ => ListUtils.MyFollowersList
+                                };
+
+                                context?.RunOnUiThread(() =>
+                                {
+                                    try
+                                    {
+                                        Glide.With(Application.Context).Load(UserDetails.Avatar).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CircleCrop()).Preload();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e); 
+                                    }
+                                });
                          
-                        await Task.Factory.StartNew(() =>
-                        {
-                            SqLiteDatabase dbDatabase = new SqLiteDatabase();
-                            dbDatabase.Insert_Or_Update_To_MyProfileTable(result.UserData);
+                                await Task.Factory.StartNew(() =>
+                                {
+                                    SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                                    dbDatabase.Insert_Or_Update_To_MyProfileTable(result.UserData);
 
-                            if (result.Following?.Count > 0)
-                                dbDatabase.Insert_Or_Replace_MyContactTable(new ObservableCollection<UserDataObject>(result.Following));
+                                    switch (result.Following?.Count)
+                                    {
+                                        case > 0:
+                                            dbDatabase.Insert_Or_Replace_MyContactTable(new ObservableCollection<UserDataObject>(result.Following));
+                                            break;
+                                    }
 
                             
-                        });
+                                });
+                                break;
+                            }
+                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(context, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(context, respond);
             }
         }
 
@@ -639,19 +739,31 @@ namespace WoWonder.Helpers.Controller
         {
             if (Methods.CheckConnectivity())
             {
-                var countList = ListUtils.SuggestedGroupList.Count;
+                //var countList = ListUtils.SuggestedGroupList.Count;
                 var (respondCode, respondString) = await RequestsAsync.Group.GetRecommendedGroups("25", "0").ConfigureAwait(false);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is ListGroupsObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            ListUtils.SuggestedGroupList = new ObservableCollection<GroupClass>(result.Data);
+                            case ListGroupsObject result:
+                            {
+                                var respondList = result.Data.Count;
+                                ListUtils.SuggestedGroupList = respondList switch
+                                {
+                                    > 0 => new ObservableCollection<GroupClass>(result.Data),
+                                    _ => ListUtils.SuggestedGroupList
+                                };
+
+                                break;
+                            }
                         }
+
+                        break;
                     }
                 }
+
                 //else Methods.DisplayReportResult(activity, respondString);
             }
         }
@@ -659,20 +771,32 @@ namespace WoWonder.Helpers.Controller
         public static async Task LoadSuggestedUser()
         {
             if (Methods.CheckConnectivity())
-            { 
-                var countList = ListUtils.SuggestedUserList.Count;
+            {
+                //var countList = ListUtils.SuggestedUserList.Count;
                 var (respondCode, respondString) = await RequestsAsync.Global.GetRecommendedUsers("25", "0").ConfigureAwait(false);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is ListUsersObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            ListUtils.SuggestedUserList = new ObservableCollection<UserDataObject>(result.Data);
+                            case ListUsersObject result:
+                            {
+                                var respondList = result.Data.Count;
+                                ListUtils.SuggestedUserList = respondList switch
+                                {
+                                    > 0 => new ObservableCollection<UserDataObject>(result.Data),
+                                    _ => ListUtils.SuggestedUserList
+                                };
+
+                                break;
+                            }
                         }
+
+                        break;
                     }
                 }
+
                 //else Methods.DisplayReportResult(activity, respondString);
             }
         }
@@ -684,28 +808,33 @@ namespace WoWonder.Helpers.Controller
                 try
                 {
                     var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroups("0", "25");
-                    if (apiStatus != 200 || (respond is not ListGroupsObject result) || result.Data == null)
+                    if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                     {
                         //Methods.DisplayReportResult(this, respond);
                     }
                     else
                     {
                         var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondList)
                         {
-                            result.Data.Reverse(); 
-                            ListUtils.MyGroupList = new ObservableCollection<GroupClass>(result.Data);
-
-                            foreach (var groupClass in result.Data)
+                            case > 0:
                             {
-                                ListUtils.ShortCutsList.Add(new Classes.ShortCuts
+                                result.Data.Reverse(); 
+                                ListUtils.MyGroupList = new ObservableCollection<GroupClass>(result.Data);
+
+                                foreach (var groupClass in result.Data)
                                 {
-                                    Id = ListUtils.ShortCutsList.Count +1,
-                                    SocialId = groupClass.GroupId,
-                                    Type = "Group",
-                                    Name = groupClass.GroupName,
-                                    GroupClass = groupClass,
-                                }); 
+                                    ListUtils.ShortCutsList.Add(new Classes.ShortCuts
+                                    {
+                                        Id = ListUtils.ShortCutsList.Count +1,
+                                        SocialId = groupClass.GroupId,
+                                        Type = "Group",
+                                        Name = groupClass.GroupName,
+                                        GroupClass = groupClass,
+                                    }); 
+                                }
+
+                                break;
                             }
                         }
                     }
@@ -725,12 +854,21 @@ namespace WoWonder.Helpers.Controller
                     else
                     {
                         var respondList = result2.Data.Count;
-                        if (respondList > 0)
-                        { 
-                            foreach (var item in result2.Data)
+                        switch (respondList)
+                        {
+                            case > 0:
                             {
-                                if (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId) == null)
-                                    ListUtils.MyGroupList.Add(item);
+                                foreach (var item in result2.Data)
+                                {
+                                    switch (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId))
+                                    {
+                                        case null:
+                                            ListUtils.MyGroupList.Add(item);
+                                            break;
+                                    }
+                                }
+
+                                break;
                             }
                         }
                     }
@@ -747,29 +885,34 @@ namespace WoWonder.Helpers.Controller
             if (Methods.CheckConnectivity())
             {
                 var (apiStatus, respond) = await RequestsAsync.Page.GetMyPages("0", "25");
-                if (apiStatus != 200 || (respond is not ListPagesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                 {
                     //Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        result.Data.Reverse();
-
-                        ListUtils.MyPageList = new ObservableCollection<PageClass>(result.Data);
-
-                        foreach (var pageClass in result.Data)
+                        case > 0:
                         {
-                            ListUtils.ShortCutsList.Add(new Classes.ShortCuts
+                            result.Data.Reverse();
+
+                            ListUtils.MyPageList = new ObservableCollection<PageClass>(result.Data);
+
+                            foreach (var pageClass in result.Data)
                             {
-                                Id = ListUtils.ShortCutsList.Count + 1,
-                                SocialId = pageClass.PageId,
-                                Type = "Page",
-                                Name = pageClass.PageName,
-                                PageClass = pageClass,
-                            });
+                                ListUtils.ShortCutsList.Add(new Classes.ShortCuts
+                                {
+                                    Id = ListUtils.ShortCutsList.Count + 1,
+                                    SocialId = pageClass.PageId,
+                                    Type = "Page",
+                                    Name = pageClass.PageName,
+                                    PageClass = pageClass,
+                                });
+                            }
+
+                            break;
                         }
                     }
                 } 
@@ -781,20 +924,22 @@ namespace WoWonder.Helpers.Controller
             if (Methods.CheckConnectivity())
             {
                 var (apiStatus, respond) = await RequestsAsync.Article.Get_Articles("5");
-                if (apiStatus != 200 || (respond is not GetUsersArticlesObject result) || result.Articles == null)
+                if (apiStatus != 200 || respond is not GetUsersArticlesObject result || result.Articles == null)
                 {
                     //Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Articles.Count;
-                    if (respondList > 0)
-                    { 
-                        ListUtils.ListCachedDataArticle = new ObservableCollection<ArticleDataObject>(result.Articles);
-                    }
+                    ListUtils.ListCachedDataArticle = respondList switch
+                    {
+                        > 0 => new ObservableCollection<ArticleDataObject>(result.Articles),
+                        _ => ListUtils.ListCachedDataArticle
+                    };
                 } 
             } 
         }
+
 
 
         #region Call
@@ -913,56 +1058,58 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                if (RunLogout == false)
+                switch (RunLogout)
                 {
-                    RunLogout = true;
+                    case false:
+                        RunLogout = true;
 
-                    await RemoveData("Delete");
+                        await RemoveData("Delete");
 
-                    context?.RunOnUiThread(() =>
-                    {
-                        try
+                        context?.RunOnUiThread(() =>
                         {
-                            Methods.Path.DeleteAll_MyFolderDisk();
+                            try
+                            {
+                                Methods.Path.DeleteAll_MyFolderDisk();
 
-                            SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                                SqLiteDatabase dbDatabase = new SqLiteDatabase();
 
-                            Runtime.GetRuntime()?.RunFinalization();
-                            Runtime.GetRuntime()?.Gc();
-                            TrimCache(context);
+                                Runtime.GetRuntime()?.RunFinalization();
+                                Runtime.GetRuntime()?.Gc();
+                                TrimCache(context);
 
-                            dbDatabase.ClearAll();
-                            dbDatabase.DropAll();
+                                dbDatabase.ClearAll();
+                                dbDatabase.DropAll();
 
-                            ListUtils.ClearAllList();
+                                ListUtils.ClearAllList();
 
-                            UserDetails.ClearAllValueUserDetails();
+                                UserDetails.ClearAllValueUserDetails();
 
-                            dbDatabase.CheckTablesStatus();
+                                dbDatabase.CheckTablesStatus();
 
-                            context.StopService(new Intent(context, typeof(PostService)));
-                            context.StopService(new Intent(context, typeof(PostApiService)));
-                            context.StopService(new Intent(context, typeof(ChatApiService)));
+                                context.StopService(new Intent(context, typeof(PostService)));
+                                context.StopService(new Intent(context, typeof(PostApiService)));
+                                context.StopService(new Intent(context, typeof(ChatApiService)));
 
-                            MainSettings.SharedData?.Edit()?.Clear()?.Commit();
-                            MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
-                            MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
+                                MainSettings.SharedData?.Edit()?.Clear()?.Commit();
+                                MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
+                                MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
 
-                            Intent intent = new Intent(context, typeof(FirstActivity));
-                            intent.AddCategory(Intent.CategoryHome);
-                            intent.SetAction(Intent.ActionMain);
-                            intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
-                            context.StartActivity(intent);
-                            context.FinishAffinity();
-                            context.Finish();
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
+                                Intent intent = new Intent(context, typeof(FirstActivity));
+                                intent.AddCategory(Intent.CategoryHome);
+                                intent.SetAction(Intent.ActionMain);
+                                intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
+                                context.StartActivity(intent);
+                                context.FinishAffinity();
+                                context.Finish();
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        });
 
-                    RunLogout = false;
+                        RunLogout = false;
+                        break;
                 }
             }
             catch (Exception e)
@@ -975,56 +1122,58 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                if (RunLogout == false)
+                switch (RunLogout)
                 {
-                    RunLogout = true;
+                    case false:
+                        RunLogout = true;
 
-                    await RemoveData("Logout");
+                        await RemoveData("Logout");
                      
-                    context?.RunOnUiThread(() =>
-                    {
-                        try
+                        context?.RunOnUiThread(() =>
                         {
-                            Methods.Path.DeleteAll_MyFolderDisk();
+                            try
+                            {
+                                Methods.Path.DeleteAll_MyFolderDisk();
 
-                            SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                                SqLiteDatabase dbDatabase = new SqLiteDatabase();
 
-                            Runtime.GetRuntime()?.RunFinalization();
-                            Runtime.GetRuntime()?.Gc();
-                            TrimCache(context);
+                                Runtime.GetRuntime()?.RunFinalization();
+                                Runtime.GetRuntime()?.Gc();
+                                TrimCache(context);
 
-                            dbDatabase.ClearAll();
-                            dbDatabase.DropAll();
+                                dbDatabase.ClearAll();
+                                dbDatabase.DropAll();
 
-                            ListUtils.ClearAllList();
+                                ListUtils.ClearAllList();
 
-                            UserDetails.ClearAllValueUserDetails();
+                                UserDetails.ClearAllValueUserDetails();
 
-                            dbDatabase.CheckTablesStatus();
+                                dbDatabase.CheckTablesStatus();
 
-                            context.StopService(new Intent(context, typeof(PostService)));
-                            context.StopService(new Intent(context, typeof(PostApiService)));
-                            context.StopService(new Intent(context, typeof(ChatApiService)));
+                                context.StopService(new Intent(context, typeof(PostService)));
+                                context.StopService(new Intent(context, typeof(PostApiService)));
+                                context.StopService(new Intent(context, typeof(ChatApiService)));
 
-                            MainSettings.SharedData?.Edit()?.Clear()?.Commit();
-                            MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
-                            MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
+                                MainSettings.SharedData?.Edit()?.Clear()?.Commit();
+                                MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
+                                MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
 
-                            Intent intent = new Intent(context, typeof(FirstActivity));
-                            intent.AddCategory(Intent.CategoryHome);
-                            intent.SetAction(Intent.ActionMain);
-                            intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
-                            context.StartActivity(intent);
-                            context.FinishAffinity();
-                            context.Finish();
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
+                                Intent intent = new Intent(context, typeof(FirstActivity));
+                                intent.AddCategory(Intent.CategoryHome);
+                                intent.SetAction(Intent.ActionMain);
+                                intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
+                                context.StartActivity(intent);
+                                context.FinishAffinity();
+                                context.Finish();
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        });
                      
-                    RunLogout = false;
+                        RunLogout = false;
+                        break;
                 }
             }
             catch (Exception e)
@@ -1133,20 +1282,34 @@ namespace WoWonder.Helpers.Controller
                     }
                 }
 
-                if (AppSettings.ShowGoogleLogin && LoginActivity.MGoogleSignInClient != null)
-                    if (Auth.GoogleSignInApi != null)
-                    {
-                        LoginActivity.MGoogleSignInClient.SignOut();
-                        LoginActivity.MGoogleSignInClient = null!;
-                    }
-                 
-                if (AppSettings.ShowFacebookLogin)
+                switch (AppSettings.ShowGoogleLogin)
                 {
-                    var accessToken = AccessToken.CurrentAccessToken;
-                    var isLoggedIn = accessToken != null && !accessToken.IsExpired;
-                    if (isLoggedIn && Profile.CurrentProfile != null)
+                    case true when LoginActivity.MGoogleSignInClient != null:
                     {
-                        LoginManager.Instance.LogOut();
+                        if (Auth.GoogleSignInApi != null)
+                        {
+                            LoginActivity.MGoogleSignInClient.SignOut();
+                            LoginActivity.MGoogleSignInClient = null!;
+                        }
+
+                        break;
+                    }
+                }
+                 
+                switch (AppSettings.ShowFacebookLogin)
+                {
+                    case true:
+                    {
+                        var accessToken = AccessToken.CurrentAccessToken;
+                        var isLoggedIn = accessToken != null && !accessToken.IsExpired;
+                        switch (isLoggedIn)
+                        {
+                            case true when Profile.CurrentProfile != null:
+                                LoginManager.Instance.LogOut();
+                                break;
+                        }
+
+                        break;
                     }
                 }
 

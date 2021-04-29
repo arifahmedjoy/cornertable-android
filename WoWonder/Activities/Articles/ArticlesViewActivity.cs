@@ -198,9 +198,15 @@ namespace WoWonder.Activities.Articles
             for (int i = 0; i < menu.Size(); i++)
             {
                 var drawable = menu.GetItem(i).Icon;
-                if (drawable == null) continue;
-                drawable.Mutate();
-                drawable.SetColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SrcAtop));
+                switch (drawable)
+                {
+                    case null:
+                        continue;
+                    default:
+                        drawable.Mutate();
+                        drawable.SetColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SrcAtop));
+                        break;
+                }
             }
         }
 
@@ -291,16 +297,17 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnMore.Click += BtnMoreOnClick;
-                    ImgSent.Click += ImgSentOnClick;
-                }
-                else
-                {
-                    BtnMore.Click -= BtnMoreOnClick;
-                    ImgSent.Click -= ImgSentOnClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnMore.Click += BtnMoreOnClick;
+                        ImgSent.Click += ImgSentOnClick;
+                        break;
+                    default:
+                        BtnMore.Click -= BtnMoreOnClick;
+                        ImgSent.Click -= ImgSentOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -391,9 +398,11 @@ namespace WoWonder.Activities.Articles
                     MAdapter.CommentList.Add(comment);
 
                     var index = MAdapter.CommentList.IndexOf(comment);
-                    if (index > -1)
+                    switch (index)
                     {
-                        MAdapter.NotifyItemInserted(index);
+                        case > -1:
+                            MAdapter.NotifyItemInserted(index);
+                            break;
                     }
 
                     MRecycler.Visibility = ViewStates.Visible;
@@ -411,28 +420,42 @@ namespace WoWonder.Activities.Articles
                     TxtComment.Text = "";
 
                     var (apiStatus, respond) = await RequestsAsync.Article.CreateComments(ArticlesId, text);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetCommentsArticlesObject result)
+                        case 200:
                         {
-                            var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
-                            if (date != null)
+                            switch (respond)
                             {
-                                date = result.Data[0];
-                                date.Id = result.Data[0].Id;
-
-                                index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
-                                if (index > -1)
+                                case GetCommentsArticlesObject result:
                                 {
-                                    MAdapter.CommentList[index] = result.Data[0];
+                                    var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
+                                    if (date != null)
+                                    {
+                                        date = result.Data[0];
+                                        date.Id = result.Data[0].Id;
 
-                                    //MAdapter.NotifyItemChanged(index);
-                                    MRecycler.ScrollToPosition(index);
+                                        index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                                MAdapter.CommentList[index] = result.Data[0];
+
+                                                //MAdapter.NotifyItemChanged(index);
+                                                MRecycler.ScrollToPosition(index);
+                                                break;
+                                        }
+                                    }
+
+                                    break;
                                 }
                             }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
 
                     //Hide keyboard
                     TxtComment.Text = "";
@@ -475,15 +498,20 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                //Share Plugin same as video
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = ArticleData.Title,
-                    Text = " ",
-                    Url = ArticleData.Url
-                });
+                    //Share Plugin same as video
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = ArticleData.Title,
+                            Text = " ",
+                            Url = ArticleData.Url
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -568,7 +596,7 @@ namespace WoWonder.Activities.Articles
                     TxtTitle.Text = Methods.FunString.DecodeString(ArticleData.Title);
                     TxtViews.Text = ArticleData.View + " " + GetText(Resource.String.Lbl_Views);
 
-                    string style = AppSettings.SetTabDarkTheme ? "<style type='text/css'>body{color: #fff; background-color: #282828;}</style>" : "<style type='text/css'>body{color: #444; background-color: #FFFAFA;}</style>";
+                    string style = AppSettings.SetTabDarkTheme ? "<style type='text/css'>body{color: #fff; background-color: #282828;}</style>" : "<style type='text/css'>body{color: #444; background-color: #FFFEFE;}</style>";
                     string imageFullWidthStyle = "<style>img{display: inline;height: auto;max-width: 100%;}</style>";
 
                     // This method is deprecated but need to use for old os devices
@@ -597,20 +625,17 @@ namespace WoWonder.Activities.Articles
                     TxtHtml.Settings.BuiltInZoomControls = false;
                     TxtHtml.Settings.DisplayZoomControls = false;
 
-                    int fontSize = (int)TypedValue.ApplyDimension(ComplexUnitType.Sp, 18, Resources?.DisplayMetrics);
-                    TxtHtml.Settings.DefaultFontSize = fontSize;
+                    //int fontSize = (int)TypedValue.ApplyDimension(ComplexUnitType.Sp, 18, Resources?.DisplayMetrics);
+                    //TxtHtml.Settings.DefaultFontSize = fontSize;
 
                     TxtHtml.LoadDataWithBaseURL(null, DataWebHtml, "text/html", "UTF-8", null);
 
                     bool success = int.TryParse(ArticleData.Posted, out var number);
-                    if (success)
+                    TxtTime.Text = success switch
                     {
-                        TxtTime.Text = Methods.Time.TimeAgo(number, false);
-                    }
-                    else
-                    {
-                        TxtTime.Text = ArticleData.Posted;
-                    }
+                        true => Methods.Time.TimeAgo(number, false),
+                        _ => ArticleData.Posted
+                    };
 
                     if (Methods.CheckConnectivity())
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.GetBlogById(ArticlesId) });
@@ -634,15 +659,18 @@ namespace WoWonder.Activities.Articles
 
         private async Task LoadDataComment(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.CommentList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Article.GetComments(ArticlesId, "25", offset);
-                if (apiStatus != 200 || (respond is not GetCommentsArticlesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not GetCommentsArticlesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -650,9 +678,9 @@ namespace WoWonder.Activities.Articles
                 else
                 {
                     var respondList = result.Data?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -660,12 +688,12 @@ namespace WoWonder.Activities.Articles
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.CommentList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.CommentList = new ObservableCollection<CommentsArticlesObject>(result.Data);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                        } 
+                            break;
                     }
                 }
 
@@ -677,23 +705,29 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                MainScrollEvent.IsLoading = false; 
+                MainScrollEvent.IsLoading = false;
 
-                if (MAdapter.CommentList.Count > 0)
+                switch (MAdapter.CommentList.Count)
                 {
-                    var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
-                    if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                    case > 0:
                     {
-                        MAdapter.CommentList.Remove(emptyStateChecker);
-                        MAdapter.NotifyDataSetChanged();
+                        var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
+                        if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                        {
+                            MAdapter.CommentList.Remove(emptyStateChecker);
+                            MAdapter.NotifyDataSetChanged();
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    MAdapter.CommentList.Clear();
-                    var d = new CommentsArticlesObject { Text = MAdapter.EmptyState };
-                    MAdapter.CommentList.Add(d);
-                    MAdapter.NotifyDataSetChanged();
+                    default:
+                    {
+                        MAdapter.CommentList.Clear();
+                        var d = new CommentsArticlesObject { Text = MAdapter.EmptyState };
+                        MAdapter.CommentList.Add(d);
+                        MAdapter.NotifyDataSetChanged();
+                        break;
+                    }
                 }
             }
             catch (Exception e)

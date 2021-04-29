@@ -62,15 +62,17 @@ namespace WoWonder.Activities.Articles.Adapters
         {
             try
             {
-                switch (viewType)
+                return viewType switch
                 {
-                    case 0:
-                        return new ArticlesCommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
-                    case 666:
-                        return new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_EmptyState, parent, false));
-                    default:
-                        return new ArticlesCommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
-                }
+                    0 => new ArticlesCommentAdapterViewHolder(
+                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
+                        this, PostEventListener),
+                    666 => new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)
+                        ?.Inflate(Resource.Layout.Style_EmptyState, parent, false)),
+                    _ => new ArticlesCommentAdapterViewHolder(
+                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
+                        this, PostEventListener)
+                };
             }
             catch (Exception exception)
             {
@@ -101,82 +103,110 @@ namespace WoWonder.Activities.Articles.Adapters
                 var textHighLighter = item.UserData.Name;
                 var textIsPro = string.Empty;
 
-                if (item.UserData.Verified == "1")
-                    textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
-
-                if (item.UserData.IsPro == "1")
+                switch (item.UserData.Verified)
                 {
-                    textIsPro = " " + IonIconsFonts.Flash;
-                    textHighLighter += textIsPro;
+                    case "1":
+                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
+                        break;
+                }
+
+                switch (item.UserData.IsPro)
+                {
+                    case "1":
+                        textIsPro = " " + IonIconsFonts.Flash;
+                        textHighLighter += textIsPro;
+                        break;
                 }
 
                 var decorator = TextDecorator.Decorate(holder.UserName, textHighLighter).SetTextStyle((int)TypefaceStyle.Bold, 0, item.UserData.Name.Length);
 
-                if (item.UserData.Verified == "1")
-                    decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                switch (item.UserData.Verified)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                        break;
+                }
 
-                if (item.UserData.IsPro == "1")
-                    decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
+                switch (item.UserData.IsPro)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
+                        break;
+                }
 
                 decorator.Build();
-                 
-                if (item.Replies?.Count > 0)
-                    holder.ReplyTextView.Text = ActivityContext.GetText(Resource.String.Lbl_Reply) + " " + "(" + item.Replies.Count + ")";
 
-                if (AppSettings.PostButton == PostButtonSystem.Wonder || AppSettings.PostButton == PostButtonSystem.DisLike)
-                { 
-                    if (item.IsCommentLiked)
-                    {
-                        holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
-                        holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                        holder.LikeTextView.Tag = "Liked";
-                    }
+                holder.ReplyTextView.Text = item.Replies?.Count switch
+                {
+                    > 0 => ActivityContext.GetText(Resource.String.Lbl_Reply) + " " + "(" + item.Replies.Count + ")",
+                    _ => holder.ReplyTextView.Text
+                };
 
-                    switch (AppSettings.PostButton)
+                switch (AppSettings.PostButton)
+                {
+                    case PostButtonSystem.Wonder:
+                    case PostButtonSystem.DisLike:
                     {
-                        case PostButtonSystem.Wonder when item.IsCommentWondered:
+                        switch (item.IsCommentLiked)
+                        {
+                            case true:
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
+                                holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.LikeTextView.Tag = "Liked";
+                                break;
+                        }
+
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.Wonder when item.IsCommentWondered:
                             {
                                 holder.DislikeTextView.Text = ActivityContext.GetString(Resource.String.Lbl_wondered);
                                 holder.DislikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                 holder.DislikeTextView.Tag = "Disliked";
                                 break;
                             }
-                        case PostButtonSystem.Wonder:
+                            case PostButtonSystem.Wonder:
                             {
                                 holder.DislikeTextView.Text = ActivityContext.GetString(Resource.String.Btn_Wonder);
                                 holder.DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                                 holder.DislikeTextView.Tag = "Dislike";
                                 break;
                             }
-                        case PostButtonSystem.DisLike when item.IsCommentWondered:
+                            case PostButtonSystem.DisLike when item.IsCommentWondered:
                             {
                                 holder.DislikeTextView.Text = ActivityContext.GetString(Resource.String.Lbl_disliked);
                                 holder.DislikeTextView.SetTextColor(Color.ParseColor("#f89823"));
                                 holder.DislikeTextView.Tag = "Disliked";
                                 break;
                             }
-                        case PostButtonSystem.DisLike:
+                            case PostButtonSystem.DisLike:
                             {
                                 holder.DislikeTextView.Text = ActivityContext.GetString(Resource.String.Btn_Dislike);
                                 holder.DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                                 holder.DislikeTextView.Tag = "Dislike";
                                 break;
                             }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    if (item.IsCommentLiked)
+                    default:
                     {
-                        holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
-                        holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                        holder.LikeTextView.Tag = "Liked";
-                    }
-                    else
-                    {
-                        holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                        holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                        holder.LikeTextView.Tag = "Like";
+                        switch (item.IsCommentLiked)
+                        {
+                            case true:
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
+                                holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.LikeTextView.Tag = "Liked";
+                                break;
+                            default:
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
+                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                holder.LikeTextView.Tag = "Like";
+                                break;
+                        }
+
+                        break;
                     }
                 }
 
@@ -193,24 +223,31 @@ namespace WoWonder.Activities.Articles.Adapters
         {
             try
             {
-                if (viewHolder.ItemViewType == 666)
+                switch (viewHolder.ItemViewType)
                 {
-                    if (!(viewHolder is AdapterHolders.EmptyStateAdapterViewHolder emptyHolder))
+                    case 666:
+                    {
+                        if (viewHolder is not AdapterHolders.EmptyStateAdapterViewHolder emptyHolder)
+                            return;
+
+                        emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoComments);
+
                         return;
-
-                    emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoComments);
-
-                    return;
+                    }
                 }
 
-                if (!(viewHolder is ArticlesCommentAdapterViewHolder holder))
+                if (viewHolder is not ArticlesCommentAdapterViewHolder holder)
                     return;
 
                 var item = CommentList[position];
-                if (item == null)
-                    return;
-
-                LoadCommentData(item, holder);
+                switch (item)
+                {
+                    case null:
+                        return;
+                    default:
+                        LoadCommentData(item, holder);
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -263,19 +300,26 @@ namespace WoWonder.Activities.Articles.Adapters
             {
                 var d = new List<string>();
                 var item = CommentList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (item.Text != EmptyState)
-                    { 
-                        if (!string.IsNullOrEmpty(item.UserData.Avatar))
-                            d.Add(item.UserData.Avatar);
-
+                    case null:
                         return d;
-                    }
+                    default:
+                    {
+                        if (item.Text != EmptyState)
+                        {
+                            switch (string.IsNullOrEmpty(item.UserData.Avatar))
+                            {
+                                case false:
+                                    d.Add(item.UserData.Avatar);
+                                    break;
+                            }
 
-                    return Collections.SingletonList(p0);
+                            return d;
+                        }
+
+                        return Collections.SingletonList(p0);
+                    }
                 }
             }
             catch (Exception e)
@@ -347,11 +391,20 @@ namespace WoWonder.Activities.Articles.Adapters
                 var font = Typeface.CreateFromAsset(MainView.Context.Resources?.Assets, "ionicons.ttf");
                 UserName.SetTypeface(font, TypefaceStyle.Normal);
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    BubbleLayout.SetBackgroundResource(Resource.Drawable.comment_rounded_right_layout);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        BubbleLayout.SetBackgroundResource(Resource.Drawable.comment_rounded_right_layout);
+                        break;
+                }
 
-                if (AppSettings.PostButton == PostButtonSystem.DisLike || AppSettings.PostButton == PostButtonSystem.Wonder)
-                    DislikeTextView.Visibility = ViewStates.Visible;
+                switch (AppSettings.PostButton)
+                {
+                    case PostButtonSystem.DisLike:
+                    case PostButtonSystem.Wonder:
+                        DislikeTextView.Visibility = ViewStates.Visible;
+                        break;
+                }
 
                 ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -375,16 +428,12 @@ namespace WoWonder.Activities.Articles.Adapters
             {
                 if (AdapterPosition != RecyclerView.NoPosition)
                 {
-                    CommentsArticlesObject item = null!;
-                    switch (TypeClass)
+                    CommentsArticlesObject item = TypeClass switch
                     {
-                        case "Comment":
-                            item = CommentAdapter.CommentList[AdapterPosition];
-                            break;
-                        case "Reply":
-                            item = CommentAdapter.CommentList[AdapterPosition];
-                            break;
-                    }
+                        "Comment" => CommentAdapter.CommentList[AdapterPosition],
+                        "Reply" => CommentAdapter.CommentList[AdapterPosition],
+                        _ => null!
+                    };
 
                     if (v.Id == Image.Id)
                         PostClickListener.ProfileClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
@@ -407,16 +456,12 @@ namespace WoWonder.Activities.Articles.Adapters
             //add event if System = ReactButton 
             if (AdapterPosition != RecyclerView.NoPosition)
             {
-                CommentsArticlesObject item = null!;
-                switch (TypeClass)
+                CommentsArticlesObject item = TypeClass switch
                 {
-                    case "Comment":
-                        item = CommentAdapter.CommentList[AdapterPosition];
-                        break; 
-                    case "Reply":
-                        item = CommentAdapter.CommentList[AdapterPosition];
-                        break;
-                }
+                    "Comment" => CommentAdapter.CommentList[AdapterPosition],
+                    "Reply" => CommentAdapter.CommentList[AdapterPosition],
+                    _ => null!
+                };
 
                 if (v.Id == MainView.Id)
                     PostClickListener.MoreCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });

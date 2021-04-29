@@ -142,11 +142,15 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
 
                     ss.SetSpan(rclickableSpan, ss.Length() - Option.MoreLabel.Length, ss.Length(), SpanTypes.ExclusiveExclusive);
 
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBean && Option.ExpandAnimation)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        LayoutTransition layoutTransition = new LayoutTransition();
-                        layoutTransition.EnableTransitionType(LayoutTransitionType.Changing);
-                        ((ViewGroup)TextView?.Parent).LayoutTransition = layoutTransition;
+                        case >= BuildVersionCodes.JellyBean when Option.ExpandAnimation:
+                        {
+                            LayoutTransition layoutTransition = new LayoutTransition();
+                            layoutTransition.EnableTransitionType(LayoutTransitionType.Changing);
+                            ((ViewGroup)TextView?.Parent).LayoutTransition = layoutTransition;
+                            break;
+                        }
                     }
                     //TextView.SetTextFuture(PrecomputedTextCompat.GetTextFuture(ss, TextViewCompat.GetTextMetricsParams(TextView), null));
                     TextView.SetText(ss, TextView.BufferType.Spannable);

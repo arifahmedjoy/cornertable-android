@@ -59,13 +59,18 @@ namespace WoWonder.Activities.Games.Adapters
         {
             try
             {
-                if (viewHolder is GamesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = GamesList[position];
-                    if (item != null)
+                    case GamesAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.GameAvatar, holder.Image,ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                        holder.Title.Text = Methods.FunString.DecodeString(item.GameName);
+                        var item = GamesList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.GameAvatar, holder.Image,ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                            holder.Title.Text = Methods.FunString.DecodeString(item.GameName);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -81,9 +86,11 @@ namespace WoWonder.Activities.Games.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is GamesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case GamesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -134,14 +141,21 @@ namespace WoWonder.Activities.Games.Adapters
             {
                 var d = new List<string>();
                 var item = GamesList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.GameAvatar))
-                        d.Add(item.GameAvatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.GameAvatar))
+                        {
+                            case false:
+                                d.Add(item.GameAvatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

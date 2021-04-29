@@ -224,14 +224,15 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -298,33 +299,41 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Page.Update_Page_Data(PagesId, dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                            AndHUD.Shared.Dismiss(this);
-                            Console.WriteLine(result.Message);
+                            switch (respond)
+                            {
+                                case MessageObject result:
+                                {
+                                    AndHUD.Shared.Dismiss(this);
+                                    Console.WriteLine(result.Message);
 
-                            PageData.Facebook = TxtFacebook.Text;
-                            PageData.Twitter = TxtTwitter.Text;
-                            PageData.Instgram = TxtInstagram.Text;
-                            PageData.Vk = TxtVk.Text;
-                            PageData.Linkedin = TxtLinkedin.Text;
-                            PageData.Youtube = TxtYouTube.Text;
+                                    PageData.Facebook = TxtFacebook.Text;
+                                    PageData.Twitter = TxtTwitter.Text;
+                                    PageData.Instgram = TxtInstagram.Text;
+                                    PageData.Vk = TxtVk.Text;
+                                    PageData.Linkedin = TxtLinkedin.Text;
+                                    PageData.Youtube = TxtYouTube.Text;
 
-                            PageProfileActivity.PageData = PageData;
+                                    PageProfileActivity.PageData = PageData;
 
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
 
-                            Intent returnIntent = new Intent();
-                            returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
-                            SetResult(Result.Ok, returnIntent);
-                            Finish();
+                                    Intent returnIntent = new Intent();
+                                    returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
+                                    SetResult(Result.Ok, returnIntent);
+                                    Finish();
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
-                    }
-                    else  
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
             }

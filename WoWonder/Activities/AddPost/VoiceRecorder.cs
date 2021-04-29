@@ -193,11 +193,19 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                if (!string.IsNullOrEmpty(RecordFilePath))
-                    AudioPlayerClass.StopAudioPlay();
+                switch (string.IsNullOrEmpty(RecordFilePath))
+                {
+                    case false:
+                        AudioPlayerClass.StopAudioPlay();
+                        break;
+                }
 
-                if (UserDetails.SoundControl)
-                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                        break;
+                }
                  
                 AudioPlayerClass.Delete_Sound_Path(RecordFilePath);
 
@@ -218,10 +226,9 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                if (!string.IsNullOrEmpty(RecordFilePath))
+                switch (string.IsNullOrEmpty(RecordFilePath))
                 {
-                    if (RecordPlayButton?.Tag?.ToString() == "Stop")
-                    {
+                    case false when RecordPlayButton?.Tag?.ToString() == "Stop":
                         RecordPlayButton.Tag = "Playing";
                         RecordPlayButton.SetColor(Color.ParseColor("#efefef"));
                         RecordPlayButton.SetImageResource(Resource.Drawable.ic_stop_dark_arrow);
@@ -231,11 +238,10 @@ namespace WoWonder.Activities.AddPost
                         TimerSound.Interval = 1000;
                         TimerSound.Elapsed += TimerSound_Elapsed;
                         TimerSound.Start();
-                    }
-                    else
-                    {
+                        break;
+                    case false:
                         RestPlayButton();
-                    }
+                        break;
                 }
             }
             catch (Exception exception)
@@ -297,20 +303,24 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    StartRecording();
-                }
-                else
-                {
-                    //Check to see if any permission in our group is available, if one, then all are
-                    if (Activity.CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
-                    {
+                    case < 23:
                         StartRecording();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(Activity).RequestPermission(102);
+                        //Check to see if any permission in our group is available, if one, then all are
+                        if (Activity.CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
+                        {
+                            StartRecording();
+                        }
+                        else
+                        {
+                            new PermissionsController(Activity).RequestPermission(102);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -326,48 +336,65 @@ namespace WoWonder.Activities.AddPost
             {
                 var handled = false;
 
-                if (e?.Event?.Action == MotionEventActions.Up)
+                switch (e?.Event?.Action)
                 {
-                    try
-                    {
-                        if (IsRecording)
+                    case MotionEventActions.Up:
+                        try
                         {
-                            AudioPlayerClass.StopRecording();
-                            RecordFilePath = AudioPlayerClass.GetRecorded_Sound_Path();
-
-                            BtnVoice.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
-                            BtnVoice.SetImageResource(0);
-                            BtnVoice.Tag = "tick";
-
-                            if (TextRecorder == "Recording")
+                            switch (IsRecording)
                             {
-                                if (!string.IsNullOrEmpty(RecordFilePath))
-                                { 
-                                    Console.WriteLine("FilePath" + RecordFilePath);
+                                case true:
+                                {
+                                    AudioPlayerClass.StopRecording();
+                                    RecordFilePath = AudioPlayerClass.GetRecorded_Sound_Path();
 
-                                    RecordLayout.Visibility = ViewStates.Visible; 
+                                    BtnVoice.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    BtnVoice.SetImageResource(0);
+                                    BtnVoice.Tag = "tick";
+
+                                    switch (TextRecorder)
+                                    {
+                                        case "Recording":
+                                        {
+                                            switch (string.IsNullOrEmpty(RecordFilePath))
+                                            {
+                                                case false:
+                                                    Console.WriteLine("FilePath" + RecordFilePath);
+
+                                                    RecordLayout.Visibility = ViewStates.Visible;
+                                                    break;
+                                            }
+
+                                            TextRecorder = "";
+                                            break;
+                                        }
+                                    }
+
+                                    IsRecording = false;
+                                    break;
                                 }
+                                default:
+                                {
+                                    switch (UserDetails.SoundControl)
+                                    {
+                                        case true:
+                                            Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                                            break;
+                                    }
 
-                                TextRecorder = "";
+                                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short)?.Show();
+                                    break;
+                                }
                             }
-
-                            IsRecording = false;
                         }
-                        else
+                        catch (Exception exception)
                         {
-                            if (UserDetails.SoundControl)
-                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
-
-                            Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short)?.Show();
+                            Methods.DisplayReportResultTrack(exception);
                         }
-                    }
-                    catch (Exception exception)
-                    {
-                        Methods.DisplayReportResultTrack(exception);
-                    }
 
-                    BtnVoice.Pressed = false;
-                    handled = true;
+                        BtnVoice.Pressed = false;
+                        handled = true;
+                        break;
                 }
 
                 e.Handled = handled;
@@ -382,25 +409,33 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                if (BtnVoice.Tag?.ToString() == "Free")
+                switch (BtnVoice.Tag?.ToString())
                 {
-                    //Set Record Style
-                    IsRecording = true;
+                    case "Free":
+                    {
+                        //Set Record Style
+                        IsRecording = true;
 
-                    if (UserDetails.SoundControl)
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("RecourdVoiceButton.mp3");
+                        switch (UserDetails.SoundControl)
+                        {
+                            case true:
+                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("RecourdVoiceButton.mp3");
+                                break;
+                        }
 
-                    if (TextRecorder != null && TextRecorder != "Recording")
-                        TextRecorder = "Recording";
+                        if (TextRecorder != null && TextRecorder != "Recording")
+                            TextRecorder = "Recording";
 
-                    BtnVoice.SetColorFilter(Color.White);
-                    BtnVoice.SetImageResource(Resource.Drawable.ic_stop_white_24dp);
+                        BtnVoice.SetColorFilter(Color.White);
+                        BtnVoice.SetImageResource(Resource.Drawable.ic_stop_white_24dp);
 
-                    AudioPlayerClass = new Methods.AudioRecorderAndPlayer("");
+                        AudioPlayerClass = new Methods.AudioRecorderAndPlayer("");
 
-                    //Start Audio record
-                    await Task.Delay(600);
-                    AudioPlayerClass.StartRecording();
+                        //Start Audio record
+                        await Task.Delay(600);
+                        AudioPlayerClass.StartRecording();
+                        break;
+                    }
                 }
             }
             catch (Exception e)

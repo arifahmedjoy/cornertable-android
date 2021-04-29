@@ -32,8 +32,11 @@ namespace WoWonder.Payment
             try
             {
                 var init = InitRazorPay();
-                if (!init)
-                    return;
+                switch (init)
+                {
+                    case false:
+                        return;
+                }
 
                 Activity activity = ActivityContext;
                 JSONObject options = new JSONObject();

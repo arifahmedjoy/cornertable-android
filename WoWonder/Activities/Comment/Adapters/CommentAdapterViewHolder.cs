@@ -90,11 +90,20 @@ namespace WoWonder.Activities.Comment.Adapters
                 var font = Typeface.CreateFromAsset(MainView.Context.Resources?.Assets, "ionicons.ttf");
                 UserName.SetTypeface(font, TypefaceStyle.Normal);
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    BubbleLayout.SetBackgroundResource(Resource.Drawable.comment_rounded_right_layout);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        BubbleLayout.SetBackgroundResource(Resource.Drawable.comment_rounded_right_layout);
+                        break;
+                }
 
-                if (AppSettings.PostButton == PostButtonSystem.DisLike || AppSettings.PostButton == PostButtonSystem.Wonder)
-                    DislikeTextView.Visibility = ViewStates.Visible;
+                switch (AppSettings.PostButton)
+                {
+                    case PostButtonSystem.DisLike:
+                    case PostButtonSystem.Wonder:
+                        DislikeTextView.Visibility = ViewStates.Visible;
+                        break;
+                }
 
                 ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -158,11 +167,20 @@ namespace WoWonder.Activities.Comment.Adapters
                 var font = Typeface.CreateFromAsset(MainView.Context.Resources?.Assets, "ionicons.ttf");
                 UserName.SetTypeface(font, TypefaceStyle.Normal);
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    BubbleLayout.SetBackgroundResource(Resource.Drawable.comment_rounded_right_layout);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        BubbleLayout.SetBackgroundResource(Resource.Drawable.comment_rounded_right_layout);
+                        break;
+                }
 
-                if (AppSettings.PostButton == PostButtonSystem.DisLike || AppSettings.PostButton == PostButtonSystem.Wonder)
-                    DislikeTextView.Visibility = ViewStates.Visible;
+                switch (AppSettings.PostButton)
+                {
+                    case PostButtonSystem.DisLike:
+                    case PostButtonSystem.Wonder:
+                        DislikeTextView.Visibility = ViewStates.Visible;
+                        break;
+                }
 
                 ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -188,20 +206,15 @@ namespace WoWonder.Activities.Comment.Adapters
             {
                 if (AdapterPosition != RecyclerView.NoPosition)
                 {
-                    CommentObjectExtra item = null!;
-                    switch (TypeClass)
+                    CommentObjectExtra item = TypeClass switch
                     {
-                        case "Comment":
-                            item = CommentAdapter.CommentList[AdapterPosition];
-                            break;
-                        case "Post":
-                            item = CommentAdapter.CommentList.FirstOrDefault(danjo => string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record));
-                            break;
-                        case "Reply":
-                            item = ReplyCommentAdapter.ReplyCommentList[AdapterPosition];
-                            break;
-                    }
-                     
+                        "Comment" => CommentAdapter.CommentList[AdapterPosition],
+                        "Post" => CommentAdapter.CommentList.FirstOrDefault(danjo =>
+                            string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record)),
+                        "Reply" => ReplyCommentAdapter.ReplyCommentList[AdapterPosition],
+                        _ => null!
+                    };
+
                     if (v.Id == Image.Id)
                         PostClickListener.ProfilePostClick(new ProfileClickEventArgs { Holder = this, CommentClass = item, Position = AdapterPosition, View = MainView });
                     else if (v.Id == LikeTextView.Id)
@@ -229,19 +242,14 @@ namespace WoWonder.Activities.Comment.Adapters
             //add event if System = ReactButton 
             if (AdapterPosition != RecyclerView.NoPosition)
             {
-                CommentObjectExtra item = null!;
-                switch (TypeClass)
+                CommentObjectExtra item = TypeClass switch
                 {
-                    case "Comment":
-                        item = CommentAdapter.CommentList[AdapterPosition];
-                        break;
-                    case "Post":
-                        item = CommentAdapter.CommentList.FirstOrDefault(danjo => string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record));
-                        break;
-                    case "Reply":
-                        item = ReplyCommentAdapter.ReplyCommentList[AdapterPosition];
-                        break;
-                }
+                    "Comment" => CommentAdapter.CommentList[AdapterPosition],
+                    "Post" => CommentAdapter.CommentList.FirstOrDefault(danjo =>
+                        string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record)),
+                    "Reply" => ReplyCommentAdapter.ReplyCommentList[AdapterPosition],
+                    _ => null!
+                };
 
                 if (v.Id == MainView.Id)
                     PostClickListener.MoreCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });

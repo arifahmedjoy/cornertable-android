@@ -114,10 +114,12 @@ namespace WoWonder.Activities.Live.Page
                 Role = Intent?.GetIntExtra(Constants.KeyClientRole, audience) ?? audience;
                 IsOwner = Role == DT.Xamarin.Agora.Constants.ClientRoleBroadcaster;  //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
 
-                if (!IsOwner)
+                switch (IsOwner)
                 {
-                    LiveStreamViewerObject = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostLiveStream") ?? "");
-                    PostId = LiveStreamViewerObject.PostId;
+                    case false:
+                        LiveStreamViewerObject = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostLiveStream") ?? "");
+                        PostId = LiveStreamViewerObject.PostId;
+                        break;
                 }
                  
                 //Get Value And Set Toolbar
@@ -222,28 +224,29 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (IsOwner)
-                { 
-                    if (IsStreamingStarted)
-                    { 
-                        SetupFinishAsk(true); 
-                    }
-                    else
-                    { 
-                       Finish();
-                    } 
-                }
-                else  
-                { 
-                    if (IsStreamingStarted)
-                    { 
-                       SetupFinishAsk(false); 
-                    }
-                    else
-                    { 
+                switch (IsOwner)
+                {
+                    case true when IsStreamingStarted:
+                        SetupFinishAsk(true);
+                        break;
+                    case true:
                         Finish();
+                        break;
+                    default:
+                    {
+                        switch (IsStreamingStarted)
+                        {
+                            case true:
+                                SetupFinishAsk(false);
+                                break;
+                            default:
+                                Finish();
+                                break;
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -257,15 +260,16 @@ namespace WoWonder.Activities.Live.Page
             try
             {
                 var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                if (isStreamer)
-                { 
-                    dialog.Title(Resource.String.Lbl_LiveStreamer_alert_title);
-                    dialog.Content(GetText(Resource.String.Lbl_LiveStreamer_alert_message)); 
-                }
-                else
+                switch (isStreamer)
                 {
-                    dialog.Title(Resource.String.Lbl_LiveViewer_alert_title);
-                    dialog.Content(GetText(Resource.String.Lbl_LiveViewer_alert_message)); 
+                    case true:
+                        dialog.Title(Resource.String.Lbl_LiveStreamer_alert_title);
+                        dialog.Content(GetText(Resource.String.Lbl_LiveStreamer_alert_message));
+                        break;
+                    default:
+                        dialog.Title(Resource.String.Lbl_LiveViewer_alert_title);
+                        dialog.Content(GetText(Resource.String.Lbl_LiveViewer_alert_message));
+                        break;
                 }
                  
                 dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
@@ -300,9 +304,13 @@ namespace WoWonder.Activities.Live.Page
                 StopTimer();
                 DestroyTimerComment();
 
-                //send api delete live video
-                if (isStreamer && ListUtils.SettingsSiteList.LiveVideoSave != null && ListUtils.SettingsSiteList.LiveVideoSave.Value == 0)
-                    DeleteLiveStream();
+                switch (isStreamer)
+                {
+                    //send api delete live video
+                    case true when ListUtils.SettingsSiteList.LiveVideoSave != null && ListUtils.SettingsSiteList.LiveVideoSave.Value == 0:
+                        DeleteLiveStream();
+                        break;
+                }
                  
                 StatsManager().ClearAllData();
 
@@ -345,36 +353,41 @@ namespace WoWonder.Activities.Live.Page
                    
                 Header.Text = GetText(Resource.String.Lbl_YourLiveStreamHasEnded);
 
-                if (IsOwner)
+                switch (IsOwner)
                 {
-                    if (PostObject != null)
+                    case true:
                     {
-                        GlideImageLoader.LoadImage(this, PostObject.Publisher.Avatar, BgAvatar, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                        GlideImageLoader.LoadImage(this, PostObject.Publisher.Avatar, StreamRateLevel, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                    }
+                        if (PostObject != null)
+                        {
+                            GlideImageLoader.LoadImage(this, PostObject.Publisher.Avatar, BgAvatar, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(this, PostObject.Publisher.Avatar, StreamRateLevel, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        }
                       
-                    ShareStreamText.Text = GetText(Resource.String.Lbl_LiveStreamer_End_title);
+                        ShareStreamText.Text = GetText(Resource.String.Lbl_LiveStreamer_End_title);
                     
-                    InfoLiveLayout.Visibility = ViewStates.Visible;
-                    GoLiveButton.Visibility = ViewStates.Gone;
+                        InfoLiveLayout.Visibility = ViewStates.Visible;
+                        GoLiveButton.Visibility = ViewStates.Gone;
 
-                    Comments.Text = MAdapter.CommentList.Count.ToString();
-                    Viewers.Text = MViewersText.Text.Replace(GetText(Resource.String.Lbl_Views) , "");
-                    Duration.Text = MTimeText.Text;
-                }
-                else
-                {
-                    if (LiveStreamViewerObject != null)
-                    {
-                        GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, BgAvatar, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                        GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, StreamRateLevel, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        Comments.Text = MAdapter.CommentList.Count.ToString();
+                        Viewers.Text = MViewersText.Text.Replace(GetText(Resource.String.Lbl_Views) , "");
+                        Duration.Text = MTimeText.Text;
+                        break;
                     }
+                    default:
+                    {
+                        if (LiveStreamViewerObject != null)
+                        {
+                            GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, BgAvatar, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, StreamRateLevel, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        }
                      
-                    ShareStreamText.Text = GetText(Resource.String.Lbl_LiveViewer_End_title);
+                        ShareStreamText.Text = GetText(Resource.String.Lbl_LiveViewer_End_title);
 
-                    InfoLiveLayout.Visibility = ViewStates.Gone;
-                    GoLiveButton.Visibility = ViewStates.Visible;
-                    GoLiveButton.Click += GoLiveButtonOnClick;
+                        InfoLiveLayout.Visibility = ViewStates.Gone;
+                        GoLiveButton.Visibility = ViewStates.Visible;
+                        GoLiveButton.Click += GoLiveButtonOnClick;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -440,26 +453,27 @@ namespace WoWonder.Activities.Live.Page
                 emojisIcon.ShowEmojIcon();
                 emojisIcon.SetIconsIds(Resource.Drawable.ic_action_keyboard, Resource.Drawable.ic_action_sentiment_satisfied_alt);
                  
-                if (IsOwner)
-                { 
-                    MHeaderViewStub.LayoutResource = Resource.Layout.view_live_streaming_streamer_header;
-                    MHeaderViewStub.Inflate();
+                switch (IsOwner)
+                {
+                    case true:
+                        MHeaderViewStub.LayoutResource = Resource.Layout.view_live_streaming_streamer_header;
+                        MHeaderViewStub.Inflate();
 
-                    MEmojisIconBtn.Visibility = ViewStates.Gone;
-                    MMoreBtn.Visibility = ViewStates.Gone;
+                        MEmojisIconBtn.Visibility = ViewStates.Gone;
+                        MMoreBtn.Visibility = ViewStates.Gone;
 
-                    MFooterViewStub.LayoutResource = Resource.Layout.view_live_streaming_streamer_footer;
-                    MFooterViewStub.Inflate();
+                        MFooterViewStub.LayoutResource = Resource.Layout.view_live_streaming_streamer_footer;
+                        MFooterViewStub.Inflate();
                      
-                    InitViewerFooter(); 
-                }
-                else  
-                { 
-                    MHeaderViewStub.LayoutResource = Resource.Layout.view_live_streaming_viewer_header;
-                    MHeaderViewStub.Inflate();
+                        InitViewerFooter();
+                        break;
+                    default:
+                        MHeaderViewStub.LayoutResource = Resource.Layout.view_live_streaming_viewer_header;
+                        MHeaderViewStub.Inflate();
 
-                    MEmojisIconBtn.Visibility = ViewStates.Visible;
-                    MMoreBtn.Visibility = ViewStates.Visible;
+                        MEmojisIconBtn.Visibility = ViewStates.Visible;
+                        MMoreBtn.Visibility = ViewStates.Visible;
+                        break;
                 }
                  
                 MRecycler = FindViewById<RecyclerView>(Resource.Id.liveStreaming_messageList);
@@ -506,34 +520,39 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemLongClick += MAdapterOnItemLongClick;
-                    if (MCloseIn != null) MCloseIn.Click += MCloseInOnClick;
-                    if (MCloseOut != null) MCloseOut.Click += MCloseInOnClick;
-                    if (MCloseStreaming != null) MCloseStreaming.Click += MCloseInOnClick; 
-                    if (MSendBtn != null) MSendBtn.Click += MSendBtnOnClick;
-                    if (MMoreBtn != null) MMoreBtn.Click += MMoreBtnOnClick;
-                    if (MShareBtn != null) MShareBtn.Click += MShareBtnOnClick;
-                    if (MCameraBtn != null) MCameraBtn.Click += MCameraBtnOnClick;
-                    if (MEffectBtn != null) MEffectBtn.Click += MEffectBtnOnClick;
-                    if (MVideoEnabledBtn != null) MVideoEnabledBtn.Click += MVideoEnabledBtnOnClick;
-                    if (MAudioEnabledBtn != null) MAudioEnabledBtn.Click += MAudioEnabledBtnOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemLongClick -= MAdapterOnItemLongClick;
-                    if (MCloseIn != null) MCloseIn.Click -= MCloseInOnClick;
-                    if (MCloseOut != null) MCloseOut.Click -= MCloseInOnClick;
-                    if (MCloseStreaming != null) MCloseStreaming.Click -= MCloseInOnClick;
-                    if (MSendBtn != null) MSendBtn.Click -= MSendBtnOnClick;
-                    if (MMoreBtn != null) MMoreBtn.Click -= MMoreBtnOnClick;
-                    if (MShareBtn != null) MShareBtn.Click -= MShareBtnOnClick;
-                    if (MCameraBtn != null) MCameraBtn.Click -= MCameraBtnOnClick;
-                    if (MEffectBtn != null) MEffectBtn.Click -= MEffectBtnOnClick;
-                    if (MVideoEnabledBtn != null) MVideoEnabledBtn.Click -= MVideoEnabledBtnOnClick;
-                    if (MAudioEnabledBtn != null) MAudioEnabledBtn.Click -= MAudioEnabledBtnOnClick;
+                    // true +=  // false -=
+                    case true:
+                    {
+                        MAdapter.ItemLongClick += MAdapterOnItemLongClick;
+                        if (MCloseIn != null) MCloseIn.Click += MCloseInOnClick;
+                        if (MCloseOut != null) MCloseOut.Click += MCloseInOnClick;
+                        if (MCloseStreaming != null) MCloseStreaming.Click += MCloseInOnClick; 
+                        if (MSendBtn != null) MSendBtn.Click += MSendBtnOnClick;
+                        if (MMoreBtn != null) MMoreBtn.Click += MMoreBtnOnClick;
+                        if (MShareBtn != null) MShareBtn.Click += MShareBtnOnClick;
+                        if (MCameraBtn != null) MCameraBtn.Click += MCameraBtnOnClick;
+                        if (MEffectBtn != null) MEffectBtn.Click += MEffectBtnOnClick;
+                        if (MVideoEnabledBtn != null) MVideoEnabledBtn.Click += MVideoEnabledBtnOnClick;
+                        if (MAudioEnabledBtn != null) MAudioEnabledBtn.Click += MAudioEnabledBtnOnClick;
+                        break;
+                    }
+                    default:
+                    {
+                        MAdapter.ItemLongClick -= MAdapterOnItemLongClick;
+                        if (MCloseIn != null) MCloseIn.Click -= MCloseInOnClick;
+                        if (MCloseOut != null) MCloseOut.Click -= MCloseInOnClick;
+                        if (MCloseStreaming != null) MCloseStreaming.Click -= MCloseInOnClick;
+                        if (MSendBtn != null) MSendBtn.Click -= MSendBtnOnClick;
+                        if (MMoreBtn != null) MMoreBtn.Click -= MMoreBtnOnClick;
+                        if (MShareBtn != null) MShareBtn.Click -= MShareBtnOnClick;
+                        if (MCameraBtn != null) MCameraBtn.Click -= MCameraBtnOnClick;
+                        if (MEffectBtn != null) MEffectBtn.Click -= MEffectBtnOnClick;
+                        if (MVideoEnabledBtn != null) MVideoEnabledBtn.Click -= MVideoEnabledBtnOnClick;
+                        if (MAudioEnabledBtn != null) MAudioEnabledBtn.Click -= MAudioEnabledBtnOnClick;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -637,15 +656,24 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (sender is View view)
+                switch (sender)
                 {
-                    RtcEngine()?.MuteLocalAudioStream(view.Activated);
-                    view.Activated = !view.Activated;
+                    case View view:
+                    {
+                        RtcEngine()?.MuteLocalAudioStream(view.Activated);
+                        view.Activated = !view.Activated;
 
-                    if (view.Activated)
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MAudioEnabledBtn, FontAwesomeIcon.MicrophoneAlt);
-                    else
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MAudioEnabledBtn, FontAwesomeIcon.MicrophoneAltSlash);
+                        switch (view.Activated)
+                        {
+                            case true:
+                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MAudioEnabledBtn, FontAwesomeIcon.MicrophoneAlt);
+                                break;
+                            default:
+                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MAudioEnabledBtn, FontAwesomeIcon.MicrophoneAltSlash);
+                                break;
+                        }
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -658,23 +686,33 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (sender is View view)
+                switch (sender)
                 {
-                    if (view.Activated)
+                    case View view:
                     {
-                        StopBroadcast();
-                    }
-                    else
-                    {
-                        StartBroadcast();
-                    }
-                    view.Activated = !view.Activated;
+                        switch (view.Activated)
+                        {
+                            case true:
+                                StopBroadcast();
+                                break;
+                            default:
+                                StartBroadcast();
+                                break;
+                        }
+                        view.Activated = !view.Activated;
 
-                    if (view.Activated)
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MVideoEnabledBtn, FontAwesomeIcon.Video);
-                    else
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MVideoEnabledBtn, FontAwesomeIcon.VideoSlash);
-                } 
+                        switch (view.Activated)
+                        {
+                            case true:
+                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MVideoEnabledBtn, FontAwesomeIcon.Video);
+                                break;
+                            default:
+                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, MVideoEnabledBtn, FontAwesomeIcon.VideoSlash);
+                                break;
+                        }
+                        break;
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -686,15 +724,24 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (sender is View view)
+                switch (sender)
                 {
-                    view.Activated = !view.Activated;
-                    RtcEngine()?.SetBeautyEffectOptions(view.Activated, Constants.DefaultBeautyOptions);
+                    case View view:
+                    {
+                        view.Activated = !view.Activated;
+                        RtcEngine()?.SetBeautyEffectOptions(view.Activated, Constants.DefaultBeautyOptions);
 
-                    if (view.Activated)
-                        MEffectBtn.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                    else
-                        MEffectBtn.SetTextColor(Color.White);
+                        switch (view.Activated)
+                        {
+                            case true:
+                                MEffectBtn.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                break;
+                            default:
+                                MEffectBtn.SetTextColor(Color.White);
+                                break;
+                        }
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -795,9 +842,11 @@ namespace WoWonder.Activities.Live.Page
                     MAdapter.CommentList.Add(comment);
 
                     var index = MAdapter.CommentList.IndexOf(comment);
-                    if (index > -1)
+                    switch (index)
                     {
-                        MAdapter.NotifyItemInserted(index);
+                        case > -1:
+                            MAdapter.NotifyItemInserted(index);
+                            break;
                     }
 
                     var text = TxtComment.Text;
@@ -806,52 +855,75 @@ namespace WoWonder.Activities.Live.Page
                     TxtComment.Text = "";
 
                     var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostComments(PostId, text);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateComments result)
+                        case 200:
                         {
-                            var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data.Id);
-                            if (date != null)
+                            switch (respond)
                             {
-                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(result.Data);
-
-                                date = db;
-                                date.Id = result.Data.Id;
-
-                                index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
-                                if (index > -1)
+                                case CreateComments result:
                                 {
-                                    MAdapter.CommentList[index] = db;
-
-                                    MAdapter.NotifyItemChanged(index);
-                                    MRecycler.ScrollToPosition(index);
-                                }
-
-                                var postFeedAdapter = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter;
-                                var dataGlobal = postFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostId).ToList();
-                                if (dataGlobal?.Count > 0)
-                                {
-                                    foreach (var dataClass in from dataClass in dataGlobal let indexCom = postFeedAdapter.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
+                                    var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data.Id);
+                                    if (date != null)
                                     {
-                                        dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
+                                        var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(result.Data);
 
-                                        if (dataClass.PostData.GetPostComments?.Count > 0)
+                                        date = db;
+                                        date.Id = result.Data.Id;
+
+                                        index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
+                                        switch (index)
                                         {
-                                            var dataComment = dataClass.PostData.GetPostComments.FirstOrDefault(a => a.Id == date.Id);
-                                            if (dataComment == null)
+                                            case > -1:
+                                                MAdapter.CommentList[index] = db;
+
+                                                MAdapter.NotifyItemChanged(index);
+                                                MRecycler.ScrollToPosition(index);
+                                                break;
+                                        }
+
+                                        var postFeedAdapter = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter;
+                                        var dataGlobal = postFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostId).ToList();
+                                        switch (dataGlobal?.Count)
+                                        {
+                                            case > 0:
                                             {
-                                                dataClass.PostData.GetPostComments.Add(date);
+                                                foreach (var dataClass in from dataClass in dataGlobal let indexCom = postFeedAdapter.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
+                                                {
+                                                    dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
+
+                                                    switch (dataClass.PostData.GetPostComments?.Count)
+                                                    {
+                                                        case > 0:
+                                                        {
+                                                            var dataComment = dataClass.PostData.GetPostComments.FirstOrDefault(a => a.Id == date.Id);
+                                                            switch (dataComment)
+                                                            {
+                                                                case null:
+                                                                    dataClass.PostData.GetPostComments.Add(date);
+                                                                    break;
+                                                            }
+
+                                                            break;
+                                                        }
+                                                        default:
+                                                            dataClass.PostData.GetPostComments = new List<GetCommentObject> { date };
+                                                            break;
+                                                    }
+
+                                                    postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
+                                                }
+
+                                                break;
                                             }
                                         }
-                                        else
-                                        {
-                                            dataClass.PostData.GetPostComments = new List<GetCommentObject> { date };
-                                        }
-
-                                        postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
                                     }
+
+                                    break;
                                 }
                             }
+
+                            break;
                         }
                     }
                     //else Methods.DisplayReportResult(this, respond);
@@ -890,13 +962,14 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             { 
-                if (IsOwner)
+                switch (IsOwner)
                 {
-                    RtcEngine()?.SetClientRole(DT.Xamarin.Agora.Constants.ClientRoleBroadcaster);
-                }
-                else
-                {
-                    RtcEngine()?.SetClientRole(DT.Xamarin.Agora.Constants.ClientRoleAudience);
+                    case true:
+                        RtcEngine()?.SetClientRole(DT.Xamarin.Agora.Constants.ClientRoleBroadcaster);
+                        break;
+                    default:
+                        RtcEngine()?.SetClientRole(DT.Xamarin.Agora.Constants.ClientRoleAudience);
+                        break;
                 }
                 MVideoDimension = Constants.VideoDimensions[Config().GetVideoDimenIndex()];
                 InitValueLive();
@@ -913,29 +986,32 @@ namespace WoWonder.Activities.Live.Page
             {
                 IsStreamingStarted = false;
 
-                if (IsOwner)
-                { 
-                    MGetReadyLyt.Visibility = ViewStates.Visible;
-                    MLoadingViewer.Visibility = ViewStates.Gone;
-                    MVideoControlLyt.Visibility = ViewStates.Gone;
-                    MLiveStreamEndedLyt.Visibility = ViewStates.Gone;
-
-                    CreateLiveStream(); 
-                }
-                else  
+                switch (IsOwner)
                 {
-                    if (LiveStreamViewerObject != null)
+                    case true:
+                        MGetReadyLyt.Visibility = ViewStates.Visible;
+                        MLoadingViewer.Visibility = ViewStates.Gone;
+                        MVideoControlLyt.Visibility = ViewStates.Gone;
+                        MLiveStreamEndedLyt.Visibility = ViewStates.Gone;
+
+                        CreateLiveStream();
+                        break;
+                    default:
                     {
-                        GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, MAvatarBg, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                        GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, MAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        if (LiveStreamViewerObject != null)
+                        {
+                            GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, MAvatarBg, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(this, LiveStreamViewerObject.Publisher.Avatar, MAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        }
+
+                        MLoadingViewer.Visibility = ViewStates.Visible;
+                        MGetReadyLyt.Visibility = ViewStates.Gone;
+                        MVideoControlLyt.Visibility = ViewStates.Gone;
+                        MLiveStreamEndedLyt.Visibility = ViewStates.Gone;
+
+                        JoinChannel();
+                        break;
                     }
-
-                    MLoadingViewer.Visibility = ViewStates.Visible;
-                    MGetReadyLyt.Visibility = ViewStates.Gone;
-                    MVideoControlLyt.Visibility = ViewStates.Gone;
-                    MLiveStreamEndedLyt.Visibility = ViewStates.Gone;
-
-                    JoinChannel();
                 }
             }
             catch (Exception e)
@@ -1013,10 +1089,12 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (!IsStreamingTimeInitialed)
+                switch (IsStreamingTimeInitialed)
                 {
-                    SetTimer(SystemClock.ElapsedRealtime());
-                    IsStreamingTimeInitialed = true;
+                    case false:
+                        SetTimer(SystemClock.ElapsedRealtime());
+                        IsStreamingTimeInitialed = true;
+                        break;
                 }
             }
             catch (Exception e)
@@ -1051,14 +1129,15 @@ namespace WoWonder.Activities.Live.Page
                         TabbedMainActivity.GetInstance()?.SetOnWakeLock();
                         IsStreamingStarted = true;
 
-                        if (IsOwner)
+                        switch (IsOwner)
                         {
-                            StartBroadcast(); 
-                        }
-                        else  
-                        {
-                            StopBroadcast(); 
-                            InitStreamerInfo(); 
+                            case true:
+                                StartBroadcast();
+                                break;
+                            default:
+                                StopBroadcast(); 
+                                InitStreamerInfo();
+                                break;
                         }
 
                         await Task.Delay(TimeSpan.FromSeconds(3));
@@ -1099,7 +1178,11 @@ namespace WoWonder.Activities.Live.Page
                 if (!StatsManager().IsEnabled()) return;
 
                 LocalStatsData data = (LocalStatsData)StatsManager().GetStatsData(0);
-                if (data == null) return;
+                switch (data)
+                {
+                    case null:
+                        return;
+                }
 
                 data.SetWidth(MVideoDimension.Width);
                 data.SetHeight(MVideoDimension.Height);
@@ -1118,7 +1201,11 @@ namespace WoWonder.Activities.Live.Page
                 if (!StatsManager().IsEnabled()) return;
 
                 LocalStatsData data = (LocalStatsData)StatsManager().GetStatsData(0);
-                if (data == null) return;
+                switch (data)
+                {
+                    case null:
+                        return;
+                }
 
                 data.SetLastMileDelay(stats.LastmileDelay);
                 data.SetVideoSendBitrate(stats.TxVideoKBitRate);
@@ -1143,10 +1230,15 @@ namespace WoWonder.Activities.Live.Page
                 if (!StatsManager().IsEnabled()) return;
 
                 StatsData data = StatsManager().GetStatsData(uid);
-                if (data == null) return;
-
-                data.SetSendQuality(StatsManager().QualityToString(txQuality));
-                data.SetRecvQuality(StatsManager().QualityToString(rxQuality));
+                switch (data)
+                {
+                    case null:
+                        return;
+                    default:
+                        data.SetSendQuality(StatsManager().QualityToString(txQuality));
+                        data.SetRecvQuality(StatsManager().QualityToString(rxQuality));
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1161,7 +1253,11 @@ namespace WoWonder.Activities.Live.Page
                 if (!StatsManager().IsEnabled()) return;
 
                 RemoteStatsData data = (RemoteStatsData)StatsManager().GetStatsData(stats.Uid);
-                if (data == null) return;
+                switch (data)
+                {
+                    case null:
+                        return;
+                }
 
                 data.SetWidth(stats.Width);
                 data.SetHeight(stats.Height);
@@ -1183,7 +1279,11 @@ namespace WoWonder.Activities.Live.Page
                 if (!StatsManager().IsEnabled()) return;
 
                 RemoteStatsData data = (RemoteStatsData)StatsManager().GetStatsData(stats.Uid);
-                if (data == null) return;
+                switch (data)
+                {
+                    case null:
+                        return;
+                }
 
                 data.SetAudioNetDelay(stats.NetworkTransportDelay);
                 data.SetAudioNetJitter(stats.JitterBufferDelay);
@@ -1237,19 +1337,25 @@ namespace WoWonder.Activities.Live.Page
         private async Task CreateLive()
         {
             var (apiStatus, respond) = await RequestsAsync.Posts.CreateLive(Config().GetChannelName());
-            if (apiStatus == 200)
+            switch (apiStatus)
             {
-                if (respond is AddPostObject result)
+                case 200:
                 {
-                    PostObject = result.PostData;
-                    PostId = result.PostData.PostId;
+                    switch (respond)
+                    {
+                        case AddPostObject result:
+                            PostObject = result.PostData;
+                            PostId = result.PostData.PostId;
                      
-                    JoinChannel(); 
+                            JoinChannel();
+                            break;
+                    }
+
+                    break;
                 }
-            }
-            else
-            {
-                Methods.DisplayReportResult(this, respond);
+                default:
+                    Methods.DisplayReportResult(this, respond);
+                    break;
             }
         } 
         
@@ -1350,32 +1456,39 @@ namespace WoWonder.Activities.Live.Page
             {
                 var offset = MAdapter.CommentList.LastOrDefault()?.Id ?? "0";
                 var (apiStatus, respond) = await RequestsAsync.Posts.CheckCommentsLive(PostId, IsOwner ? "live" : "story", "10", offset);
-                if (apiStatus != 200 || (respond is not CheckCommentsLiveObject result) || result.Comments == null)
+                if (apiStatus != 200 || respond is not CheckCommentsLiveObject result || result.Comments == null)
                 { 
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Comments?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        foreach (var item in result.Comments)
+                        case > 0:
                         {
-                            CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
-                            if (check == null)
+                            foreach (var item in result.Comments)
                             {
-                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                                if (db != null) MAdapter.CommentList.Add(db);
+                                CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
+                                switch (check)
+                                {
+                                    case null:
+                                    {
+                                        var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                        if (db != null) MAdapter.CommentList.Add(db);
+                                        break;
+                                    }
+                                    default:
+                                        check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                        check.Replies = item.Replies;
+                                        check.RepliesCount = item.RepliesCount;
+                                        break;
+                                }
                             }
-                            else
-                            {
-                                check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                                check.Replies = item.Replies;
-                                check.RepliesCount = item.RepliesCount;
-                            }
-                        }
 
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        }
                     }
 
                     RunOnUiThread(() =>
@@ -1403,9 +1516,11 @@ namespace WoWonder.Activities.Live.Page
                     {
                         MRecycler.Visibility = ViewStates.Visible;
                         var index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.LastOrDefault());
-                        if (index > -1)
+                        switch (index)
                         {
-                            MRecycler.ScrollToPosition(index);
+                            case > -1:
+                                MRecycler.ScrollToPosition(index);
+                                break;
                         }
                         
                         SetTimerComment(); 
@@ -1426,13 +1541,15 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (IsOwner)
+                switch (IsOwner)
                 {
-                    StartTime = elapsed;
-                    CustomHandler ??= new Handler(Looper.MainLooper);
-                    UpdateTimerThread = new MyRunnable(this);
-                    CustomHandler.PostDelayed(UpdateTimerThread, 0);
-                } 
+                    case true:
+                        StartTime = elapsed;
+                        CustomHandler ??= new Handler(Looper.MainLooper);
+                        UpdateTimerThread = new MyRunnable(this);
+                        CustomHandler.PostDelayed(UpdateTimerThread, 0);
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -1444,11 +1561,13 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                if (IsOwner)
+                switch (IsOwner)
                 {
-                    TimeSwapBuff += TimeInMilliseconds;
-                    CustomHandler.RemoveCallbacks(UpdateTimerThread);
-                } 
+                    case true:
+                        TimeSwapBuff += TimeInMilliseconds;
+                        CustomHandler.RemoveCallbacks(UpdateTimerThread);
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -1491,14 +1610,16 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                //Run timer
-                if (TimerComments == null)
+                switch (TimerComments)
                 {
-                    TimerComments = new Timer { Interval = 3000 };
-                    TimerComments.Elapsed += TimerCommentsOnElapsed;
-                    TimerComments.Enabled = true;
-                    TimerComments.Start();
-                } 
+                    //Run timer
+                    case null:
+                        TimerComments = new Timer { Interval = 3000 };
+                        TimerComments.Elapsed += TimerCommentsOnElapsed;
+                        TimerComments.Enabled = true;
+                        TimerComments.Start();
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1578,10 +1699,15 @@ namespace WoWonder.Activities.Live.Page
             {
                 if (itemString.ToString() == GetText(Resource.String.Lbl_ViewProfile))
                 {
-                    if (IsOwner)
-                        WoWonderTools.OpenProfile(this , PostObject.Publisher.UserId , PostObject.Publisher);
-                    else
-                        WoWonderTools.OpenProfile(this, LiveStreamViewerObject.Publisher.UserId, LiveStreamViewerObject.Publisher); 
+                    switch (IsOwner)
+                    {
+                        case true:
+                            WoWonderTools.OpenProfile(this , PostObject.Publisher.UserId , PostObject.Publisher);
+                            break;
+                        default:
+                            WoWonderTools.OpenProfile(this, LiveStreamViewerObject.Publisher.UserId, LiveStreamViewerObject.Publisher);
+                            break;
+                    }
                 }
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_Copy))
                 {

@@ -235,16 +235,17 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    ActionButton.Click += ActionButtonOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    ActionButton.Click -= ActionButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        ActionButton.Click += ActionButtonOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        ActionButton.Click -= ActionButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -330,19 +331,25 @@ namespace WoWonder.Activities.Album
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == 2020 && resultCode == Result.Ok) // Add image 
+                switch (requestCode)
                 {
-                   var dataObject = JsonConvert.DeserializeObject<PostDataObject>(data.GetStringExtra("AlbumItem"));
-                   if (dataObject != null)
-                   {
-                       ImageData = dataObject;
+                    // Add image 
+                    case 2020 when resultCode == Result.Ok:
+                    {
+                        var dataObject = JsonConvert.DeserializeObject<PostDataObject>(data.GetStringExtra("AlbumItem"));
+                        if (dataObject != null)
+                        {
+                            ImageData = dataObject;
 
-                       MAdapter.PhotosList = new ObservableCollection<PhotoAlbumObject>(dataObject.PhotoAlbum);
-                       MAdapter.NotifyDataSetChanged();
+                            MAdapter.PhotosList = new ObservableCollection<PhotoAlbumObject>(dataObject.PhotoAlbum);
+                            MAdapter.NotifyDataSetChanged();
 
-                       MRecycler.Visibility = ViewStates.Visible;
-                       EmptyStateLayout.Visibility = ViewStates.Gone;
-                   }
+                            MRecycler.Visibility = ViewStates.Visible;
+                            EmptyStateLayout.Visibility = ViewStates.Gone;
+                        }
+
+                        break;
+                    }
                 }
             }
             catch (Exception e)

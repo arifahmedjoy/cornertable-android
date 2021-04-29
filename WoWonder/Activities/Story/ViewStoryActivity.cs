@@ -185,11 +185,11 @@ namespace WoWonder.Activities.Story
                 InitVideoView();
 
                 var checkSection = GlobalContext?.NewsFeedTab?.PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList;
-                if (checkSection?.Count > 0)
+                StoryList = checkSection?.Count switch
                 {
-                    StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>(checkSection);
-                    //StoryList.RemoveAt(IndexItem); 
-                }
+                    > 0 => new ObservableCollection<GetUserStoriesObject.StoryObject>(checkSection),
+                    _ => StoryList
+                };
             }
             catch (Exception e)
             {
@@ -240,18 +240,19 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    DeleteIconView.Click += DeleteIconViewOnClick;
-                    ReverseView.Click += ReverseViewOnClick;
-                    SkipView.Click += SkipViewOnClick;
-                }
-                else
-                {
-                    DeleteIconView.Click -= DeleteIconViewOnClick;
-                    ReverseView.Click -= ReverseViewOnClick;
-                    SkipView.Click -= SkipViewOnClick;
+                    // true +=  // false -=
+                    case true:
+                        DeleteIconView.Click += DeleteIconViewOnClick;
+                        ReverseView.Click += ReverseViewOnClick;
+                        SkipView.Click += SkipViewOnClick;
+                        break;
+                    default:
+                        DeleteIconView.Click -= DeleteIconViewOnClick;
+                        ReverseView.Click -= ReverseViewOnClick;
+                        SkipView.Click -= SkipViewOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -307,36 +308,52 @@ namespace WoWonder.Activities.Story
             {
                 StoriesProgress.Pause();
 
-                if (StoryVideoView.IsPlaying)
-                    StoryVideoView.Pause();
+                switch (StoryVideoView.IsPlaying)
+                {
+                    case true:
+                        StoryVideoView.Pause();
+                        break;
+                }
 
                 if (Methods.CheckConnectivity())
                 {
                     (int respondCode, var respond) = await RequestsAsync.Story.Delete_Story(StoryId);
-                    if (respondCode == 200)
+                    switch (respondCode)
                     {
-                        var modelStory = GlobalContext.NewsFeedTab.PostFeedAdapter.HolderStory.StoryAdapter;
-
-                        var story = modelStory?.StoryList?.FirstOrDefault(a => a.UserId == UserId);
-                        if (story == null) return;
-                        var item = story.Stories.FirstOrDefault(q => q.Id == StoryId);
-                        if (item != null)
+                        case 200:
                         {
-                            story.Stories.Remove(item);
+                            var modelStory = GlobalContext.NewsFeedTab.PostFeedAdapter.HolderStory.StoryAdapter;
 
-                            modelStory.NotifyItemChanged(modelStory.StoryList.IndexOf(story));
-
-                            if (story.Stories.Count == 0)
+                            var story = modelStory?.StoryList?.FirstOrDefault(a => a.UserId == UserId);
+                            switch (story)
                             {
-                                modelStory?.StoryList.Remove(story);
-                                modelStory.NotifyDataSetChanged();
+                                case null:
+                                    return;
                             }
-                        }
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_Deleted), ToastLength.Short)?.Show();
+                            var item = story.Stories.FirstOrDefault(q => q.Id == StoryId);
+                            if (item != null)
+                            {
+                                story.Stories.Remove(item);
 
-                        Finish();
+                                modelStory.NotifyItemChanged(modelStory.StoryList.IndexOf(story));
+
+                                switch (story.Stories.Count)
+                                {
+                                    case 0:
+                                        modelStory?.StoryList.Remove(story);
+                                        modelStory.NotifyDataSetChanged();
+                                        break;
+                                }
+                            }
+                            Toast.MakeText(this, GetString(Resource.String.Lbl_Deleted), ToastLength.Short)?.Show();
+
+                            Finish();
+                            break;
+                        }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
@@ -386,7 +403,11 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                if (dataStories == null) return;
+                switch (dataStories)
+                {
+                    case null:
+                        return;
+                }
 
                 GlideImageLoader.LoadImage(this, dataStories.Avatar, UserImageView, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                 //UsernameTextView.Text = WoWonderTools.GetNameFinal(dataStories); 
@@ -427,15 +448,16 @@ namespace WoWonder.Activities.Story
             try
             {
                 StoryId = story.Id;
-                if (story.IsOwner)
+                switch (story.IsOwner)
                 {
-                    UsernameTextView.Text = WoWonderTools.GetNameFinal(DataStories) + "  " + Methods.Time.ReplaceTime(story.TimeText);
-                    LastSeenTextView.Text = GetText(Resource.String.Lbl_SeenBy) + " " + story.ViewCount;
-                }
-                else
-                {
-                    UsernameTextView.Text = WoWonderTools.GetNameFinal(DataStories);
-                    LastSeenTextView.Text = story.TimeText;
+                    case true:
+                        UsernameTextView.Text = WoWonderTools.GetNameFinal(DataStories) + "  " + Methods.Time.ReplaceTime(story.TimeText);
+                        LastSeenTextView.Text = GetText(Resource.String.Lbl_SeenBy) + " " + story.ViewCount;
+                        break;
+                    default:
+                        UsernameTextView.Text = WoWonderTools.GetNameFinal(DataStories);
+                        LastSeenTextView.Text = story.TimeText;
+                        break;
                 }
 
                 //image and video
@@ -443,14 +465,30 @@ namespace WoWonder.Activities.Story
                     ? story.Thumbnail
                     : story.Videos[0].Filename;
 
-                if (StoryVideoView == null)
-                    InitVideoView();
+                switch (StoryVideoView)
+                {
+                    case null:
+                        InitVideoView();
+                        break;
+                }
 
                 string caption = "";
-                if (!string.IsNullOrEmpty(story.Description))
-                    caption = story.Description;
-                else if (!string.IsNullOrEmpty(story.Title))
-                    caption = story.Title;
+                switch (string.IsNullOrEmpty(story.Description))
+                {
+                    case false:
+                        caption = story.Description;
+                        break;
+                    default:
+                    {
+                        caption = string.IsNullOrEmpty(story.Title) switch
+                        {
+                            false => story.Title,
+                            _ => caption
+                        };
+
+                        break;
+                    }
+                }
 
                 if (string.IsNullOrEmpty(caption) || string.IsNullOrWhiteSpace(caption))
                 {
@@ -462,37 +500,44 @@ namespace WoWonder.Activities.Story
                     CaptionStoryTextView.Text = Methods.FunString.DecodeString(caption);
                 }
 
-                if (StoryVideoView == null)
-                    InitVideoView();
+                switch (StoryVideoView)
+                {
+                    case null:
+                        InitVideoView();
+                        break;
+                }
 
                 var type = Methods.AttachmentFiles.Check_FileExtension(MediaFile);
-                if (type == "Video")
+                switch (type)
                 {
-                    var fileName = MediaFile.Split('/').Last();
-                    MediaFile = WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, MediaFile);
-
-                    StoryImageView.Visibility = ViewStates.Gone;
-                    StoryVideoView.Visibility = ViewStates.Visible;
-                    if (MediaFile.Contains("http"))
+                    case "Video":
                     {
-                        StoryVideoView.SetVideoURI(Uri.Parse(MediaFile));
-                        StoryVideoView.Start();
-                    }
-                    else
-                    {
-                        var file = Uri.FromFile(new File(MediaFile));
-                        StoryVideoView.SetVideoPath(file?.Path);
-                        StoryVideoView.Start();
-                    }
+                        var fileName = MediaFile.Split('/').Last();
+                        MediaFile = WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, MediaFile);
 
-                    await Task.Delay(500);
-                }
-                else
-                {
-                    StoryImageView.Visibility = ViewStates.Visible;
-                    StoryVideoView.Visibility = ViewStates.Gone;
+                        StoryImageView.Visibility = ViewStates.Gone;
+                        StoryVideoView.Visibility = ViewStates.Visible;
+                        if (MediaFile.Contains("http"))
+                        {
+                            StoryVideoView.SetVideoURI(Uri.Parse(MediaFile));
+                            StoryVideoView.Start();
+                        }
+                        else
+                        {
+                            var file = Uri.FromFile(new File(MediaFile));
+                            StoryVideoView.SetVideoPath(file?.Path);
+                            StoryVideoView.Start();
+                        }
 
-                    Glide.With(this).Load(MediaFile).Apply(new RequestOptions()).Into(StoryImageView);
+                        await Task.Delay(500);
+                        break;
+                    }
+                    default:
+                        StoryImageView.Visibility = ViewStates.Visible;
+                        StoryVideoView.Visibility = ViewStates.Gone;
+
+                        Glide.With(this).Load(MediaFile).Apply(new RequestOptions()).Into(StoryImageView);
+                        break;
                 }
             }
             catch (Exception e)
@@ -561,7 +606,11 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                if (Counter - 1 < 0) return;
+                switch (Counter - 1)
+                {
+                    case < 0:
+                        return;
+                }
                 var dataStory = DataStories.Stories[--Counter];
                 if (dataStory != null)
                 {
@@ -579,23 +628,23 @@ namespace WoWonder.Activities.Story
             try
             {
                 IndexItem++;
-                if (StoryList.Count > 0 && StoryList.Count > IndexItem)
+                switch (StoryList.Count)
                 {
-                    DataStories = StoryList[IndexItem];
+                    case > 0 when StoryList.Count > IndexItem:
+                        DataStories = StoryList[IndexItem];
 
-                    StoriesProgress?.Destroy();
-                    StoriesProgress = null!;
+                        StoriesProgress?.Destroy();
+                        StoriesProgress = null!;
 
-                    LoadData(DataStories);
+                        LoadData(DataStories);
 
-                    DataStories.ProfileIndicator = AppSettings.StoryReadColor;
-                    GlobalContext?.NewsFeedTab.PostFeedAdapter?.HolderStory?.StoryAdapter.NotifyItemChanged(IndexItem, "StoryRefresh");
-
-                }
-                else
-                {
-                    AdsGoogle.Ad_Interstitial(this);
-                    Finish();
+                        DataStories.ProfileIndicator = AppSettings.StoryReadColor;
+                        GlobalContext?.NewsFeedTab.PostFeedAdapter?.HolderStory?.StoryAdapter.NotifyItemChanged(IndexItem, "StoryRefresh");
+                        break;
+                    default:
+                        AdsGoogle.Ad_Interstitial(this);
+                        Finish();
+                        break;
                 }
             }
             catch (Exception e)

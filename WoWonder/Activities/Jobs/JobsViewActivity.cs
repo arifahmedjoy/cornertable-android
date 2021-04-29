@@ -65,9 +65,12 @@ namespace WoWonder.Activities.Jobs
                 SetContentView(Resource.Layout.JobsViewLayout);
               
                 var dataObject = Intent?.GetStringExtra("JobsObject");
-                if (!string.IsNullOrEmpty(dataObject))
-                    DataInfoObject = JsonConvert.DeserializeObject<JobInfoObject>(dataObject);
-                 
+                DataInfoObject = string.IsNullOrEmpty(dataObject) switch
+                {
+                    false => JsonConvert.DeserializeObject<JobInfoObject>(dataObject),
+                    _ => DataInfoObject
+                };
+
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
@@ -199,8 +202,12 @@ namespace WoWonder.Activities.Jobs
                     .LabelUnderLine(true)
                     .Build();
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -234,20 +241,21 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtMore.Click += TxtMoreOnClick;
-                    JobButton.Click += JobButtonOnClick;
-                    IconBack.Click += IconBackOnClick;
-                    Description.LongClick += DescriptionOnLongClick;
-                }
-                else
-                {
-                    TxtMore.Click -= TxtMoreOnClick;
-                    JobButton.Click -= JobButtonOnClick;
-                    IconBack.Click -= IconBackOnClick;
-                    Description.LongClick -= DescriptionOnLongClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtMore.Click += TxtMoreOnClick;
+                        JobButton.Click += JobButtonOnClick;
+                        IconBack.Click += IconBackOnClick;
+                        Description.LongClick += DescriptionOnLongClick;
+                        break;
+                    default:
+                        TxtMore.Click -= TxtMoreOnClick;
+                        JobButton.Click -= JobButtonOnClick;
+                        IconBack.Click -= IconBackOnClick;
+                        Description.LongClick -= DescriptionOnLongClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -337,32 +345,38 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                if (DataInfoObject == null)
-                    return;
-                 
-                switch (JobButton?.Tag?.ToString())
+                switch (DataInfoObject)
                 {
-                    // Open Apply Job Activity 
-                    case "ShowApply":
-                    {
-                        if (DataInfoObject.ApplyCount == "0")
+                    case null:
+                        return;
+                    default:
+                        switch (JobButton?.Tag?.ToString())
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
-                            return;
-                        }
+                            // Open Apply Job Activity 
+                            case "ShowApply":
+                            {
+                                switch (DataInfoObject.ApplyCount)
+                                {
+                                    case "0":
+                                        Toast.MakeText(this, GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
+                                        return;
+                                }
                          
-                        var intent = new Intent(this, typeof(ShowApplyJobActivity)); 
-                        intent.PutExtra("JobsObject", JsonConvert.SerializeObject(DataInfoObject));
-                        StartActivity(intent);
+                                var intent = new Intent(this, typeof(ShowApplyJobActivity)); 
+                                intent.PutExtra("JobsObject", JsonConvert.SerializeObject(DataInfoObject));
+                                StartActivity(intent);
+                                break;
+                            }
+                            case "Apply":
+                            {
+                                var intent = new Intent(this, typeof(ApplyJobActivity));
+                                intent.PutExtra("JobsObject", JsonConvert.SerializeObject(DataInfoObject));
+                                StartActivityForResult(intent,367);
+                                break;
+                            }
+                        }
+
                         break;
-                    }
-                    case "Apply":
-                    {
-                        var intent = new Intent(this, typeof(ApplyJobActivity));
-                        intent.PutExtra("JobsObject", JsonConvert.SerializeObject(DataInfoObject));
-                        StartActivityForResult(intent,367);
-                        break;
-                    }
                 }
             }
             catch (Exception exception)
@@ -410,9 +424,9 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                if (DialogType == "Delete")
+                switch (DialogType)
                 {
-                    if (p1 == DialogAction.Positive)
+                    case "Delete" when p1 == DialogAction.Positive:
                     {
                         // Send Api delete 
 
@@ -452,22 +466,31 @@ namespace WoWonder.Activities.Jobs
                         else
                         {
                             Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                        } 
+                        }
+
+                        break;
                     }
-                    else if (p1 == DialogAction.Negative)
+                    case "Delete":
                     {
-                        p0.Dismiss();
+                        if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    if (p1 == DialogAction.Positive)
+                    default:
                     {
+                        if (p1 == DialogAction.Positive)
+                        {
                         
-                    }
-                    else if (p1 == DialogAction.Negative)
-                    {
-                        p0.Dismiss();
+                        }
+                        else if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -537,10 +560,11 @@ namespace WoWonder.Activities.Jobs
                     GlideImageLoader.LoadImage(this, DataInfoObject.Page.Avatar, JobAvatar, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
 
                     var image = DataInfoObject.Image.Replace(Client.WebsiteUrl + "/", "");
-                    if (!image.Contains("http"))
-                        DataInfoObject.Image = Client.WebsiteUrl + "/" + image;
-                    else
-                        DataInfoObject.Image = image;
+                    DataInfoObject.Image = image.Contains("http") switch
+                    {
+                        false => Client.WebsiteUrl + "/" + image,
+                        _ => image
+                    };
 
                     GlideImageLoader.LoadImage(this, DataInfoObject.Image, JobCoverImage, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
                      
@@ -551,11 +575,13 @@ namespace WoWonder.Activities.Jobs
                         JobButton.Tag = "ShowApply";
                     }
 
-                    //Set Button if its applied
-                    if (DataInfoObject.Apply == "true")
+                    switch (DataInfoObject.Apply)
                     {
-                        JobButton.Text = GetString(Resource.String.Lbl_already_applied);
-                        JobButton.Enabled = false;
+                        //Set Button if its applied
+                        case "true":
+                            JobButton.Text = GetString(Resource.String.Lbl_already_applied);
+                            JobButton.Enabled = false;
+                            break;
                     }
                      
                     JobTitle.Text = Methods.FunString.DecodeString(DataInfoObject.Title);
@@ -592,28 +618,16 @@ namespace WoWonder.Activities.Jobs
                     var jobInfo = IonIconsFonts.Pin + " " + DataInfoObject.Location + "  " + " ";
                     jobInfo += IonIconsFonts.Time + " " + Methods.Time.TimeAgo(Convert.ToInt32(DataInfoObject.Time), false) + " " + " ";
 
-                    switch (DataInfoObject.JobType)
+                    jobInfo += DataInfoObject.JobType switch
                     {
                         //Set job type
-                        case "full_time":
-                            jobInfo += IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_full_time);
-                            break;
-                        case "part_time":
-                            jobInfo += IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_part_time);
-                            break;
-                        case "internship":
-                            jobInfo += IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_internship);
-                            break;
-                        case "volunteer":
-                            jobInfo += IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_volunteer);
-                            break;
-                        case "contract":
-                            jobInfo += IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_contract);
-                            break;
-                        default:
-                            jobInfo += IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_Unknown);
-                            break;
-                    }
+                        "full_time" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_full_time),
+                        "part_time" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_part_time),
+                        "internship" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_internship),
+                        "volunteer" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_volunteer),
+                        "contract" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_contract),
+                        _ => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_Unknown)
+                    };
 
                     var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == DataInfoObject.Category)?.CategoriesName;
                     jobInfo += " " + " " + IonIconsFonts.Pricetag + " " + categoryName;

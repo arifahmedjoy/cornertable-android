@@ -47,14 +47,19 @@ namespace WoWonder.Adapters
             {
                 Position = position;
 
-                if (viewHolder is CategoryIconAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = CategoryList[Position];
-                    if (item != null)
+                    case CategoryIconAdapterViewHolder holder:
                     {
-                        holder.TxtCategoryName.Text = item.CategoriesName;
+                        var item = CategoryList[Position];
+                        if (item != null)
+                        {
+                            holder.TxtCategoryName.Text = item.CategoriesName;
 
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, holder.CategoryIcon, item.CategoriesIcon);
+                            FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, holder.CategoryIcon, item.CategoriesIcon);
+                        }
+
+                        break;
                     }
                 }
             }

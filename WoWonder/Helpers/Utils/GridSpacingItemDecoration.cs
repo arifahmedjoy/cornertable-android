@@ -25,25 +25,31 @@ namespace WoWonder.Helpers.Utils
             int position = parent.GetChildAdapterPosition(view);
             int column = position % SpanCount;
 
-            if (IncludeEdge)
+            switch (IncludeEdge)
             {
-                outRect.Left = Spacing - column * Spacing / SpanCount;
-                outRect.Right = (column + 1) * Spacing / SpanCount;
-
-                if (position < SpanCount)
+                case true:
                 {
-                    outRect.Top = Spacing;
+                    outRect.Left = Spacing - column * Spacing / SpanCount;
+                    outRect.Right = (column + 1) * Spacing / SpanCount;
+
+                    if (position < SpanCount)
+                    {
+                        outRect.Top = Spacing;
+                    }
+                    outRect.Bottom = Spacing;
+                    break;
                 }
-                outRect.Bottom = Spacing;
-            }
-            else
-            {
-                outRect.Left = column * Spacing / SpanCount;
-                outRect.Right = Spacing - (column + 1) * Spacing / SpanCount;
-
-                if (position >= SpanCount)
+                default:
                 {
-                    outRect.Top = Spacing;
+                    outRect.Left = column * Spacing / SpanCount;
+                    outRect.Right = Spacing - (column + 1) * Spacing / SpanCount;
+
+                    if (position >= SpanCount)
+                    {
+                        outRect.Top = Spacing;
+                    }
+
+                    break;
                 }
             }
         }

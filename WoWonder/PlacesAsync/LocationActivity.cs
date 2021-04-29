@@ -68,8 +68,12 @@ namespace WoWonder.PlacesAsync
 
                 InitializeLocationManager();
                  
-                if (!PlacesApi.IsInitialized)
-                    PlacesApi.Initialize(this, GetString(Resource.String.google_key));
+                switch (PlacesApi.IsInitialized)
+                {
+                    case false:
+                        PlacesApi.Initialize(this, GetString(Resource.String.google_key));
+                        break;
+                }
                  
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -226,22 +230,23 @@ namespace WoWonder.PlacesAsync
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MapButton.Click += IconMyLocationOnClick;
-                    ListButton.Click += ListButtonOnClick;
-                    BtnSelect.Click += BtnSelectOnClick;
-                    SearchView.QueryTextChange += SearchViewOnQueryTextChange;
-                    SearchView.QueryTextSubmit += SearchViewOnQueryTextSubmit; 
-                }
-                else
-                {
-                    MapButton.Click -= IconMyLocationOnClick;
-                    ListButton.Click -= ListButtonOnClick;
-                    BtnSelect.Click -= BtnSelectOnClick;
-                    SearchView.QueryTextChange -= SearchViewOnQueryTextChange;
-                    SearchView.QueryTextSubmit -= SearchViewOnQueryTextSubmit;
+                    // true +=  // false -=
+                    case true:
+                        MapButton.Click += IconMyLocationOnClick;
+                        ListButton.Click += ListButtonOnClick;
+                        BtnSelect.Click += BtnSelectOnClick;
+                        SearchView.QueryTextChange += SearchViewOnQueryTextChange;
+                        SearchView.QueryTextSubmit += SearchViewOnQueryTextSubmit;
+                        break;
+                    default:
+                        MapButton.Click -= IconMyLocationOnClick;
+                        ListButton.Click -= ListButtonOnClick;
+                        BtnSelect.Click -= BtnSelectOnClick;
+                        SearchView.QueryTextChange -= SearchViewOnQueryTextChange;
+                        SearchView.QueryTextSubmit -= SearchViewOnQueryTextSubmit;
+                        break;
                 }
             }
             catch (Exception e)
@@ -402,16 +407,14 @@ namespace WoWonder.PlacesAsync
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 105)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         await GetPosition();
-                    }
-                    else
-                    {
+                        break;
+                    case 105:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -448,20 +451,24 @@ namespace WoWonder.PlacesAsync
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    await CheckAndGetLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         await CheckAndGetLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            await CheckAndGetLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -513,19 +520,20 @@ namespace WoWonder.PlacesAsync
                 Geocoder geocode = new Geocoder(this, locale);
 
                 var addresses = await geocode.GetFromLocationAsync(latLng.Latitude, latLng.Longitude, 2); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                if (addresses.Count > 0)
+                switch (addresses.Count)
                 {
-                    //string address = addresses[0].GetAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                    //string city = addresses[0].Locality;
-                    //string state = addresses[0].AdminArea;
-                    //string country = addresses[0].CountryName;
-                    //string postalCode = addresses[0].PostalCode;
-                    //string knownName = addresses[0].FeatureName; // Only if available else return NULL 
-                }
-                else
-                {
-                    //Error Message  
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Error_DisplayAddress), ToastLength.Short)?.Show();
+                    case > 0:
+                        //string address = addresses[0].GetAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                        //string city = addresses[0].Locality;
+                        //string state = addresses[0].AdminArea;
+                        //string country = addresses[0].CountryName;
+                        //string postalCode = addresses[0].PostalCode;
+                        //string knownName = addresses[0].FeatureName; // Only if available else return NULL 
+                        break;
+                    default:
+                        //Error Message  
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Error_DisplayAddress), ToastLength.Short)?.Show();
+                        break;
                 }
 
                 return addresses.FirstOrDefault();
@@ -547,8 +555,11 @@ namespace WoWonder.PlacesAsync
             try
             {
                 var address = await coder.GetFromLocationNameAsync(strAddress, 2);
-                if (address == null)
-                    return null!;
+                switch (address)
+                {
+                    case null:
+                        return null!;
+                }
 
                 Address location = address[0];
                 Lat = location.Latitude;
@@ -577,10 +588,14 @@ namespace WoWonder.PlacesAsync
                 Map.AddMarker(makerOptions);
                 Map.MapType = GoogleMap.MapTypeNormal;
 
-                if (AppSettings.SetTabDarkTheme)
+                switch (AppSettings.SetTabDarkTheme)
                 {
-                    MapStyleOptions style = MapStyleOptions.LoadRawResourceStyle(this, Resource.Raw.map_dark);
-                    Map.SetMapStyle(style);
+                    case true:
+                    {
+                        MapStyleOptions style = MapStyleOptions.LoadRawResourceStyle(this, Resource.Raw.map_dark);
+                        Map.SetMapStyle(style);
+                        break;
+                    }
                 }
                  
                 //Optional
@@ -701,18 +716,20 @@ namespace WoWonder.PlacesAsync
                 Geocoder geocode = new Geocoder(this, locale);
 
                 var addresses = await geocode.GetFromLocationAsync(latLng.Latitude, latLng.Longitude, 2); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                if (addresses?.Count > 0)
+                switch (addresses?.Count)
                 {
-                    DeviceAddress = addresses[0].GetAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                    //string city = addresses[0].Locality;
-                    //string state = addresses[0].AdminArea;
-                    //string country = addresses[0].CountryName;
-                    //string postalCode = addresses[0].PostalCode;
-                    //string knownName = addresses[0].FeatureName; // Only if available else return NULL 
+                    case > 0:
+                        DeviceAddress = addresses[0].GetAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                        //string city = addresses[0].Locality;
+                        //string state = addresses[0].AdminArea;
+                        //string country = addresses[0].CountryName;
+                        //string postalCode = addresses[0].PostalCode;
+                        //string knownName = addresses[0].FeatureName; // Only if available else return NULL 
                     
-                    // Setting the title for the marker.
-                    // This will be displayed on taping the marker
-                    markerOptions.SetSnippet(DeviceAddress); 
+                        // Setting the title for the marker.
+                        // This will be displayed on taping the marker
+                        markerOptions.SetSnippet(DeviceAddress);
+                        break;
                 }
                  
                 if (Map != null)
@@ -765,7 +782,11 @@ namespace WoWonder.PlacesAsync
             try
             {
                 var findCurrentPlaceResponse = (FindCurrentPlaceResponse)result;
-                if (findCurrentPlaceResponse == null) return;
+                switch (findCurrentPlaceResponse)
+                {
+                    case null:
+                        return;
+                }
 
                 MAdapter.PlacesList = new ObservableCollection<MyPlace>();
                 foreach (var placeLikelihood in findCurrentPlaceResponse.PlaceLikelihoods)

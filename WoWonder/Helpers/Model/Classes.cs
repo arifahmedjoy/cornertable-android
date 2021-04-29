@@ -129,11 +129,13 @@ namespace WoWonder.Helpers.Model
             //Chat
             LastChatOldV = 320201,
             LastChatNewV = 320202,
-            LastChatPage = 320203, 
+            LastChatPage = 320203,
             GroupRequest = 320205,
-            Archive = 320206,  
+            Archive = 320206,
         }
-         
+
+
+        //Chat
         public class CallUser
         {
             public string VideoCall { get; set; }
@@ -173,7 +175,7 @@ namespace WoWonder.Helpers.Model
             public string ImageExtra { set; get; }
 
         }
-         
+
         public class OptionLastChat
         {
             public string IdChat { set; get; }
@@ -212,7 +214,7 @@ namespace WoWonder.Helpers.Model
             public string CountArchive { get; set; }
 
         }
-         
+
 
     }
 }

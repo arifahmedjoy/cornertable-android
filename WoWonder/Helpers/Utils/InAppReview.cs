@@ -61,11 +61,16 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (!p0.IsSuccessful)
-                    return;
-                // Canceling the review raises an exception
+                switch (p0.IsSuccessful)
+                {
+                    case false:
+                        return;
+                    default:
+                        // Canceling the review raises an exception
 
-                LaunchReview(p0);
+                        LaunchReview(p0);
+                        break;
+                }
             }
             catch (Exception e)
             {

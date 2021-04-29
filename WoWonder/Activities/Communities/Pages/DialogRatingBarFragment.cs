@@ -173,16 +173,17 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    RatingBar.RatingBarChange += RatingBarOnRatingBarChange;
-                    BtnSave.Click += BtnSaveOnClick;
-                }
-                else
-                {
-                    RatingBar.RatingBarChange -= RatingBarOnRatingBarChange;
-                    BtnSave.Click -= BtnSaveOnClick;
+                    // true +=  // false -=
+                    case true:
+                        RatingBar.RatingBarChange += RatingBarOnRatingBarChange;
+                        BtnSave.Click += BtnSaveOnClick;
+                        break;
+                    default:
+                        RatingBar.RatingBarChange -= RatingBarOnRatingBarChange;
+                        BtnSave.Click -= BtnSaveOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -217,10 +218,11 @@ namespace WoWonder.Activities.Communities.Pages
                 }
                 else
                 {
-                    if (RatingBar.Rating <= 0)
+                    switch (RatingBar.Rating)
                     {
-                        Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Please_select_Rating), ToastLength.Short)?.Show(); 
-                        return;
+                        case <= 0:
+                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Please_select_Rating), ToastLength.Short)?.Show(); 
+                            return;
                     }
 
                     if (string.IsNullOrEmpty(TxtReview.Text) || string.IsNullOrWhiteSpace(TxtReview.Text))
@@ -253,45 +255,54 @@ namespace WoWonder.Activities.Communities.Pages
         private async Task RatePageApi()
         {
             var (apiStatus, respond) = await RequestsAsync.Page.RatePage(PageId, RatingBar.Rating.ToString(CultureInfo.InvariantCulture), TxtReview.Text);
-            if (apiStatus == 200)
+            switch (apiStatus)
             {
-                if (respond is RatePageObject result)
-                { 
-                    ActivityContext?.RunOnUiThread(() =>
+                case 200:
+                {
+                    switch (respond)
                     {
-                        try
-                        {
-                            AndHUD.Shared.Dismiss(ActivityContext);
-                             
-                            Item.Rating = result.Val;
-
-                            var modelsClass = ActivityContext.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoPageBox);
-                            if (modelsClass != null)
+                        case RatePageObject result:
+                            ActivityContext?.RunOnUiThread(() =>
                             {
-                                modelsClass.PageInfoModelClass = new PageInfoModelClass
+                                try
                                 {
-                                    PageClass = Item,
-                                    PageId = Item.PageId
-                                };
-                                ActivityContext.PostFeedAdapter.NotifyItemChanged(ActivityContext.PostFeedAdapter.ListDiffer.IndexOf(modelsClass));
-                            } 
+                                    AndHUD.Shared.Dismiss(ActivityContext);
+                             
+                                    Item.Rating = result.Val;
+
+                                    var modelsClass = ActivityContext.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoPageBox);
+                                    if (modelsClass != null)
+                                    {
+                                        modelsClass.PageInfoModelClass = new PageInfoModelClass
+                                        {
+                                            PageClass = Item,
+                                            PageId = Item.PageId
+                                        };
+                                        ActivityContext.PostFeedAdapter.NotifyItemChanged(ActivityContext.PostFeedAdapter.ListDiffer.IndexOf(modelsClass));
+                                    } 
                               
-                            PageProfileActivity.PageData.IsRated = true;
-                            PageProfileActivity.PageData.Rating = result.Val;
+                                    PageProfileActivity.PageData.IsRated = true;
+                                    PageProfileActivity.PageData.Rating = result.Val;
 
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Rated), ToastLength.Short)?.Show();
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Rated), ToastLength.Short)?.Show();
 
-                            Dismiss(); 
-                        }
-                        catch (Exception e)
-                        {
-                            AndHUD.Shared.Dismiss(ActivityContext);
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
+                                    Dismiss(); 
+                                }
+                                catch (Exception e)
+                                {
+                                    AndHUD.Shared.Dismiss(ActivityContext);
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            break;
+                    }
+
+                    break;
                 }
+                default:
+                    Methods.DisplayAndHudErrorResult(ActivityContext, respond);
+                    break;
             }
-            else Methods.DisplayAndHudErrorResult(ActivityContext, respond);
         }
          
         #endregion

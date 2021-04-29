@@ -26,38 +26,68 @@ namespace WoWonder.Helpers.Controller
                 {
                     case "Page":
                     {
-                        if (ListCategoriesPage?.Count > 0)
-                            categoryName = ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == idCategory)?.CategoriesName ?? textCategory;
+                        categoryName = ListCategoriesPage?.Count switch
+                        {
+                            > 0 => ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == idCategory)
+                                ?.CategoriesName ?? textCategory,
+                            _ => categoryName
+                        };
+
                         break;
                     }
                     case "Group":
                     {
-                        if (ListCategoriesGroup?.Count > 0)
-                            categoryName = ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == idCategory)?.CategoriesName ?? textCategory;
+                        categoryName = ListCategoriesGroup?.Count switch
+                        {
+                            > 0 => ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == idCategory)
+                                ?.CategoriesName ?? textCategory,
+                            _ => categoryName
+                        };
+
                         break;
                     }
                     case "Blog":
                     {
-                        if (ListCategoriesBlog?.Count > 0)
-                            categoryName = ListCategoriesBlog.FirstOrDefault(a => a.CategoriesId == idCategory)?.CategoriesName ?? textCategory;
+                        categoryName = ListCategoriesBlog?.Count switch
+                        {
+                            > 0 => ListCategoriesBlog.FirstOrDefault(a => a.CategoriesId == idCategory)
+                                ?.CategoriesName ?? textCategory,
+                            _ => categoryName
+                        };
+
                         break;
                     }
                     case "Products":
                     {
-                        if (ListCategoriesProducts?.Count > 0)
-                            categoryName = ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == idCategory)?.CategoriesName ?? textCategory;
+                        categoryName = ListCategoriesProducts?.Count switch
+                        {
+                            > 0 => ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == idCategory)
+                                ?.CategoriesName ?? textCategory,
+                            _ => categoryName
+                        };
+
                         break;
                     }
                     case "Job":
                     {
-                        if (ListCategoriesJob?.Count > 0)
-                            categoryName = ListCategoriesJob.FirstOrDefault(a => a.CategoriesId == idCategory)?.CategoriesName ?? textCategory;
+                        categoryName = ListCategoriesJob?.Count switch
+                        {
+                            > 0 => ListCategoriesJob.FirstOrDefault(a => a.CategoriesId == idCategory)
+                                ?.CategoriesName ?? textCategory,
+                            _ => categoryName
+                        };
+
                         break;
                     }
                     case "Movies":
                     {
-                        if (ListCategoriesMovies?.Count > 0)
-                            categoryName = ListCategoriesMovies.FirstOrDefault(a => a.CategoriesId == idCategory)?.CategoriesName ?? textCategory;
+                        categoryName = ListCategoriesMovies?.Count switch
+                        {
+                            > 0 => ListCategoriesMovies.FirstOrDefault(a => a.CategoriesId == idCategory)
+                                ?.CategoriesName ?? textCategory,
+                            _ => categoryName
+                        };
+
                         break;
                     }
                     default:

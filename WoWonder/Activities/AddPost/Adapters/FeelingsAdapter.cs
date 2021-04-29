@@ -160,19 +160,24 @@ namespace WoWonder.Activities.AddPost.Adapters
         {
             try
             {
-               
-                if (viewHolder is FeelingsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = FeelingsList[position];
-                    if (item != null)
+                    case FeelingsAdapterViewHolder holder:
                     {
-                        holder.FeelingName.Text = item.FeelingText;
-
-                        if (!string.IsNullOrEmpty(item.FeelingImageUrl))
+                        var item = FeelingsList[position];
+                        if (item != null)
                         {
-                            GlideImageLoader.LoadImage(ActivityContext, item.FeelingImageUrl, holder.Image,ImageStyle.RoundedCrop ,ImagePlaceholders.Drawable); 
+                            holder.FeelingName.Text = item.FeelingText;
+
+                            switch (string.IsNullOrEmpty(item.FeelingImageUrl))
+                            {
+                                case false:
+                                    GlideImageLoader.LoadImage(ActivityContext, item.FeelingImageUrl, holder.Image,ImageStyle.RoundedCrop ,ImagePlaceholders.Drawable);
+                                    break;
+                            }
                         }
-                            
+
+                        break;
                     }
                 }
             }
@@ -190,8 +195,12 @@ namespace WoWonder.Activities.AddPost.Adapters
                         return;
 
 
-                if (holder is FeelingsAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                switch (holder)
+                {
+                    case FeelingsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
+                }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)

@@ -65,12 +65,17 @@ namespace WoWonder.Activities.Search.Adapters
         {
             try
             {
-                if (viewHolder is SearchPageAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = PageList[position];
-                    if (item != null)
+                    case SearchPageAdapterViewHolder holder:
                     {
-                        Initialize(holder, item);
+                        var item = PageList[position];
+                        if (item != null)
+                        {
+                            Initialize(holder, item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -132,9 +137,11 @@ namespace WoWonder.Activities.Search.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is SearchPageAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case SearchPageAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -195,14 +202,21 @@ namespace WoWonder.Activities.Search.Adapters
             {
                 var d = new List<string>();
                 var item = PageList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)
@@ -222,7 +236,7 @@ namespace WoWonder.Activities.Search.Adapters
 
     public class SearchPageAdapterViewHolder : RecyclerView.ViewHolder
     {
-        public SearchPageAdapterViewHolder(View itemView, Action<SearchPageAdapterClickEventArgs> LikeButtonClickListener, Action<SearchPageAdapterClickEventArgs> clickListener,Action<SearchPageAdapterClickEventArgs> longClickListener) : base(itemView)
+        public SearchPageAdapterViewHolder(View itemView, Action<SearchPageAdapterClickEventArgs> likeButtonClickListener, Action<SearchPageAdapterClickEventArgs> clickListener,Action<SearchPageAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
@@ -239,7 +253,7 @@ namespace WoWonder.Activities.Search.Adapters
                 IconGroup.SetImageResource(Resource.Drawable.icon_social_flag_vector);
               
                 //Event      
-                Button.Click += (sender, e) => LikeButtonClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition , Button  = Button });
+                Button.Click += (sender, e) => likeButtonClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition , Button  = Button });
                 itemView.Click += (sender, e) => clickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
                 itemView.LongClick += (sender, e) => longClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition}); 
             }

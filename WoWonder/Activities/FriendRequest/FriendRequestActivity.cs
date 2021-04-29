@@ -231,16 +231,17 @@ namespace WoWonder.Activities.FriendRequest
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.AddButtonItemClick += MAdapterOnAddButtonItemClick;
-                    MAdapter.DeleteButtonItemClick += MAdapterOnDeleteButtonItemClick;
-                }
-                else
-                {
-                    MAdapter.AddButtonItemClick -= MAdapterOnAddButtonItemClick;
-                    MAdapter.DeleteButtonItemClick -= MAdapterOnDeleteButtonItemClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.AddButtonItemClick += MAdapterOnAddButtonItemClick;
+                        MAdapter.DeleteButtonItemClick += MAdapterOnDeleteButtonItemClick;
+                        break;
+                    default:
+                        MAdapter.AddButtonItemClick -= MAdapterOnAddButtonItemClick;
+                        MAdapter.DeleteButtonItemClick -= MAdapterOnDeleteButtonItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -275,28 +276,33 @@ namespace WoWonder.Activities.FriendRequest
         {
             try
             {
-                if (e.Position > -1)
+                switch (e.Position)
                 {
-                    var item = MAdapter.GetItem(e.Position);
-                    if (item != null)
+                    case > -1:
                     {
-                        if (Methods.CheckConnectivity())
+                        var item = MAdapter.GetItem(e.Position);
+                        if (item != null)
                         {
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_Request_Action(item.UserId, true) }); // true >> Accept 
+                            if (Methods.CheckConnectivity())
+                            {
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_Request_Action(item.UserId, true) }); // true >> Accept 
 
-                            ListUtils.FriendRequestsList?.RemoveAt(e.Position);
+                                ListUtils.FriendRequestsList?.RemoveAt(e.Position);
 
-                            MAdapter.UserList.Remove(item); 
-                            MAdapter.NotifyDataSetChanged();
+                                MAdapter.UserList.Remove(item); 
+                                MAdapter.NotifyDataSetChanged();
 
-                            RunOnUiThread(ShowEmptyPage);
+                                RunOnUiThread(ShowEmptyPage);
+                            }
+                            else
+                            {
+                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            }
                         }
-                        else
-                        {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -308,28 +314,33 @@ namespace WoWonder.Activities.FriendRequest
         {
             try
             {
-                if (e.Position > -1)
+                switch (e.Position)
                 {
-                    var item = MAdapter.GetItem(e.Position);
-                    if (item != null)
+                    case > -1:
                     {
-                        if (Methods.CheckConnectivity())
+                        var item = MAdapter.GetItem(e.Position);
+                        if (item != null)
                         {
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_Request_Action(item.UserId, false) });// false >> Decline
+                            if (Methods.CheckConnectivity())
+                            {
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Follow_Request_Action(item.UserId, false) });// false >> Decline
 
-                            ListUtils.FriendRequestsList?.RemoveAt(e.Position);
+                                ListUtils.FriendRequestsList?.RemoveAt(e.Position);
 
-                            MAdapter.UserList.Remove(item); 
-                            MAdapter.NotifyDataSetChanged();
+                                MAdapter.UserList.Remove(item); 
+                                MAdapter.NotifyDataSetChanged();
 
-                            RunOnUiThread(ShowEmptyPage);
+                                RunOnUiThread(ShowEmptyPage);
+                            }
+                            else
+                            {
+                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            }
                         }
-                        else
-                        {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -343,35 +354,45 @@ namespace WoWonder.Activities.FriendRequest
         {
             try
             {
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-                     
-                    if (AppSettings.ShowTrendingPage)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                        var adapter = TabbedMainActivity.GetInstance().TrendingTab?.MAdapter;
-                        var checkList = adapter?.TrendingList?.FirstOrDefault(q => q.Type == Classes.ItemType.FriendRequest);
-                        if (checkList != null)
+                        MRecycler.Visibility = ViewStates.Gone;
+                     
+                        switch (AppSettings.ShowTrendingPage)
                         {
-                            adapter.TrendingList.Remove(checkList);
-                            adapter.NotifyDataSetChanged();
-                        } 
-                    }
-                     
-                    Inflated ??= EmptyStateLayout.Inflate();
+                            case true:
+                            {
+                                var adapter = TabbedMainActivity.GetInstance().TrendingTab?.MAdapter;
+                                var checkList = adapter?.TrendingList?.FirstOrDefault(q => q.Type == Classes.ItemType.FriendRequest);
+                                if (checkList != null)
+                                {
+                                    adapter.TrendingList.Remove(checkList);
+                                    adapter.NotifyDataSetChanged();
+                                }
 
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
-                    {
-                         x.EmptyStateButton.Click += null!;
+                                break;
+                            }
+                        }
+                     
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

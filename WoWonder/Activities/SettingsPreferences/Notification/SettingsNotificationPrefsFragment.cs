@@ -20,7 +20,7 @@ namespace WoWonder.Activities.SettingsPreferences.Notification
 
         private CheckBoxPreference NotifcationPlaySoundPref;
         private SwitchPreferenceCompat NotifcationPopupPref, ChatHeadsPref;
-        private readonly Activity ActivityContext; 
+        private readonly Activity ActivityContext;
 
         #endregion
 
@@ -134,7 +134,7 @@ namespace WoWonder.Activities.SettingsPreferences.Notification
 
                 //Update Preferences data on Load
                 OnSharedPreferenceChanged(MainSettings.SharedData, "notifications_key");
-                 
+
                 NotifcationPopupPref.IconSpaceReserved = false;
                 ChatHeadsPref.IconSpaceReserved = false;
             }
@@ -148,18 +148,19 @@ namespace WoWonder.Activities.SettingsPreferences.Notification
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    NotifcationPopupPref.PreferenceChange += NotifcationPopupPrefOnPreferenceChange;
-                    NotifcationPlaySoundPref.PreferenceChange += NotifcationPlaySoundPrefOnPreferenceChange;
-                    ChatHeadsPref.PreferenceChange += ChatHeadsPrefOnPreferenceChange;
-                }
-                else
-                {
-                    NotifcationPopupPref.PreferenceChange -= NotifcationPopupPrefOnPreferenceChange;
-                    NotifcationPlaySoundPref.PreferenceChange -= NotifcationPlaySoundPrefOnPreferenceChange;
-                    ChatHeadsPref.PreferenceChange -= ChatHeadsPrefOnPreferenceChange;
+                    // true +=  // false -=
+                    case true:
+                        NotifcationPopupPref.PreferenceChange += NotifcationPopupPrefOnPreferenceChange;
+                        NotifcationPlaySoundPref.PreferenceChange += NotifcationPlaySoundPrefOnPreferenceChange;
+                        ChatHeadsPref.PreferenceChange += ChatHeadsPrefOnPreferenceChange;
+                        break;
+                    default:
+                        NotifcationPopupPref.PreferenceChange -= NotifcationPopupPrefOnPreferenceChange;
+                        NotifcationPlaySoundPref.PreferenceChange -= NotifcationPlaySoundPrefOnPreferenceChange;
+                        ChatHeadsPref.PreferenceChange -= ChatHeadsPrefOnPreferenceChange;
+                        break;
                 }
             }
             catch (Exception e)
@@ -176,20 +177,21 @@ namespace WoWonder.Activities.SettingsPreferences.Notification
         {
             try
             {
-                if (eventArgs.Handled)
+                switch (eventArgs.Handled)
                 {
-                    var etp = (CheckBoxPreference)sender;
-                    var value = eventArgs.NewValue.ToString();
-                    etp.Checked = bool.Parse(value);
-                    if (etp.Checked)
+                    case true:
                     {
-                        UserDetails.SoundControl = true;
-                    }
-                    else
-                    {
-                        UserDetails.SoundControl = false;
-                    }
+                        var etp = (CheckBoxPreference)sender;
+                        var value = eventArgs.NewValue.ToString();
+                        etp.Checked = bool.Parse(value);
+                        UserDetails.SoundControl = etp.Checked switch
+                        {
+                            true => true,
+                            _ => false
+                        };
 
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -203,20 +205,26 @@ namespace WoWonder.Activities.SettingsPreferences.Notification
         {
             try
             {
-                if (eventArgs.Handled)
+                switch (eventArgs.Handled)
                 {
-                    var etp = (SwitchPreferenceCompat)sender;
-                    var value = eventArgs.NewValue.ToString();
-                    etp.Checked = bool.Parse(value);
-                    if (etp.Checked)
+                    case true:
                     {
-                        UserDetails.NotificationPopup = true;
-                        OneSignalNotification.RegisterNotificationDevice();
-                    }
-                    else
-                    {
-                        UserDetails.NotificationPopup = false;
-                        OneSignalNotification.Un_RegisterNotificationDevice();
+                        var etp = (SwitchPreferenceCompat)sender;
+                        var value = eventArgs.NewValue.ToString();
+                        etp.Checked = bool.Parse(value);
+                        switch (etp.Checked)
+                        {
+                            case true:
+                                UserDetails.NotificationPopup = true;
+                                OneSignalNotification.RegisterNotificationDevice();
+                                break;
+                            default:
+                                UserDetails.NotificationPopup = false;
+                                OneSignalNotification.Un_RegisterNotificationDevice();
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }

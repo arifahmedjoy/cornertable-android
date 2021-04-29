@@ -68,12 +68,17 @@ namespace WoWonder.Activities.Movies.Adapters
         {
             try
             {
-                if (viewHolder is MoviesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MoviesList[position];
-                    if (item != null)
+                    case MoviesAdapterViewHolder holder:
                     {
-                        Initialize(holder, item);
+                        var item = MoviesList[position];
+                        if (item != null)
+                        {
+                            Initialize(holder, item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -106,30 +111,34 @@ namespace WoWonder.Activities.Movies.Adapters
                 //Video Type
                 ShowGlobalBadgeSystem(holder.VideoType, movie);
 
-                if (!holder.MenueView.HasOnClickListeners)
-                    holder.MenueView.Click +=  (sender, args) => 
-                    {
-                        try
+                switch (holder.MenueView.HasOnClickListeners)
+                {
+                    case false:
+                        holder.MenueView.Click +=  (sender, args) => 
                         {
-                            MovieDataMenue = movie;
+                            try
+                            {
+                                MovieDataMenue = movie;
 
-                            var arrayAdapter = new List<string>();
-                            var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
+                                var arrayAdapter = new List<string>();
+                                var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                            arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_CopeLink));
-                            arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_Share));
+                                arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_CopeLink));
+                                arrayAdapter.Add(ActivityContext.GetString(Resource.String.Lbl_Share));
 
-                            dialogList.Title(ActivityContext.GetString(Resource.String.Lbl_More));
-                            dialogList.Items(arrayAdapter);
-                            dialogList.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                            dialogList.AlwaysCallSingleChoiceCallback();
-                            dialogList.ItemsCallback(this).Build().Show(); 
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    };
+                                dialogList.Title(ActivityContext.GetString(Resource.String.Lbl_More));
+                                dialogList.Items(arrayAdapter);
+                                dialogList.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                                dialogList.AlwaysCallSingleChoiceCallback();
+                                dialogList.ItemsCallback(this).Build().Show(); 
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        };
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -178,15 +187,20 @@ namespace WoWonder.Activities.Movies.Adapters
         {
             try
             {
-                //Share Plugin same as video
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = movie.Name,
-                    Text = movie.Description,
-                    Url = movie.Url
-                });
+                    //Share Plugin same as video
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = movie.Name,
+                            Text = movie.Description,
+                            Url = movie.Url
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -200,9 +214,11 @@ namespace WoWonder.Activities.Movies.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is MoviesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.VideoImage);
+                    case MoviesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.VideoImage);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -258,8 +274,11 @@ namespace WoWonder.Activities.Movies.Adapters
             {
                 var d = new List<string>();
                 var item = MoviesList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Cover != "")
                 {

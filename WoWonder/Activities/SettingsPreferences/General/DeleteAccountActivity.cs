@@ -189,14 +189,15 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnDelete.Click += BtnDeleteOnClick;
-                }
-                else
-                {
-                    BtnDelete.Click -= BtnDeleteOnClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnDelete.Click += BtnDeleteOnClick;
+                        break;
+                    default:
+                        BtnDelete.Click -= BtnDeleteOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -227,10 +228,11 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                if (!ChkDelete.Checked)
+                switch (ChkDelete.Checked)
                 {
-                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Warning), GetText(Resource.String.Lbl_You_can_not_access_your_disapproval), GetText(Resource.String.Lbl_Ok));
-                    return;
+                    case false:
+                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Warning), GetText(Resource.String.Lbl_You_can_not_access_your_disapproval), GetText(Resource.String.Lbl_Ok));
+                        return;
                 }
 
                 if (!Methods.CheckConnectivity())

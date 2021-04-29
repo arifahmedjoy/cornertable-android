@@ -56,16 +56,21 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
         {
             try
             {
-                if (viewHolder is InvitationLinksAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = LinksList[position];
-                    if (item != null)
+                    case InvitationLinksAdapterViewHolder holder:
                     {
-                        DateTime dateTimeSeen = Methods.Time.UnixTimeStampToDateTime(Convert.ToInt32(item.Time));
-                        holder.Date.Text = dateTimeSeen.ToLongDateString();
+                        var item = LinksList[position];
+                        if (item != null)
+                        {
+                            DateTime dateTimeSeen = Methods.Time.UnixTimeStampToDateTime(Convert.ToInt32(item.Time));
+                            holder.Date.Text = dateTimeSeen.ToLongDateString();
 
-                        if (item.UserData?.UserDataClass != null) 
-                            holder.InvitedUser.Text = WoWonderTools.GetNameFinal(item.UserData?.UserDataClass);
+                            if (item.UserData?.UserDataClass != null) 
+                                holder.InvitedUser.Text = WoWonderTools.GetNameFinal(item.UserData?.UserDataClass);
+                        }
+
+                        break;
                     }
                 }
             }

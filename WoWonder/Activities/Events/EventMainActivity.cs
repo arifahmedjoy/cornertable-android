@@ -203,14 +203,15 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    FloatingActionButtonView.Click += BtnCreateEventsOnClick;
-                }
-                else
-                {
-                    FloatingActionButtonView.Click -= BtnCreateEventsOnClick;
+                    // true +=  // false -=
+                    case true:
+                        FloatingActionButtonView.Click += BtnCreateEventsOnClick;
+                        break;
+                    default:
+                        FloatingActionButtonView.Click -= BtnCreateEventsOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -291,17 +292,33 @@ namespace WoWonder.Activities.Events
 
                 adapter.AddFragment(EventTab, GetText(Resource.String.Lbl_All_Events));
 
-                if (AppSettings.ShowEventGoing)
-                    adapter.AddFragment(GoingTab, GetText(Resource.String.Lbl_Going));
+                switch (AppSettings.ShowEventGoing)
+                {
+                    case true:
+                        adapter.AddFragment(GoingTab, GetText(Resource.String.Lbl_Going));
+                        break;
+                }
 
-                if (AppSettings.ShowEventInvited)
-                    adapter.AddFragment(InvitedTab, GetText(Resource.String.Lbl_Invited));
+                switch (AppSettings.ShowEventInvited)
+                {
+                    case true:
+                        adapter.AddFragment(InvitedTab, GetText(Resource.String.Lbl_Invited));
+                        break;
+                }
 
-                if (AppSettings.ShowEventInterested)
-                    adapter.AddFragment(InterestedTab, GetText(Resource.String.Lbl_Interested));
+                switch (AppSettings.ShowEventInterested)
+                {
+                    case true:
+                        adapter.AddFragment(InterestedTab, GetText(Resource.String.Lbl_Interested));
+                        break;
+                }
 
-                if (AppSettings.ShowEventPast)
-                    adapter.AddFragment(PastTab, GetText(Resource.String.Lbl_Past));
+                switch (AppSettings.ShowEventPast)
+                {
+                    case true:
+                        adapter.AddFragment(PastTab, GetText(Resource.String.Lbl_Past));
+                        break;
+                }
 
                 adapter.AddFragment(MyEventTab, GetText(Resource.String.Lbl_My_Events));
                 
@@ -329,9 +346,12 @@ namespace WoWonder.Activities.Events
 
         private async Task GetEvent(string offset = "0", string typeEvent = "events")
         {
-            if (typeEvent == "events" && EventTab.MainScrollEvent != null && EventTab.MainScrollEvent.IsLoading)
-                return;
-       
+            switch (typeEvent)
+            {
+                case "events" when EventTab.MainScrollEvent != null && EventTab.MainScrollEvent.IsLoading:
+                    return;
+            }
+
             if (Methods.CheckConnectivity())
             { 
                 var dictionary = new Dictionary<string, string>();
@@ -346,14 +366,20 @@ namespace WoWonder.Activities.Events
                     case "going":
                         dictionary.Add("going_offset", offset);
                         dictionary.Add("fetch", "going");
-                        if (AppSettings.ShowEventGoing && GoingTab?.MainScrollEvent != null)
-                            GoingTab.MainScrollEvent.IsLoading = true;
+                        GoingTab.MainScrollEvent.IsLoading = AppSettings.ShowEventGoing switch
+                        {
+                            true when GoingTab?.MainScrollEvent != null => true,
+                            _ => GoingTab.MainScrollEvent.IsLoading
+                        };
                         break;
                     case "past":
                         dictionary.Add("past_offset", offset);
                         dictionary.Add("fetch", "past");
-                        if (AppSettings.ShowEventPast && PastTab?.MainScrollEvent != null)
-                            PastTab.MainScrollEvent.IsLoading = true;
+                        PastTab.MainScrollEvent.IsLoading = AppSettings.ShowEventPast switch
+                        {
+                            true when PastTab?.MainScrollEvent != null => true,
+                            _ => PastTab.MainScrollEvent.IsLoading
+                        };
                         break;
                     case "myEvent":
                         dictionary.Add("my_offset", offset);
@@ -364,234 +390,317 @@ namespace WoWonder.Activities.Events
                     case "interested":
                         dictionary.Add("interested_offset", offset);
                         dictionary.Add("fetch", "interested");
-                        if (AppSettings.ShowEventInterested && InterestedTab?.MainScrollEvent != null)
-                            InterestedTab.MainScrollEvent.IsLoading = true;
+                        InterestedTab.MainScrollEvent.IsLoading = AppSettings.ShowEventInterested switch
+                        {
+                            true when InterestedTab?.MainScrollEvent != null => true,
+                            _ => InterestedTab.MainScrollEvent.IsLoading
+                        };
                         break;
                     case "invited":
                         dictionary.Add("invited_offset", offset);
                         dictionary.Add("fetch", "invited");
-                        if (AppSettings.ShowEventInvited && InvitedTab?.MainScrollEvent != null)
-                            InvitedTab.MainScrollEvent.IsLoading = true;
+                        InvitedTab.MainScrollEvent.IsLoading = AppSettings.ShowEventInvited switch
+                        {
+                            true when InvitedTab?.MainScrollEvent != null => true,
+                            _ => InvitedTab.MainScrollEvent.IsLoading
+                        };
                         break;
                 }
                  
                 var (apiStatus, respond) = await RequestsAsync.Event.Get_Events(dictionary);
-                if (apiStatus.Equals(200))
+                switch (apiStatus)
                 {
-                    if (respond is GetEventsObject result)
+                    case 200:
                     {
-                        //Events
-                        //==============================================================
-                        if (typeEvent == "events" && EventTab != null)
-                        { 
-                            var countList = EventTab.MAdapter.EventList.Count;
-                            var respondList = result.Events.Count;
-                            if (respondList > 0)
-                            {
-                                if (countList > 0)
-                                {
-                                    foreach (var item in from item in result.Events let check = EventTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
-                                    {
-                                        EventTab.MAdapter.EventList.Add(item);
-                                    }
-
-                                    RunOnUiThread(() => { EventTab.MAdapter.NotifyItemRangeInserted(countList, EventTab.MAdapter.EventList.Count - countList); });
-                                }
-                                else
-                                {
-                                    EventTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Events);
-                                    RunOnUiThread(() => { EventTab.MAdapter.NotifyDataSetChanged(); });
-                                }
-                            }
-                            else
-                            {
-                                if (EventTab.MAdapter.EventList.Count > 10 && !EventTab.MRecycler.CanScrollVertically(1))
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
-                            }
-
-                            RunOnUiThread(() => { ShowEmptyPage("Event"); });
-                        }
-                         
-                        //Going 
-                        //==============================================================
-                        if (AppSettings.ShowEventGoing && typeEvent == "going" && GoingTab != null)
+                        switch (respond)
                         {
-                            int countGoingList = GoingTab.MAdapter.EventList.Count;
-
-                            var respondGoingList = result.Going.Count;
-                            if (respondGoingList > 0)
+                            case GetEventsObject result:
                             {
-                                if (countGoingList > 0)
+                                switch (typeEvent)
                                 {
-                                    foreach (var item in from item in result.Going let check = GoingTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                    //Events
+                                    //==============================================================
+                                    case "events" when EventTab != null:
                                     {
-                                        GoingTab.MAdapter.EventList.Add(item);
+                                        var countList = EventTab.MAdapter.EventList.Count;
+                                        var respondList = result.Events.Count;
+                                        switch (respondList)
+                                        {
+                                            case > 0 when countList > 0:
+                                            {
+                                                foreach (var item in from item in result.Events let check = EventTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    EventTab.MAdapter.EventList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { EventTab.MAdapter.NotifyItemRangeInserted(countList, EventTab.MAdapter.EventList.Count - countList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                EventTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Events);
+                                                RunOnUiThread(() => { EventTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (EventTab.MAdapter.EventList.Count)
+                                                {
+                                                    case > 10 when !EventTab.MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        RunOnUiThread(() => { ShowEmptyPage("Event"); });
+                                        break;
                                     }
-
-                                    RunOnUiThread(() => { GoingTab.MAdapter.NotifyItemRangeInserted(countGoingList - 1, GoingTab.MAdapter.EventList.Count - countGoingList); });
                                 }
-                                else
+
+                                switch (AppSettings.ShowEventGoing)
                                 {
-                                    GoingTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Going);
-                                    RunOnUiThread(() => { GoingTab.MAdapter.NotifyDataSetChanged(); });
-                                }
-                            }
-                            else
-                            {
-                                if (GoingTab.MAdapter.EventList.Count > 10 && !GoingTab.MRecycler.CanScrollVertically(1))
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
-                            }
+                                    //Going 
+                                    //==============================================================
+                                    case true when typeEvent == "going" && GoingTab != null:
+                                    {
+                                        int countGoingList = GoingTab.MAdapter.EventList.Count;
 
-                            RunOnUiThread(() => { ShowEmptyPage("Going"); });
+                                        var respondGoingList = result.Going.Count;
+                                        switch (respondGoingList)
+                                        {
+                                            case > 0 when countGoingList > 0:
+                                            {
+                                                foreach (var item in from item in result.Going let check = GoingTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    GoingTab.MAdapter.EventList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { GoingTab.MAdapter.NotifyItemRangeInserted(countGoingList - 1, GoingTab.MAdapter.EventList.Count - countGoingList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                GoingTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Going);
+                                                RunOnUiThread(() => { GoingTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (GoingTab.MAdapter.EventList.Count)
+                                                {
+                                                    case > 10 when !GoingTab.MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        RunOnUiThread(() => { ShowEmptyPage("Going"); });
+                                        break;
+                                    }
+                                }
+
+                                switch (AppSettings.ShowEventInvited)
+                                {
+                                    //Invited 
+                                    //==============================================================
+                                    case true when typeEvent == "invited" && InvitedTab != null:
+                                    {
+                                        int countInvitedList = InvitedTab.MAdapter.EventList.Count;
+
+                                        var respondInvitedList = result.Invited.Count;
+                                        switch (respondInvitedList)
+                                        {
+                                            case > 0 when countInvitedList > 0:
+                                            {
+                                                foreach (var item in from item in result.Invited let check = InvitedTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    InvitedTab.MAdapter.EventList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { InvitedTab.MAdapter.NotifyItemRangeInserted(countInvitedList - 1, InvitedTab.MAdapter.EventList.Count - countInvitedList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                InvitedTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Invited);
+                                                RunOnUiThread(() => { InvitedTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (InvitedTab.MAdapter.EventList.Count)
+                                                {
+                                                    case > 10 when !InvitedTab.MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        RunOnUiThread(() => { ShowEmptyPage("Invited"); });
+                                        break;
+                                    }
+                                }
+
+                                switch (AppSettings.ShowEventInterested)
+                                {
+                                    //Interested 
+                                    //==============================================================
+                                    case true when typeEvent == "interested" && InterestedTab != null:
+                                    {
+                                        int countInterestedList = InterestedTab.MAdapter.EventList.Count;
+
+                                        var respondInterestedList = result.Interested.Count;
+                                        switch (respondInterestedList)
+                                        {
+                                            case > 0 when countInterestedList > 0:
+                                            {
+                                                foreach (var item in from item in result.Interested let check = InterestedTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    InterestedTab.MAdapter.EventList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { InterestedTab.MAdapter.NotifyItemRangeInserted(countInterestedList - 1, InterestedTab.MAdapter.EventList.Count - countInterestedList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                InterestedTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Interested);
+                                                RunOnUiThread(() => { InterestedTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (InterestedTab.MAdapter.EventList.Count)
+                                                {
+                                                    case > 10 when !InterestedTab.MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        RunOnUiThread(() => { ShowEmptyPage("Interested"); });
+                                        break;
+                                    }
+                                }
+
+                                switch (AppSettings.ShowEventPast)
+                                {
+                                    //Past 
+                                    //==============================================================
+                                    case true when typeEvent == "past" && PastTab != null:
+                                    {
+                                        int countPastList = PastTab.MAdapter.EventList.Count;
+
+                                        var respondPastList = result.Past.Count;
+                                        switch (respondPastList)
+                                        {
+                                            case > 0 when countPastList > 0:
+                                            {
+                                                foreach (var item in from item in result.Past let check = PastTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    PastTab.MAdapter.EventList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { PastTab.MAdapter.NotifyItemRangeInserted(countPastList - 1, PastTab.MAdapter.EventList.Count - countPastList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                PastTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Past);
+                                                RunOnUiThread(() => { PastTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (PastTab.MAdapter.EventList.Count)
+                                                {
+                                                    case > 10 when !PastTab.MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        RunOnUiThread(() => { ShowEmptyPage("Past"); });
+                                        break;
+                                    }
+                                }
+
+                                switch (typeEvent)
+                                {
+                                    //My Event 
+                                    //==============================================================
+                                    case "myEvent" when MyEventTab != null:
+                                    {
+                                        int myEventsCountList = MyEventTab.MAdapter.EventList.Count;
+                                        var myEventsList = result.MyEvents.Count;
+                                        switch (myEventsList)
+                                        {
+                                            case > 0 when myEventsCountList > 0:
+                                            {
+                                                foreach (var item in from item in result.MyEvents let check = MyEventTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    MyEventTab.MAdapter.EventList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { MyEventTab.MAdapter.NotifyItemRangeInserted(myEventsCountList - 1, MyEventTab.MAdapter.EventList.Count - myEventsCountList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                MyEventTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.MyEvents);
+                                                RunOnUiThread(() => { MyEventTab.MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (MyEventTab.MAdapter.EventList.Count)
+                                                {
+                                                    case > 10 when !MyEventTab.MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        RunOnUiThread(() => { ShowEmptyPage("MyEvent"); });
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
                         }
-                         
-                        //Invited 
-                        //==============================================================
-                        if (AppSettings.ShowEventInvited && typeEvent == "invited" && InvitedTab != null)
-                        {
-                            int countInvitedList = InvitedTab.MAdapter.EventList.Count;
 
-                            var respondInvitedList = result.Invited.Count;
-                            if (respondInvitedList > 0)
-                            {
-                                if (countInvitedList > 0)
-                                {
-                                    foreach (var item in from item in result.Invited let check = InvitedTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
-                                    {
-                                        InvitedTab.MAdapter.EventList.Add(item);
-                                    }
-
-                                    RunOnUiThread(() => { InvitedTab.MAdapter.NotifyItemRangeInserted(countInvitedList - 1, InvitedTab.MAdapter.EventList.Count - countInvitedList); });
-                                }
-                                else
-                                {
-                                    InvitedTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Invited);
-                                    RunOnUiThread(() => { InvitedTab.MAdapter.NotifyDataSetChanged(); });
-                                }
-                            }
-                            else
-                            {
-                                if (InvitedTab.MAdapter.EventList.Count > 10 && !InvitedTab.MRecycler.CanScrollVertically(1))
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
-                            }
-
-                            RunOnUiThread(() => { ShowEmptyPage("Invited"); });
-                        }
-
-                        //Interested 
-                        //==============================================================
-                        if (AppSettings.ShowEventInterested && typeEvent == "interested" && InterestedTab != null)
-                        {
-                            int countInterestedList = InterestedTab.MAdapter.EventList.Count;
-
-                            var respondInterestedList = result.Interested.Count;
-                            if (respondInterestedList > 0)
-                            {
-                                if (countInterestedList > 0)
-                                {
-                                    foreach (var item in from item in result.Interested let check = InterestedTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
-                                    {
-                                        InterestedTab.MAdapter.EventList.Add(item);
-                                    }
-
-                                    RunOnUiThread(() => { InterestedTab.MAdapter.NotifyItemRangeInserted(countInterestedList - 1, InterestedTab.MAdapter.EventList.Count - countInterestedList); });
-                                }
-                                else
-                                {
-                                    InterestedTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Interested);
-                                    RunOnUiThread(() => { InterestedTab.MAdapter.NotifyDataSetChanged(); });
-                                }
-                            }
-                            else
-                            {
-                                if (InterestedTab.MAdapter.EventList.Count > 10 && !InterestedTab.MRecycler.CanScrollVertically(1))
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
-                            }
-
-                            RunOnUiThread(() => { ShowEmptyPage("Interested"); });
-                        }
-
-                        //Past 
-                        //==============================================================
-                        if (AppSettings.ShowEventPast && typeEvent == "past" && PastTab != null)
-                        {
-                            int countPastList = PastTab.MAdapter.EventList.Count;
-
-                            var respondPastList = result.Past.Count;
-                            if (respondPastList > 0)
-                            {
-                                if (countPastList > 0)
-                                {
-                                    foreach (var item in from item in result.Past let check = PastTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
-                                    {
-                                        PastTab.MAdapter.EventList.Add(item);
-                                    }
-
-                                    RunOnUiThread(() => { PastTab.MAdapter.NotifyItemRangeInserted(countPastList - 1, PastTab.MAdapter.EventList.Count - countPastList); });
-                                }
-                                else
-                                {
-                                    PastTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.Past);
-                                    RunOnUiThread(() => { PastTab.MAdapter.NotifyDataSetChanged(); });
-                                }
-                            }
-                            else
-                            {
-                                if (PastTab.MAdapter.EventList.Count > 10 && !PastTab.MRecycler.CanScrollVertically(1))
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
-                            }
-
-                            RunOnUiThread(() => { ShowEmptyPage("Past"); });
-                        }
-
-                        //My Event 
-                        //==============================================================
-                        if (typeEvent == "myEvent" && MyEventTab != null)
-                        {
-                            int myEventsCountList = MyEventTab.MAdapter.EventList.Count;
-                            var myEventsList = result.MyEvents.Count;
-                            if (myEventsList > 0)
-                            {
-                                if (myEventsCountList > 0)
-                                {
-                                    foreach (var item in from item in result.MyEvents let check = MyEventTab.MAdapter.EventList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
-                                    {
-                                        MyEventTab.MAdapter.EventList.Add(item);
-                                    }
-
-                                    RunOnUiThread(() => { MyEventTab.MAdapter.NotifyItemRangeInserted(myEventsCountList - 1, MyEventTab.MAdapter.EventList.Count - myEventsCountList); });
-                                }
-                                else
-                                {
-                                    MyEventTab.MAdapter.EventList = new ObservableCollection<EventDataObject>(result.MyEvents);
-                                    RunOnUiThread(() => { MyEventTab.MAdapter.NotifyDataSetChanged(); });
-                                }
-                            }
-                            else
-                            {
-                                if (MyEventTab.MAdapter.EventList.Count > 10 && !MyEventTab.MRecycler.CanScrollVertically(1))
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreEvent), ToastLength.Short)?.Show();
-                            }
-
-                            RunOnUiThread(() => { ShowEmptyPage("MyEvent"); });
-                        } 
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
             }
             else
             {
                 if (MyEventTab != null)
                 {
-                    if (EventTab.Inflated == null)
-                        EventTab.Inflated = EventTab.EmptyStateLayout.Inflate();
+                    EventTab.Inflated = EventTab.Inflated switch
+                    {
+                        null => EventTab.EmptyStateLayout.Inflate(),
+                        _ => EventTab.Inflated
+                    };
 
                     EmptyStateInflater x = new EmptyStateInflater();
                     x.InflateLayout(EventTab.Inflated, EmptyStateInflater.Type.NoConnection);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    switch (x.EmptyStateButton.HasOnClickListeners)
                     {
-                         x.EmptyStateButton.Click += null!;
-                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        case false:
+                            x.EmptyStateButton.Click += null!;
+                            x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                            break;
                     }
 
                     Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -613,26 +722,34 @@ namespace WoWonder.Activities.Events
                         EventTab.MainScrollEvent.IsLoading = false;
                         EventTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (EventTab.MAdapter.EventList.Count > 0)
+                        switch (EventTab.MAdapter.EventList.Count)
                         {
-                            EventTab.MRecycler.Visibility = ViewStates.Visible;
-                            EventTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            EventTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (EventTab.Inflated == null)
-                                EventTab.Inflated = EventTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(EventTab.Inflated, EmptyStateInflater.Type.NoEvent);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                EventTab.MRecycler.Visibility = ViewStates.Visible;
+                                EventTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                EventTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                EventTab.Inflated = EventTab.Inflated switch
+                                {
+                                    null => EventTab.EmptyStateLayout.Inflate(),
+                                    _ => EventTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(EventTab.Inflated, EmptyStateInflater.Type.NoEvent);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                        break;
+                                }
+                                EventTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            EventTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -642,26 +759,34 @@ namespace WoWonder.Activities.Events
                         GoingTab.MainScrollEvent.IsLoading = false;
                         GoingTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (GoingTab.MAdapter.EventList.Count > 0)
+                        switch (GoingTab.MAdapter.EventList.Count)
                         {
-                            GoingTab.MRecycler.Visibility = ViewStates.Visible;
-                            GoingTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            GoingTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (GoingTab.Inflated == null)
-                                GoingTab.Inflated = GoingTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(GoingTab.Inflated, EmptyStateInflater.Type.NoEvent);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                GoingTab.MRecycler.Visibility = ViewStates.Visible;
+                                GoingTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                GoingTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                GoingTab.Inflated = GoingTab.Inflated switch
+                                {
+                                    null => GoingTab.EmptyStateLayout.Inflate(),
+                                    _ => GoingTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(GoingTab.Inflated, EmptyStateInflater.Type.NoEvent);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                        break;
+                                }
+                                GoingTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            GoingTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -671,26 +796,34 @@ namespace WoWonder.Activities.Events
                         InvitedTab.MainScrollEvent.IsLoading = false;
                         InvitedTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (InvitedTab.MAdapter.EventList.Count > 0)
+                        switch (InvitedTab.MAdapter.EventList.Count)
                         {
-                            InvitedTab.MRecycler.Visibility = ViewStates.Visible;
-                            InvitedTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            InvitedTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (InvitedTab.Inflated == null)
-                                InvitedTab.Inflated = InvitedTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(InvitedTab.Inflated, EmptyStateInflater.Type.NoEvent);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                InvitedTab.MRecycler.Visibility = ViewStates.Visible;
+                                InvitedTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                InvitedTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                InvitedTab.Inflated = InvitedTab.Inflated switch
+                                {
+                                    null => InvitedTab.EmptyStateLayout.Inflate(),
+                                    _ => InvitedTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(InvitedTab.Inflated, EmptyStateInflater.Type.NoEvent);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                        break;
+                                }
+                                InvitedTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            InvitedTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -700,26 +833,34 @@ namespace WoWonder.Activities.Events
                         InterestedTab.MainScrollEvent.IsLoading = false;
                         InterestedTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (InterestedTab.MAdapter.EventList.Count > 0)
+                        switch (InterestedTab.MAdapter.EventList.Count)
                         {
-                            InterestedTab.MRecycler.Visibility = ViewStates.Visible;
-                            InterestedTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            InterestedTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (InterestedTab.Inflated == null)
-                                InterestedTab.Inflated = InterestedTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(InterestedTab.Inflated, EmptyStateInflater.Type.NoEvent);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                InterestedTab.MRecycler.Visibility = ViewStates.Visible;
+                                InterestedTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                InterestedTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                InterestedTab.Inflated = InterestedTab.Inflated switch
+                                {
+                                    null => InterestedTab.EmptyStateLayout.Inflate(),
+                                    _ => InterestedTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(InterestedTab.Inflated, EmptyStateInflater.Type.NoEvent);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                        break;
+                                }
+                                InterestedTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            InterestedTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -729,26 +870,34 @@ namespace WoWonder.Activities.Events
                         PastTab.MainScrollEvent.IsLoading = false;
                         PastTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (PastTab.MAdapter.EventList.Count > 0)
+                        switch (PastTab.MAdapter.EventList.Count)
                         {
-                            PastTab.MRecycler.Visibility = ViewStates.Visible;
-                            PastTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            PastTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (PastTab.Inflated == null)
-                                PastTab.Inflated = PastTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(PastTab.Inflated, EmptyStateInflater.Type.NoEvent);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                PastTab.MRecycler.Visibility = ViewStates.Visible;
+                                PastTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                PastTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                PastTab.Inflated = PastTab.Inflated switch
+                                {
+                                    null => PastTab.EmptyStateLayout.Inflate(),
+                                    _ => PastTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(PastTab.Inflated, EmptyStateInflater.Type.NoEvent);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                        break;
+                                }
+                                PastTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            PastTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;
@@ -758,26 +907,34 @@ namespace WoWonder.Activities.Events
                         MyEventTab.MainScrollEvent.IsLoading = false;
                         MyEventTab.SwipeRefreshLayout.Refreshing = false;
 
-                        if (MyEventTab.MAdapter.EventList.Count > 0)
+                        switch (MyEventTab.MAdapter.EventList.Count)
                         {
-                            MyEventTab.MRecycler.Visibility = ViewStates.Visible;
-                            MyEventTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            MyEventTab.MRecycler.Visibility = ViewStates.Gone;
-
-                            if (MyEventTab.Inflated == null)
-                                MyEventTab.Inflated = MyEventTab.EmptyStateLayout.Inflate();
-
-                            EmptyStateInflater x = new EmptyStateInflater();
-                            x.InflateLayout(MyEventTab.Inflated, EmptyStateInflater.Type.NoEvent);
-                            if (!x.EmptyStateButton.HasOnClickListeners)
+                            case > 0:
+                                MyEventTab.MRecycler.Visibility = ViewStates.Visible;
+                                MyEventTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
                             {
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                MyEventTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                MyEventTab.Inflated = MyEventTab.Inflated switch
+                                {
+                                    null => MyEventTab.EmptyStateLayout.Inflate(),
+                                    _ => MyEventTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(MyEventTab.Inflated, EmptyStateInflater.Type.NoEvent);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        x.EmptyStateButton.Click += BtnCreateEventsOnClick;
+                                        break;
+                                }
+                                MyEventTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
                             }
-                            MyEventTab.EmptyStateLayout.Visibility = ViewStates.Visible;
                         }
 
                         break;

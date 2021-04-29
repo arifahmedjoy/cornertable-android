@@ -63,46 +63,48 @@ namespace WoWonder.Activities.Search.Fragment
                 InitComponent(view);
                 SetRecyclerViewAdapters();
 
-                if (!string.IsNullOrEmpty(ContextSearch.DataKey))
+                switch (string.IsNullOrEmpty(ContextSearch.DataKey))
                 {
-                    ContextSearch.Search("a");
+                    case false:
+                        ContextSearch.Search("a");
 
-                    switch (ContextSearch.DataKey)
-                    {
-                        case "Random_Groups":
+                        switch (ContextSearch.DataKey)
                         {
-                            if (ProgressBarLoader != null)
-                                ProgressBarLoader.Visibility = ViewStates.Visible;
+                            case "Random_Groups":
+                            {
+                                if (ProgressBarLoader != null)
+                                    ProgressBarLoader.Visibility = ViewStates.Visible;
 
-                            if (EmptyStateLayout != null)
-                                EmptyStateLayout.Visibility = ViewStates.Gone;
+                                if (EmptyStateLayout != null)
+                                    EmptyStateLayout.Visibility = ViewStates.Gone;
 
-                            if (MRecycler != null)
-                                MRecycler.Visibility = ViewStates.Visible;
+                                if (MRecycler != null)
+                                    MRecycler.Visibility = ViewStates.Visible;
 
-                            ContextSearch.ViewPager.SetCurrentItem(2, true);
-                            break;
+                                ContextSearch.ViewPager.SetCurrentItem(2, true);
+                                break;
+                            }
+                            case "Random_Pages":
+                            {
+                                if (ContextSearch.PagesTab.ProgressBarLoader != null)
+                                    ContextSearch.PagesTab.ProgressBarLoader.Visibility = ViewStates.Visible;
+
+
+                                if (ContextSearch.PagesTab.EmptyStateLayout != null)
+                                    ContextSearch.PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+
+                                if (ContextSearch.PagesTab.MRecycler != null)
+                                    ContextSearch.PagesTab.MRecycler.Visibility = ViewStates.Visible;
+
+                                ContextSearch.ViewPager.SetCurrentItem(1, true);
+                                break;
+                            }
                         }
-                        case "Random_Pages":
-                        {
-                            if (ContextSearch.PagesTab.ProgressBarLoader != null)
-                                ContextSearch.PagesTab.ProgressBarLoader.Visibility = ViewStates.Visible;
 
-
-                            if (ContextSearch.PagesTab.EmptyStateLayout != null)
-                                ContextSearch.PagesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
-
-                            if (ContextSearch.PagesTab.MRecycler != null)
-                                ContextSearch.PagesTab.MRecycler.Visibility = ViewStates.Visible;
-
-                            ContextSearch.ViewPager.SetCurrentItem(1, true);
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    ContextSearch.Search("");
+                        break;
+                    default:
+                        ContextSearch.Search("");
+                        break;
                 }
             }
             catch (Exception exception)

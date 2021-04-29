@@ -24,6 +24,7 @@ using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
 using WoWonder.Activities.AddPost;
 using WoWonder.Activities.Base;
+using WoWonder.Activities.Live.Utils;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.Controller;
@@ -281,20 +282,21 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    FloatingActionButtonView.Click += AddPostOnClick;
-                    BtnGo.Click += BtnGoOnClick;
-                    BtnInterested.Click += BtnInterestedOnClick;
-                    BtnMore.Click += BtnMoreOnClick;
-                }
-                else
-                {
-                    FloatingActionButtonView.Click -= AddPostOnClick;
-                    BtnGo.Click -= BtnGoOnClick;
-                    BtnInterested.Click -= BtnInterestedOnClick;
-                    BtnMore.Click -= BtnMoreOnClick;
+                    // true +=  // false -=
+                    case true:
+                        FloatingActionButtonView.Click += AddPostOnClick;
+                        BtnGo.Click += BtnGoOnClick;
+                        BtnInterested.Click += BtnInterestedOnClick;
+                        BtnMore.Click += BtnMoreOnClick;
+                        break;
+                    default:
+                        FloatingActionButtonView.Click -= AddPostOnClick;
+                        BtnGo.Click -= BtnGoOnClick;
+                        BtnInterested.Click -= BtnInterestedOnClick;
+                        BtnMore.Click -= BtnMoreOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -358,8 +360,12 @@ namespace WoWonder.Activities.Events
 
                 arrayAdapter.Add(GetString(Resource.String.Lbl_CopeLink));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_Share));
-                if (EventData.IsOwner)
-                    arrayAdapter.Add(GetString(Resource.String.Lbl_Edit));
+                switch (EventData.IsOwner)
+                {
+                    case true:
+                        arrayAdapter.Add(GetString(Resource.String.Lbl_Edit));
+                        break;
+                }
 
                 dialogList.Title(GetString(Resource.String.Lbl_More));
                 dialogList.Items(arrayAdapter);
@@ -383,19 +389,20 @@ namespace WoWonder.Activities.Events
                     return;
                 }
 
-                if (BtnInterested?.Tag?.ToString() == "false")
+                switch (BtnInterested?.Tag?.ToString())
                 {
-                    BtnInterested.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                    BtnInterested.SetTextColor(Color.ParseColor("#ffffff"));
-                    BtnInterested.Text = GetText(Resource.String.Lbl_Interested);
-                    BtnInterested.Tag = "true";
-                }
-                else
-                {
-                    BtnInterested.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                    BtnInterested.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                    BtnInterested.Text = GetText(Resource.String.Lbl_Interested);
-                    BtnInterested.Tag = "false";
+                    case "false":
+                        BtnInterested.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                        BtnInterested.SetTextColor(Color.ParseColor("#ffffff"));
+                        BtnInterested.Text = GetText(Resource.String.Lbl_Interested);
+                        BtnInterested.Tag = "true";
+                        break;
+                    default:
+                        BtnInterested.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
+                        BtnInterested.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        BtnInterested.Text = GetText(Resource.String.Lbl_Interested);
+                        BtnInterested.Tag = "false";
+                        break;
                 }
 
                 var dataEvent = EventMainActivity.GetInstance()?.EventTab.MAdapter.EventList?.FirstOrDefault(a => a.Id == EventData.Id);
@@ -422,19 +429,20 @@ namespace WoWonder.Activities.Events
                     return;
                 }
 
-                if (BtnGo?.Tag?.ToString() == "false")
+                switch (BtnGo?.Tag?.ToString())
                 {
-                    BtnGo.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                    BtnGo.SetTextColor(Color.ParseColor("#ffffff"));
-                    BtnGo.Text = GetText(Resource.String.Lbl_Going);
-                    BtnGo.Tag = "true";
-                }
-                else
-                {
-                    BtnGo.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                    BtnGo.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                    BtnGo.Text = GetText(Resource.String.Lbl_Go);
-                    BtnGo.Tag = "false";
+                    case "false":
+                        BtnGo.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                        BtnGo.SetTextColor(Color.ParseColor("#ffffff"));
+                        BtnGo.Text = GetText(Resource.String.Lbl_Going);
+                        BtnGo.Tag = "true";
+                        break;
+                    default:
+                        BtnGo.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
+                        BtnGo.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        BtnGo.Text = GetText(Resource.String.Lbl_Go);
+                        BtnGo.Tag = "false";
+                        break;
                 }
 
                 var list = EventMainActivity.GetInstance()?.EventTab.MAdapter?.EventList;
@@ -499,10 +507,14 @@ namespace WoWonder.Activities.Events
                 Map.AddMarker(makerOptions);
                 Map.MapType = GoogleMap.MapTypeNormal;
 
-                if (AppSettings.SetTabDarkTheme)
+                switch (AppSettings.SetTabDarkTheme)
                 {
-                    MapStyleOptions style = MapStyleOptions.LoadRawResourceStyle(this, Resource.Raw.map_dark);
-                    Map.SetMapStyle(style);
+                    case true:
+                    {
+                        MapStyleOptions style = MapStyleOptions.LoadRawResourceStyle(this, Resource.Raw.map_dark);
+                        Map.SetMapStyle(style);
+                        break;
+                    }
                 }
 
                 CameraPosition.Builder builder = CameraPosition.InvokeBuilder();
@@ -551,8 +563,11 @@ namespace WoWonder.Activities.Events
             try
             {
                 var address = await coder.GetFromLocationNameAsync(strAddress, 2);
-                if (address == null)
-                    return null!;
+                switch (address)
+                {
+                    case null:
+                        return null!;
+                }
 
                 Address location = address[0];
                 var lat = location.Latitude;
@@ -570,7 +585,7 @@ namespace WoWonder.Activities.Events
 
         #endregion
 
-        #region Result
+        #region Permissions && Result
 
         //Result
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -628,36 +643,50 @@ namespace WoWonder.Activities.Events
                         var postText = data.GetStringExtra("PostText") ?? "";
                         var diff = PostFeedAdapter.ListDiffer;
                         List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        if (dataGlobal.Count > 0)
+                        switch (dataGlobal.Count)
                         {
-                            foreach (var postData in dataGlobal)
+                            case > 0:
                             {
-                                postData.PostData.Orginaltext = postText;
-                                var index = diff.IndexOf(postData);
-                                if (index > -1)
+                                foreach (var postData in dataGlobal)
                                 {
-                                    PostFeedAdapter.NotifyItemChanged(index);
+                                    postData.PostData.Orginaltext = postText;
+                                    var index = diff.IndexOf(postData);
+                                    switch (index)
+                                    {
+                                        case > -1:
+                                            PostFeedAdapter.NotifyItemChanged(index);
+                                            break;
+                                    }
                                 }
-                            }
 
-                            var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                            if (checkTextSection == null)
-                            {
-                                var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                var item = new AdapterModelsClass
+                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
+                                switch (checkTextSection)
                                 {
-                                    TypeView = PostModelType.TextSectionPostPart,
-                                    Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true
-                                };
+                                    case null:
+                                    {
+                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
+                                        var item = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.TextSectionPostPart,
+                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true
+                                        };
 
-                                var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                if (headerPostIndex > -1)
-                                {
-                                    diff.Insert(headerPostIndex + 1, item);
-                                    PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
+                                        switch (headerPostIndex)
+                                        {
+                                            case > -1:
+                                                diff.Insert(headerPostIndex + 1, item);
+                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
+
+                                break;
                             }
                         }
 
@@ -672,26 +701,57 @@ namespace WoWonder.Activities.Events
                         {
                             var diff = PostFeedAdapter.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            if (dataGlobal.Count > 0)
+                            switch (dataGlobal.Count)
                             {
-                                foreach (var postData in dataGlobal)
+                                case > 0:
                                 {
-                                    var index = diff.IndexOf(postData);
-                                    if (index > -1)
+                                    foreach (var postData in dataGlobal)
                                     {
-                                        var productUnion = postData.PostData.Product?.ProductClass;
-                                        if (productUnion != null) productUnion.Id = item.Id;
-                                        productUnion = item;
-                                        Console.WriteLine(productUnion);
+                                        var index = diff.IndexOf(postData);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                            {
+                                                var productUnion = postData.PostData.Product?.ProductClass;
+                                                if (productUnion != null) productUnion.Id = item.Id;
+                                                productUnion = item;
+                                                Console.WriteLine(productUnion);
 
-                                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    break;
                                 }
                             }
                         }
 
                         break;
                     }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        //Permissions
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+        {
+            try
+            {
+                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+                switch (requestCode)
+                { 
+                    case 235 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        new LiveUtil(this).OpenDialogLive();
+                        break;
+                    case 235:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -765,15 +825,20 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                //Share Plugin  
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = EventData.Name,
-                    Text = EventData.Description,
-                    Url = EventData.Url
-                });
+                    //Share Plugin  
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = EventData.Name,
+                            Text = EventData.Description,
+                            Url = EventData.Url
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -786,12 +851,16 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                if (EventData.IsOwner)
+                switch (EventData.IsOwner)
                 {
-                    var intent = new Intent(this, typeof(EditEventActivity));
-                    intent.PutExtra("EventData", JsonConvert.SerializeObject(EventData));
-                    intent.PutExtra("EventId", EventData.Id);
-                    StartActivity(intent);
+                    case true:
+                    {
+                        var intent = new Intent(this, typeof(EditEventActivity));
+                        intent.PutExtra("EventData", JsonConvert.SerializeObject(EventData));
+                        intent.PutExtra("EventId", EventData.Id);
+                        StartActivity(intent);
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -851,23 +920,26 @@ namespace WoWonder.Activities.Events
                     TxtEndDate.Text = eventData.EndDate;
 
 
-                    if (!string.IsNullOrEmpty(eventData.Description))
+                    switch (string.IsNullOrEmpty(eventData.Description))
                     {
-                        var description = Methods.FunString.DecodeString(eventData.Description);
-                        var readMoreOption = new StReadMoreOption.Builder()
-                            .TextLength(250, StReadMoreOption.TypeCharacter)
-                            .MoreLabel(GetText(Resource.String.Lbl_ReadMore))
-                            .LessLabel(GetText(Resource.String.Lbl_ReadLess))
-                            .MoreLabelColor(Color.ParseColor(AppSettings.MainColor))
-                            .LessLabelColor(Color.ParseColor(AppSettings.MainColor))
-                            .LabelUnderLine(true)
-                            .Build();
-                         readMoreOption.AddReadMoreTo(TxtDescriptionText, new String(description)); 
-                    }
-                    else
-                    {
-                        TxtDescription.Visibility = ViewStates.Gone;
-                        TxtDescriptionText.Visibility = ViewStates.Gone; 
+                        case false:
+                        {
+                            var description = Methods.FunString.DecodeString(eventData.Description);
+                            var readMoreOption = new StReadMoreOption.Builder()
+                                .TextLength(250, StReadMoreOption.TypeCharacter)
+                                .MoreLabel(GetText(Resource.String.Lbl_ReadMore))
+                                .LessLabel(GetText(Resource.String.Lbl_ReadLess))
+                                .MoreLabelColor(Color.ParseColor(AppSettings.MainColor))
+                                .LessLabelColor(Color.ParseColor(AppSettings.MainColor))
+                                .LabelUnderLine(true)
+                                .Build();
+                            readMoreOption.AddReadMoreTo(TxtDescriptionText, new String(description));
+                            break;
+                        }
+                        default:
+                            TxtDescription.Visibility = ViewStates.Gone;
+                            TxtDescriptionText.Visibility = ViewStates.Gone;
+                            break;
                     }
                      
                     switch (EventType)
@@ -925,12 +997,14 @@ namespace WoWonder.Activities.Events
                      
                     //add post  
                     var checkSection = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                    if (checkSection == null)
+                    switch (checkSection)
                     {
-                        Combiner.AddPostDivider();
-                        Combiner.AddPostBoxPostView("Event", -1, new PostDataObject { Event = new EventUnion { EventClass = eventData } });
+                        case null:
+                            Combiner.AddPostDivider();
+                            Combiner.AddPostBoxPostView("Event", -1, new PostDataObject { Event = new EventUnion { EventClass = eventData } });
                          
-                        PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.Count -1);
+                            PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.Count -1);
+                            break;
                     }
 
                     StartApiService();
@@ -957,14 +1031,23 @@ namespace WoWonder.Activities.Events
                 if (Methods.CheckConnectivity())
                 {
                     var (apiStatus, respond) = await RequestsAsync.Event.GetEventById(EventId);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetEventByIdObject result)
+                        case 200:
                         {
-                            GetDataEvent(result.Data);
+                            switch (respond)
+                            {
+                                case GetEventByIdObject result:
+                                    GetDataEvent(result.Data);
+                                    break;
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
@@ -979,19 +1062,30 @@ namespace WoWonder.Activities.Events
          
         public void OnOffsetChanged(AppBarLayout appBarLayout, int verticalOffset)
         {
-            if (ScrollRange == -1)
+            ScrollRange = ScrollRange switch
             {
-                ScrollRange = appBarLayout.TotalScrollRange;
-            }
-            if (ScrollRange + verticalOffset == 0)
+                -1 => appBarLayout.TotalScrollRange,
+                _ => ScrollRange
+            };
+
+            switch (ScrollRange + verticalOffset)
             {
-                ToolbarLayout.Title = Name;
-                IsShow = true;
-            }
-            else if (IsShow)
-            {
-                ToolbarLayout.Title = " ";
-                IsShow = false;
+                case 0:
+                    ToolbarLayout.Title = Name;
+                    IsShow = true;
+                    break;
+                default:
+                {
+                    switch (IsShow)
+                    {
+                        case true:
+                            ToolbarLayout.Title = " ";
+                            IsShow = false;
+                            break;
+                    }
+
+                    break;
+                }
             }
         }
     }

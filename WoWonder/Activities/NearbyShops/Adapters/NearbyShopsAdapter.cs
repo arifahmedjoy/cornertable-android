@@ -65,10 +65,14 @@ namespace WoWonder.Activities.NearbyShops.Adapters
         {
             try
             {
-                if (viewHolder is NearbyShopsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = NearbyShopsList[position];
-                    if (item != null) Initialize(holder, item);
+                    case NearbyShopsAdapterViewHolder holder:
+                    {
+                        var item = NearbyShopsList[position];
+                        if (item != null) Initialize(holder, item);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -81,16 +85,14 @@ namespace WoWonder.Activities.NearbyShops.Adapters
         {
             try
             {
-                if (item.Product?.ProductClass?.Images?.Count > 0)
+                switch (item.Product?.ProductClass?.Images?.Count)
                 {
-                    if (item.Product?.ProductClass != null && item.Product.Value.ProductClass.Images[0].Image.Contains("http"))
-                    {
+                    case > 0 when item.Product?.ProductClass != null && item.Product.Value.ProductClass.Images[0].Image.Contains("http"):
                         GlideImageLoader.LoadImage(ActivityContext, item.Product?.ProductClass?.Images?[0]?.Image, holder.Thumbnail, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                    }
-                    else
-                    {
+                        break;
+                    case > 0:
                         Glide.With(ActivityContext).Load(new File(item.Product?.ProductClass?.Images?[0]?.Image)).Apply(new RequestOptions().CenterCrop().Placeholder(Resource.Drawable.ImagePlacholder).Error(Resource.Drawable.ImagePlacholder)).Into(holder.Thumbnail);
-                    }
+                        break;
                 }
 
                 GlideImageLoader.LoadImage(ActivityContext, item.Product?.ProductClass?.Seller?.Avatar, holder.Userprofilepic, ImageStyle.CircleCrop, ImagePlaceholders.Color);
@@ -120,10 +122,12 @@ namespace WoWonder.Activities.NearbyShops.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is NearbyShopsAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Thumbnail);
-                }
+                 switch (holder)
+                 {
+                     case NearbyShopsAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Thumbnail);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -179,19 +183,23 @@ namespace WoWonder.Activities.NearbyShops.Adapters
             {
                 var d = new List<string>();
                 var item = NearbyShopsList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
-
-                if (item.Product?.ProductClass?.Images?.Count > 0)
+                switch (item)
                 {
-                    d.Add(item.Product?.ProductClass?.Images[0].Image);
-                    d.Add(item.Product?.ProductClass?.Seller.Avatar);
-                    return d;
+                    case null:
+                        return Collections.SingletonList(p0);
                 }
 
-                d.Add(item.Product?.ProductClass?.Seller.Avatar);
+                switch (item.Product?.ProductClass?.Images?.Count)
+                {
+                    case > 0:
+                        d.Add(item.Product?.ProductClass?.Images[0].Image);
+                        d.Add(item.Product?.ProductClass?.Seller.Avatar);
+                        return d;
+                    default:
+                        d.Add(item.Product?.ProductClass?.Seller.Avatar);
 
-                return d;
+                        return d;
+                }
             }
             catch (Exception e)
             {

@@ -61,10 +61,14 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
 
                 connection.CreateTable<DataTables.LoginTb>();
-                connection.CreateTable<DataTables.MyContactsTb>(); 
+                connection.CreateTable<DataTables.MyContactsTb>();
                 connection.CreateTable<DataTables.MyProfileTb>();
                 connection.CreateTable<DataTables.SearchFilterTb>();
                 connection.CreateTable<DataTables.NearByFilterTb>();
@@ -72,7 +76,7 @@ namespace WoWonder.SQLite
                 connection.CreateTable<DataTables.SettingsTb>();
                 connection.CreateTable<DataTables.GiftsTb>();
                 connection.CreateTable<DataTables.PostsTb>();
-                 
+
                 connection.CreateTable<DataTables.CallUserTb>();
                 connection.CreateTable<DataTables.MuteTb>();
                 connection.CreateTable<DataTables.PinTb>();
@@ -105,9 +109,13 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 connection.DeleteAll<DataTables.LoginTb>();
-                connection.DeleteAll<DataTables.MyContactsTb>(); 
+                connection.DeleteAll<DataTables.MyContactsTb>();
                 connection.DeleteAll<DataTables.MyProfileTb>();
                 connection.DeleteAll<DataTables.SearchFilterTb>();
                 connection.DeleteAll<DataTables.NearByFilterTb>();
@@ -131,7 +139,6 @@ namespace WoWonder.SQLite
                 connection.DeleteAll<DataTables.StartedMessageTb>();
                 connection.DeleteAll<DataTables.PinnedMessageTb>();
                 connection.DeleteAll<DataTables.FilterLastChatTb>();
-
             }
             catch (Exception e)
             {
@@ -148,9 +155,13 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 connection.DropTable<DataTables.LoginTb>();
-                connection.DropTable<DataTables.MyContactsTb>(); 
+                connection.DropTable<DataTables.MyContactsTb>();
                 connection.DropTable<DataTables.MyProfileTb>();
                 connection.DropTable<DataTables.SearchFilterTb>();
                 connection.DropTable<DataTables.NearByFilterTb>();
@@ -174,7 +185,6 @@ namespace WoWonder.SQLite
                 connection.DropTable<DataTables.StartedMessageTb>();
                 connection.DropTable<DataTables.PinnedMessageTb>();
                 connection.DropTable<DataTables.FilterLastChatTb>();
-
             }
             catch (Exception e)
             {
@@ -199,8 +209,14 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                connection.Insert(row);
+                switch (connection)
+                {
+                    case null:
+                        return;
+                    default:
+                        connection.Insert(row);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -213,8 +229,14 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                connection.Update(row);
+                switch (connection)
+                {
+                    case null:
+                        return;
+                    default:
+                        connection.Update(row);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -227,8 +249,14 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                connection.Delete(row);
+                switch (connection)
+                {
+                    case null:
+                        return;
+                    default:
+                        connection.Delete(row);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -241,8 +269,14 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                connection.InsertAll(row);
+                switch (connection)
+                {
+                    case null:
+                        return;
+                    default:
+                        connection.InsertAll(row);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -263,7 +297,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 var dataUser = connection.Table<DataTables.LoginTb>().FirstOrDefault();
                 if (dataUser != null)
                 {
@@ -301,7 +339,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return null!;
+                switch (connection)
+                {
+                    case null:
+                        return null!;
+                }
                 var dataUser = connection.Table<DataTables.LoginTb>().FirstOrDefault();
                 if (dataUser != null)
                 {
@@ -347,69 +389,80 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;  
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }  
                 if (settingsData != null)
                 {
                     var select = connection.Table<DataTables.SettingsTb>().FirstOrDefault();
-                    if (select == null)
+                    switch (@select)
                     {
-                        var db = ClassMapper.Mapper?.Map<DataTables.SettingsTb>(settingsData);
-
-                        if (db != null)
+                        case null:
                         {
-                            db.CurrencyArray = JsonConvert.SerializeObject(settingsData.CurrencyArray.CurrencyList);
-                            db.CurrencySymbolArray = JsonConvert.SerializeObject(settingsData.CurrencySymbolArray.CurrencyList);
-                            db.PageCategories = JsonConvert.SerializeObject(settingsData.PageCategories);
-                            db.GroupCategories = JsonConvert.SerializeObject(settingsData.GroupCategories);
-                            db.BlogCategories = JsonConvert.SerializeObject(settingsData.BlogCategories);
-                            db.ProductsCategories = JsonConvert.SerializeObject(settingsData.ProductsCategories);
-                            db.JobCategories = JsonConvert.SerializeObject(settingsData.JobCategories);
-                            db.Genders = JsonConvert.SerializeObject(settingsData.Genders);
-                            db.Family = JsonConvert.SerializeObject(settingsData.Family);
-                            db.MovieCategory = JsonConvert.SerializeObject(settingsData.MovieCategory); 
-                            db.PostColors = JsonConvert.SerializeObject(settingsData.PostColors?.PostColorsList);
-                            db.Fields = JsonConvert.SerializeObject(settingsData.Fields);
-                            db.PostReactionsTypes = JsonConvert.SerializeObject(settingsData.PostReactionsTypes);
-                            db.PageSubCategories = JsonConvert.SerializeObject(settingsData.PageSubCategories?.SubCategoriesList);
-                            db.GroupSubCategories = JsonConvert.SerializeObject(settingsData.GroupSubCategories?.SubCategoriesList);
-                            db.ProductsSubCategories = JsonConvert.SerializeObject(settingsData.ProductsSubCategories?.SubCategoriesList);
-                            db.PageCustomFields = JsonConvert.SerializeObject(settingsData.PageCustomFields);
-                            db.GroupCustomFields = JsonConvert.SerializeObject(settingsData.GroupCustomFields);
-                            db.ProductCustomFields = JsonConvert.SerializeObject(settingsData.ProductCustomFields);
-                            db.ProPackages = JsonConvert.SerializeObject(settingsData.ProPackages);
-                            db.ProPackagesTypes = JsonConvert.SerializeObject(settingsData.ProPackagesTypes);
+                            var db = ClassMapper.Mapper?.Map<DataTables.SettingsTb>(settingsData);
 
-                            connection.Insert(db);
+                            if (db != null)
+                            {
+                                db.CurrencyArray = JsonConvert.SerializeObject(settingsData.CurrencyArray.CurrencyList);
+                                db.CurrencySymbolArray = JsonConvert.SerializeObject(settingsData.CurrencySymbolArray.CurrencyList);
+                                db.PageCategories = JsonConvert.SerializeObject(settingsData.PageCategories);
+                                db.GroupCategories = JsonConvert.SerializeObject(settingsData.GroupCategories);
+                                db.BlogCategories = JsonConvert.SerializeObject(settingsData.BlogCategories);
+                                db.ProductsCategories = JsonConvert.SerializeObject(settingsData.ProductsCategories);
+                                db.JobCategories = JsonConvert.SerializeObject(settingsData.JobCategories);
+                                db.Genders = JsonConvert.SerializeObject(settingsData.Genders);
+                                db.Family = JsonConvert.SerializeObject(settingsData.Family);
+                                db.MovieCategory = JsonConvert.SerializeObject(settingsData.MovieCategory); 
+                                db.PostColors = JsonConvert.SerializeObject(settingsData.PostColors?.PostColorsList);
+                                db.Fields = JsonConvert.SerializeObject(settingsData.Fields);
+                                db.PostReactionsTypes = JsonConvert.SerializeObject(settingsData.PostReactionsTypes);
+                                db.PageSubCategories = JsonConvert.SerializeObject(settingsData.PageSubCategories?.SubCategoriesList);
+                                db.GroupSubCategories = JsonConvert.SerializeObject(settingsData.GroupSubCategories?.SubCategoriesList);
+                                db.ProductsSubCategories = JsonConvert.SerializeObject(settingsData.ProductsSubCategories?.SubCategoriesList);
+                                db.PageCustomFields = JsonConvert.SerializeObject(settingsData.PageCustomFields);
+                                db.GroupCustomFields = JsonConvert.SerializeObject(settingsData.GroupCustomFields);
+                                db.ProductCustomFields = JsonConvert.SerializeObject(settingsData.ProductCustomFields);
+                                db.ProPackages = JsonConvert.SerializeObject(settingsData.ProPackages);
+                                db.ProPackagesTypes = JsonConvert.SerializeObject(settingsData.ProPackagesTypes);
+
+                                connection.Insert(db);
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        select = ClassMapper.Mapper?.Map<DataTables.SettingsTb>(settingsData); 
-                        if (select != null)
+                        default:
                         {
-                            select.CurrencyArray = JsonConvert.SerializeObject(settingsData.CurrencyArray.CurrencyList);
-                            select.CurrencySymbolArray = JsonConvert.SerializeObject(settingsData.CurrencySymbolArray.CurrencyList);
-                            select.PageCategories = JsonConvert.SerializeObject(settingsData.PageCategories);
-                            select.GroupCategories = JsonConvert.SerializeObject(settingsData.GroupCategories);
-                            select.BlogCategories = JsonConvert.SerializeObject(settingsData.BlogCategories);
-                            select.ProductsCategories = JsonConvert.SerializeObject(settingsData.ProductsCategories);
-                            select.JobCategories = JsonConvert.SerializeObject(settingsData.JobCategories);
-                            select.Genders = JsonConvert.SerializeObject(settingsData.Genders);
-                            select.Family = JsonConvert.SerializeObject(settingsData.Family);
-                            select.MovieCategory = JsonConvert.SerializeObject(settingsData.MovieCategory);
-                            select.PostColors = JsonConvert.SerializeObject(settingsData.PostColors?.PostColorsList);
-                            select.Fields = JsonConvert.SerializeObject(settingsData.Fields);
-                            select.PostReactionsTypes = JsonConvert.SerializeObject(settingsData.PostReactionsTypes);
-                            select.PageSubCategories = JsonConvert.SerializeObject(settingsData.PageSubCategories?.SubCategoriesList);
-                            select.GroupSubCategories = JsonConvert.SerializeObject(settingsData.GroupSubCategories?.SubCategoriesList);
-                            select.ProductsSubCategories = JsonConvert.SerializeObject(settingsData.ProductsSubCategories?.SubCategoriesList);
-                            select.PageCustomFields = JsonConvert.SerializeObject(settingsData.PageCustomFields);
-                            select.GroupCustomFields = JsonConvert.SerializeObject(settingsData.GroupCustomFields);
-                            select.ProductCustomFields = JsonConvert.SerializeObject(settingsData.ProductCustomFields);
-                            select.ProPackages = JsonConvert.SerializeObject(settingsData.ProPackages);
-                            select.ProPackagesTypes = JsonConvert.SerializeObject(settingsData.ProPackagesTypes);
+                            @select = ClassMapper.Mapper?.Map<DataTables.SettingsTb>(settingsData); 
+                            if (@select != null)
+                            {
+                                @select.CurrencyArray = JsonConvert.SerializeObject(settingsData.CurrencyArray.CurrencyList);
+                                @select.CurrencySymbolArray = JsonConvert.SerializeObject(settingsData.CurrencySymbolArray.CurrencyList);
+                                @select.PageCategories = JsonConvert.SerializeObject(settingsData.PageCategories);
+                                @select.GroupCategories = JsonConvert.SerializeObject(settingsData.GroupCategories);
+                                @select.BlogCategories = JsonConvert.SerializeObject(settingsData.BlogCategories);
+                                @select.ProductsCategories = JsonConvert.SerializeObject(settingsData.ProductsCategories);
+                                @select.JobCategories = JsonConvert.SerializeObject(settingsData.JobCategories);
+                                @select.Genders = JsonConvert.SerializeObject(settingsData.Genders);
+                                @select.Family = JsonConvert.SerializeObject(settingsData.Family);
+                                @select.MovieCategory = JsonConvert.SerializeObject(settingsData.MovieCategory);
+                                @select.PostColors = JsonConvert.SerializeObject(settingsData.PostColors?.PostColorsList);
+                                @select.Fields = JsonConvert.SerializeObject(settingsData.Fields);
+                                @select.PostReactionsTypes = JsonConvert.SerializeObject(settingsData.PostReactionsTypes);
+                                @select.PageSubCategories = JsonConvert.SerializeObject(settingsData.PageSubCategories?.SubCategoriesList);
+                                @select.GroupSubCategories = JsonConvert.SerializeObject(settingsData.GroupSubCategories?.SubCategoriesList);
+                                @select.ProductsSubCategories = JsonConvert.SerializeObject(settingsData.ProductsSubCategories?.SubCategoriesList);
+                                @select.PageCustomFields = JsonConvert.SerializeObject(settingsData.PageCustomFields);
+                                @select.GroupCustomFields = JsonConvert.SerializeObject(settingsData.GroupCustomFields);
+                                @select.ProductCustomFields = JsonConvert.SerializeObject(settingsData.ProductCustomFields);
+                                @select.ProPackages = JsonConvert.SerializeObject(settingsData.ProPackages);
+                                @select.ProPackagesTypes = JsonConvert.SerializeObject(settingsData.ProPackagesTypes);
 
-                            connection.Update(select);
+                                connection.Update(@select);
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -429,7 +482,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return null!;
+                switch (connection)
+                {
+                    case null:
+                        return null!;
+                }
                 var select = connection.Table<DataTables.SettingsTb>().FirstOrDefault();
                 if (select != null)
                 {
@@ -468,84 +525,163 @@ namespace WoWonder.SQLite
 
                         asd.ProPackages = new Dictionary<string, DataProPackages>();
                         asd.ProPackagesTypes = new Dictionary<string, string>();
-                             
-                        if (!string.IsNullOrEmpty(select.CurrencyArray))
-                            asd.CurrencyArray = new GetSiteSettingsObject.CurrencyArray
+
+                        asd.CurrencyArray = string.IsNullOrEmpty(@select.CurrencyArray) switch
+                        {
+                            false => new GetSiteSettingsObject.CurrencyArray
                             {
-                                CurrencyList = JsonConvert.DeserializeObject<List<string>>(select.CurrencyArray)
-                            };
+                                CurrencyList = JsonConvert.DeserializeObject<List<string>>(@select.CurrencyArray)
+                            },
+                            _ => asd.CurrencyArray
+                        };
 
-                        if (!string.IsNullOrEmpty(select.CurrencySymbolArray))
-                            asd.CurrencySymbolArray = new GetSiteSettingsObject.CurrencySymbol
+                        asd.CurrencySymbolArray = string.IsNullOrEmpty(@select.CurrencySymbolArray) switch
+                        {
+                            false => new GetSiteSettingsObject.CurrencySymbol
                             {
-                                CurrencyList =JsonConvert.DeserializeObject<CurrencySymbolArray>(select.CurrencySymbolArray),
-                            };
+                                CurrencyList =
+                                    JsonConvert.DeserializeObject<CurrencySymbolArray>(@select.CurrencySymbolArray),
+                            },
+                            _ => asd.CurrencySymbolArray
+                        };
 
-                        if (!string.IsNullOrEmpty(select.PageCategories))
-                            asd.PageCategories = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.PageCategories);
+                        asd.PageCategories = string.IsNullOrEmpty(@select.PageCategories) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.PageCategories),
+                            _ => asd.PageCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.GroupCategories))
-                            asd.GroupCategories = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.GroupCategories);
+                        asd.GroupCategories = string.IsNullOrEmpty(@select.GroupCategories) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.GroupCategories),
+                            _ => asd.GroupCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.BlogCategories))
-                            asd.BlogCategories = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.BlogCategories);
+                        asd.BlogCategories = string.IsNullOrEmpty(@select.BlogCategories) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.BlogCategories),
+                            _ => asd.BlogCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.ProductsCategories))
-                            asd.ProductsCategories = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.ProductsCategories);
-                          
-                        if (!string.IsNullOrEmpty(select.JobCategories))
-                            asd.JobCategories = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.JobCategories);
+                        asd.ProductsCategories = string.IsNullOrEmpty(@select.ProductsCategories) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                                @select.ProductsCategories),
+                            _ => asd.ProductsCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.Genders))
-                            asd.Genders = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.Genders);
+                        asd.JobCategories = string.IsNullOrEmpty(@select.JobCategories) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.JobCategories),
+                            _ => asd.JobCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.Family))
-                            asd.Family = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.Family);
-                            
-                        if (!string.IsNullOrEmpty(select.MovieCategory))
-                            asd.MovieCategory = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.MovieCategory);
+                        asd.Genders = string.IsNullOrEmpty(@select.Genders) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.Genders),
+                            _ => asd.Genders
+                        };
 
-                        if (!string.IsNullOrEmpty(select.PostColors))
-                            asd.PostColors = new GetSiteSettingsObject.PostColorUnion { PostColorsList = JsonConvert.DeserializeObject<Dictionary<string, PostColorsObject>>(select.PostColors) };
+                        asd.Family = string.IsNullOrEmpty(@select.Family) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.Family),
+                            _ => asd.Family
+                        };
 
-                        if (!string.IsNullOrEmpty(select.PostReactionsTypes))
-                            asd.PostReactionsTypes = JsonConvert.DeserializeObject<Dictionary<string, PostReactionsType>>(select.PostReactionsTypes);
+                        asd.MovieCategory = string.IsNullOrEmpty(@select.MovieCategory) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.MovieCategory),
+                            _ => asd.MovieCategory
+                        };
 
-                        if (!string.IsNullOrEmpty(select.Fields))
-                            asd.Fields = JsonConvert.DeserializeObject<List<Field>>(select.Fields);
-                          
-                        if (!string.IsNullOrEmpty(select.PageSubCategories))
-                            asd.PageSubCategories = new GetSiteSettingsObject.SubCategoriesUnion
+                        asd.PostColors = string.IsNullOrEmpty(@select.PostColors) switch
+                        {
+                            false => new GetSiteSettingsObject.PostColorUnion
                             {
-                                SubCategoriesList = JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(select.PageSubCategories)
-                            };
+                                PostColorsList =
+                                    JsonConvert.DeserializeObject<Dictionary<string, PostColorsObject>>(
+                                        @select.PostColors)
+                            },
+                            _ => asd.PostColors
+                        };
 
-                        if (!string.IsNullOrEmpty(select.GroupSubCategories))
-                            asd.GroupSubCategories = new GetSiteSettingsObject.SubCategoriesUnion
+                        asd.PostReactionsTypes = string.IsNullOrEmpty(@select.PostReactionsTypes) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, PostReactionsType>>(
+                                @select.PostReactionsTypes),
+                            _ => asd.PostReactionsTypes
+                        };
+
+                        asd.Fields = string.IsNullOrEmpty(@select.Fields) switch
+                        {
+                            false => JsonConvert.DeserializeObject<List<Field>>(@select.Fields),
+                            _ => asd.Fields
+                        };
+
+                        asd.PageSubCategories = string.IsNullOrEmpty(@select.PageSubCategories) switch
+                        {
+                            false => new GetSiteSettingsObject.SubCategoriesUnion
                             {
-                                SubCategoriesList = JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(select.GroupSubCategories)
-                            };
-                             
-                        if (!string.IsNullOrEmpty(select.ProductsSubCategories))
-                            asd.ProductsSubCategories = new GetSiteSettingsObject.SubCategoriesUnion
+                                SubCategoriesList =
+                                    JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(
+                                        @select.PageSubCategories)
+                            },
+                            _ => asd.PageSubCategories
+                        };
+
+                        asd.GroupSubCategories = string.IsNullOrEmpty(@select.GroupSubCategories) switch
+                        {
+                            false => new GetSiteSettingsObject.SubCategoriesUnion
                             {
-                                SubCategoriesList = JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(select.ProductsSubCategories)
-                            };
-                             
-                        if (!string.IsNullOrEmpty(select.PageCustomFields))
-                            asd.PageCustomFields = JsonConvert.DeserializeObject<List<CustomField>>(select.PageCustomFields);
+                                SubCategoriesList =
+                                    JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(
+                                        @select.GroupSubCategories)
+                            },
+                            _ => asd.GroupSubCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.GroupCustomFields))
-                            asd.GroupCustomFields = JsonConvert.DeserializeObject<List<CustomField>>(select.GroupCustomFields);
+                        asd.ProductsSubCategories = string.IsNullOrEmpty(@select.ProductsSubCategories) switch
+                        {
+                            false => new GetSiteSettingsObject.SubCategoriesUnion
+                            {
+                                SubCategoriesList =
+                                    JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(
+                                        @select.ProductsSubCategories)
+                            },
+                            _ => asd.ProductsSubCategories
+                        };
 
-                        if (!string.IsNullOrEmpty(select.ProductCustomFields))
-                            asd.ProductCustomFields = JsonConvert.DeserializeObject<List<CustomField>>(select.ProductCustomFields);
+                        asd.PageCustomFields = string.IsNullOrEmpty(@select.PageCustomFields) switch
+                        {
+                            false => JsonConvert.DeserializeObject<List<CustomField>>(@select.PageCustomFields),
+                            _ => asd.PageCustomFields
+                        };
 
-                        if (!string.IsNullOrEmpty(select.ProPackages))
-                            asd.ProPackages = JsonConvert.DeserializeObject<Dictionary<string, DataProPackages>> (select.ProPackages);
+                        asd.GroupCustomFields = string.IsNullOrEmpty(@select.GroupCustomFields) switch
+                        {
+                            false => JsonConvert.DeserializeObject<List<CustomField>>(@select.GroupCustomFields),
+                            _ => asd.GroupCustomFields
+                        };
 
-                        if (!string.IsNullOrEmpty(select.ProPackagesTypes))
-                            asd.ProPackagesTypes = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.ProPackagesTypes);
+                        asd.ProductCustomFields = string.IsNullOrEmpty(@select.ProductCustomFields) switch
+                        {
+                            false => JsonConvert.DeserializeObject<List<CustomField>>(@select.ProductCustomFields),
+                            _ => asd.ProductCustomFields
+                        };
+
+                        asd.ProPackages = string.IsNullOrEmpty(@select.ProPackages) switch
+                        {
+                            false => JsonConvert.DeserializeObject<Dictionary<string, DataProPackages>>(
+                                @select.ProPackages),
+                            _ => asd.ProPackages
+                        };
+
+                        asd.ProPackagesTypes = string.IsNullOrEmpty(@select.ProPackagesTypes) switch
+                        {
+                            false => JsonConvert
+                                .DeserializeObject<Dictionary<string, string>>(@select.ProPackagesTypes),
+                            _ => asd.ProPackagesTypes
+                        };
 
                         AppSettings.OneSignalAppId = asd.AndroidNPushId;
                         OneSignalNotification.RegisterNotificationDevice();
@@ -566,23 +702,33 @@ namespace WoWonder.SQLite
                                 CategoriesController.ListCategoriesPage.Clear();
                                 CategoriesController.ListCategoriesPage = new ObservableCollection<Classes.Categories>(listPage);
 
-                                if (asd.PageSubCategories?.SubCategoriesList?.Count > 0)
+                                switch (asd.PageSubCategories?.SubCategoriesList?.Count)
                                 {
-                                    //Sub Categories Page
-                                    foreach (var sub in asd.PageSubCategories?.SubCategoriesList)
+                                    case > 0:
                                     {
-                                        var subCategories = asd.PageSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
-                                        if (subCategories?.Count > 0)
+                                        //Sub Categories Page
+                                        foreach (var sub in asd.PageSubCategories?.SubCategoriesList)
                                         {
-                                            var cat = CategoriesController.ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == sub.Key);
-                                            if (cat != null)
+                                            var subCategories = asd.PageSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
+                                            switch (subCategories?.Count)
                                             {
-                                                foreach (var pairs in subCategories)
+                                                case > 0:
                                                 {
-                                                    cat.SubList.Add(pairs);
+                                                    var cat = CategoriesController.ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == sub.Key);
+                                                    if (cat != null)
+                                                    {
+                                                        foreach (var pairs in subCategories)
+                                                        {
+                                                            cat.SubList.Add(pairs);
+                                                        }
+                                                    }
+
+                                                    break;
                                                 }
                                             }
                                         }
+
+                                        break;
                                     }
                                 }
 
@@ -598,23 +744,33 @@ namespace WoWonder.SQLite
                                 CategoriesController.ListCategoriesGroup.Clear();
                                 CategoriesController.ListCategoriesGroup = new ObservableCollection<Classes.Categories>(listGroup);
 
-                                if (asd.GroupSubCategories?.SubCategoriesList?.Count > 0)
+                                switch (asd.GroupSubCategories?.SubCategoriesList?.Count)
                                 {
-                                    //Sub Categories Group
-                                    foreach (var sub in asd.GroupSubCategories?.SubCategoriesList)
+                                    case > 0:
                                     {
-                                        var subCategories = asd.GroupSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
-                                        if (subCategories?.Count > 0)
+                                        //Sub Categories Group
+                                        foreach (var sub in asd.GroupSubCategories?.SubCategoriesList)
                                         {
-                                            var cat = CategoriesController.ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == sub.Key);
-                                            if (cat != null)
+                                            var subCategories = asd.GroupSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
+                                            switch (subCategories?.Count)
                                             {
-                                                foreach (var pairs in subCategories)
+                                                case > 0:
                                                 {
-                                                    cat.SubList.Add(pairs);
+                                                    var cat = CategoriesController.ListCategoriesGroup.FirstOrDefault(a => a.CategoriesId == sub.Key);
+                                                    if (cat != null)
+                                                    {
+                                                        foreach (var pairs in subCategories)
+                                                        {
+                                                            cat.SubList.Add(pairs);
+                                                        }
+                                                    }
+
+                                                    break;
                                                 }
                                             }
                                         }
+
+                                        break;
                                     }
                                 }
 
@@ -642,23 +798,33 @@ namespace WoWonder.SQLite
                                 CategoriesController.ListCategoriesProducts.Clear();
                                 CategoriesController.ListCategoriesProducts = new ObservableCollection<Classes.Categories>(listProducts);
 
-                                if (asd.ProductsSubCategories?.SubCategoriesList?.Count > 0)
+                                switch (asd.ProductsSubCategories?.SubCategoriesList?.Count)
                                 {
-                                    //Sub Categories Products
-                                    foreach (var sub in asd.ProductsSubCategories?.SubCategoriesList)
+                                    case > 0:
                                     {
-                                        var subCategories = asd.ProductsSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
-                                        if (subCategories?.Count > 0)
+                                        //Sub Categories Products
+                                        foreach (var sub in asd.ProductsSubCategories?.SubCategoriesList)
                                         {
-                                            var cat = CategoriesController.ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == sub.Key);
-                                            if (cat != null)
+                                            var subCategories = asd.ProductsSubCategories?.SubCategoriesList?.FirstOrDefault(a => a.Key == sub.Key).Value;
+                                            switch (subCategories?.Count)
                                             {
-                                                foreach (var pairs in subCategories)
+                                                case > 0:
                                                 {
-                                                    cat.SubList.Add(pairs);
+                                                    var cat = CategoriesController.ListCategoriesProducts.FirstOrDefault(a => a.CategoriesId == sub.Key);
+                                                    if (cat != null)
+                                                    {
+                                                        foreach (var pairs in subCategories)
+                                                        {
+                                                            cat.SubList.Add(pairs);
+                                                        }
+                                                    }
+
+                                                    break;
                                                 }
                                             }
                                         }
+
+                                        break;
                                     }
                                 }
 
@@ -736,7 +902,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 var result = connection.Table<DataTables.MyContactsTb>().ToList();
                 List<DataTables.MyContactsTb> list = new List<DataTables.MyContactsTb>();
 
@@ -763,19 +933,33 @@ namespace WoWonder.SQLite
                     }
                 }
 
-                if (list.Count <= 0) return;
+                switch (list.Count)
+                {
+                    case <= 0:
+                        return;
+                }
 
                    
                 //Bring new  
                 var newItemList = list.Where(c => !result.Select(fc => fc.UserId).Contains(c.UserId)).ToList();
-                if (newItemList.Count > 0)
-                    connection.InsertAll(newItemList);
+                switch (newItemList.Count)
+                {
+                    case > 0:
+                        connection.InsertAll(newItemList);
+                        break;
+                }
 
                 result = connection.Table<DataTables.MyContactsTb>().ToList();
                 var deleteItemList = result.Where(c => !list.Select(fc => fc.UserId).Contains(c.UserId)).ToList();
-                if (deleteItemList.Count > 0)
-                    foreach (var delete in deleteItemList)
-                        connection.Delete(delete);
+                switch (deleteItemList.Count)
+                {
+                    case > 0:
+                    {
+                        foreach (var delete in deleteItemList)
+                            connection.Delete(delete);
+                        break;
+                    }
+                }
 
                 connection.Commit();
             }
@@ -794,149 +978,157 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return new ObservableCollection<UserDataObject>();
+                switch (connection)
+                {
+                    case null:
+                        return new ObservableCollection<UserDataObject>();
+                }
                 // var query = Connection.Table<DataTables.MyContactsTb>().Where(w => w.AutoIdMyFollowing >= id).OrderBy(q => q.AutoIdMyFollowing).Take(nSize).ToList();
 
                 var select = connection.Table<DataTables.MyContactsTb>().ToList();
-                if (select.Count > 0)
+                switch (@select.Count)
                 {
-                    var list = new ObservableCollection<UserDataObject>();
-
-                    foreach (var item in select)
+                    case > 0:
                     {
-                        UserDataObject infoObject = new UserDataObject
+                        var list = new ObservableCollection<UserDataObject>();
+
+                        foreach (var item in @select)
                         {
-                            UserId = item.UserId,
-                            Username = item.Username,
-                            Email = item.Email,
-                            FirstName = item.FirstName,
-                            LastName = item.LastName,
-                            Avatar = item.Avatar,
-                            Cover = item.Cover,
-                            BackgroundImage = item.BackgroundImage,
-                            RelationshipId = item.RelationshipId,
-                            Address = item.Address,
-                            Working = item.Working,
-                            Gender = item.Gender,
-                            Facebook = item.Facebook,
-                            Google = item.Google,
-                            Twitter = item.Twitter,
-                            Linkedin = item.Linkedin,
-                            Website = item.Website,
-                            Instagram = item.Instagram,
-                            WebDeviceId = item.WebDeviceId,
-                            Language = item.Language,
-                            IpAddress = item.IpAddress,
-                            PhoneNumber = item.PhoneNumber,
-                            Timezone = item.Timezone,
-                            Lat = item.Lat,
-                            Lng = item.Lng,
-                            About = item.About,
-                            Birthday = item.Birthday,
-                            Registered = item.Registered,
-                            Lastseen = item.Lastseen,
-                            LastLocationUpdate = item.LastLocationUpdate,
-                            Balance = item.Balance,
-                            Verified = item.Verified,
-                            Status = item.Status,
-                            Active = item.Active,
-                            Admin = item.Admin,
-                            IsPro = item.IsPro,
-                            ProType = item.ProType,
-                            School = item.School,
-                            Name = item.Name,
-                            AndroidMDeviceId = item.AndroidMDeviceId,
-                            ECommented = item.ECommented,
-                            AndroidNDeviceId = item.AndroidMDeviceId,
-                            AvatarFull = item.AvatarFull,
-                            BirthPrivacy = item.BirthPrivacy,
-                            CanFollow = item.CanFollow,
-                            ConfirmFollowers = item.ConfirmFollowers,
-                            CountryId = item.CountryId,
-                            EAccepted = item.EAccepted,
-                            EFollowed = item.EFollowed,
-                            EJoinedGroup = item.EJoinedGroup,
-                            ELastNotif = item.ELastNotif,
-                            ELiked = item.ELiked,
-                            ELikedPage = item.ELikedPage,
-                            EMentioned = item.EMentioned,
-                            EProfileWallPost = item.EProfileWallPost,
-                            ESentmeMsg = item.ESentmeMsg,
-                            EShared = item.EShared,
-                            EVisited = item.EVisited,
-                            EWondered = item.EWondered,
-                            EmailNotification = item.EmailNotification,
-                            FollowPrivacy = item.FollowPrivacy,
-                            FriendPrivacy = item.FriendPrivacy,
-                            GenderText = item.GenderText,
-                            InfoFile = item.InfoFile,
-                            IosMDeviceId = item.IosMDeviceId,
-                            IosNDeviceId = item.IosNDeviceId,
-                            IsBlocked = item.IsBlocked,
-                            IsFollowing = item.IsFollowing,
-                            IsFollowingMe = item.IsFollowingMe,
-                            LastAvatarMod = item.LastAvatarMod,
-                            LastCoverMod = item.LastCoverMod,
-                            LastDataUpdate = item.LastDataUpdate,
-                            LastFollowId = item.LastFollowId,
-                            LastLoginData = item.LastLoginData,
-                            LastseenStatus = item.LastseenStatus,
-                            LastseenTimeText = item.LastseenTimeText,
-                            LastseenUnixTime = item.LastseenUnixTime,
-                            MessagePrivacy = item.MessagePrivacy,
-                            NewEmail = item.NewEmail,
-                            NewPhone = item.NewPhone,
-                            NotificationSettings = item.NotificationSettings,
-                            NotificationsSound = item.NotificationsSound,
-                            OrderPostsBy = item.OrderPostsBy,
-                            PaypalEmail = item.PaypalEmail,
-                            PostPrivacy = item.PostPrivacy,
-                            Referrer = item.Referrer,
-                            ShareMyData = item.ShareMyData,
-                            ShareMyLocation = item.ShareMyLocation,
-                            ShowActivitiesPrivacy = item.ShowActivitiesPrivacy,
-                            TwoFactor = item.TwoFactor,
-                            TwoFactorVerified = item.TwoFactorVerified,
-                            Url = item.Url,
-                            VisitPrivacy = item.VisitPrivacy,
-                            Vk = item.Vk,
-                            Wallet = item.Wallet,
-                            WorkingLink = item.WorkingLink,
-                            Youtube = item.Youtube,
-                            City = item.City,
-                            State = item.State,
-                            Zip = item.Zip,
-                            Points = item.Points,
-                            DailyPoints = item.DailyPoints,
-                            PointDayExpire = item.PointDayExpire,
-                            CashfreeSignature = item.CashfreeSignature,
-                            IsAdmin = item.IsAdmin,
-                            MemberId = item.MemberId,
-                            ChatColor = item.ChatColor,
-                            PaystackRef = item.PaystackRef,
-                            RefUserId = item.RefUserId,
-                            SchoolCompleted = item.SchoolCompleted,
-                            Type = item.Type,
-                            UserPlatform = item.UserPlatform,
-                            WeatherUnit = item.WeatherUnit,
-                            Details = new DetailsUnion(),
-                            Selected = false,
-                        };
-
-                        if (!string.IsNullOrEmpty(item.Details))
-                            infoObject.Details = new DetailsUnion
+                            UserDataObject infoObject = new UserDataObject
                             {
-                                DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)
+                                UserId = item.UserId,
+                                Username = item.Username,
+                                Email = item.Email,
+                                FirstName = item.FirstName,
+                                LastName = item.LastName,
+                                Avatar = item.Avatar,
+                                Cover = item.Cover,
+                                BackgroundImage = item.BackgroundImage,
+                                RelationshipId = item.RelationshipId,
+                                Address = item.Address,
+                                Working = item.Working,
+                                Gender = item.Gender,
+                                Facebook = item.Facebook,
+                                Google = item.Google,
+                                Twitter = item.Twitter,
+                                Linkedin = item.Linkedin,
+                                Website = item.Website,
+                                Instagram = item.Instagram,
+                                WebDeviceId = item.WebDeviceId,
+                                Language = item.Language,
+                                IpAddress = item.IpAddress,
+                                PhoneNumber = item.PhoneNumber,
+                                Timezone = item.Timezone,
+                                Lat = item.Lat,
+                                Lng = item.Lng,
+                                About = item.About,
+                                Birthday = item.Birthday,
+                                Registered = item.Registered,
+                                Lastseen = item.Lastseen,
+                                LastLocationUpdate = item.LastLocationUpdate,
+                                Balance = item.Balance,
+                                Verified = item.Verified,
+                                Status = item.Status,
+                                Active = item.Active,
+                                Admin = item.Admin,
+                                IsPro = item.IsPro,
+                                ProType = item.ProType,
+                                School = item.School,
+                                Name = item.Name,
+                                AndroidMDeviceId = item.AndroidMDeviceId,
+                                ECommented = item.ECommented,
+                                AndroidNDeviceId = item.AndroidMDeviceId,
+                                AvatarFull = item.AvatarFull,
+                                BirthPrivacy = item.BirthPrivacy,
+                                CanFollow = item.CanFollow,
+                                ConfirmFollowers = item.ConfirmFollowers,
+                                CountryId = item.CountryId,
+                                EAccepted = item.EAccepted,
+                                EFollowed = item.EFollowed,
+                                EJoinedGroup = item.EJoinedGroup,
+                                ELastNotif = item.ELastNotif,
+                                ELiked = item.ELiked,
+                                ELikedPage = item.ELikedPage,
+                                EMentioned = item.EMentioned,
+                                EProfileWallPost = item.EProfileWallPost,
+                                ESentmeMsg = item.ESentmeMsg,
+                                EShared = item.EShared,
+                                EVisited = item.EVisited,
+                                EWondered = item.EWondered,
+                                EmailNotification = item.EmailNotification,
+                                FollowPrivacy = item.FollowPrivacy,
+                                FriendPrivacy = item.FriendPrivacy,
+                                GenderText = item.GenderText,
+                                InfoFile = item.InfoFile,
+                                IosMDeviceId = item.IosMDeviceId,
+                                IosNDeviceId = item.IosNDeviceId,
+                                IsBlocked = item.IsBlocked,
+                                IsFollowing = item.IsFollowing,
+                                IsFollowingMe = item.IsFollowingMe,
+                                LastAvatarMod = item.LastAvatarMod,
+                                LastCoverMod = item.LastCoverMod,
+                                LastDataUpdate = item.LastDataUpdate,
+                                LastFollowId = item.LastFollowId,
+                                LastLoginData = item.LastLoginData,
+                                LastseenStatus = item.LastseenStatus,
+                                LastseenTimeText = item.LastseenTimeText,
+                                LastseenUnixTime = item.LastseenUnixTime,
+                                MessagePrivacy = item.MessagePrivacy,
+                                NewEmail = item.NewEmail,
+                                NewPhone = item.NewPhone,
+                                NotificationSettings = item.NotificationSettings,
+                                NotificationsSound = item.NotificationsSound,
+                                OrderPostsBy = item.OrderPostsBy,
+                                PaypalEmail = item.PaypalEmail,
+                                PostPrivacy = item.PostPrivacy,
+                                Referrer = item.Referrer,
+                                ShareMyData = item.ShareMyData,
+                                ShareMyLocation = item.ShareMyLocation,
+                                ShowActivitiesPrivacy = item.ShowActivitiesPrivacy,
+                                TwoFactor = item.TwoFactor,
+                                TwoFactorVerified = item.TwoFactorVerified,
+                                Url = item.Url,
+                                VisitPrivacy = item.VisitPrivacy,
+                                Vk = item.Vk,
+                                Wallet = item.Wallet,
+                                WorkingLink = item.WorkingLink,
+                                Youtube = item.Youtube,
+                                City = item.City,
+                                State = item.State,
+                                Zip = item.Zip,
+                                Points = item.Points,
+                                DailyPoints = item.DailyPoints,
+                                PointDayExpire = item.PointDayExpire,
+                                CashfreeSignature = item.CashfreeSignature,
+                                IsAdmin = item.IsAdmin,
+                                MemberId = item.MemberId,
+                                ChatColor = item.ChatColor,
+                                PaystackRef = item.PaystackRef,
+                                RefUserId = item.RefUserId,
+                                SchoolCompleted = item.SchoolCompleted,
+                                Type = item.Type,
+                                UserPlatform = item.UserPlatform,
+                                WeatherUnit = item.WeatherUnit,
+                                Details = new DetailsUnion(),
+                                Selected = false,
                             };
-                             
-                        list.Add(infoObject);
-                    }
 
-                    return list;
-                }
-                else
-                {
-                    return new ObservableCollection<UserDataObject>();
+                            infoObject.Details = string.IsNullOrEmpty(item.Details) switch
+                            {
+                                false => new DetailsUnion
+                                {
+                                    DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)
+                                },
+                                _ => infoObject.Details
+                            };
+
+                            list.Add(infoObject);
+                        }
+
+                        return list;
+                    }
+                    default:
+                        return new ObservableCollection<UserDataObject>();
                 }
             }
             catch (Exception e)
@@ -956,7 +1148,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return; 
+                switch (connection)
+                {
+                    case null:
+                        return;
+                } 
                 var user = connection.Table<DataTables.MyContactsTb>().FirstOrDefault(c => c.UserId == info.UserId);
                 if (user != null)
                 {
@@ -1240,11 +1436,11 @@ namespace WoWonder.SQLite
                         Selected = false,
                     };
 
-                    if (!string.IsNullOrEmpty(item.Details))
-                        infoObject.Details = new DetailsUnion
-                        {
-                            DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)
-                        };
+                    infoObject.Details = string.IsNullOrEmpty(item.Details) switch
+                    {
+                        false => new DetailsUnion {DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)},
+                        _ => infoObject.Details
+                    };
 
                     return infoObject;
                 }
@@ -1278,7 +1474,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 var resultInfoTb = connection.Table<DataTables.MyProfileTb>().FirstOrDefault();
                 if (resultInfoTb != null)
                 {
@@ -1556,7 +1756,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return null!;
+                switch (connection)
+                {
+                    case null:
+                        return null!;
+                }
                 var item = connection.Table<DataTables.MyProfileTb>().FirstOrDefault();
                 if (item != null)
                 {
@@ -1679,12 +1883,12 @@ namespace WoWonder.SQLite
                         Selected = false,
                     };
 
-                    if (!string.IsNullOrEmpty(item.Details))
-                        infoObject.Details = new DetailsUnion
-                        {
-                            DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)
-                        };
-                     
+                    infoObject.Details = string.IsNullOrEmpty(item.Details) switch
+                    {
+                        false => new DetailsUnion {DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)},
+                        _ => infoObject.Details
+                    };
+
                     UserDetails.Avatar = item.Avatar;
                     UserDetails.Cover = item.Cover;
                     UserDetails.Username = item.Username;
@@ -1721,24 +1925,29 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                var data = connection.Table<DataTables.SearchFilterTb>().FirstOrDefault();
-                if (data == null)
+                switch (connection)
                 {
-                    connection.Insert(dataFilter);
+                    case null:
+                        return;
                 }
-                else
+                var data = connection.Table<DataTables.SearchFilterTb>().FirstOrDefault();
+                switch (data)
                 {
-                    data.Gender = dataFilter.Gender;
-                    data.Country = dataFilter.Country;
-                    data.Status = dataFilter.Status;
-                    data.Verified = dataFilter.Verified;
-                    data.ProfilePicture = dataFilter.ProfilePicture;
-                    data.FilterByAge = dataFilter.FilterByAge;
-                    data.AgeFrom = dataFilter.AgeFrom;
-                    data.AgeTo = dataFilter.AgeTo;
+                    case null:
+                        connection.Insert(dataFilter);
+                        break;
+                    default:
+                        data.Gender = dataFilter.Gender;
+                        data.Country = dataFilter.Country;
+                        data.Status = dataFilter.Status;
+                        data.Verified = dataFilter.Verified;
+                        data.ProfilePicture = dataFilter.ProfilePicture;
+                        data.FilterByAge = dataFilter.FilterByAge;
+                        data.AgeFrom = dataFilter.AgeFrom;
+                        data.AgeTo = dataFilter.AgeTo;
 
-                    connection.Update(data);
+                        connection.Update(data);
+                        break;
                 }
             }
             catch (Exception e)
@@ -1779,20 +1988,25 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                var data = connection.Table<DataTables.NearByFilterTb>().FirstOrDefault();
-                if (data == null)
+                switch (connection)
                 {
-                    connection.Insert(dataFilter);
+                    case null:
+                        return;
                 }
-                else
+                var data = connection.Table<DataTables.NearByFilterTb>().FirstOrDefault();
+                switch (data)
                 {
-                    data.DistanceValue = dataFilter.DistanceValue;
-                    data.Gender = dataFilter.Gender;
-                    data.Status = dataFilter.Status;
-                    data.Relationship = dataFilter.Relationship;
+                    case null:
+                        connection.Insert(dataFilter);
+                        break;
+                    default:
+                        data.DistanceValue = dataFilter.DistanceValue;
+                        data.Gender = dataFilter.Gender;
+                        data.Status = dataFilter.Status;
+                        data.Relationship = dataFilter.Relationship;
 
-                    connection.Update(data);
+                        connection.Update(data);
+                        break;
                 }
             }
             catch (Exception e)
@@ -1834,33 +2048,41 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 if (video != null)
                 {
                     var select = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == video.Id);
-                    if (select == null)
+                    switch (@select)
                     {
-                        DataTables.WatchOfflineVideosTb watchOffline = new DataTables.WatchOfflineVideosTb
+                        case null:
                         {
-                            Id = video.Id,
-                            Name = video.Name,
-                            Cover = video.Cover,
-                            Description = video.Description,
-                            Country = video.Country,
-                            Duration = video.Duration,
-                            Genre = video.Genre,
-                            Iframe = video.Iframe,
-                            Quality = video.Quality,
-                            Producer = video.Producer,
-                            Release = video.Release,
-                            Source = video.Source,
-                            Stars = video.Stars,
-                            Url = video.Url,
-                            Video = video.Video,
-                            Views = video.Views,
-                        };
+                            DataTables.WatchOfflineVideosTb watchOffline = new DataTables.WatchOfflineVideosTb
+                            {
+                                Id = video.Id,
+                                Name = video.Name,
+                                Cover = video.Cover,
+                                Description = video.Description,
+                                Country = video.Country,
+                                Duration = video.Duration,
+                                Genre = video.Genre,
+                                Iframe = video.Iframe,
+                                Quality = video.Quality,
+                                Producer = video.Producer,
+                                Release = video.Release,
+                                Source = video.Source,
+                                Stars = video.Stars,
+                                Url = video.Url,
+                                Video = video.Video,
+                                Views = video.Views,
+                            };
 
-                        connection.Insert(watchOffline);
+                            connection.Insert(watchOffline);
+                            break;
+                        }
                     }
                 }
             }
@@ -1879,13 +2101,22 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                if (!string.IsNullOrEmpty(watchOfflineVideosId))
+                switch (connection)
                 {
-                    var select = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == watchOfflineVideosId);
-                    if (select != null)
+                    case null:
+                        return;
+                }
+                switch (string.IsNullOrEmpty(watchOfflineVideosId))
+                {
+                    case false:
                     {
-                        connection.Delete(select);
+                        var select = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == watchOfflineVideosId);
+                        if (@select != null)
+                        {
+                            connection.Delete(@select);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1904,16 +2135,17 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return new ObservableCollection<DataTables.WatchOfflineVideosTb>();
+                switch (connection)
+                {
+                    case null:
+                        return new ObservableCollection<DataTables.WatchOfflineVideosTb>();
+                }
                 var select = connection.Table<DataTables.WatchOfflineVideosTb>().OrderByDescending(a => a.AutoIdWatchOfflineVideos).ToList();
-                if (select.Count > 0)
+                return @select.Count switch
                 {
-                    return new ObservableCollection<DataTables.WatchOfflineVideosTb>(select);
-                }
-                else
-                {
-                    return new ObservableCollection<DataTables.WatchOfflineVideosTb>();
-                }
+                    > 0 => new ObservableCollection<DataTables.WatchOfflineVideosTb>(@select),
+                    _ => new ObservableCollection<DataTables.WatchOfflineVideosTb>()
+                };
             }
             catch (Exception e)
             {
@@ -1933,7 +2165,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return null!;
+                switch (connection)
+                {
+                    case null:
+                        return null!;
+                }
                 var video = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == id);
                 if (video != null)
                 {
@@ -1981,7 +2217,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return null!;
+                switch (connection)
+                {
+                    case null:
+                        return null!;
+                }
                 var select = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == videoId);
                 if (select != null)
                 {
@@ -2019,7 +2259,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 var result = connection.Table<DataTables.GiftsTb>().ToList();
 
                 List<DataTables.GiftsTb> list = new List<DataTables.GiftsTb>();
@@ -2044,14 +2288,20 @@ namespace WoWonder.SQLite
                     }
                 }
                      
-                if (list.Count <= 0) return;
+                switch (list.Count)
+                {
+                    case <= 0:
+                        return;
+                }
                 connection.BeginTransaction();
 
                 //Bring new  
                 var newItemList = list.Where(c => !result.Select(fc => fc.Id).Contains(c.Id)).ToList();
-                if (newItemList.Count > 0)
+                switch (newItemList.Count)
                 {
-                    connection.InsertAll(newItemList);
+                    case > 0:
+                        connection.InsertAll(newItemList);
+                        break;
                 }
                      
                 connection.Commit();
@@ -2071,24 +2321,29 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return new ObservableCollection<GiftObject.DataGiftObject>();
-                var result = connection.Table<DataTables.GiftsTb>().ToList();
-                if (result?.Count > 0)
+                switch (connection)
                 {
-                    List<GiftObject.DataGiftObject> list = result.Select(gift => new GiftObject.DataGiftObject
-                    {
-                        Id = gift.Id,
-                        MediaFile = gift.MediaFile,
-                        Name = gift.Name,
-                        Time = gift.Time,
-                        TimeText = gift.TimeText,
-                    }).ToList();
-
-                    return new ObservableCollection<GiftObject.DataGiftObject>(list);
+                    case null:
+                        return new ObservableCollection<GiftObject.DataGiftObject>();
                 }
-                else
+                var result = connection.Table<DataTables.GiftsTb>().ToList();
+                switch (result?.Count)
                 {
-                    return new ObservableCollection<GiftObject.DataGiftObject>();
+                    case > 0:
+                    {
+                        List<GiftObject.DataGiftObject> list = result.Select(gift => new GiftObject.DataGiftObject
+                        {
+                            Id = gift.Id,
+                            MediaFile = gift.MediaFile,
+                            Name = gift.Name,
+                            Time = gift.Time,
+                            TimeText = gift.TimeText,
+                        }).ToList();
+
+                        return new ObservableCollection<GiftObject.DataGiftObject>(list);
+                    }
+                    default:
+                        return new ObservableCollection<GiftObject.DataGiftObject>();
                 }
             }
             catch (Exception e)
@@ -2113,7 +2368,11 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
                 var dataUser = connection.Table<DataTables.PostsTb>().FirstOrDefault();
                 if (dataUser != null)
                 {
@@ -2165,8 +2424,14 @@ namespace WoWonder.SQLite
             try
             {
                 using var connection = OpenConnection();
-                if (connection == null) return;
-                connection.DeleteAll<DataTables.PostsTb>();
+                switch (connection)
+                {
+                    case null:
+                        return;
+                    default:
+                        connection.DeleteAll<DataTables.PostsTb>();
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -2178,7 +2443,8 @@ namespace WoWonder.SQLite
         }
 
         #endregion
-         
+
+
         #region Last Chat Filter
 
         public void InsertOrUpdate_FilterLastChat(DataTables.FilterLastChatTb dataFilter)

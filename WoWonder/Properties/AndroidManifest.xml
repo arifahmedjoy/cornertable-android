@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.cornertable.app" android:installLocation="preferExternal" android:versionCode="1" android:versionName="0.5">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.cornertable.app" android:installLocation="preferExternal" android:versionCode="1" android:versionName="1.0">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="30" />
 	<uses-feature android:name="android.hardware.camera" />
 	<uses-feature android:name="android.hardware.camera.autofocus" />
@@ -33,10 +33,10 @@
 	<uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 	<!--<uses-permission android:name="com.android.vending.BILLING" />-->
 	<!--one signal-->
-	<permission android:name="com.wowondertimeline.chat.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-	<uses-permission android:name="com.wowondertimeline.chat.permission.C2D_MESSAGE" />
+	<permission android:name="com.cornertable.app.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+	<uses-permission android:name="com.cornertable.app.permission.C2D_MESSAGE" />
 	<!-- Allow the application to access Google web-based services. -->
-	<permission android:name="com.wowondertimeline.chat.permission.MAPS_RECEIVE" android:protectionLevel="signature" />
+	<permission android:name="com.cornertable.app.permission.MAPS_RECEIVE" android:protectionLevel="signature" />
 	<application android:name=".MainApplication" android:allowBackup="false" android:label="The Corner Table Social Media App" android:networkSecurityConfig="@xml/network_security_config" android:largeHeap="true" android:hardwareAccelerated="true" android:requestLegacyExternalStorage="true" android:appComponentFactory="androidx" android:supportsRtl="true" android:icon="@mipmap/icon" android:roundIcon="@mipmap/icon_round" android:theme="@style/MyTheme" tools:ignore="GoogleAppIndexingWarning" tools:replace="android:icon, android:label, android:theme, android:name, android:allowBackup, android:supportsRtl, android:appComponentFactory">
 		<!--Google Maps /Places  API Key-->
 		<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="@string/google_key" />
@@ -50,7 +50,7 @@
 		<receiver android:name="com.onesignal.GcmBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND">
 			<intent-filter>
 				<action android:name="com.google.android.c2dm.intent.RECEIVE" />
-				<category android:name="com.wowondertimeline.chat" />
+				<category android:name="com.cornertable.app" />
 			</intent-filter>
 		</receiver>
 		<!-- Facebook login / API Key -->
@@ -78,15 +78,15 @@
 		</activity>
 		<activity android:name=".ChatWindowActivity" android:exported="true">
 			<intent-filter>
-				<action android:name="com.wowondertimeline.chat.FOO" />
+				<action android:name="com.cornertable.app.FOO" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="com.wowondertimeline.chat.action" />
+				<action android:name="com.cornertable.app.action" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
-		<provider android:name="androidx.core.content.FileProvider" android:authorities="com.wowondertimeline.chat.fileprovider" android:exported="false" android:grantUriPermissions="true">
+		<provider android:name="androidx.core.content.FileProvider" android:authorities="com.cornertable.app.fileprovider" android:exported="false" android:grantUriPermissions="true">
 			<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
 		</provider>
 		<meta-data android:name="firebase_performance_logcat_enabled" android:value="true" />

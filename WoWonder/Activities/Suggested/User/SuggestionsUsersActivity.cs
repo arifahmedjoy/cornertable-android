@@ -136,10 +136,14 @@ namespace WoWonder.Activities.Suggested.User
         {
             try
             {  
-                if (MAdapter?.UserList?.Count > 0)
+                switch (MAdapter?.UserList?.Count)
                 {
-                    var list = MAdapter.UserList.Where(a => a.IsFollowing == "0").ToList();
-                    ListUtils.SuggestedUserList = new ObservableCollection<UserDataObject>(list);
+                    case > 0:
+                    {
+                        var list = MAdapter.UserList.Where(a => a.IsFollowing == "0").ToList();
+                        ListUtils.SuggestedUserList = new ObservableCollection<UserDataObject>(list);
+                        break;
+                    }
                 }
 
                 DestroyBasic();
@@ -188,10 +192,11 @@ namespace WoWonder.Activities.Suggested.User
                 AdsGoogle.InitAdView(MAdView, MRecycler);
 
                 SaveTextView = FindViewById<TextView>(Resource.Id.toolbar_title);
-                if (Caller == "register")
+                SaveTextView.Visibility = Caller switch
                 {
-                    SaveTextView.Visibility = ViewStates.Visible;
-                } 
+                    "register" => ViewStates.Visible,
+                    _ => SaveTextView.Visibility
+                };
             }
             catch (Exception e)
             {
@@ -247,10 +252,12 @@ namespace WoWonder.Activities.Suggested.User
                 MRecycler.AddOnScrollListener(xamarinRecyclerViewOnScrollListener);
                 MainScrollEvent.IsLoading = false;
 
-                if (ListUtils.SuggestedUserList.Count > 0)
+                switch (ListUtils.SuggestedUserList.Count)
                 {
-                    MAdapter.UserList = new ObservableCollection<UserDataObject>(ListUtils.SuggestedUserList);
-                    MAdapter.NotifyDataSetChanged();
+                    case > 0:
+                        MAdapter.UserList = new ObservableCollection<UserDataObject>(ListUtils.SuggestedUserList);
+                        MAdapter.NotifyDataSetChanged();
+                        break;
                 }
             }
             catch (Exception e)
@@ -263,20 +270,21 @@ namespace WoWonder.Activities.Suggested.User
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    MAdapter.FollowButtonItemClick += OnFollowButtonItemClick;
-                    SaveTextView.Click += SaveTextViewOnClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    MAdapter.FollowButtonItemClick -= OnFollowButtonItemClick;
-                    SaveTextView.Click -= SaveTextViewOnClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        MAdapter.FollowButtonItemClick += OnFollowButtonItemClick;
+                        SaveTextView.Click += SaveTextViewOnClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        MAdapter.FollowButtonItemClick -= OnFollowButtonItemClick;
+                        SaveTextView.Click -= SaveTextViewOnClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -387,12 +395,17 @@ namespace WoWonder.Activities.Suggested.User
                 }
                 else
                 {
-                    if (e.Position > -1)
+                    switch (e.Position)
                     {
-                        UserDataObject item = MAdapter.GetItem(e.Position);
-                        if (item != null)
+                        case > -1:
                         {
-                            WoWonderTools.SetAddFriend(this, item, e.BtnAddUser);
+                            UserDataObject item = MAdapter.GetItem(e.Position);
+                            if (item != null)
+                            {
+                                WoWonderTools.SetAddFriend(this, item, e.BtnAddUser);
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -417,8 +430,11 @@ namespace WoWonder.Activities.Suggested.User
 
         private async Task LoadSuggestionsAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -426,36 +442,54 @@ namespace WoWonder.Activities.Suggested.User
 
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.GetRecommendedUsers("25", offset);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is ListUsersObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            if (countList > 0)
+                            case ListUsersObject result:
                             {
-                                foreach (var item in from item in result.Data let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.UserList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                        {
+                                            MAdapter.UserList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Data);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); }); 
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -464,10 +498,12 @@ namespace WoWonder.Activities.Suggested.User
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -483,24 +519,29 @@ namespace WoWonder.Activities.Suggested.User
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

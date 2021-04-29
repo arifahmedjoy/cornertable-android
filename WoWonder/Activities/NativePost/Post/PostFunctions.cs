@@ -11,93 +11,149 @@ namespace WoWonder.Activities.NativePost.Post
         {
             try
             {
-                if (item == null)
-                    return PostModelType.NormalPost;
+                switch (item)
+                {
+                    case null:
+                        return PostModelType.NormalPost;
+                }
 
-                if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "ad")
-                    return PostModelType.AdsPost;
+                switch (string.IsNullOrEmpty(item.PostType))
+                {
+                    case false when item.PostType == "ad":
+                        return PostModelType.AdsPost;
+                }
                 if (item.SharedInfo.SharedInfoClass != null)
                     return PostModelType.SharedPost;
 
                 if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "profile_cover_picture" || item.PostType == "profile_picture")
                     return PostModelType.ImagePost;
 
-                if (!string.IsNullOrEmpty(item.PostType) && item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName))
+                switch (string.IsNullOrEmpty(item.PostType))
                 {
-                    if (ListUtils.SettingsSiteList?.AgoraLiveVideo == 1 && !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId))
+                    case false when item.PostType == "live" && !string.IsNullOrEmpty(item.StreamName):
                     {
-                        return PostModelType.AgoraLivePost; 
+                        return ListUtils.SettingsSiteList?.AgoraLiveVideo switch
+                        {
+                            1 when !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId) => PostModelType
+                                .AgoraLivePost,
+                            _ => PostModelType.LivePost
+                        };
                     }
-                    else 
-                        return PostModelType.LivePost;
                 }
 
                 if (item.PostFileFull != null && (GetImagesExtensions(item.PostFileFull) || item.PhotoMulti?.Count > 0 || item.PhotoAlbum?.Count > 0 || !string.IsNullOrEmpty(item.AlbumName)))
                 {
-                    if (item.PhotoMulti?.Count > 0)
+                    switch (item.PhotoMulti?.Count)
                     {
-                        switch (item.PhotoMulti?.Count)
-                        {
-                            case 2:
-                                return PostModelType.MultiImage2;
-                            case 3:
-                                return PostModelType.MultiImage3;
-                            case 4:
-                                return PostModelType.MultiImage4;
-                            default:
+                        case > 0:
+                            switch (item.PhotoMulti?.Count)
+                            {
+                                case 2:
+                                    return PostModelType.MultiImage2;
+                                case 3:
+                                    return PostModelType.MultiImage3;
+                                case 4:
+                                    return PostModelType.MultiImage4;
+                                default:
                                 {
-                                    if (item.PhotoMulti?.Count >= 5)
-                                        return PostModelType.MultiImages;
+                                    switch (item.PhotoMulti?.Count)
+                                    {
+                                        case >= 5:
+                                            return PostModelType.MultiImages;
+                                    }
+
                                     break;
                                 }
-                        }
+                            }
+
+                            break;
                     }
 
-                    if (item.PhotoAlbum?.Count > 0)
+                    switch (item.PhotoAlbum?.Count)
                     {
-                        switch (item.PhotoAlbum?.Count)
-                        {
-                            case 1:
-                                return PostModelType.ImagePost;
-                            case 2:
-                                return PostModelType.MultiImage2;
-                            case 3:
-                                return PostModelType.MultiImage3;
-                            case 4:
-                                return PostModelType.MultiImage4;
-                            default:
+                        case > 0:
+                            switch (item.PhotoAlbum?.Count)
+                            {
+                                case 1:
+                                    return PostModelType.ImagePost;
+                                case 2:
+                                    return PostModelType.MultiImage2;
+                                case 3:
+                                    return PostModelType.MultiImage3;
+                                case 4:
+                                    return PostModelType.MultiImage4;
+                                default:
                                 {
-                                    if (item.PhotoAlbum?.Count >= 5)
-                                        return PostModelType.MultiImages;
+                                    switch (item.PhotoAlbum?.Count)
+                                    {
+                                        case >= 5:
+                                            return PostModelType.MultiImages;
+                                    }
+
                                     break;
                                 }
-                        }
+                            }
+
+                            break;
                     }
 
                     return PostModelType.ImagePost;
                 }
-                if (!string.IsNullOrEmpty(item.PostFileFull) && (item.PostFileFull.Contains(".MP3") || item.PostFileFull.Contains(".mp3") || item.PostFileFull.Contains(".wav")))
-                    return PostModelType.VoicePost;
-                if (!string.IsNullOrEmpty(item.PostRecord))
-                    return PostModelType.VoicePost;
-                if (!string.IsNullOrEmpty(item.PostFileFull) && GetVideosExtensions(item.PostFileFull ))
-                    return PostModelType.VideoPost;
-                if (!string.IsNullOrEmpty(item.PostSticker))
-                    return PostModelType.StickerPost;
-                if (!string.IsNullOrEmpty(item.PostFacebook))
-                    return PostModelType.FacebookPost;
-                if (!string.IsNullOrEmpty(item.PostVimeo))
-                    return PostModelType.VimeoPost;
-                if (!string.IsNullOrEmpty(item.PostYoutube))
-                    return PostModelType.YoutubePost;
-                if (!string.IsNullOrEmpty(item.PostDeepsound))
-                    return PostModelType.DeepSoundPost;
-                if (!string.IsNullOrEmpty(item.PostPlaytube))
-                    return PostModelType.PlayTubePost;
-                if (!string.IsNullOrEmpty(item.PostLink) && item.PostLink.Contains("tiktok"))
-                    return PostModelType.TikTokPost;
-                if (!string.IsNullOrEmpty(item.PostLink))
-                    return PostModelType.LinkPost;
+                switch (string.IsNullOrEmpty(item.PostFileFull))
+                {
+                    case false when item.PostFileFull.Contains(".MP3") || item.PostFileFull.Contains(".mp3") || item.PostFileFull.Contains(".wav"):
+                        return PostModelType.VoicePost;
+                }
+                switch (string.IsNullOrEmpty(item.PostRecord))
+                {
+                    case false:
+                        return PostModelType.VoicePost;
+                }
+                switch (string.IsNullOrEmpty(item.PostFileFull))
+                {
+                    case false when GetVideosExtensions(item.PostFileFull ):
+                        return PostModelType.VideoPost;
+                }
+                switch (string.IsNullOrEmpty(item.PostSticker))
+                {
+                    case false:
+                        return PostModelType.StickerPost;
+                }
+                switch (string.IsNullOrEmpty(item.PostFacebook))
+                {
+                    case false:
+                        return PostModelType.FacebookPost;
+                }
+                switch (string.IsNullOrEmpty(item.PostVimeo))
+                {
+                    case false:
+                        return PostModelType.VimeoPost;
+                }
+                switch (string.IsNullOrEmpty(item.PostYoutube))
+                {
+                    case false:
+                        return PostModelType.YoutubePost;
+                }
+                switch (string.IsNullOrEmpty(item.PostDeepsound))
+                {
+                    case false:
+                        return PostModelType.DeepSoundPost;
+                }
+                switch (string.IsNullOrEmpty(item.PostPlaytube))
+                {
+                    case false:
+                        return PostModelType.PlayTubePost;
+                }
+                switch (string.IsNullOrEmpty(item.PostLink))
+                {
+                    case false when item.PostLink.Contains("tiktok"):
+                        return PostModelType.TikTokPost;
+                }
+                switch (string.IsNullOrEmpty(item.PostLink))
+                {
+                    case false:
+                        return PostModelType.LinkPost;
+                }
                 if (item.Product?.ProductClass != null)
                     return PostModelType.ProductPost;
                 if (item.Job != null && (item.PostType == "job" || item.Job.Value.JobInfoClass != null))
@@ -118,10 +174,11 @@ namespace WoWonder.Activities.NativePost.Post
                     return PostModelType.FundingPost;
                 if (item.Fund?.PurpleFund != null)
                     return PostModelType.PurpleFundPost;
-                if (!string.IsNullOrEmpty(item.PostMap))
-                    return PostModelType.MapPost;
-
-                return PostModelType.NormalPost;
+                return string.IsNullOrEmpty(item.PostMap) switch
+                {
+                    false => PostModelType.MapPost,
+                    _ => PostModelType.NormalPost
+                };
             }
             catch (Exception e)
             {

@@ -6,8 +6,6 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
-using WoWonder.Helpers.Utils;
-using LayoutDirection = Android.Views.LayoutDirection;
 using Orientation = Android.Widget.Orientation;
 
 namespace WoWonder.Library.Anjo.StoriesProgressView
@@ -37,11 +35,6 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
             void OnComplete();
         }
 
-        public interface IStoryStateListener
-        {
-            void OnPause(); 
-            void OnResume(); 
-        }
 
         protected StoriesProgressView(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
         {
@@ -69,51 +62,30 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
 
         private void Init(Context context, IAttributeSet attrs)
         {
-            try
+            Orientation = Orientation.Horizontal;
+            if (attrs != null)
             {
-                Orientation = Orientation.Horizontal;
-                if (attrs != null)
-                {
-                    TypedArray typedArray = context.ObtainStyledAttributes(attrs, Resource.Styleable.StoriesProgressView);
-                    StoriesCount = typedArray.GetInt(Resource.Styleable.StoriesProgressView_progressCount, 0);
-                    typedArray.Recycle(); 
-                }
-                BindViews();
-
-                //isRtl
-                if (AppSettings.FlowDirectionRightToLeft)
-                {
-                    LayoutDirection = LayoutDirection.Ltr;
-                    Rotation = 180;
-                }
+                TypedArray typedArray = context.ObtainStyledAttributes(attrs, Resource.Styleable.StoriesProgressView);
+                StoriesCount = typedArray.GetInt(Resource.Styleable.StoriesProgressView_progressCount, 0);
+                typedArray.Recycle(); 
             }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            BindViews();
         }
 
         private void BindViews()
         {
-            try
-            {
-                ProgressBars.Clear();
-                RemoveAllViews();
+            ProgressBars.Clear();
+            RemoveAllViews();
 
-                for (int i = 0; i < StoriesCount; i++)
-                {
-                    PausableProgressBar p = CreateProgressBar();
-                    ProgressBars.Add(p);
-                    AddView(p);
-                    if (i + 1 < StoriesCount)
-                    {
-                        AddView(CreateSpace());
-                    }
-                }
-            }
-            catch (Exception e)
+            for (int i = 0; i < StoriesCount; i++)
             {
-                Methods.DisplayReportResultTrack(e);
+                PausableProgressBar p = CreateProgressBar();
+                ProgressBars.Add(p);
+                AddView(p);
+                if (i + 1 < StoriesCount)
+                {
+                    AddView(CreateSpace());
+                }
             }
         }
 
@@ -128,22 +100,16 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
             View v = new View(Context) {LayoutParameters = SpaceLayoutParam};
             return v;
         }
-       
-        /// <summary>
-        /// Set story count and create views
-        /// </summary>
-        /// <param name="storiesCount">story count</param>
+
+        /**
+    * Set story count and create views
+    *
+    * @param storiesCount story count
+    */
         public void SetStoriesCount(int storiesCount)
         {
-            try
-            {
-                StoriesCount = storiesCount;
-                BindViews();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            StoriesCount = storiesCount;
+            BindViews();
         }
          
         /// <summary>
@@ -152,14 +118,7 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// <param name="storiesListener">StoriesListener</param>
         public void SetStoriesListener(IStoriesListener storiesListener)
         {
-            try
-            {
-                StoriesListener = storiesListener;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            StoriesListener = storiesListener;
         }
 
         /// <summary>
@@ -167,19 +126,20 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// </summary>
         public void Skip()
         {
-            try
+            if (IsSkipStart || IsReverseStart) return;
+            switch (IsComplete)
             {
-                if (IsSkipStart || IsReverseStart) return;
-                if (IsComplete) return;
-                if (Current < 0) return;
-                PausableProgressBar p = ProgressBars[Current];
-                IsSkipStart = true;
-                p.SetMax();
+                case true:
+                    return;
             }
-            catch (Exception e)
+            switch (Current)
             {
-                Methods.DisplayReportResultTrack(e);
+                case < 0:
+                    return;
             }
+            PausableProgressBar p = ProgressBars[Current];
+            IsSkipStart = true;
+            p.SetMax();
         }
 
         /// <summary>
@@ -187,19 +147,20 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// </summary>
         public void Reverse()
         {
-            try
+            if (IsSkipStart || IsReverseStart) return;
+            switch (IsComplete)
             {
-                if (IsSkipStart || IsReverseStart) return;
-                if (IsComplete) return;
-                if (Current < 0) return;
-                PausableProgressBar p = ProgressBars[Current];
-                IsReverseStart = true;
-                p.SetMin();
+                case true:
+                    return;
             }
-            catch (Exception e)
+            switch (Current)
             {
-                Methods.DisplayReportResultTrack(e);
+                case < 0:
+                    return;
             }
+            PausableProgressBar p = ProgressBars[Current];
+            IsReverseStart = true;
+            p.SetMin();
         }
          
         /// <summary>
@@ -208,17 +169,10 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// <param name="duration">millisecond</param>
         public void SetStoryDuration(long duration)
         {
-            try
+            for (int i = 0; i < ProgressBars.Count; i++)
             {
-                for (int i = 0; i < ProgressBars.Count; i++)
-                {
-                    ProgressBars[i].SetDuration(duration);
-                    ProgressBars[i].SetCallback(Callback(i));
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
+                ProgressBars[i].SetDuration(duration);
+                ProgressBars[i].SetCallback(Callback(i));
             }
         }
 
@@ -228,19 +182,12 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// <param name="durations"></param>
         public void SetStoriesCountWithDurations(long[] durations)
         {
-            try
+            StoriesCount = durations.Length;
+            BindViews();
+            for (int i = 0; i < ProgressBars.Count; i++)
             {
-                StoriesCount = durations.Length;
-                BindViews();
-                for (int i = 0; i < ProgressBars.Count; i++)
-                {
-                    ProgressBars[i].SetDuration(durations[i]);
-                    ProgressBars[i].SetCallback(Callback(i));
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
+                ProgressBars[i].SetDuration(durations[i]);
+                ProgressBars[i].SetCallback(Callback(i));
             }
         }
 
@@ -267,41 +214,40 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
 
             public void OnFinishProgress()
             {
-                try
+                switch (ProgressView.IsReverseStart)
                 {
-                    if (ProgressView.IsReverseStart)
+                    case true:
                     {
                         ProgressView.StoriesListener?.OnPrev();
-                        if (0 <= ProgressView.Current - 1)
+                        switch (ProgressView.Current - 1)
                         {
-                            PausableProgressBar p = ProgressView.ProgressBars[ProgressView.Current - 1];
-                            p.SetMinWithoutCallback();
-                            ProgressView.ProgressBars[--ProgressView.Current].StartProgress();
-                        }
-                        else
-                        {
-                            ProgressView.ProgressBars[ProgressView.Current].StartProgress();
+                            case <= 0:
+                            {
+                                PausableProgressBar p = ProgressView.ProgressBars[ProgressView.Current - 1];
+                                p.SetMinWithoutCallback();
+                                ProgressView.ProgressBars[--ProgressView.Current].StartProgress();
+                                break;
+                            }
+                            default:
+                                ProgressView.ProgressBars[ProgressView.Current].StartProgress();
+                                break;
                         }
                         ProgressView.IsReverseStart = false;
                         return;
                     }
-                    int next = ProgressView.Current + 1;
-                    if (next <= ProgressView.ProgressBars.Count - 1)
-                    {
-                        ProgressView.StoriesListener?.OnNext();
-                        ProgressView.ProgressBars[next].StartProgress();
-                    }
-                    else
-                    {
-                        ProgressView.IsComplete = true;
-                        ProgressView.StoriesListener?.OnComplete();
-                    }
-                    ProgressView.IsSkipStart = false;
                 }
-                catch (Exception e)
+                int next = ProgressView.Current + 1;
+                if (next <= ProgressView.ProgressBars.Count - 1)
                 {
-                    Methods.DisplayReportResultTrack(e);
+                    ProgressView.StoriesListener?.OnNext();
+                    ProgressView.ProgressBars[next].StartProgress();
                 }
+                else
+                {
+                    ProgressView.IsComplete = true;
+                    ProgressView.StoriesListener?.OnComplete();
+                }
+                ProgressView.IsSkipStart = false;
             }
         }
 
@@ -311,14 +257,7 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// </summary>
         public void StartStories()
         {
-            try
-            {
-                ProgressBars[0].StartProgress();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            ProgressBars[0].StartProgress();
         }
 
         /// <summary>
@@ -327,18 +266,11 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// <param name="from"></param>
         public void StartStories(int from)
         {
-            try
+            for (int i = 0; i < from; i++)
             {
-                for (int i = 0; i < from; i++)
-                {
-                    ProgressBars[i].SetMaxWithoutCallback();
-                }
-                ProgressBars[from].StartProgress();
+                ProgressBars[i].SetMaxWithoutCallback();
             }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            ProgressBars[from].StartProgress();
         }
 
         /// <summary>
@@ -346,17 +278,10 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// </summary>
         public void Destroy()
         {
-            try
+            IsComplete = false;
+            foreach (var p in ProgressBars)
             {
-                IsComplete = false;
-                foreach (var p in ProgressBars)
-                {
-                    p.Clear();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
+                p.Clear();
             }
         }
 
@@ -365,14 +290,13 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// </summary>
         public void Pause()
         {
-            try
+            switch (Current)
             {
-                if (Current < 0) return;
-                ProgressBars[Current].PauseProgress();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
+                case < 0:
+                    return;
+                default:
+                    ProgressBars[Current].PauseProgress();
+                    break;
             }
         }
 
@@ -381,14 +305,13 @@ namespace WoWonder.Library.Anjo.StoriesProgressView
         /// </summary>
         public void Resume()
         {
-            try
+            switch (Current)
             {
-                if (Current < 0) return;
-                ProgressBars[Current].ResumeProgress();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
+                case < 0:
+                    return;
+                default:
+                    ProgressBars[Current].ResumeProgress();
+                    break;
             }
         }
     }

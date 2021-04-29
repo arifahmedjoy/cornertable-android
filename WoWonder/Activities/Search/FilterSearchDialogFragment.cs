@@ -195,35 +195,39 @@ namespace WoWonder.Activities.Search
                     GenderSelect = false
                 });
 
-                if (ListUtils.SettingsSiteList?.Genders?.Count > 0)
+                switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
-                    foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
+                    case > 0:
                     {
+                        foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
+                        {
+                            GenderAdapter.GenderList.Add(new Classes.Gender
+                            {
+                                GenderId = key,
+                                GenderName = value,
+                                GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                                GenderSelect = false
+                            });
+                        }
+
+                        break;
+                    }
+                    default:
                         GenderAdapter.GenderList.Add(new Classes.Gender
                         {
-                            GenderId = key,
-                            GenderName = value,
+                            GenderId = "male",
+                            GenderName = Activity.GetText(Resource.String.Radio_Male),
                             GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
                             GenderSelect = false
                         });
-                    }
-                }
-                else
-                {
-                    GenderAdapter.GenderList.Add(new Classes.Gender
-                    {
-                        GenderId = "male",
-                        GenderName = Activity.GetText(Resource.String.Radio_Male),
-                        GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
-                        GenderSelect = false
-                    });
-                    GenderAdapter.GenderList.Add(new Classes.Gender
-                    {
-                        GenderId = "female",
-                        GenderName = Activity.GetText(Resource.String.Radio_Female),
-                        GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
-                        GenderSelect = false
-                    });
+                        GenderAdapter.GenderList.Add(new Classes.Gender
+                        {
+                            GenderId = "female",
+                            GenderName = Activity.GetText(Resource.String.Radio_Female),
+                            GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                            GenderSelect = false
+                        });
+                        break;
                 }
 
                 GenderAdapter.NotifyDataSetChanged();
@@ -301,20 +305,31 @@ namespace WoWonder.Activities.Search
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = GenderAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                        if (check.Count > 0)
-                            foreach (var all in check)
-                                all.GenderSelect = false;
+                        var item = GenderAdapter.GetItem(position);
+                        if (item != null)
+                        {
+                            var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
+                            switch (check.Count)
+                            {
+                                case > 0:
+                                {
+                                    foreach (var all in check)
+                                        all.GenderSelect = false;
+                                    break;
+                                }
+                            }
 
-                        item.GenderSelect = true;
-                        GenderAdapter.NotifyDataSetChanged();
+                            item.GenderSelect = true;
+                            GenderAdapter.NotifyDataSetChanged();
 
-                        Gender = item.GenderId;
+                            Gender = item.GenderId;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -453,17 +468,18 @@ namespace WoWonder.Activities.Search
         {
             try
             {
-                if (e.IsChecked)
+                switch (e.IsChecked)
                 {
-                    //Switch On
-                    SwitchState = true;
-                    SeekbarLayout.Visibility = ViewStates.Visible;
-                }
-                else
-                {
-                    //Switch Off
-                    SwitchState = false;
-                    SeekbarLayout.Visibility = ViewStates.Invisible;
+                    case true:
+                        //Switch On
+                        SwitchState = true;
+                        SeekbarLayout.Visibility = ViewStates.Visible;
+                        break;
+                    default:
+                        //Switch Off
+                        SwitchState = false;
+                        SeekbarLayout.Visibility = ViewStates.Invisible;
+                        break;
                 }
 
                 TxtAge.Text = GetString(Resource.String.Lbl_Age);
@@ -524,45 +540,61 @@ namespace WoWonder.Activities.Search
                     };
 
                     var countriesArray = WoWonderTools.GetCountryList(Activity);
-                    if (Location == "all")
+                    switch (Location)
                     {
-                        LocationPlace.Text = GetText(Resource.String.Lbl_All);
-                    }
-                    else
-                    {
-                        bool success = int.TryParse(Location, out var number);
-                        if (success)
-                        {
-                            var check = countriesArray.FirstOrDefault(a => a.Key == number.ToString()).Value;
-                            if (!string.IsNullOrEmpty(check))
-                            {
-                                LocationPlace.Text = check;
-                            }
-                        }
-                        else
-                        {
+                        case "all":
                             LocationPlace.Text = GetText(Resource.String.Lbl_All);
+                            break;
+                        default:
+                        {
+                            bool success = int.TryParse(Location, out var number);
+                            switch (success)
+                            {
+                                case true:
+                                {
+                                    var check = countriesArray.FirstOrDefault(a => a.Key == number.ToString()).Value;
+                                    LocationPlace.Text = string.IsNullOrEmpty(check) switch
+                                    {
+                                        false => check,
+                                        _ => LocationPlace.Text
+                                    };
+
+                                    break;
+                                }
+                                default:
+                                    LocationPlace.Text = GetText(Resource.String.Lbl_All);
+                                    break;
+                            }
+
+                            break;
                         }
                     }
 
-                    if (SwitchState)
+                    switch (SwitchState)
                     {
-                        AgeSwitch.Checked = true;
-                        SeekbarLayout.Visibility = ViewStates.Visible;
-                        TxtAge.Text = GetString(Resource.String.Lbl_Age) + " " + AgeMin + " - " + AgeMax;
-                    }
-                    else
-                    {
-                        AgeSwitch.Checked = false;
-                        SeekbarLayout.Visibility = ViewStates.Invisible;
-                        TxtAge.Text = GetString(Resource.String.Lbl_Age);
+                        case true:
+                            AgeSwitch.Checked = true;
+                            SeekbarLayout.Visibility = ViewStates.Visible;
+                            TxtAge.Text = GetString(Resource.String.Lbl_Age) + " " + AgeMin + " - " + AgeMax;
+                            break;
+                        default:
+                            AgeSwitch.Checked = false;
+                            SeekbarLayout.Visibility = ViewStates.Invisible;
+                            TxtAge.Text = GetString(Resource.String.Lbl_Age);
+                            break;
                     }
 
                     //////////////////////////// Gender ////////////////////////////// 
                     var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                    if (check1.Count > 0)
-                        foreach (var all in check1)
-                            all.GenderSelect = false;
+                    switch (check1.Count)
+                    {
+                        case > 0:
+                        {
+                            foreach (var all in check1)
+                                all.GenderSelect = false;
+                            break;
+                        }
+                    }
 
                     var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == data.Gender);
                     if (check2 != null)

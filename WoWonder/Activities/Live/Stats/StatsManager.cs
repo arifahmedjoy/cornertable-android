@@ -21,8 +21,15 @@ namespace WoWonder.Activities.Live.Stats
             // in case 32-bit unsigned integer uid is received
             data.SetUid(uid & 0xFFFFFFFFL);
 
-            if (ifLocal) MUidList.Add(uid);
-            else MUidList.Add(uid);
+            switch (ifLocal)
+            {
+                case true:
+                    MUidList.Add(uid);
+                    break;
+                default:
+                    MUidList.Add(uid);
+                    break;
+            }
 
             MDataMap.Add(uid, data);
         }
@@ -50,23 +57,16 @@ namespace WoWonder.Activities.Live.Stats
 
         public string QualityToString(int quality)
         {
-            switch (quality)
+            return quality switch
             {
-                case DT.Xamarin.Agora.Constants.QualityExcellent:
-                    return "Exc";
-                case DT.Xamarin.Agora.Constants.QualityGood:
-                    return "Good";
-                case DT.Xamarin.Agora.Constants.QualityPoor:
-                    return "Poor";
-                case DT.Xamarin.Agora.Constants.QualityBad:
-                    return "Bad";
-                case DT.Xamarin.Agora.Constants.QualityVbad:
-                    return "VBad";
-                case DT.Xamarin.Agora.Constants.QualityDown:
-                    return "Down";
-                default:
-                    return "Unk";
-            }
+                DT.Xamarin.Agora.Constants.QualityExcellent => "Exc",
+                DT.Xamarin.Agora.Constants.QualityGood => "Good",
+                DT.Xamarin.Agora.Constants.QualityPoor => "Poor",
+                DT.Xamarin.Agora.Constants.QualityBad => "Bad",
+                DT.Xamarin.Agora.Constants.QualityVbad => "VBad",
+                DT.Xamarin.Agora.Constants.QualityDown => "Down",
+                _ => "Unk"
+            };
         }
 
         public void EnableStats(bool enabled)

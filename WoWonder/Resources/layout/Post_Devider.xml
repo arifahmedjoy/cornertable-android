@@ -2,4 +2,4 @@
       android:id="@+id/simpleViewAnimator"
       android:layout_width="match_parent"
       android:background="?attr/colorDivider"
-      android:layout_height="8dp" />
+      android:layout_height="3dp"/>

@@ -63,18 +63,22 @@ namespace WoWonder.Activities.Story.Adapters
         {
             try
             {
-
-                if (viewHolder is RowStoryAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = StoryList[position];
-                    if (item != null)
+                    case RowStoryAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = StoryList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                        holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item), 25);
+                            holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item), 25);
 
-                        //holder.About.Text = Type == ContactsAdapter.TypeTextSecondary.About ? Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(users), 25) : Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime));
+                            //holder.About.Text = Type == ContactsAdapter.TypeTextSecondary.About ? Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(users), 25) : Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime));
 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -90,10 +94,12 @@ namespace WoWonder.Activities.Story.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is RowStoryAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case RowStoryAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -148,8 +154,11 @@ namespace WoWonder.Activities.Story.Adapters
             {
                 var d = new List<string>();
                 var item = StoryList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Avatar != "")
                 {

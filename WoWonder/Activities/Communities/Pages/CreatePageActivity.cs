@@ -209,16 +209,17 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtCreateOnClick;
-                    TxtCategories.Touch += TxtCategoryOnClick;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtCreateOnClick;
-                    TxtCategories.Touch -= TxtCategoryOnClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtCreateOnClick;
+                        TxtCategories.Touch += TxtCategoryOnClick;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtCreateOnClick;
+                        TxtCategories.Touch -= TxtCategoryOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -261,21 +262,24 @@ namespace WoWonder.Activities.Communities.Pages
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesPage.Count > 0)
+                switch (CategoriesController.ListCategoriesPage.Count)
                 {
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    case > 0:
+                    {
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Page");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Page");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -318,23 +322,31 @@ namespace WoWonder.Activities.Communities.Pages
                 AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
                 var (apiStatus, respond) = await RequestsAsync.Page.Create_Page(TxtUrl.Text.Replace(" ", ""), TxtTitle.Text, CategoryId, TxtAbout.Text);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is CreatePageObject result)
+                    case 200:
                     {
-                        AndHUD.Shared.Dismiss(this);
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                        switch (respond)
+                        {
+                            case CreatePageObject result:
+                            {
+                                AndHUD.Shared.Dismiss(this);
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
 
-                        Intent returnIntent = new Intent();
-                        if (result.PageData != null)
-                            returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(result.PageData));
-                        SetResult(Result.Ok, returnIntent);
-                        Finish();
+                                Intent returnIntent = new Intent();
+                                if (result.PageData != null)
+                                    returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(result.PageData));
+                                SetResult(Result.Ok, returnIntent);
+                                Finish();
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    Methods.DisplayAndHudErrorResult(this, respond);
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 }
             }
             catch (Exception exception)

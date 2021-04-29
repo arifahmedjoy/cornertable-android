@@ -61,25 +61,34 @@ namespace WoWonder.Activities.Fundings.Adapters
         {
             try
             {
-                if (viewHolder is RecentDonationAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = UserList[position];
-                    if (item != null)
+                    case RecentDonationAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable, true);
+                        var item = UserList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable, true);
 
-                        holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item.UserData), 20);
+                            holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item.UserData), 20);
 
-                        if (item.UserData.Verified == "1")
-                            holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                            switch (item.UserData.Verified)
+                            {
+                                case "1":
+                                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                    break;
+                            }
 
-                        holder.About.Text = AppSettings.CurrencyFundingPriceStatic + item.Amount + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
+                            holder.About.Text = AppSettings.CurrencyFundingPriceStatic + item.Amount + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
 
-                        //Online Or offline
-                        var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.UserData.LastseenUnixTime), item.UserData.LastseenStatus);
-                        holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
+                            //Online Or offline
+                            var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.UserData.LastseenUnixTime), item.UserData.LastseenStatus);
+                            holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
                          
-                        WoWonderTools.SetAddFriendCondition(item.UserData.IsFollowing, holder.Button);
+                            WoWonderTools.SetAddFriendCondition(item.UserData.IsFollowing, holder.Button);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -96,9 +105,11 @@ namespace WoWonder.Activities.Fundings.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is RecentDonationAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case RecentDonationAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }

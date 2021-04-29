@@ -62,19 +62,24 @@ namespace WoWonder.Activities.Offers.Adapters
         {
             try
             {
-                if (viewHolder is OffersAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = OffersList[position];
-                    if (item != null)
+                    case OffersAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                        var item = OffersList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
-                        holder.Type.Text = Methods.FunString.DecodeString(item.OfferText) + " " + Methods.FunString.DecodeString(item.DiscountedItems);
-                        holder.Title.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Description),200);
-                        holder.Date.Text = ActivityContext.GetText(Resource.String.Lbl_End_Date) + " : " + item.ExpireDate;
+                            holder.Type.Text = Methods.FunString.DecodeString(item.OfferText) + " " + Methods.FunString.DecodeString(item.DiscountedItems);
+                            holder.Title.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Description),200);
+                            holder.Date.Text = ActivityContext.GetText(Resource.String.Lbl_End_Date) + " : " + item.ExpireDate;
 
-                        ViewCompat.SetBackgroundTintList(holder.Date, ColorStateList.ValueOf(Color.ParseColor(Methods.FunString.RandomColor())));
+                            ViewCompat.SetBackgroundTintList(holder.Date, ColorStateList.ValueOf(Color.ParseColor(Methods.FunString.RandomColor())));
 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -90,9 +95,11 @@ namespace WoWonder.Activities.Offers.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is OffersAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case OffersAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -143,14 +150,21 @@ namespace WoWonder.Activities.Offers.Adapters
             {
                 var d = new List<string>();
                 var item = OffersList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Image))
-                        d.Add(item.Image);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Image))
+                        {
+                            case false:
+                                d.Add(item.Image);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

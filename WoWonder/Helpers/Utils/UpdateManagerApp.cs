@@ -71,55 +71,60 @@ namespace WoWonder.Helpers.Utils
                     string versionName = packageInfo?.VersionName;
 
                     var availability = info.UpdateAvailability();
-                    if (availability.Equals(UpdateAvailability.UpdateAvailable) || availability.Equals(UpdateAvailability.DeveloperTriggeredUpdateInProgress))
+                    switch (availability)
                     {
-                        var dialog = new MaterialDialog.Builder(MainActivity).Theme(Theme.Light)
-                            .Title(MainActivity.GetText(Resource.String.Lbl_ThereIsNewUpdate))
-                            .CustomView(Resource.Layout.DialogCheckUpdateApp, true)
-                            .PositiveText(MainActivity.GetText(Resource.String.Lbl_Update)).OnPositive((materialDialog, action) =>
-                            {
-                                try
+                        case UpdateAvailability.UpdateAvailable:
+                        case UpdateAvailability.DeveloperTriggeredUpdateInProgress:
+                        {
+                            var dialog = new MaterialDialog.Builder(MainActivity).Theme(Theme.Light)
+                                .Title(MainActivity.GetText(Resource.String.Lbl_ThereIsNewUpdate))
+                                .CustomView(Resource.Layout.DialogCheckUpdateApp, true)
+                                .PositiveText(MainActivity.GetText(Resource.String.Lbl_Update)).OnPositive((materialDialog, action) =>
                                 {
-                                    switch (availability)
+                                    try
                                     {
-                                        case UpdateAvailability.UpdateAvailable or UpdateAvailability.DeveloperTriggeredUpdateInProgress when info.IsUpdateTypeAllowed(AppUpdateType.Immediate):
-                                            // Start an update
-                                            AppUpdateManager.StartUpdateFlowForResult(info, AppUpdateType.Immediate, MainActivity, UpdateRequest);
+                                        switch (availability)
+                                        {
+                                            case UpdateAvailability.UpdateAvailable or UpdateAvailability.DeveloperTriggeredUpdateInProgress when info.IsUpdateTypeAllowed(AppUpdateType.Immediate):
+                                                // Start an update
+                                                AppUpdateManager.StartUpdateFlowForResult(info, AppUpdateType.Immediate, MainActivity, UpdateRequest);
 
-                                            //#if DEBUG
-                                            //if (AppUpdateManager is FakeAppUpdateManager fakeAppUpdate && fakeAppUpdate.IsImmediateFlowVisible)
-                                            //{
-                                            //    fakeAppUpdate.UserAcceptsUpdate();
-                                            //    fakeAppUpdate.DownloadStarts();
-                                            //    fakeAppUpdate.DownloadCompletes();
-                                            //    LaunchRestartDialog(AppUpdateManager);
-                                            //}
-                                            //#endif
-                                            break;
-                                        case UpdateAvailability.UpdateNotAvailable:
-                                        case UpdateAvailability.Unknown:
-                                            Log.Debug("UPDATE NOT AVAILABLE", $"{info.AvailableVersionCode()}");
-                                            // You can start your activityonresult method when update is not available when using immediate update
-                                            MainActivity.StartActivityForResult(Intent, 400); // You can use any random result code
-                                            break;
+                                                //#if DEBUG
+                                                //if (AppUpdateManager is FakeAppUpdateManager fakeAppUpdate && fakeAppUpdate.IsImmediateFlowVisible)
+                                                //{
+                                                //    fakeAppUpdate.UserAcceptsUpdate();
+                                                //    fakeAppUpdate.DownloadStarts();
+                                                //    fakeAppUpdate.DownloadCompletes();
+                                                //    LaunchRestartDialog(AppUpdateManager);
+                                                //}
+                                                //#endif
+                                                break;
+                                            case UpdateAvailability.UpdateNotAvailable:
+                                            case UpdateAvailability.Unknown:
+                                                Log.Debug("UPDATE NOT AVAILABLE", $"{info.AvailableVersionCode()}");
+                                                // You can start your activityonresult method when update is not available when using immediate update
+                                                MainActivity.StartActivityForResult(Intent, 400); // You can use any random result code
+                                                break;
+                                        }
                                     }
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e);
-                                }
-                            })
-                            .NegativeText(MainActivity.GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog())
-                            .Build();
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                })
+                                .NegativeText(MainActivity.GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog())
+                                .Build();
 
-                        var textAppName = dialog.CustomView.FindViewById<TextView>(Resource.Id.text_app_name);
-                        textAppName.Text = AppSettings.ApplicationName;
+                            var textAppName = dialog.CustomView.FindViewById<TextView>(Resource.Id.text_app_name);
+                            textAppName.Text = AppSettings.ApplicationName;
 
-                        var txtNewVersion = dialog.CustomView.FindViewById<TextView>(Resource.Id.tv_new_version);
-                        txtNewVersion.Text = MainActivity.GetText(Resource.String.Lbl_DiscoverNewVersion) + " V" + info.AvailableVersionCode();
-                        var txtVersion = dialog.CustomView.FindViewById<TextView>(Resource.Id.tv_version);
-                        txtVersion.Text = MainActivity.GetText(Resource.String.Lbl_Current) + " V" + versionName;
-                        dialog.Show();
+                            var txtNewVersion = dialog.CustomView.FindViewById<TextView>(Resource.Id.tv_new_version);
+                            txtNewVersion.Text = MainActivity.GetText(Resource.String.Lbl_DiscoverNewVersion) + " V" + info.AvailableVersionCode();
+                            var txtVersion = dialog.CustomView.FindViewById<TextView>(Resource.Id.tv_version);
+                            txtVersion.Text = MainActivity.GetText(Resource.String.Lbl_Current) + " V" + versionName;
+                            dialog.Show();
+                            break;
+                        }
                     }
                 }
                 catch (Exception e)

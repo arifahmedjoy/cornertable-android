@@ -11,7 +11,7 @@ using Object = Java.Lang.Object;
 
 namespace WoWonder.MediaPlayers
 {
-    public class PlayerEvents : Object, IPlayerEventListener, PlayerControlView.IVisibilityListener
+    public class PlayerEvents : Object, IPlayerEventListener, PlayerControlView.IVisibilityListener, PlayerControlView.IProgressUpdateListener
     {
         //private readonly Activity ActContext;
         private readonly ProgressBar LoadingprogressBar;
@@ -28,15 +28,12 @@ namespace WoWonder.MediaPlayers
                     VideoPlayButton = controlView.FindViewById<ImageButton>(Resource.Id.exo_play);
                     VideoResumeButton = controlView.FindViewById<ImageButton>(Resource.Id.exo_pause);
                     LoadingprogressBar = act.FindViewById<ProgressBar>(Resource.Id.progress_bar);
-                }
-
-              
+                }  
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-            }
-         
+            } 
         }
          
         public void OnLoadingChanged(bool p0)
@@ -65,14 +62,15 @@ namespace WoWonder.MediaPlayers
                 {
                     case IPlayer.StateEnded:
                     {
-                        if (playWhenReady == false)
+                        switch (playWhenReady)
                         {
-                            VideoResumeButton.Visibility = ViewStates.Visible;
-                        }
-                        else
-                        {
-                            VideoResumeButton.Visibility = ViewStates.Gone;
-                            VideoPlayButton.Visibility = ViewStates.Visible;
+                            case false:
+                                VideoResumeButton.Visibility = ViewStates.Visible;
+                                break;
+                            default:
+                                VideoResumeButton.Visibility = ViewStates.Gone;
+                                VideoPlayButton.Visibility = ViewStates.Visible;
+                                break;
                         }
 
                         LoadingprogressBar.Visibility = ViewStates.Invisible;
@@ -80,14 +78,15 @@ namespace WoWonder.MediaPlayers
                     }
                     case IPlayer.StateReady:
                     {
-                        if (playWhenReady == false)
+                        switch (playWhenReady)
                         {
-                            VideoResumeButton.Visibility = ViewStates.Gone;
-                            VideoPlayButton.Visibility = ViewStates.Visible;
-                        }
-                        else
-                        {
-                            VideoResumeButton.Visibility = ViewStates.Visible;
+                            case false:
+                                VideoResumeButton.Visibility = ViewStates.Gone;
+                                VideoPlayButton.Visibility = ViewStates.Visible;
+                                break;
+                            default:
+                                VideoResumeButton.Visibility = ViewStates.Visible;
+                                break;
                         }
 
                         LoadingprogressBar.Visibility = ViewStates.Invisible;
@@ -125,9 +124,9 @@ namespace WoWonder.MediaPlayers
 
         }
 
-        public void OnTimelineChanged(Timeline p0, Object p1, int p2)
+        public void OnTimelineChanged(Timeline timeline, int reason)
         {
-
+             
         }
 
         public void OnTracksChanged(TrackGroupArray p0, TrackSelectionArray p1)
@@ -139,8 +138,10 @@ namespace WoWonder.MediaPlayers
         {
 
         }
-
-
-
+         
+        public void OnProgressUpdate(long position, long bufferedPosition)
+        {
+             
+        }
     }
 }

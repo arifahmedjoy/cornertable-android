@@ -185,14 +185,15 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnVerify.Click += BtnVerifyOnClick;
-                }
-                else
-                {
-                    BtnVerify.Click -= BtnVerifyOnClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnVerify.Click += BtnVerifyOnClick;
+                        break;
+                    default:
+                        BtnVerify.Click -= BtnVerifyOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -222,101 +223,147 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                if (!string.IsNullOrEmpty(TxtNumber1.Text) && !string.IsNullOrWhiteSpace(TxtNumber1.Text))
+                switch (string.IsNullOrEmpty(TxtNumber1.Text))
                 {
-                    if (Methods.CheckConnectivity())
+                    case false when !string.IsNullOrWhiteSpace(TxtNumber1.Text):
                     {
-                        //Show a progress
-                        AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
-
-                        switch (TypeCode)
+                        if (Methods.CheckConnectivity())
                         {
-                            case "TwoFactor":
+                            //Show a progress
+                            AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
+
+                            switch (TypeCode)
                             {
-                                var (apiStatus, respond) = await RequestsAsync.Global.TwoFactorAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                                if (apiStatus == 200)
+                                case "TwoFactor":
                                 {
-                                    if (respond is AuthObject auth)
+                                    var (apiStatus, respond) = await RequestsAsync.Global.TwoFactorAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                                    switch (apiStatus)
                                     {
-                                        SetDataLogin(auth);
-
-                                        if (AppSettings.ShowWalkTroutPage)
+                                        case 200:
                                         {
-                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                            newIntent?.PutExtra("class", "login");
-                                            StartActivity(newIntent);
-                                        }
-                                        else
-                                        {
-                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                        }
+                                            switch (respond)
+                                            {
+                                                case AuthObject auth:
+                                                {
+                                                    SetDataLogin(auth);
 
-                                        AndHUD.Shared.Dismiss(this);
-                                        FinishAffinity();
+                                                    switch (AppSettings.ShowWalkTroutPage)
+                                                    {
+                                                        case true:
+                                                        {
+                                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                                            newIntent?.PutExtra("class", "login");
+                                                            StartActivity(newIntent);
+                                                            break;
+                                                        }
+                                                        default:
+                                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                                            break;
+                                                    }
+
+                                                    AndHUD.Shared.Dismiss(this);
+                                                    FinishAffinity();
+                                                    break;
+                                                }
+                                            }
+
+                                            break;
+                                        }
+                                        default:
+                                        {
+                                            switch (respond)
+                                            {
+                                                case ErrorObject errorMessage:
+                                                {
+                                                    var errorId = errorMessage.Error.ErrorId;
+                                                    switch (errorId)
+                                                    {
+                                                        case "3":
+                                                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CodeNotCorrect), GetText(Resource.String.Lbl_Ok));
+                                                            break;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                            Methods.DisplayReportResult(this, respond);
+                                            break;
+                                        }
                                     }
+
+                                    break;
                                 }
-                                else
+                                case "AccountSms":
                                 {
-                                    if (respond is ErrorObject errorMessage)
+                                    var (apiStatus, respond) = await RequestsAsync.Global.ActiveAccountSmsAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                                    switch (apiStatus)
                                     {
-                                        var errorId = errorMessage.Error.ErrorId;
-                                        if (errorId == "3")
-                                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CodeNotCorrect), GetText(Resource.String.Lbl_Ok));
-                                    }
-                                    Methods.DisplayReportResult(this, respond);
-                                }
+                                        case 200:
+                                        {
+                                            switch (respond)
+                                            {
+                                                case AuthObject auth:
+                                                {
+                                                    SetDataLogin(auth);
 
-                                break;
+                                                    switch (AppSettings.ShowWalkTroutPage)
+                                                    {
+                                                        case true:
+                                                        {
+                                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                                                            newIntent?.PutExtra("class", "login");
+                                                            StartActivity(newIntent);
+                                                            break;
+                                                        }
+                                                        default:
+                                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                                            break;
+                                                    }
+
+                                                    AndHUD.Shared.Dismiss(this);
+                                                    FinishAffinity();
+                                                    break;
+                                                }
+                                            }
+
+                                            break;
+                                        }
+                                        default:
+                                        {
+                                            switch (respond)
+                                            {
+                                                case ErrorObject errorMessage:
+                                                {
+                                                    var errorId = errorMessage.Error.ErrorId;
+                                                    switch (errorId)
+                                                    {
+                                                        case "3":
+                                                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CodeNotCorrect), GetText(Resource.String.Lbl_Ok));
+                                                            break;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                            Methods.DisplayReportResult(this, respond);
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
                             }
-                            case "AccountSms":
-                            {
-                                var (apiStatus, respond) = await RequestsAsync.Global.ActiveAccountSmsAsync(UserDetails.UserId, TxtNumber1.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
-                                if (apiStatus == 200)
-                                {
-                                    if (respond is AuthObject auth)
-                                    {
-                                        SetDataLogin(auth);
-
-                                        if (AppSettings.ShowWalkTroutPage)
-                                        {
-                                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                                            newIntent?.PutExtra("class", "login");
-                                            StartActivity(newIntent);
-                                        }
-                                        else
-                                        {
-                                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                        }
-
-                                        AndHUD.Shared.Dismiss(this);
-                                        FinishAffinity();
-                                    }
-                                }
-                                else
-                                {
-                                    if (respond is ErrorObject errorMessage)
-                                    {
-                                        var errorId = errorMessage.Error.ErrorId;
-                                        if (errorId == "3")
-                                            Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_CodeNotCorrect), GetText(Resource.String.Lbl_Ok));
-                                    }
-                                    Methods.DisplayReportResult(this, respond);
-                                }
-
-                                break;
-                            }
-                        }
                          
-                        AndHUD.Shared.Dismiss(this);
+                            AndHUD.Shared.Dismiss(this);
+                        }
+                        else
+                        {
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        }
+
+                        break;
                     }
-                    else
-                    {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    }
-                }
-                else
-                {
-                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
+                    default:
+                        Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_Security), GetText(Resource.String.Lbl_Please_enter_your_data), GetText(Resource.String.Lbl_Ok));
+                        break;
                 }
             }
             catch (Exception exception)

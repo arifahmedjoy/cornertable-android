@@ -38,44 +38,54 @@ namespace WoWonder.Helpers.Utils
                 var totalItemCount = recyclerView.GetAdapter().ItemCount;
 
                 int pastVisibleItems;
-                if (LayoutManager is LinearLayoutManager managerLinear)
+                switch (LayoutManager)
                 {
-                    pastVisibleItems = managerLinear.FindFirstVisibleItemPosition();
-                }
-                else switch (LayoutManager)
-                {
-                    case GridLayoutManager managerGrid:
-                        pastVisibleItems = managerGrid.FindFirstVisibleItemPosition();
+                    case LinearLayoutManager managerLinear:
+                        pastVisibleItems = managerLinear.FindFirstVisibleItemPosition();
                         break;
-                    case StaggeredGridLayoutManager managerStaggeredGrid:
-                    {
-                        int[] firstVisibleItemPositions = new int[SpanCount];
-                        pastVisibleItems = managerStaggeredGrid.FindFirstVisibleItemPositions(firstVisibleItemPositions)[0];
-                        break;
-                    }
                     default:
-                        pastVisibleItems = LayoutManager?.FindFirstVisibleItemPosition() ?? 0;
+                        switch (LayoutManager)
+                        {
+                            case GridLayoutManager managerGrid:
+                                pastVisibleItems = managerGrid.FindFirstVisibleItemPosition();
+                                break;
+                            case StaggeredGridLayoutManager managerStaggeredGrid:
+                            {
+                                int[] firstVisibleItemPositions = new int[SpanCount];
+                                pastVisibleItems = managerStaggeredGrid.FindFirstVisibleItemPositions(firstVisibleItemPositions)[0];
+                                break;
+                            }
+                            default:
+                                pastVisibleItems = LayoutManager?.FindFirstVisibleItemPosition() ?? 0;
+                                break;
+                        }
+
                         break;
                 }
 
                 if (visibleItemCount + pastVisibleItems + 4 < totalItemCount)
                     return;
 
-                if (IsLoading) //&& !recyclerView.CanScrollVertically(1)
-                    return;
+                switch (IsLoading)
+                {
+                    //&& !recyclerView.CanScrollVertically(1)
+                    case true:
+                        return;
+                    default:
+                        //IsLoading = true;
+                        LoadMoreEvent?.Invoke(this, null);
 
-                //IsLoading = true;
-                LoadMoreEvent?.Invoke(this, null);
-
-                //if (visibleItemCount + pastVisibleItems + 8 >= totalItemCount)
-                //{
-                //    //Load More  from API Request
-                //    if (IsLoading == false)
-                //    {
-                //        LoadMoreEvent?.Invoke(this, null);
-                //        IsLoading = true;
-                //    }
-                //}
+                        //if (visibleItemCount + pastVisibleItems + 8 >= totalItemCount)
+                        //{
+                        //    //Load More  from API Request
+                        //    if (IsLoading == false)
+                        //    {
+                        //        LoadMoreEvent?.Invoke(this, null);
+                        //        IsLoading = true;
+                        //    }
+                        //}
+                        break;
+                }
             }
             catch (Exception exception)
             {

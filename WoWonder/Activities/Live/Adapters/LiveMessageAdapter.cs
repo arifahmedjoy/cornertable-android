@@ -60,15 +60,20 @@ namespace WoWonder.Activities.Live.Adapters
         {
             try
             {
-                if (viewHolder is LiveMessageAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = CommentList[position];
-                    if (item != null)
+                    case LiveMessageAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = CommentList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                          
-                        holder.TxtName.Text = WoWonderTools.GetNameFinal(item.Publisher);
-                        holder.TxtMessage.Text = Methods.FunString.DecodeString(item.Orginaltext);
+                            holder.TxtName.Text = WoWonderTools.GetNameFinal(item.Publisher);
+                            holder.TxtMessage.Text = Methods.FunString.DecodeString(item.Orginaltext);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -85,9 +90,11 @@ namespace WoWonder.Activities.Live.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is LiveMessageAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case LiveMessageAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -143,11 +150,18 @@ namespace WoWonder.Activities.Live.Adapters
             {
                 var d = new List<string>();
                 var item = CommentList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
-                if (!string.IsNullOrEmpty(item.Publisher.Avatar))
-                    d.Add(item.Publisher.Avatar);
+                switch (string.IsNullOrEmpty(item.Publisher.Avatar))
+                {
+                    case false:
+                        d.Add(item.Publisher.Avatar);
+                        break;
+                }
                 return d;
             }
             catch (Exception e)

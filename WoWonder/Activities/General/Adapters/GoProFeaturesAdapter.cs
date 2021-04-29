@@ -68,17 +68,26 @@ namespace WoWonder.Activities.General.Adapters
         {
             try
             {
-                if (viewHolder is GoProViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = FeaturesList[position];
-                    if (item != null)
+                    case GoProViewHolder holder:
                     {
-                        holder.FeatureImg.SetImageResource(item.ImageResource);
-                        holder.FeatureImg.SetColorFilter(Color.ParseColor(item.HexColor));
-                        holder.FeatureText.Text = holder.MainView.Resources?.GetString(item.StringResource);
+                        var item = FeaturesList[position];
+                        if (item != null)
+                        {
+                            holder.FeatureImg.SetImageResource(item.ImageResource);
+                            holder.FeatureImg.SetColorFilter(Color.ParseColor(item.HexColor));
+                            holder.FeatureText.Text = holder.MainView.Resources?.GetString(item.StringResource);
 
-                        if (AppSettings.SetTabDarkTheme)
-                            holder.MainLayout.SetBackgroundResource(Resource.Drawable.ShadowLinerLayoutDark);
+                            switch (AppSettings.SetTabDarkTheme)
+                            {
+                                case true:
+                                    holder.MainLayout.SetBackgroundResource(Resource.Drawable.ShadowLinerLayoutDark);
+                                    break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }

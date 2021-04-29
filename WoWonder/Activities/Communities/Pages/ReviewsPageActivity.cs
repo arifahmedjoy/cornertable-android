@@ -247,16 +247,17 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -355,42 +356,71 @@ namespace WoWonder.Activities.Communities.Pages
 
         private async Task LoadReviewsAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Page.GetReviews(PageId, offset , "10");
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is ReviewsPageObject result)
+                    case 200:
                     {
-                        var respondList = result.Reviews.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            if (countList > 0)
+                            case ReviewsPageObject result:
                             {
-                                foreach (var item in from item in result.Reviews let check = MAdapter.UserList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                var respondList = result.Reviews.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.UserList.Add(item);
-                                } 
+                                    case > 0:
+                                    {
+                                        switch (countList)
+                                        {
+                                            case > 0:
+                                            {
+                                                foreach (var item in from item in result.Reviews let check = MAdapter.UserList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    MAdapter.UserList.Add(item);
+                                                }
+
+                                                break;
+                                            }
+                                            default:
+                                                MAdapter.UserList = new ObservableCollection<ReviewsPageObject.Datum>(result.Reviews);
+                                                break;
+                                        }
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreReviews), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                break;
                             }
-                            else
-                            {
-                                MAdapter.UserList = new ObservableCollection<ReviewsPageObject.Datum>(result.Reviews); 
-                            }
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
                         }
-                        else
-                        {
-                            if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreReviews), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
                 MainScrollEvent.IsLoading = false;
 
                 RunOnUiThread(ShowEmptyPage);
@@ -400,10 +430,12 @@ namespace WoWonder.Activities.Communities.Pages
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -418,24 +450,29 @@ namespace WoWonder.Activities.Communities.Pages
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoReviews);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoReviews);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

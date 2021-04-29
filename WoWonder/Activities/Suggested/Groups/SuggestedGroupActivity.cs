@@ -104,8 +104,11 @@ namespace WoWonder.Activities.Suggested.Groups
         {
             try
             {
-                if (MAdapter.GroupList.Count > 0)
-                    ListUtils.SuggestedGroupList = MAdapter.GroupList;
+                ListUtils.SuggestedGroupList = MAdapter.GroupList.Count switch
+                {
+                    > 0 => MAdapter.GroupList,
+                    _ => ListUtils.SuggestedGroupList
+                };
 
                 DestroyBasic();
                 base.OnDestroy();
@@ -193,24 +196,30 @@ namespace WoWonder.Activities.Suggested.Groups
                 RandomAdapter.ItemClick += RandomAdapterOnItemClick;
                 RandomAdapter.JoinButtonItemClick += MAdapterOnJoinButtonItemClick;
 
-                if (CategoriesController.ListCategoriesGroup.Count > 0)
+                switch (CategoriesController.ListCategoriesGroup.Count)
                 {
-                    CategoriesAdapter = new CategoriesImageAdapter(this) { CategoriesList = CategoriesController.ListCategoriesGroup };
-                    CategoriesAdapter.ItemClick += CategoriesAdapterOnItemClick;
-                      
-                    if (CatGroupInflated == null)
-                        CatGroupInflated = CatGroupViewStub.Inflate();
+                    case > 0:
+                    {
+                        CategoriesAdapter = new CategoriesImageAdapter(this) { CategoriesList = CategoriesController.ListCategoriesGroup };
+                        CategoriesAdapter.ItemClick += CategoriesAdapterOnItemClick;
 
-                    RecyclerInflaterCatGroup = new TemplateRecyclerInflater();
-                    RecyclerInflaterCatGroup.InflateLayout<Classes.Categories>(this, CatGroupInflated, CategoriesAdapter, TemplateRecyclerInflater.TypeLayoutManager.LinearLayoutManagerHorizontal, 0, true, GetString(Resource.String.Lbl_Categories), GetString(Resource.String.Lbl_FindGroupByCategories));
+                        CatGroupInflated = CatGroupInflated switch
+                        {
+                            null => CatGroupViewStub.Inflate(),
+                            _ => CatGroupInflated
+                        };
 
-                    RecyclerInflaterCatGroup.Recyler.Visibility = ViewStates.Visible;
+                        RecyclerInflaterCatGroup = new TemplateRecyclerInflater();
+                        RecyclerInflaterCatGroup.InflateLayout<Classes.Categories>(this, CatGroupInflated, CategoriesAdapter, TemplateRecyclerInflater.TypeLayoutManager.LinearLayoutManagerHorizontal, 0, true, GetString(Resource.String.Lbl_Categories), GetString(Resource.String.Lbl_FindGroupByCategories));
 
-                    CategoriesAdapter.NotifyDataSetChanged();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        RecyclerInflaterCatGroup.Recyler.Visibility = ViewStates.Visible;
+
+                        CategoriesAdapter.NotifyDataSetChanged();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Group");
+                        break;
                 } 
             }
             catch (Exception e)
@@ -326,8 +335,11 @@ namespace WoWonder.Activities.Suggested.Groups
             { 
 
                 var item = MAdapter.GetItem(e.Position);
-                if (item == null)
-                    return;
+                switch (item)
+                {
+                    case null:
+                        return;
+                }
 
                 if (!Methods.CheckConnectivity())
                 {
@@ -336,35 +348,45 @@ namespace WoWonder.Activities.Suggested.Groups
                 }
 
                 var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(item.GroupId);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is JoinGroupObject result)
+                    case 200:
                     {
-                        if (result.JoinStatus == "requested")
+                        switch (respond)
                         {
-                            e.JoinButton.SetTextColor(Color.White);
-                            e.JoinButton.Text = Application.Context.GetText(Resource.String.Lbl_Request);
-                            e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
-                        }
-                        else
-                        {
-                            var isJoined = result.JoinStatus == "left" ? "false" : "true";
-                            e.JoinButton.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
-
-                            if (isJoined == "yes" || isJoined == "true")
-                            {
+                            case JoinGroupObject result when result.JoinStatus == "requested":
+                                e.JoinButton.SetTextColor(Color.White);
+                                e.JoinButton.Text = Application.Context.GetText(Resource.String.Lbl_Request);
                                 e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
-                                e.JoinButton.SetTextColor(Color.White);
-                            }
-                            else
+                                break;
+                            case JoinGroupObject result:
                             {
-                                e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlat);
-                                e.JoinButton.SetTextColor(Color.White);
+                                var isJoined = result.JoinStatus == "left" ? "false" : "true";
+                                e.JoinButton.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
+
+                                switch (isJoined)
+                                {
+                                    case "yes":
+                                    case "true":
+                                        e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
+                                        e.JoinButton.SetTextColor(Color.White);
+                                        break;
+                                    default:
+                                        e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlat);
+                                        e.JoinButton.SetTextColor(Color.White);
+                                        break;
+                                }
+
+                                break;
                             }
                         }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
             }
             catch (Exception exception)
             {
@@ -429,54 +451,71 @@ namespace WoWonder.Activities.Suggested.Groups
                 var countList = MAdapter.GroupList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Group.GetRecommendedGroups("10", offset);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is ListGroupsObject result)
+                    case 200:
                     {
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case ListGroupsObject result:
                             {
-                                foreach (var item in from item in result.Data let check = MAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                var respondList = result.Data.Count;
+                                switch (respondList)
                                 {
-                                    MAdapter.GroupList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                        {
+                                            MAdapter.GroupList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GroupList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.GroupList = new ObservableCollection<GroupClass>(result.Data);
+
+                                        RunOnUiThread(() =>
+                                        { 
+                                            SuggestedGroupInflated ??= SuggestedGroupViewStub.Inflate();
+
+                                            RecyclerInflaterSuggestedGroup = new TemplateRecyclerInflater();
+                                            RecyclerInflaterSuggestedGroup.InflateLayout<GroupClass>(this, SuggestedGroupInflated, MAdapter, TemplateRecyclerInflater.TypeLayoutManager.LinearLayoutManagerHorizontal, 0, true, GetString(Resource.String.Lbl_SuggestedForYou), "", true);
+
+                                            RecyclerInflaterSuggestedGroup.MainLinear.Click += MainLinearSuggestedGroupOnClick;
+
+                                            switch (SuggestedGroupScrollEvent)
+                                            {
+                                                case null:
+                                                {
+                                                    RecyclerViewOnScrollListener playlistRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(RecyclerInflaterSuggestedGroup.LayoutManager);
+                                                    SuggestedGroupScrollEvent = playlistRecyclerViewOnScrollListener;
+                                                    SuggestedGroupScrollEvent.LoadMoreEvent += SuggestedGroupScrollEventOnLoadMoreEvent;
+                                                    RecyclerInflaterSuggestedGroup.Recyler.AddOnScrollListener(playlistRecyclerViewOnScrollListener);
+                                                    SuggestedGroupScrollEvent.IsLoading = false;
+                                                    break;
+                                                }
+                                            } 
+                                        });
+                                        break;
+                                    default:
+                                    {
+                                        if (RecyclerInflaterSuggestedGroup?.Recyler != null && MAdapter.GroupList.Count > 10 && !RecyclerInflaterSuggestedGroup.Recyler.CanScrollVertically(1))
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.GroupList.Count - countList); });
-                            }
-                            else
-                            { 
-                                MAdapter.GroupList = new ObservableCollection<GroupClass>(result.Data);
-
-                                RunOnUiThread(() =>
-                                { 
-                                    SuggestedGroupInflated ??= SuggestedGroupViewStub.Inflate();
-
-                                    RecyclerInflaterSuggestedGroup = new TemplateRecyclerInflater();
-                                    RecyclerInflaterSuggestedGroup.InflateLayout<GroupClass>(this, SuggestedGroupInflated, MAdapter, TemplateRecyclerInflater.TypeLayoutManager.LinearLayoutManagerHorizontal, 0, true, GetString(Resource.String.Lbl_SuggestedForYou), "", true);
-
-                                    RecyclerInflaterSuggestedGroup.MainLinear.Click += MainLinearSuggestedGroupOnClick;
-
-                                    if (SuggestedGroupScrollEvent == null)
-                                    {
-                                        RecyclerViewOnScrollListener playlistRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(RecyclerInflaterSuggestedGroup.LayoutManager);
-                                        SuggestedGroupScrollEvent = playlistRecyclerViewOnScrollListener;
-                                        SuggestedGroupScrollEvent.LoadMoreEvent += SuggestedGroupScrollEventOnLoadMoreEvent;
-                                        RecyclerInflaterSuggestedGroup.Recyler.AddOnScrollListener(playlistRecyclerViewOnScrollListener);
-                                        SuggestedGroupScrollEvent.IsLoading = false;
-                                    } 
-                                }); 
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (RecyclerInflaterSuggestedGroup?.Recyler != null && MAdapter.GroupList.Count > 10 && !RecyclerInflaterSuggestedGroup.Recyler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -485,10 +524,12 @@ namespace WoWonder.Activities.Suggested.Groups
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -510,44 +551,60 @@ namespace WoWonder.Activities.Suggested.Groups
                 };
 
                 var (respondCode, respondString) = await RequestsAsync.Global.Get_Search(dictionary);
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is GetSearchObject result)
+                    case 200:
                     {
-                        var respondList = result.Groups.Count;
-                        if (respondList > 0)
+                        switch (respondString)
                         {
-                            if (countList > 0)
+                            case GetSearchObject result:
                             {
-                                foreach (var item in from item in result.Groups let check = RandomAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                var respondList = result.Groups.Count;
+                                switch (respondList)
                                 {
-                                    RandomAdapter.GroupList.Add(item);
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Groups let check = RandomAdapter.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                        {
+                                            RandomAdapter.GroupList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { RandomAdapter.NotifyItemRangeInserted(countList, RandomAdapter.GroupList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        RandomAdapter.GroupList = new ObservableCollection<GroupClass>(result.Groups);
+
+                                        RunOnUiThread(() =>
+                                        {
+                                            RandomGroupInflated = RandomGroupInflated switch
+                                            {
+                                                null => RandomGroupViewStub.Inflate(),
+                                                _ => RandomGroupInflated
+                                            };
+
+                                            RecyclerInflaterRandomGroup = new TemplateRecyclerInflater();
+                                            RecyclerInflaterRandomGroup.InflateLayout<GroupClass>(this, RandomGroupInflated, RandomAdapter, TemplateRecyclerInflater.TypeLayoutManager.LinearLayoutManagerVertical, 0, true, GetString(Resource.String.Lbl_RandomGroups));
+                                        });
+                                        break;
+                                    default:
+                                    {
+                                        if (RecyclerInflaterRandomGroup?.Recyler != null && RandomAdapter.GroupList.Count > 10 && !RecyclerInflaterRandomGroup.Recyler.CanScrollVertically(1))
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { RandomAdapter.NotifyItemRangeInserted(countList, RandomAdapter.GroupList.Count - countList); });
-                            }
-                            else
-                            {
-                                RandomAdapter.GroupList = new ObservableCollection<GroupClass>(result.Groups);
-
-                                RunOnUiThread(() =>
-                                {
-                                    if (RandomGroupInflated == null)
-                                        RandomGroupInflated = RandomGroupViewStub.Inflate();
-
-                                    RecyclerInflaterRandomGroup = new TemplateRecyclerInflater();
-                                    RecyclerInflaterRandomGroup.InflateLayout<GroupClass>(this, RandomGroupInflated, RandomAdapter, TemplateRecyclerInflater.TypeLayoutManager.LinearLayoutManagerVertical, 0, true, GetString(Resource.String.Lbl_RandomGroups));
-                                });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (RecyclerInflaterRandomGroup?.Recyler != null && RandomAdapter.GroupList.Count > 10 && !RecyclerInflaterRandomGroup.Recyler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -556,10 +613,12 @@ namespace WoWonder.Activities.Suggested.Groups
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -574,36 +633,50 @@ namespace WoWonder.Activities.Suggested.Groups
                 SwipeRefreshLayout.Refreshing = false;
                 SwipeRefreshLayout.Enabled = false;
 
-                if (MAdapter.GroupList.Count > 0)
+                switch (MAdapter.GroupList.Count)
                 {
-                    if (RecyclerInflaterSuggestedGroup?.Recyler != null)
-                        RecyclerInflaterSuggestedGroup.Recyler.Visibility = ViewStates.Visible;
+                    case > 0:
+                    {
+                        if (RecyclerInflaterSuggestedGroup?.Recyler != null)
+                            RecyclerInflaterSuggestedGroup.Recyler.Visibility = ViewStates.Visible;
 
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    }
                 }
 
-                if (RandomAdapter.GroupList.Count > 0)
+                switch (RandomAdapter.GroupList.Count)
                 {
-                    if (RecyclerInflaterRandomGroup?.Recyler != null)
-                        RecyclerInflaterRandomGroup.Recyler.Visibility = ViewStates.Visible;
+                    case > 0:
+                    {
+                        if (RecyclerInflaterRandomGroup?.Recyler != null)
+                            RecyclerInflaterRandomGroup.Recyler.Visibility = ViewStates.Visible;
 
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    }
                 }
                 
-                if (MAdapter.GroupList.Count == 0 && RandomAdapter.GroupList.Count == 0)
+                switch (MAdapter.GroupList.Count)
                 {
-                    if (RecyclerInflaterSuggestedGroup?.Recyler != null)
-                        RecyclerInflaterSuggestedGroup.Recyler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case 0 when RandomAdapter.GroupList.Count == 0:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        if (RecyclerInflaterSuggestedGroup?.Recyler != null)
+                            RecyclerInflaterSuggestedGroup.Recyler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

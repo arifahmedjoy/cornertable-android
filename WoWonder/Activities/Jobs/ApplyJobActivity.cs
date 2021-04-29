@@ -62,9 +62,12 @@ namespace WoWonder.Activities.Jobs
                 SetContentView(Resource.Layout.ApplyJoblayout);
               
                 var dataObject = Intent?.GetStringExtra("JobsObject");
-                if (!string.IsNullOrEmpty(dataObject))
-                    DataInfoObject = JsonConvert.DeserializeObject<JobInfoObject>(dataObject);
-                  
+                DataInfoObject = string.IsNullOrEmpty(dataObject) switch
+                {
+                    false => JsonConvert.DeserializeObject<JobInfoObject>(dataObject),
+                    _ => DataInfoObject
+                };
+
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
@@ -251,24 +254,25 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                    TxtFromDate.Touch += TxtFromDateOnTouch;
-                    TxtToDate.Touch += TxtToDateOnTouch;
-                    TxtPosition.Touch += TxtPositionOnClick;
-                    ChkCurrentlyWork.CheckedChange += ChkCurrentlyWorkOnCheckedChange;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = null!; 
-                    TxtFromDate.Touch -= TxtFromDateOnTouch;
-                    TxtToDate.Touch -= TxtToDateOnTouch;
-                    TxtPosition.Touch -= TxtPositionOnClick;
-                    ChkCurrentlyWork.CheckedChange -= ChkCurrentlyWorkOnCheckedChange;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = this; 
+                        TxtFromDate.Touch += TxtFromDateOnTouch;
+                        TxtToDate.Touch += TxtToDateOnTouch;
+                        TxtPosition.Touch += TxtPositionOnClick;
+                        ChkCurrentlyWork.CheckedChange += ChkCurrentlyWorkOnCheckedChange;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = null!; 
+                        TxtFromDate.Touch -= TxtFromDateOnTouch;
+                        TxtToDate.Touch -= TxtToDateOnTouch;
+                        TxtPosition.Touch -= TxtPositionOnClick;
+                        ChkCurrentlyWork.CheckedChange -= ChkCurrentlyWorkOnCheckedChange;
+                        break;
                 }
             }
             catch (Exception e)
@@ -341,17 +345,19 @@ namespace WoWonder.Activities.Jobs
                         return;
                     }
 
-                    if (CurrentlyWork == "off" && string.IsNullOrEmpty(TxtToDate.Text))
+                    switch (CurrentlyWork)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
-                        return;
+                        case "off" when string.IsNullOrEmpty(TxtToDate.Text):
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                            return;
                     }
 
                     var check = Methods.FunString.IsEmailValid(TxtEmail.Text.Replace(" ", ""));
-                    if (!check)
+                    switch (check)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_IsEmailValid), ToastLength.Short)?.Show();
-                        return;
+                        case false:
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_IsEmailValid), ToastLength.Short)?.Show();
+                            return;
                     }
                      
                     //Show a progress
@@ -376,26 +382,37 @@ namespace WoWonder.Activities.Jobs
                     };
                     
                     var (apiStatus, respond) = await RequestsAsync.Jobs.ApplyJob(dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageJobObject result)
+                        case 200:
                         {
-                            Console.WriteLine(result.MessageData);
-                            Toast.MakeText(this, "You have successfully applied to this job", ToastLength.Short)?.Show();
-                            AndHUD.Shared.Dismiss(this);
+                            switch (respond)
+                            {
+                                case MessageJobObject result:
+                                {
+                                    Console.WriteLine(result.MessageData);
+                                    Toast.MakeText(this, "You have successfully applied to this job", ToastLength.Short)?.Show();
+                                    AndHUD.Shared.Dismiss(this);
 
-                           var data =  JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
-                           if (data != null)
-                           {
-                               data.Apply = "true"; 
-                               JobsActivity.GetInstance().MAdapter.NotifyItemChanged(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(data));
-                           }
+                                    var data =  JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
+                                    if (data != null)
+                                    {
+                                        data.Apply = "true"; 
+                                        JobsActivity.GetInstance().MAdapter.NotifyItemChanged(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(data));
+                                    }
 
-                           SetResult(Result.Ok);
-                           Finish();
+                                    SetResult(Result.Ok);
+                                    Finish();
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
-                    }
-                    else Methods.DisplayAndHudErrorResult(this, respond); 
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
+                    } 
                 }
                 else
                 {
@@ -437,24 +454,28 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Location when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Location when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -532,8 +553,12 @@ namespace WoWonder.Activities.Jobs
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == 502 && resultCode == Result.Ok) 
-                    GetPlaceFromPicker(data);
+                switch (requestCode)
+                {
+                    case 502 when resultCode == Result.Ok:
+                        GetPlaceFromPicker(data);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -548,17 +573,15 @@ namespace WoWonder.Activities.Jobs
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 105)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open intent Camera when the request code of result is 503
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
-                    {
+                        break;
+                    case 105:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -641,8 +664,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionOneLayout.LayoutResource = Resource.Layout.ViewSub_Question_EditText;
 
-                        if (InflatedQuestionOne == null)
-                            InflatedQuestionOne = QuestionOneLayout.Inflate();
+                        InflatedQuestionOne = InflatedQuestionOne switch
+                        {
+                            null => QuestionOneLayout.Inflate(),
+                            _ => InflatedQuestionOne
+                        };
 
                         QuestionOneLayout.Visibility = ViewStates.Visible;
 
@@ -669,8 +695,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionOneLayout.LayoutResource = Resource.Layout.ViewSub_Question_CheckBox;
 
-                        if (InflatedQuestionOne == null)
-                            InflatedQuestionOne = QuestionOneLayout.Inflate();
+                        InflatedQuestionOne = InflatedQuestionOne switch
+                        {
+                            null => QuestionOneLayout.Inflate(),
+                            _ => InflatedQuestionOne
+                        };
 
                         QuestionOneLayout.Visibility = ViewStates.Visible;
 
@@ -684,9 +713,15 @@ namespace WoWonder.Activities.Jobs
                             try
                             {
                                 var isChecked = RdoYes.Checked;
-                                if (!isChecked) return;
-                                RdoNo.Checked = false;
-                                QuestionOneAnswer = "yes";
+                                switch (isChecked)
+                                {
+                                    case false:
+                                        return;
+                                    default:
+                                        RdoNo.Checked = false;
+                                        QuestionOneAnswer = "yes";
+                                        break;
+                                }
                             }
                             catch (Exception e)
                             {
@@ -698,9 +733,15 @@ namespace WoWonder.Activities.Jobs
                             try
                             {
                                 var isChecked = RdoNo.Checked;
-                                if (!isChecked) return;
-                                RdoNo.Checked = false;
-                                QuestionOneAnswer = "no";
+                                switch (isChecked)
+                                {
+                                    case false:
+                                        return;
+                                    default:
+                                        RdoNo.Checked = false;
+                                        QuestionOneAnswer = "no";
+                                        break;
+                                }
                             }
                             catch (Exception e)
                             {
@@ -713,8 +754,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionOneLayout.LayoutResource = Resource.Layout.ViewSub_Question_List;
 
-                        if (InflatedQuestionOne == null)
-                            InflatedQuestionOne = QuestionOneLayout.Inflate();
+                        InflatedQuestionOne = InflatedQuestionOne switch
+                        {
+                            null => QuestionOneLayout.Inflate(),
+                            _ => InflatedQuestionOne
+                        };
 
                         QuestionOneLayout.Visibility = ViewStates.Visible;
 
@@ -732,8 +776,12 @@ namespace WoWonder.Activities.Jobs
                             var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
                             var arrayAdapter = new List<string>();
-                            if (DataInfoObject.QuestionOneAnswers?.Count > 0)
-                                arrayAdapter = DataInfoObject.QuestionOneAnswers;
+                            switch (DataInfoObject.QuestionOneAnswers?.Count)
+                            {
+                                case > 0:
+                                    arrayAdapter = DataInfoObject.QuestionOneAnswers;
+                                    break;
+                            }
                              
                             dialogList.Title(Methods.FunString.DecodeString(DataInfoObject.QuestionOne)); 
                             dialogList.Items(arrayAdapter);
@@ -758,8 +806,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionTwoLayout.LayoutResource = Resource.Layout.ViewSub_Question_EditText;
 
-                        if (InflatedQuestionTwo == null)
-                            InflatedQuestionTwo = QuestionTwoLayout.Inflate();
+                        InflatedQuestionTwo = InflatedQuestionTwo switch
+                        {
+                            null => QuestionTwoLayout.Inflate(),
+                            _ => InflatedQuestionTwo
+                        };
 
                         QuestionTwoLayout.Visibility = ViewStates.Visible;
 
@@ -786,8 +837,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionTwoLayout.LayoutResource = Resource.Layout.ViewSub_Question_CheckBox;
 
-                        if (InflatedQuestionTwo == null)
-                            InflatedQuestionTwo = QuestionTwoLayout.Inflate();
+                        InflatedQuestionTwo = InflatedQuestionTwo switch
+                        {
+                            null => QuestionTwoLayout.Inflate(),
+                            _ => InflatedQuestionTwo
+                        };
 
                         QuestionTwoLayout.Visibility = ViewStates.Visible;
 
@@ -801,9 +855,15 @@ namespace WoWonder.Activities.Jobs
                             try
                             {
                                 var isChecked = RdoYes.Checked;
-                                if (!isChecked) return;
-                                RdoNo.Checked = false;
-                                QuestionTwoAnswer = "yes";
+                                switch (isChecked)
+                                {
+                                    case false:
+                                        return;
+                                    default:
+                                        RdoNo.Checked = false;
+                                        QuestionTwoAnswer = "yes";
+                                        break;
+                                }
                             }
                             catch (Exception e)
                             {
@@ -815,9 +875,15 @@ namespace WoWonder.Activities.Jobs
                             try
                             {
                                 var isChecked = RdoNo.Checked;
-                                if (!isChecked) return;
-                                RdoNo.Checked = false;
-                                QuestionTwoAnswer = "no";
+                                switch (isChecked)
+                                {
+                                    case false:
+                                        return;
+                                    default:
+                                        RdoNo.Checked = false;
+                                        QuestionTwoAnswer = "no";
+                                        break;
+                                }
                             }
                             catch (Exception e)
                             {
@@ -830,8 +896,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionTwoLayout.LayoutResource = Resource.Layout.ViewSub_Question_List;
 
-                        if (InflatedQuestionTwo == null)
-                            InflatedQuestionTwo = QuestionTwoLayout.Inflate();
+                        InflatedQuestionTwo = InflatedQuestionTwo switch
+                        {
+                            null => QuestionTwoLayout.Inflate(),
+                            _ => InflatedQuestionTwo
+                        };
 
                         QuestionTwoLayout.Visibility = ViewStates.Visible;
 
@@ -850,8 +919,12 @@ namespace WoWonder.Activities.Jobs
                             var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
                             var arrayAdapter = new List<string>();
-                            if (DataInfoObject.QuestionTwoAnswers?.Count > 0)
-                                arrayAdapter = DataInfoObject.QuestionTwoAnswers;
+                            switch (DataInfoObject.QuestionTwoAnswers?.Count)
+                            {
+                                case > 0:
+                                    arrayAdapter = DataInfoObject.QuestionTwoAnswers;
+                                    break;
+                            }
 
                             dialogList.Title(Methods.FunString.DecodeString(DataInfoObject.QuestionTwo));
                             dialogList.Items(arrayAdapter);
@@ -876,8 +949,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionThreeLayout.LayoutResource = Resource.Layout.ViewSub_Question_EditText;
 
-                        if (InflatedQuestionThree == null)
-                            InflatedQuestionThree = QuestionThreeLayout.Inflate();
+                        InflatedQuestionThree = InflatedQuestionThree switch
+                        {
+                            null => QuestionThreeLayout.Inflate(),
+                            _ => InflatedQuestionThree
+                        };
 
                         QuestionThreeLayout.Visibility = ViewStates.Visible;
 
@@ -904,8 +980,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionThreeLayout.LayoutResource = Resource.Layout.ViewSub_Question_CheckBox;
 
-                        if (InflatedQuestionThree == null)
-                            InflatedQuestionThree = QuestionThreeLayout.Inflate();
+                        InflatedQuestionThree = InflatedQuestionThree switch
+                        {
+                            null => QuestionThreeLayout.Inflate(),
+                            _ => InflatedQuestionThree
+                        };
 
                         QuestionThreeLayout.Visibility = ViewStates.Visible;
 
@@ -919,9 +998,15 @@ namespace WoWonder.Activities.Jobs
                             try
                             {
                                 var isChecked = RdoYes.Checked;
-                                if (!isChecked) return;
-                                RdoNo.Checked = false;
-                                QuestionThreeAnswer = "yes";
+                                switch (isChecked)
+                                {
+                                    case false:
+                                        return;
+                                    default:
+                                        RdoNo.Checked = false;
+                                        QuestionThreeAnswer = "yes";
+                                        break;
+                                }
                             }
                             catch (Exception e)
                             {
@@ -933,9 +1018,15 @@ namespace WoWonder.Activities.Jobs
                             try
                             {
                                 var isChecked = RdoNo.Checked;
-                                if (!isChecked) return;
-                                RdoNo.Checked = false;
-                                QuestionThreeAnswer = "no";
+                                switch (isChecked)
+                                {
+                                    case false:
+                                        return;
+                                    default:
+                                        RdoNo.Checked = false;
+                                        QuestionThreeAnswer = "no";
+                                        break;
+                                }
                             }
                             catch (Exception e)
                             {
@@ -948,8 +1039,11 @@ namespace WoWonder.Activities.Jobs
                     {
                         QuestionThreeLayout.LayoutResource = Resource.Layout.ViewSub_Question_List;
 
-                        if (InflatedQuestionThree == null)
-                            InflatedQuestionThree = QuestionThreeLayout.Inflate();
+                        InflatedQuestionThree = InflatedQuestionThree switch
+                        {
+                            null => QuestionThreeLayout.Inflate(),
+                            _ => InflatedQuestionThree
+                        };
 
                         QuestionThreeLayout.Visibility = ViewStates.Visible;
 
@@ -968,8 +1062,12 @@ namespace WoWonder.Activities.Jobs
                             var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
                             var arrayAdapter = new List<string>();
-                            if (DataInfoObject.QuestionThreeAnswers?.Count > 0)
-                                arrayAdapter = DataInfoObject.QuestionThreeAnswers;
+                            switch (DataInfoObject.QuestionThreeAnswers?.Count)
+                            {
+                                case > 0:
+                                    arrayAdapter = DataInfoObject.QuestionThreeAnswers;
+                                    break;
+                            }
 
                             dialogList.Title(Methods.FunString.DecodeString(DataInfoObject.QuestionThree));
                             dialogList.Items(arrayAdapter);
@@ -999,9 +1097,12 @@ namespace WoWonder.Activities.Jobs
             try
             {
                 var placeAddress = data.GetStringExtra("Address") ?? "";
-                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                if (!string.IsNullOrEmpty(placeAddress))
-                    TxtLocation.Text = placeAddress;
+                TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
+                {
+                    //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                    false => placeAddress,
+                    _ => TxtLocation.Text
+                };
             }
             catch (Exception e)
             {
@@ -1014,7 +1115,11 @@ namespace WoWonder.Activities.Jobs
             try
             {
                 var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                if (dataUser == null) return;
+                switch (dataUser)
+                {
+                    case null:
+                        return;
+                }
                 TxtName.Text = WoWonderTools.GetNameFinal(dataUser); 
                 TxtPhone.Text = dataUser.PhoneNumber;
                 TxtEmail.Text = dataUser.Email;

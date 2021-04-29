@@ -172,8 +172,12 @@ namespace WoWonder.Activities.Comment.Fragment
                     return;
                 }
 
-                if (UserDetails.SoundControl)
-                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("reaction.mp3");
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("reaction.mp3");
+                        break;
+                }
                  
                 PostData.CommentObject.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
 
@@ -200,10 +204,12 @@ namespace WoWonder.Activities.Comment.Fragment
                     PostData.Holder.LikeTextView.Tag = "Liked";
                 }
 
-                string reactionType = "reaction_comment";
-                if (TypeClass == "Reply")
-                    reactionType = "reaction_reply";
-                 
+                string reactionType = TypeClass switch
+                {
+                    "Reply" => "reaction_reply",
+                    _ => "reaction_comment"
+                };
+
                 if (e.React == ReactConstants.Like)
                 {
                     PostData.Holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);

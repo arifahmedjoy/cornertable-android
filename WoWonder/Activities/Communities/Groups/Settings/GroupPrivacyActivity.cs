@@ -205,21 +205,21 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtCreate.Click += TxtCreateOnClick;
-                    TxtJoinPrivacy.Touch += TxtJoinPrivacyOnTouch;
-                    RadioPublic.CheckedChange += RbPublicOnCheckedChange;
-                    RadioPrivate.CheckedChange += RbPrivateOnCheckedChange;
-
-                }
-                else
-                {
-                    TxtCreate.Click -= TxtCreateOnClick;
-                    TxtJoinPrivacy.Touch -= TxtJoinPrivacyOnTouch;
-                    RadioPublic.CheckedChange -= RbPublicOnCheckedChange;
-                    RadioPrivate.CheckedChange -= RbPrivateOnCheckedChange;
+                    // true +=  // false -=
+                    case true:
+                        TxtCreate.Click += TxtCreateOnClick;
+                        TxtJoinPrivacy.Touch += TxtJoinPrivacyOnTouch;
+                        RadioPublic.CheckedChange += RbPublicOnCheckedChange;
+                        RadioPrivate.CheckedChange += RbPrivateOnCheckedChange;
+                        break;
+                    default:
+                        TxtCreate.Click -= TxtCreateOnClick;
+                        TxtJoinPrivacy.Touch -= TxtJoinPrivacyOnTouch;
+                        RadioPublic.CheckedChange -= RbPublicOnCheckedChange;
+                        RadioPrivate.CheckedChange -= RbPrivateOnCheckedChange;
+                        break;
                 }
             }
             catch (Exception e)
@@ -261,10 +261,12 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             try
             {
                 var isChecked = RadioPrivate.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RadioPublic.Checked = false;
-                    GroupPrivacy = "2";
+                    case true:
+                        RadioPublic.Checked = false;
+                        GroupPrivacy = "2";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -278,10 +280,12 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             try
             {
                 var isChecked = RadioPublic.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RadioPrivate.Checked = false;
-                    GroupPrivacy = "1";
+                    case true:
+                        RadioPrivate.Checked = false;
+                        GroupPrivacy = "1";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -321,29 +325,37 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                 };
 
                 var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Data(GroupsId, dictionary);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is MessageObject result)
+                    case 200:
                     {
-                        AndHUD.Shared.Dismiss(this);
-                        Console.WriteLine(result.Message);
-                        GroupData.Privacy = GroupPrivacy;
-                        GroupData.JoinPrivacy = JoinPrivacyId;
+                        switch (respond)
+                        {
+                            case MessageObject result:
+                            {
+                                AndHUD.Shared.Dismiss(this);
+                                Console.WriteLine(result.Message);
+                                GroupData.Privacy = GroupPrivacy;
+                                GroupData.JoinPrivacy = JoinPrivacyId;
 
-                        GroupProfileActivity.GroupDataClass = GroupData;
+                                GroupProfileActivity.GroupDataClass = GroupData;
 
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short)?.Show();  
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short)?.Show();  
 
-                        Intent returnIntent = new Intent();
-                        returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(GroupData));
-                        SetResult(Result.Ok, returnIntent);
+                                Intent returnIntent = new Intent();
+                                returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(GroupData));
+                                SetResult(Result.Ok, returnIntent);
 
-                        Finish();
+                                Finish();
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                   Methods.DisplayAndHudErrorResult(this, respond);
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 }
             }
             catch (Exception exception)
@@ -383,18 +395,22 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
         {
             try
-            { 
-                if (TypeDialog == "JoinPrivacy")
+            {
+                switch (TypeDialog)
                 {
-                    if (itemString.ToString() == GetString(Resource.String.Lbl_Yes))
-                    {
+                    case "JoinPrivacy" when itemString.ToString() == GetString(Resource.String.Lbl_Yes):
                         JoinPrivacyId = "2";
                         TxtJoinPrivacy.Text = GetString(Resource.String.Lbl_Yes);
-                    }
-                    else if (itemString.ToString() == GetString(Resource.String.Lbl_No))
+                        break;
+                    case "JoinPrivacy":
                     {
-                        JoinPrivacyId = "1";
-                        TxtJoinPrivacy.Text = GetString(Resource.String.Lbl_No);
+                        if (itemString.ToString() == GetString(Resource.String.Lbl_No))
+                        {
+                            JoinPrivacyId = "1";
+                            TxtJoinPrivacy.Text = GetString(Resource.String.Lbl_No);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -432,15 +448,18 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                 GroupData = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("GroupData"));
                 if (GroupData != null)
                 {
-                    if (GroupData.Privacy == "1") //Public
+                    switch (GroupData.Privacy)
                     {
-                        RadioPrivate.Checked = false;
-                        RadioPublic.Checked = true; 
-                    }
-                    else //Private
-                    {
-                        RadioPrivate.Checked = true;
-                        RadioPublic.Checked = false;
+                        //Public
+                        case "1":
+                            RadioPrivate.Checked = false;
+                            RadioPublic.Checked = true;
+                            break;
+                        //Private
+                        default:
+                            RadioPrivate.Checked = true;
+                            RadioPublic.Checked = false;
+                            break;
                     }
 
                     GroupPrivacy = GroupData.Privacy;

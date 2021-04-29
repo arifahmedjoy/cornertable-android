@@ -72,10 +72,16 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
-                    item.PostLikes = item.Reaction?.Count == null ? "0" : item.Reaction?.Count.ToString();
-                else
-                    item.PostLikes = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.PostLikes));
+                switch (AppSettings.PostButton)
+                {
+                    case PostButtonSystem.ReactionDefault:
+                    case PostButtonSystem.ReactionSubShine:
+                        item.PostLikes = item.Reaction?.Count == null ? "0" : item.Reaction?.Count.ToString();
+                        break;
+                    default:
+                        item.PostLikes = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.PostLikes));
+                        break;
+                }
 
                 item.PrevButtonViewText = PostFeedType switch
                 {
@@ -94,23 +100,31 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (!string.IsNullOrEmpty(item.Blog?.Title))
+                switch (string.IsNullOrEmpty(item.Blog?.Title))
                 {
-                    var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Blog?.Title, 60));
-                    item.Blog.Title = prepareTitle;
-
+                    case false:
+                    {
+                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Blog?.Title, 60));
+                        item.Blog.Title = prepareTitle;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.Blog?.Description))
+                switch (string.IsNullOrEmpty(item.Blog?.Description))
                 {
-                    var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Blog?.Title, 120));
-                    item.Blog.Description = prepareDescription;
+                    case false:
+                    {
+                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Blog?.Title, 120));
+                        item.Blog.Description = prepareDescription;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.Blog?.CategoryName))
+                item.Blog.CategoryName = string.IsNullOrEmpty(item.Blog?.CategoryName) switch
                 {
-                    item.Blog.CategoryName = item.Blog?.CategoryName;
-                }
+                    false => item.Blog?.CategoryName,
+                    _ => item.Blog.CategoryName
+                };
             }
             catch (Exception e)
             {
@@ -131,22 +145,33 @@ namespace WoWonder.Activities.NativePost.Extra
 
                     if (getColorObject.Value != null)
                     {
-                        if (!string.IsNullOrEmpty(getColorObject.Value.Image))
+                        switch (string.IsNullOrEmpty(getColorObject.Value.Image))
                         {
-                            item.ColorBoxImageUrl = getColorObject.Value.Image;
-                        }
-                        else
-                        {
-                            var colorsList = new List<int>();
+                            case false:
+                                item.ColorBoxImageUrl = getColorObject.Value.Image;
+                                break;
+                            default:
+                            {
+                                var colorsList = new List<int>();
 
-                            if (!string.IsNullOrEmpty(getColorObject.Value.Color1))
-                                colorsList.Add(Color.ParseColor(getColorObject.Value.Color1));
+                                switch (string.IsNullOrEmpty(getColorObject.Value.Color1))
+                                {
+                                    case false:
+                                        colorsList.Add(Color.ParseColor(getColorObject.Value.Color1));
+                                        break;
+                                }
 
-                            if (!string.IsNullOrEmpty(getColorObject.Value.Color2))
-                                colorsList.Add(Color.ParseColor(getColorObject.Value.Color2));
+                                switch (string.IsNullOrEmpty(getColorObject.Value.Color2))
+                                {
+                                    case false:
+                                        colorsList.Add(Color.ParseColor(getColorObject.Value.Color2));
+                                        break;
+                                }
 
-                            item.ColorBoxGradientDrawable = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
-                            item.ColorBoxGradientDrawable.SetCornerRadius(0f);
+                                item.ColorBoxGradientDrawable = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
+                                item.ColorBoxGradientDrawable.SetCornerRadius(0f);
+                                break;
+                            }
                         }
 
                         item.ColorBoxTextColor = Color.ParseColor(getColorObject.Value.TextColor);
@@ -163,22 +188,33 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (!string.IsNullOrEmpty(item.Event?.EventClass?.Name))
+                switch (string.IsNullOrEmpty(item.Event?.EventClass?.Name))
                 {
-                    var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Event?.EventClass?.Name, 100));
-                    item.Event.Value.EventClass.Name = prepareTitle;
-
+                    case false:
+                    {
+                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Event?.EventClass?.Name, 100));
+                        item.Event.Value.EventClass.Name = prepareTitle;
+                        break;
+                    }
                 }
-                if (!string.IsNullOrEmpty(item.Event?.EventClass?.Description))
+                switch (string.IsNullOrEmpty(item.Event?.EventClass?.Description))
                 {
-                    var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Event?.EventClass?.Description, 100));
-                    item.Event.Value.EventClass.Description = prepareDescription;
+                    case false:
+                    {
+                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Event?.EventClass?.Description, 100));
+                        item.Event.Value.EventClass.Description = prepareDescription;
+                        break;
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(item.Event?.EventClass?.Location))
+                switch (string.IsNullOrEmpty(item.Event?.EventClass?.Location))
                 {
-                    var prepareLocation = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Event?.EventClass?.Location, 60));
-                    item.Event.Value.EventClass.Location = prepareLocation;
+                    case false:
+                    {
+                        var prepareLocation = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Event?.EventClass?.Location, 60));
+                        item.Event.Value.EventClass.Location = prepareLocation;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -191,20 +227,32 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             { 
-                if (!string.IsNullOrEmpty(item.PostLink))
+                switch (string.IsNullOrEmpty(item.PostLink))
                 {
-                    var prepareUrl = item.PostLink.Replace("https://", "").Replace("http://", "").Split('/').FirstOrDefault();
-                    item.PostLink = prepareUrl;
+                    case false:
+                    {
+                        var prepareUrl = item.PostLink.Replace("https://", "").Replace("http://", "").Split('/').FirstOrDefault();
+                        item.PostLink = prepareUrl;
+                        break;
+                    }
                 }
-                if (!string.IsNullOrEmpty(item.PostLinkContent))
+                switch (string.IsNullOrEmpty(item.PostLinkContent))
                 {
-                    var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.PostLinkContent, 100));
-                    item.PostLinkContent = prepareDescription;
+                    case false:
+                    {
+                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.PostLinkContent, 100));
+                        item.PostLinkContent = prepareDescription;
+                        break;
+                    }
                 }
-                if (!string.IsNullOrEmpty(item.PostLinkTitle))
+                switch (string.IsNullOrEmpty(item.PostLinkTitle))
                 {
-                    var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.PostLinkTitle, 100));
-                    item.PostLinkTitle = prepareTitle;
+                    case false:
+                    {
+                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.PostLinkTitle, 100));
+                        item.PostLinkTitle = prepareTitle;
+                        break;
+                    }
                 } 
             }
             catch (Exception e)
@@ -217,20 +265,28 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             { 
-                if (!string.IsNullOrEmpty(item.PostLink))
+                switch (string.IsNullOrEmpty(item.PostLink))
                 {
-                    item.PostTikTok = item.PostLink;
+                    case false:
+                    {
+                        item.PostTikTok = item.PostLink;
 
-                    var prepareUrl = item.PostLink.Replace("https://", "").Replace("http://", "").Split('/').FirstOrDefault();
-                    item.PostLink = prepareUrl;
+                        var prepareUrl = item.PostLink.Replace("https://", "").Replace("http://", "").Split('/').FirstOrDefault();
+                        item.PostLink = prepareUrl;
+                        break;
+                    }
                 }
 
                 item.PostLinkContent = string.Empty;
 
-                if (!string.IsNullOrEmpty(item.PostLinkTitle))
+                switch (string.IsNullOrEmpty(item.PostLinkTitle))
                 {
-                    var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.PostLinkTitle, 100));
-                    item.PostLinkTitle = prepareTitle;
+                    case false:
+                    {
+                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.PostLinkTitle, 100));
+                        item.PostLinkTitle = prepareTitle;
+                        break;
+                    }
                 }
                 if (string.IsNullOrEmpty(item.PostLinkImage))
                 {
@@ -325,33 +381,43 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 if (item.FundData != null)
                 {
-                    if (!string.IsNullOrEmpty(item.FundData.Value.FundDataClass?.Title))
+                    switch (string.IsNullOrEmpty(item.FundData.Value.FundDataClass?.Title))
                     {
-                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.FundData.Value.FundDataClass?.Title, 100));
-                        item.FundData.Value.FundDataClass.Title = prepareTitle;
+                        case false:
+                        {
+                            var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.FundData.Value.FundDataClass?.Title, 100));
+                            item.FundData.Value.FundDataClass.Title = prepareTitle;
+                            break;
+                        }
                     }
 
                     bool success = int.TryParse(item.FundData.Value.FundDataClass.Time, out var number);
-                    if (success)
+                    switch (success)
                     {
-                        Console.WriteLine("Converted '{0}' to {1}.", item.FundData.Value.FundDataClass.Time, number);
-                        item.FundData.Value.FundDataClass.Time = Methods.Time.TimeAgo(number, false);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Attempted conversion of '{0}' failed.", item.FundData.Value.FundDataClass.Time ?? "<null>");
-                        item.FundData.Value.FundDataClass.Time = Methods.Time.ReplaceTime(item.FundData.Value.FundDataClass.Time);
+                        case true:
+                            Console.WriteLine("Converted '{0}' to {1}.", item.FundData.Value.FundDataClass.Time, number);
+                            item.FundData.Value.FundDataClass.Time = Methods.Time.TimeAgo(number, false);
+                            break;
+                        default:
+                            Console.WriteLine("Attempted conversion of '{0}' failed.", item.FundData.Value.FundDataClass.Time ?? "<null>");
+                            item.FundData.Value.FundDataClass.Time = Methods.Time.ReplaceTime(item.FundData.Value.FundDataClass.Time);
+                            break;
                     }
 
-                    if (!string.IsNullOrEmpty(item.FundData.Value.FundDataClass?.Description))
+                    switch (string.IsNullOrEmpty(item.FundData.Value.FundDataClass?.Description))
                     {
-                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.FundData.Value.FundDataClass?.Description, 100));
-                        item.FundData.Value.FundDataClass.Description = prepareDescription;
-                    }
-                    else
-                    {
-                        if (item.FundData.Value.FundDataClass != null)
-                            item.FundData.Value.FundDataClass.Description = MainContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                        case false:
+                        {
+                            var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.FundData.Value.FundDataClass?.Description, 100));
+                            item.FundData.Value.FundDataClass.Description = prepareDescription;
+                            break;
+                        }
+                        default:
+                        {
+                            if (item.FundData.Value.FundDataClass != null)
+                                item.FundData.Value.FundDataClass.Description = MainContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                            break;
+                        }
                     }
 
                     try
@@ -390,33 +456,43 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 if (item?.Fund?.PurpleFund?.Fund != null)
                 {
-                    if (!string.IsNullOrEmpty(item?.Fund?.PurpleFund?.Fund?.Title))
+                    switch (string.IsNullOrEmpty(item?.Fund?.PurpleFund?.Fund?.Title))
                     {
-                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Fund.Value.PurpleFund.Fund?.Title, 100));
-                        item.Fund.Value.PurpleFund.Fund.Title = prepareTitle;
+                        case false:
+                        {
+                            var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Fund.Value.PurpleFund.Fund?.Title, 100));
+                            item.Fund.Value.PurpleFund.Fund.Title = prepareTitle;
+                            break;
+                        }
                     }
                      
                     bool success = int.TryParse(item?.Fund?.PurpleFund?.Fund.Time, out var number);
-                    if (success)
+                    switch (success)
                     {
-                        Console.WriteLine("Converted '{0}' to {1}.", item?.Fund?.PurpleFund?.Fund.Time, number);
-                        item.Fund.Value.PurpleFund.Fund.Time = Methods.Time.TimeAgo(number, false);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Attempted conversion of '{0}' failed.", item?.Fund?.PurpleFund?.Fund.Time ?? "<null>");
-                        item.Fund.Value.PurpleFund.Fund.Time = Methods.Time.ReplaceTime(item?.Fund?.PurpleFund?.Fund.Time);
+                        case true:
+                            Console.WriteLine("Converted '{0}' to {1}.", item?.Fund?.PurpleFund?.Fund.Time, number);
+                            item.Fund.Value.PurpleFund.Fund.Time = Methods.Time.TimeAgo(number, false);
+                            break;
+                        default:
+                            Console.WriteLine("Attempted conversion of '{0}' failed.", item?.Fund?.PurpleFund?.Fund.Time ?? "<null>");
+                            item.Fund.Value.PurpleFund.Fund.Time = Methods.Time.ReplaceTime(item?.Fund?.PurpleFund?.Fund.Time);
+                            break;
                     }
                      
-                    if (!string.IsNullOrEmpty(item?.Fund?.PurpleFund?.Fund?.Description))
+                    switch (string.IsNullOrEmpty(item?.Fund?.PurpleFund?.Fund?.Description))
                     {
-                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item?.Fund?.PurpleFund?.Fund?.Description, 100));
-                        item.Fund.Value.PurpleFund.Fund.Description = prepareDescription;
-                    }
-                    else
-                    {
-                        if (item?.Fund?.PurpleFund?.Fund != null)
-                            item.Fund.Value.PurpleFund.Fund.Description = MainContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                        case false:
+                        {
+                            var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item?.Fund?.PurpleFund?.Fund?.Description, 100));
+                            item.Fund.Value.PurpleFund.Fund.Description = prepareDescription;
+                            break;
+                        }
+                        default:
+                        {
+                            if (item?.Fund?.PurpleFund?.Fund != null)
+                                item.Fund.Value.PurpleFund.Fund.Description = MainContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                            break;
+                        }
                     }
 
                     try
@@ -439,7 +515,7 @@ namespace WoWonder.Activities.NativePost.Extra
 
                     if (item.Fund.Value.PurpleFund.Fund.Bar != null && item.Fund.Value.PurpleFund.Fund.Bar.Value > 0)
                     {
-                        item.Fund.Value.PurpleFund.Fund.Bar = item.Fund.Value.PurpleFund.Fund.Bar.Value; 
+                        item.Fund.Value.PurpleFund.Fund.Bar = item.Fund.Value.PurpleFund.Fund.Bar.Value;
                     }
                 }
             }
@@ -453,29 +529,47 @@ namespace WoWonder.Activities.NativePost.Extra
         { 
             try
             {
-                if (item.Product?.ProductClass?.Seller == null)
-                    if (item.Product != null)
-                        item.Product.Value.ProductClass.Seller = item.Publisher;
+                switch (item.Product?.ProductClass?.Seller)
+                {
+                    case null:
+                    {
+                        if (item.Product != null)
+                            item.Product.Value.ProductClass.Seller = item.Publisher;
+                        break;
+                    }
+                }
 
                 if (item.Product?.ProductClass != null)
                 {
-                    if (!string.IsNullOrEmpty(item.Product.Value.ProductClass?.Location))
+                    switch (string.IsNullOrEmpty(item.Product.Value.ProductClass?.Location))
                     {
-                        item.Product.Value.ProductClass.LocationDecodedText = item.Product.Value.ProductClass?.Location;
-                        var prepareLocation = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product.Value.ProductClass?.Location, 100));
-                        item.Product.Value.ProductClass.LocationDecodedText = prepareLocation;
+                        case false:
+                        {
+                            item.Product.Value.ProductClass.LocationDecodedText = item.Product.Value.ProductClass?.Location;
+                            var prepareLocation = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product.Value.ProductClass?.Location, 100));
+                            item.Product.Value.ProductClass.LocationDecodedText = prepareLocation;
+                            break;
+                        }
                     }
 
-                    if (!string.IsNullOrEmpty(item.Product.Value.ProductClass?.Name))
+                    switch (string.IsNullOrEmpty(item.Product.Value.ProductClass?.Name))
                     {
-                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product.Value.ProductClass?.Name, 100));
-                        item.Product.Value.ProductClass.Name = prepareTitle;
+                        case false:
+                        {
+                            var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product.Value.ProductClass?.Name, 100));
+                            item.Product.Value.ProductClass.Name = prepareTitle;
+                            break;
+                        }
                     }
 
-                    if (!string.IsNullOrEmpty(item.Product.Value.ProductClass?.Description))
+                    switch (string.IsNullOrEmpty(item.Product.Value.ProductClass?.Description))
                     {
-                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product.Value.ProductClass?.Description, 100));
-                        item.Product.Value.ProductClass.Description = prepareDescription;
+                        case false:
+                        {
+                            var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product.Value.ProductClass?.Description, 100));
+                            item.Product.Value.ProductClass.Description = prepareDescription;
+                            break;
+                        }
                     }
 
                     var (currency, currencyIcon) = WoWonderTools.GetCurrency(item.Product.Value.ProductClass?.Currency);
@@ -498,15 +592,24 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (!string.IsNullOrEmpty(item.Offer?.OfferClass?.OfferText))
+                switch (string.IsNullOrEmpty(item.Offer?.OfferClass?.OfferText))
                 {
-                    var prepareOfferText = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Offer?.OfferClass?.OfferText, 100));
-                    item.Offer.Value.OfferClass.OfferText = prepareOfferText;
+                    case false:
+                    {
+                        var prepareOfferText = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Offer?.OfferClass?.OfferText, 100));
+                        item.Offer.Value.OfferClass.OfferText = prepareOfferText;
+                        break;
+                    }
                 }
-                if (!string.IsNullOrEmpty(item.Offer?.OfferClass?.Description))
+
+                switch (string.IsNullOrEmpty(item.Offer?.OfferClass?.Description))
                 {
-                    var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Offer?.OfferClass?.Description, 100));
-                    item.Offer.Value.OfferClass.Description = prepareDescription;
+                    case false:
+                    {
+                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Offer?.OfferClass?.Description, 100));
+                        item.Offer.Value.OfferClass.Description = prepareDescription;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -519,25 +622,28 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (!item.PostMap.Contains("https://maps.googleapis.com/maps/api/staticmap?"))
+                switch (item.PostMap.Contains("https://maps.googleapis.com/maps/api/staticmap?"))
                 {
-                    string imageUrlMap = "https://maps.googleapis.com/maps/api/staticmap?";
-                    //imageUrlMap += "center=" + item.CurrentLatitude + "," + item.CurrentLongitude;
-                    imageUrlMap += "center=" + item.PostMap.Replace("/", "");
-                    imageUrlMap += "&zoom=10";
-                    imageUrlMap += "&scale=1";
-                    imageUrlMap += "&size=300x300";
-                    imageUrlMap += "&maptype=roadmap";
-                    imageUrlMap += "&key=" + MainContext.GetText(Resource.String.google_maps_key);
-                    imageUrlMap += "&format=png";
-                    imageUrlMap += "&visual_refresh=true";
-                    imageUrlMap += "&markers=size:small|color:0xff0000|label:1|" + item.PostMap.Replace("/", "");
+                    case false:
+                    {
+                        string imageUrlMap = "https://maps.googleapis.com/maps/api/staticmap?";
+                        //imageUrlMap += "center=" + item.CurrentLatitude + "," + item.CurrentLongitude;
+                        imageUrlMap += "center=" + item.PostMap.Replace("/", "");
+                        imageUrlMap += "&zoom=10";
+                        imageUrlMap += "&scale=1";
+                        imageUrlMap += "&size=300x300";
+                        imageUrlMap += "&maptype=roadmap";
+                        imageUrlMap += "&key=" + MainContext.GetText(Resource.String.google_maps_key);
+                        imageUrlMap += "&format=png";
+                        imageUrlMap += "&visual_refresh=true";
+                        imageUrlMap += "&markers=size:small|color:0xff0000|label:1|" + item.PostMap.Replace("/", "");
 
-                    item.ImageUrlMap = imageUrlMap;
-                }
-                else
-                {
-                    item.ImageUrlMap = item.PostMap;
+                        item.ImageUrlMap = imageUrlMap;
+                        break;
+                    }
+                    default:
+                        item.ImageUrlMap = item.PostMap;
+                        break;
                 }
 
                 var latLng = await GetLocationFromAddress(item.PostMap).ConfigureAwait(false);
@@ -565,8 +671,11 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var address = await coder.GetFromLocationNameAsync(strAddress, 2);
-                if (address?.Count > 0)
-                    return null!;
+                switch (address?.Count)
+                {
+                    case > 0:
+                        return null!;
+                }
 
                 Address location = address[0];
                 var lat = location.Latitude;
@@ -611,20 +720,32 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 if (item.Job != null)
                 {
-                    if (!item.Job.Value.JobInfoClass.Image.Contains(Client.WebsiteUrl))
-                        item.Job.Value.JobInfoClass.Image = WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image);
+                    item.Job.Value.JobInfoClass.Image =
+                        item.Job.Value.JobInfoClass.Image.Contains(Client.WebsiteUrl) switch
+                        {
+                            false => WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image),
+                            _ => item.Job.Value.JobInfoClass.Image
+                        };
 
                     item.Job.Value.JobInfoClass.IsOwner = item.Job.Value.JobInfoClass.UserId == UserDetails.UserId;
                      
-                    if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Title))
+                    switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Title))
                     {
-                        var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Job.Value.JobInfoClass.Title, 100));
-                        item.Job.Value.JobInfoClass.Title = prepareTitle;
+                        case false:
+                        {
+                            var prepareTitle = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Job.Value.JobInfoClass.Title, 100));
+                            item.Job.Value.JobInfoClass.Title = prepareTitle;
+                            break;
+                        }
                     }
-                    if (!string.IsNullOrEmpty(item.Job?.JobInfoClass.Description))
+                    switch (string.IsNullOrEmpty(item.Job?.JobInfoClass.Description))
                     {
-                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Job?.JobInfoClass.Description, 200));
-                        item.Job.Value.JobInfoClass.Description = prepareDescription;
+                        case false:
+                        {
+                            var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Job?.JobInfoClass.Description, 200));
+                            item.Job.Value.JobInfoClass.Description = prepareDescription;
+                            break;
+                        }
                     }
 
                     if (item.Job.Value.JobInfoClass.Page != null)
@@ -636,60 +757,85 @@ namespace WoWonder.Activities.NativePost.Extra
                             item.Job.Value.JobInfoClass.ButtonText = MainContext.GetString(Resource.String.Lbl_show_applies) + " (" + item.Job.Value.JobInfoClass.ApplyCount + ")";
                     }
 
-                    if (item.Job.Value.JobInfoClass.Apply == "true")
+                    switch (item.Job.Value.JobInfoClass.Apply)
                     {
-                        var prepare = MainContext.GetString(Resource.String.Lbl_already_applied);
-                        item.Job.Value.JobInfoClass.ButtonText = prepare;
-                    }
-                    else if (item.Job.Value.JobInfoClass.Apply != "true" && item.Job.Value.JobInfoClass.Page.IsPageOnwer != null && !item.Job.Value.JobInfoClass.Page.IsPageOnwer.Value)
-                    {
-                        var prepare = MainContext.GetString(Resource.String.Lbl_apply_now);
-                        item.Job.Value.JobInfoClass.ButtonText = prepare; 
-                    }
-
-                    if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Time))
-                    {
-                        var prepareTime = Methods.Time.TimeAgo(Convert.ToInt32(item.Job.Value.JobInfoClass.Time), false);
-                        item.Job.Value.JobInfoClass.Time = prepareTime;
-                    }
-
-                    if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Location))
-                    {
-                        item.Job.Value.JobInfoClass.LocationDecodedText = item.Product?.ProductClass?.Location;
-                        var prepareLocation = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product?.ProductClass?.Location, 100));
-                        item.Job.Value.JobInfoClass.LocationDecodedText = prepareLocation;
-                    }
-
-                    //Set Salary Date
-                    if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.SalaryDate))
-                    {
-                        var salaryDate = item.Job.Value.JobInfoClass.SalaryDate switch
+                        case "true":
                         {
-                            "per_hour" => MainContext.GetString(Resource.String.Lbl_per_hour),
-                            "per_day" => MainContext.GetString(Resource.String.Lbl_per_day),
-                            "per_week" => MainContext.GetString(Resource.String.Lbl_per_week),
-                            "per_month" => MainContext.GetString(Resource.String.Lbl_per_month),
-                            "per_year" => MainContext.GetString(Resource.String.Lbl_per_year),
-                            _ => MainContext.GetString(Resource.String.Lbl_Unknown)
-                        };
+                            var prepare = MainContext.GetString(Resource.String.Lbl_already_applied);
+                            item.Job.Value.JobInfoClass.ButtonText = prepare;
+                            break;
+                        }
+                        default:
+                        {
+                            if (item.Job.Value.JobInfoClass.Apply != "true" && item.Job.Value.JobInfoClass.Page.IsPageOnwer != null && !item.Job.Value.JobInfoClass.Page.IsPageOnwer.Value)
+                            {
+                                var prepare = MainContext.GetString(Resource.String.Lbl_apply_now);
+                                item.Job.Value.JobInfoClass.ButtonText = prepare; 
+                            }
 
-                        item.Job.Value.JobInfoClass.SalaryDate = salaryDate;
+                            break;
+                        }
                     }
 
-                    if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.JobType))
+                    switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Time))
                     {
-                        var jobInfo = item.Job.Value.JobInfoClass.JobType switch
+                        case false:
                         {
-                            //Set job type
-                            "full_time" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_full_time),
-                            "part_time" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_part_time),
-                            "internship" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_internship),
-                            "volunteer" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_volunteer),
-                            "contract" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_contract),
-                            _ => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_Unknown)
-                        };
+                            var prepareTime = Methods.Time.TimeAgo(Convert.ToInt32(item.Job.Value.JobInfoClass.Time), false);
+                            item.Job.Value.JobInfoClass.Time = prepareTime;
+                            break;
+                        }
+                    }
 
-                        item.Job.Value.JobInfoClass.JobType = jobInfo;
+                    switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Location))
+                    {
+                        case false:
+                        {
+                            item.Job.Value.JobInfoClass.LocationDecodedText = item.Product?.ProductClass?.Location;
+                            var prepareLocation = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Product?.ProductClass?.Location, 100));
+                            item.Job.Value.JobInfoClass.LocationDecodedText = prepareLocation;
+                            break;
+                        }
+                    }
+
+                    switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.SalaryDate))
+                    {
+                        //Set Salary Date
+                        case false:
+                        {
+                            var salaryDate = item.Job.Value.JobInfoClass.SalaryDate switch
+                            {
+                                "per_hour" => MainContext.GetString(Resource.String.Lbl_per_hour),
+                                "per_day" => MainContext.GetString(Resource.String.Lbl_per_day),
+                                "per_week" => MainContext.GetString(Resource.String.Lbl_per_week),
+                                "per_month" => MainContext.GetString(Resource.String.Lbl_per_month),
+                                "per_year" => MainContext.GetString(Resource.String.Lbl_per_year),
+                                _ => MainContext.GetString(Resource.String.Lbl_Unknown)
+                            };
+
+                            item.Job.Value.JobInfoClass.SalaryDate = salaryDate;
+                            break;
+                        }
+                    }
+
+                    switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.JobType))
+                    {
+                        case false:
+                        {
+                            var jobInfo = item.Job.Value.JobInfoClass.JobType switch
+                            {
+                                //Set job type
+                                "full_time" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_full_time),
+                                "part_time" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_part_time),
+                                "internship" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_internship),
+                                "volunteer" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_volunteer),
+                                "contract" => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_contract),
+                                _ => IonIconsFonts.IosBriefcase + " " + MainContext.GetString(Resource.String.Lbl_Unknown)
+                            };
+
+                            item.Job.Value.JobInfoClass.JobType = jobInfo;
+                            break;
+                        }
                     }
 
 
@@ -708,10 +854,14 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (!string.IsNullOrEmpty(poll.Text))
+                switch (string.IsNullOrEmpty(poll.Text))
                 {
-                    var prepareText = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(poll.Text, 100));
-                    poll.Text = prepareText;
+                    case false:
+                    {
+                        var prepareText = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(poll.Text, 100));
+                        poll.Text = prepareText;
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -726,62 +876,70 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 //afternoon_system
                 var afternoonSystem = ListUtils.SettingsSiteList?.AfternoonSystem;
-                if (afternoonSystem == "1")
+                switch (afternoonSystem)
                 {
-                    var data = ListUtils.MyProfileList?.FirstOrDefault();
-                    string name = data != null ? WoWonderTools.GetNameFinal(data) : UserDetails.Username;
-
-                    var alertModel = new AlertModelClass();
-                     
-                    if ((int)Build.VERSION.SdkInt >= 24)
+                    case "1":
                     {
-                        #pragma warning disable 618
-                        var locale = (int)Build.VERSION.SdkInt < 25 ? MainContext?.Resources?.Configuration?.Locale : MainContext?.Resources?.Configuration?.Locales?.Get(0) ?? MainContext?.Resources?.Configuration?.Locale;
-                        #pragma warning restore 618
+                        var data = ListUtils.MyProfileList?.FirstOrDefault();
+                        string name = data != null ? WoWonderTools.GetNameFinal(data) : UserDetails.Username;
 
-                        var c = Calendar.GetInstance(locale);
-                        var timeOfDay = c?.Get(CalendarField.HourOfDay);
-
-                        switch (timeOfDay)
+                        var alertModel = new AlertModelClass();
+                     
+                        switch ((int)Build.VERSION.SdkInt)
                         {
-                            case >= 0 and < 12:
-                                alertModel = new AlertModelClass
+                            case >= 24:
+                            {
+#pragma warning disable 618
+                                var locale = (int)Build.VERSION.SdkInt < 25 ? MainContext?.Resources?.Configuration?.Locale : MainContext?.Resources?.Configuration?.Locales?.Get(0) ?? MainContext?.Resources?.Configuration?.Locale;
+#pragma warning restore 618
+
+                                var c = Calendar.GetInstance(locale);
+                                var timeOfDay = c?.Get(CalendarField.HourOfDay);
+
+                                switch (timeOfDay)
                                 {
-                                    TitleHead = MainContext.GetString(Resource.String.Lbl_GoodMorning) + ", " + name,
-                                    SubText = MainContext.GetString(Resource.String.Lbl_GoodMorning_Text),
-                                    LinerColor = "#ffc107",
-                                    ImageDrawable = Resource.Drawable.ic_post_park
-                                };
-                                break;
-                            case >= 12 and < 16:
-                                alertModel = new AlertModelClass
+                                    case >= 0 and < 12:
+                                        alertModel = new AlertModelClass
+                                        {
+                                            TitleHead = MainContext.GetString(Resource.String.Lbl_GoodMorning) + ", " + name,
+                                            SubText = MainContext.GetString(Resource.String.Lbl_GoodMorning_Text),
+                                            LinerColor = "#ffc107",
+                                            ImageDrawable = Resource.Drawable.ic_post_park
+                                        };
+                                        break;
+                                    case >= 12 and < 16:
+                                        alertModel = new AlertModelClass
+                                        {
+                                            TitleHead = MainContext.GetString(Resource.String.Lbl_GoodAfternoon) + ", " + name,
+                                            SubText = MainContext.GetString(Resource.String.Lbl_GoodAfternoon_Text),
+                                            LinerColor = "#ffc107",
+                                            ImageDrawable = Resource.Drawable.ic_post_desert
+                                        };
+                                        break;
+                                    case >= 16 and < 21:
+                                    case >= 21 and < 24:
+                                        alertModel = new AlertModelClass
+                                        {
+                                            TitleHead = MainContext.GetString(Resource.String.Lbl_GoodEvening) + ", " + name,
+                                            SubText = MainContext.GetString(Resource.String.Lbl_GoodEvening_Text),
+                                            LinerColor = "#ffc107",
+                                            ImageDrawable = Resource.Drawable.ic_post_sea
+                                        };
+                                        break;
+                                }
+
+                                var alertBox = new AdapterModelsClass
                                 {
-                                    TitleHead = MainContext.GetString(Resource.String.Lbl_GoodAfternoon) + ", " + name,
-                                    SubText = MainContext.GetString(Resource.String.Lbl_GoodAfternoon_Text),
-                                    LinerColor = "#ffc107",
-                                    ImageDrawable = Resource.Drawable.ic_post_desert
+                                    TypeView = PostModelType.AlertBox,
+                                    AlertModel = alertModel,
+                                    Id = 333333333
                                 };
-                                break;
-                            case >= 16 and < 21:
-                            case >= 21 and < 24:
-                                alertModel = new AlertModelClass
-                                {
-                                    TitleHead = MainContext.GetString(Resource.String.Lbl_GoodEvening) + ", " + name,
-                                    SubText = MainContext.GetString(Resource.String.Lbl_GoodEvening_Text),
-                                    LinerColor = "#ffc107",
-                                    ImageDrawable = Resource.Drawable.ic_post_sea
-                                };
-                                break;
+                                return alertBox;
+                            }
                         }
 
-                        var alertBox = new AdapterModelsClass
-                        {
-                            TypeView = PostModelType.AlertBox,
-                            AlertModel = alertModel,
-                            Id = 333333333
-                        };
-                        return alertBox;
-                    } 
+                        break;
+                    }
                 }
                 return null!;
             }
@@ -796,30 +954,26 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                var alertModel1 = new AlertModelClass();
-                switch (type)
+                var alertModel1 = type switch
                 {
-                    case "Groups":
-                        alertModel1 = new AlertModelClass
-                        {
-                            TitleHead = MainContext.GetString(Resource.String.Lbl_Groups),
-                            SubText = MainContext.GetString(Resource.String.Lbl_FindMoreAler_TextGroups),
-                            TypeAlert = "Groups",
-                            ImageDrawable = Resource.Drawable.image2,
-                            IconImage = Resource.Drawable.shareGroup,
-                        };
-                        break;
-                    case "Pages":
-                        alertModel1 = new AlertModelClass
-                        {
-                            TitleHead = MainContext.GetString(Resource.String.Lbl_Pages),
-                            SubText = MainContext.GetString(Resource.String.Lbl_FindMoreAler_TextPages),
-                            TypeAlert = "Pages",
-                            ImageDrawable = Resource.Drawable.image1,
-                            IconImage = Resource.Drawable.sharePage,
-                        };
-                        break;
-                }
+                    "Groups" => new AlertModelClass
+                    {
+                        TitleHead = MainContext.GetString(Resource.String.Lbl_Groups),
+                        SubText = MainContext.GetString(Resource.String.Lbl_FindMoreAler_TextGroups),
+                        TypeAlert = "Groups",
+                        ImageDrawable = Resource.Drawable.image2,
+                        IconImage = Resource.Drawable.shareGroup,
+                    },
+                    "Pages" => new AlertModelClass
+                    {
+                        TitleHead = MainContext.GetString(Resource.String.Lbl_Pages),
+                        SubText = MainContext.GetString(Resource.String.Lbl_FindMoreAler_TextPages),
+                        TypeAlert = "Pages",
+                        ImageDrawable = Resource.Drawable.image1,
+                        IconImage = Resource.Drawable.sharePage,
+                    },
+                    _ => new AlertModelClass()
+                };
 
                 var addAlertJoinBox = new AdapterModelsClass
                 {

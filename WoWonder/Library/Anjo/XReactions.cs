@@ -6,7 +6,8 @@ namespace WoWonder.Library.Anjo
 {
     public static class XReactions
     {
-        private static readonly Reaction DefaultReact = new Reaction(ReactConstants.Like,ReactConstants.Default, AppSettings.SetTabDarkTheme ? "#ffffff" : "#888888", Resource.Drawable.icon_post_like_vector );  //ic_action_like
+        //private static readonly Reaction DefaultReact = new Reaction(ReactConstants.Like,ReactConstants.Default, AppSettings.SetTabDarkTheme ? "#ffffff" : "#E02020", Resource.Drawable.icon_post_like_vector);  //ic_action_like
+        private static readonly Reaction DefaultReact = new Reaction(ReactConstants.Like, ReactConstants.Default, AppSettings.SetTabDarkTheme ? "#ffffff" : "#888888", Resource.Drawable.icon_post_like_vector);  //ic_action_like
         private static List<Reaction> Reactions = new List<Reaction>();
         
         public static Reaction GetDefaultReact()

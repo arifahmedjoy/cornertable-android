@@ -231,16 +231,17 @@ namespace WoWonder.Activities.Pokes
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -322,28 +323,37 @@ namespace WoWonder.Activities.Pokes
             {
                 var countList = MAdapter.PokeList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.FetchPoke();
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is PokeObject result)
+                    case 200:
                     {
-                        if (countList > 0)
+                        switch (respond)
                         {
-                            var list = result.Data.Where(a => a.UserData?.UserDataClass != null).ToList();
-                            foreach (var item in from item in list let check = MAdapter.PokeList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            case PokeObject result when countList > 0:
                             {
-                                MAdapter.PokeList.Add(item);
+                                var list = result.Data.Where(a => a.UserData?.UserDataClass != null).ToList();
+                                foreach (var item in from item in list let check = MAdapter.PokeList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                {
+                                    MAdapter.PokeList.Add(item);
+                                }
+                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.PokeList.Count - countList); });
+                                break;
                             }
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.PokeList.Count - countList); });
+                            case PokeObject result:
+                            {
+                                var list = result.Data.Where(a => a.UserData?.UserDataClass != null).ToList();
+                                MAdapter.PokeList = new ObservableCollection<PokeObject.Datum>(list);
+                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
+                            }
                         }
-                        else
-                        {
-                            var list = result.Data.Where(a => a.UserData?.UserDataClass != null).ToList();
-                            MAdapter.PokeList = new ObservableCollection<PokeObject.Datum>(list);
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -352,10 +362,12 @@ namespace WoWonder.Activities.Pokes
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                    x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -368,25 +380,29 @@ namespace WoWonder.Activities.Pokes
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.PokeList.Count > 0)
+                switch (MAdapter.PokeList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)
@@ -427,9 +443,11 @@ namespace WoWonder.Activities.Pokes
                     MAdapter.NotifyItemRemoved(e.Position); 
                 }
 
-                if (MAdapter.PokeList?.Count == 0)
+                switch (MAdapter.PokeList?.Count)
                 {
-                    ShowEmptyPage();
+                    case 0:
+                        ShowEmptyPage();
+                        break;
                 }
 
                 if (e.UserClass?.UserData?.UserDataClass != null)

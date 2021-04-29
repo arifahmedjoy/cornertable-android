@@ -62,107 +62,116 @@ namespace WoWonder.Activities.Offers.Adapters
         {
             try
             {
-                if (viewHolder is DiscountTypeAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = DiscountList[position];
-                    if (item != null)
+                    case DiscountTypeAdapterViewHolder holder:
                     {
-                        switch (item.DiscountType)
+                        var item = DiscountList[position];
+                        if (item != null)
                         {
-                            case "discount_percent":
+                            switch (item.DiscountType)
                             {
-                                holder.EdtDiscountFirst.Visibility = ViewStates.Visible;
-                                holder.EdtDiscountSec.Visibility = ViewStates.Gone;
-                                holder.EdtDiscountThr.Visibility = ViewStates.Gone;
-                                holder.LayoutDiscount.Visibility = ViewStates.Gone;
+                                case "discount_percent":
+                                {
+                                    holder.EdtDiscountFirst.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountSec.Visibility = ViewStates.Gone;
+                                    holder.EdtDiscountThr.Visibility = ViewStates.Gone;
+                                    holder.LayoutDiscount.Visibility = ViewStates.Gone;
 
-                                holder.EdtDiscountFirst.Hint = ActivityContext.GetText(Resource.String.Lbl_DiscountPercent);
-                                holder.EdtDiscountFirst.Text = item.DiscountFirst;
-                            } break;
-                            case "discount_amount":
-                            {
-                                holder.EdtDiscountFirst.Visibility = ViewStates.Visible;
-                                holder.EdtDiscountSec.Visibility = ViewStates.Gone;
-                                holder.EdtDiscountThr.Visibility = ViewStates.Gone;
-                                holder.LayoutDiscount.Visibility = ViewStates.Gone;
+                                    holder.EdtDiscountFirst.Hint = ActivityContext.GetText(Resource.String.Lbl_DiscountPercent);
+                                    holder.EdtDiscountFirst.Text = item.DiscountFirst;
+                                } break;
+                                case "discount_amount":
+                                {
+                                    holder.EdtDiscountFirst.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountSec.Visibility = ViewStates.Gone;
+                                    holder.EdtDiscountThr.Visibility = ViewStates.Gone;
+                                    holder.LayoutDiscount.Visibility = ViewStates.Gone;
                                      
-                                holder.EdtDiscountFirst.Hint = ActivityContext.GetText(Resource.String.Lbl_DiscountAmount);
-                                holder.EdtDiscountFirst.Text = item.DiscountFirst;
-                            } break;
-                            case "buy_get_discount":
-                            {
-                                holder.EdtDiscountFirst.Visibility = ViewStates.Visible;
-                                holder.EdtDiscountSec.Visibility = ViewStates.Visible;
-                                holder.EdtDiscountThr.Visibility = ViewStates.Visible;
-                                holder.LayoutDiscount.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountFirst.Hint = ActivityContext.GetText(Resource.String.Lbl_DiscountAmount);
+                                    holder.EdtDiscountFirst.Text = item.DiscountFirst;
+                                } break;
+                                case "buy_get_discount":
+                                {
+                                    holder.EdtDiscountFirst.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountSec.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountThr.Visibility = ViewStates.Visible;
+                                    holder.LayoutDiscount.Visibility = ViewStates.Visible;
                                      
-                                holder.EdtDiscountFirst.Hint = ActivityContext.GetText(Resource.String.Lbl_DiscountAmount);
-                                holder.EdtDiscountSec.Hint = ActivityContext.GetText(Resource.String.Lbl_Buy);
-                                holder.EdtDiscountThr.Hint = ActivityContext.GetText(Resource.String.Lbl_Get);
+                                    holder.EdtDiscountFirst.Hint = ActivityContext.GetText(Resource.String.Lbl_DiscountAmount);
+                                    holder.EdtDiscountSec.Hint = ActivityContext.GetText(Resource.String.Lbl_Buy);
+                                    holder.EdtDiscountThr.Hint = ActivityContext.GetText(Resource.String.Lbl_Get);
 
-                                holder.EdtDiscountFirst.Text = item.DiscountFirst;
-                                holder.EdtDiscountFirst.Text = item.DiscountSec;
-                                holder.EdtDiscountFirst.Text = item.DiscountThr;
-                            } break;
-                            case "spend_get_off":
-                            {
-                                holder.EdtDiscountFirst.Visibility = ViewStates.Gone;
-                                holder.EdtDiscountSec.Visibility = ViewStates.Visible;
-                                holder.EdtDiscountThr.Visibility = ViewStates.Visible;
-                                holder.LayoutDiscount.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountFirst.Text = item.DiscountFirst;
+                                    holder.EdtDiscountFirst.Text = item.DiscountSec;
+                                    holder.EdtDiscountFirst.Text = item.DiscountThr;
+                                } break;
+                                case "spend_get_off":
+                                {
+                                    holder.EdtDiscountFirst.Visibility = ViewStates.Gone;
+                                    holder.EdtDiscountSec.Visibility = ViewStates.Visible;
+                                    holder.EdtDiscountThr.Visibility = ViewStates.Visible;
+                                    holder.LayoutDiscount.Visibility = ViewStates.Visible;
                                      
-                                holder.EdtDiscountSec.Hint = ActivityContext.GetText(Resource.String.Lbl_Spend);
-                                holder.EdtDiscountThr.Hint = ActivityContext.GetText(Resource.String.Lbl_AmountOff);
+                                    holder.EdtDiscountSec.Hint = ActivityContext.GetText(Resource.String.Lbl_Spend);
+                                    holder.EdtDiscountThr.Hint = ActivityContext.GetText(Resource.String.Lbl_AmountOff);
 
-                                holder.EdtDiscountFirst.Text = item.DiscountFirst;
-                                holder.EdtDiscountFirst.Text = item.DiscountSec;
-                                holder.EdtDiscountFirst.Text = item.DiscountThr;
-                            } break;
-                            case "free_shipping":
-                            {
-                                holder.EdtDiscountFirst.Visibility = ViewStates.Gone;
-                                holder.EdtDiscountSec.Visibility = ViewStates.Gone;
-                                holder.EdtDiscountThr.Visibility = ViewStates.Gone;
-                                holder.LayoutDiscount.Visibility = ViewStates.Gone; 
-                            }break;
-                        }
+                                    holder.EdtDiscountFirst.Text = item.DiscountFirst;
+                                    holder.EdtDiscountFirst.Text = item.DiscountSec;
+                                    holder.EdtDiscountFirst.Text = item.DiscountThr;
+                                } break;
+                                case "free_shipping":
+                                {
+                                    holder.EdtDiscountFirst.Visibility = ViewStates.Gone;
+                                    holder.EdtDiscountSec.Visibility = ViewStates.Gone;
+                                    holder.EdtDiscountThr.Visibility = ViewStates.Gone;
+                                    holder.LayoutDiscount.Visibility = ViewStates.Gone; 
+                                }break;
+                            }
                          
-                        if (holder.EdtDiscountFirst.HasOnClickListeners) return;
-                        holder.EdtDiscountFirst.TextChanged += (sender, args) =>
-                        {
-                            try
+                            switch (holder.EdtDiscountFirst.HasOnClickListeners)
                             {
-                                item.DiscountFirst = args.Text.ToString();
+                                case true:
+                                    return;
                             }
-                            catch (Exception e)
+                            holder.EdtDiscountFirst.TextChanged += (sender, args) =>
                             {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                try
+                                {
+                                    item.DiscountFirst = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
 
-                        holder.EdtDiscountSec.TextChanged += (sender, args) =>
-                        {
-                            try
+                            holder.EdtDiscountSec.TextChanged += (sender, args) =>
                             {
-                                item.DiscountSec = args.Text.ToString();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                try
+                                {
+                                    item.DiscountSec = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
 
-                        holder.EdtDiscountThr.TextChanged += (sender, args) =>
-                        {
-                            try
+                            holder.EdtDiscountThr.TextChanged += (sender, args) =>
                             {
-                                item.DiscountThr = args.Text.ToString();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        }; 
+                                try
+                                {
+                                    item.DiscountThr = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            }; 
+                        }
+
+                        break;
                     }
                 }
             }

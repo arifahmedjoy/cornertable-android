@@ -55,22 +55,32 @@ namespace WoWonder.Adapters
         {
             try
             {
-                if (viewHolder is GendersAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = GenderList[position];
-                    if (item == null) return;
-
-                    holder.Button.Text = item.GenderName;
-
-                    if (item.GenderSelect)
+                    case GendersAdapterViewHolder holder:
                     {
-                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                        holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
-                    }
-                    else
-                    {
-                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                        holder.Button.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
+                        var item = GenderList[position];
+                        switch (item)
+                        {
+                            case null:
+                                return;
+                        }
+
+                        holder.Button.Text = item.GenderName;
+
+                        switch (item.GenderSelect)
+                        {
+                            case true:
+                                holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                                holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
+                                break;
+                            default:
+                                holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
+                                holder.Button.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }

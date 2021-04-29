@@ -235,18 +235,19 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.DeleteItemClick += MAdapterOnDeleteItemClick;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    TxtAdd.Click += TxtAddOnClick;
-                }
-                else
-                {
-                    MAdapter.DeleteItemClick -= MAdapterOnDeleteItemClick;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    TxtAdd.Click -= TxtAddOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.DeleteItemClick += MAdapterOnDeleteItemClick;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        TxtAdd.Click += TxtAddOnClick;
+                        break;
+                    default:
+                        MAdapter.DeleteItemClick -= MAdapterOnDeleteItemClick;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        TxtAdd.Click -= TxtAddOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -283,12 +284,17 @@ namespace WoWonder.Activities.Album
             try
             {
                 var position = e.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        MAdapter.Remove(item);
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
+                        {
+                            MAdapter.Remove(item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -314,38 +320,55 @@ namespace WoWonder.Activities.Album
                         return;
                     }
 
-                    if (MAdapter.AttachmentList.Count <= 1)
+                    switch (MAdapter.AttachmentList.Count)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
-                    }
-                    else
-                    {
-                        //Show a progress
-                        AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
+                        case <= 1:
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                            break;
+                        default:
+                        {
+                            //Show a progress
+                            AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
                          
-                        var list = MAdapter.AttachmentList.Where(a => a.TypeAttachment != "Default").ToList(); 
-                        var (apiStatus, respond) = await RequestsAsync.Album.CreateAlbumAsync(TxtNameAlbum.Text.Replace(" ", ""), new ObservableCollection<Attachments>(list));
-                        if (apiStatus == 200)
-                        {
-                            if (respond is CreateAlbumObject result)
+                            var list = MAdapter.AttachmentList.Where(a => a.TypeAttachment != "Default").ToList(); 
+                            var (apiStatus, respond) = await RequestsAsync.Album.CreateAlbumAsync(TxtNameAlbum.Text.Replace(" ", ""), new ObservableCollection<Attachments>(list));
+                            switch (apiStatus)
                             {
-                                if (result.Data.PhotoAlbum.Count > 0)
+                                case 200:
                                 {
-                                    AndHUD.Shared.Dismiss(this);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                                    switch (respond)
+                                    {
+                                        case CreateAlbumObject result:
+                                        {
+                                            switch (result.Data.PhotoAlbum.Count)
+                                            {
+                                                case > 0:
+                                                {
+                                                    AndHUD.Shared.Dismiss(this);
+                                                    Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
 
-                                    //AlbumItem >> PostDataObject  
-                                    Intent returnIntent = new Intent();
-                                    returnIntent?.PutExtra("AlbumItem", JsonConvert.SerializeObject(result.Data));
-                                    SetResult(Result.Ok, returnIntent);
-                                    Finish(); 
+                                                    //AlbumItem >> PostDataObject  
+                                                    Intent returnIntent = new Intent();
+                                                    returnIntent?.PutExtra("AlbumItem", JsonConvert.SerializeObject(result.Data));
+                                                    SetResult(Result.Ok, returnIntent);
+                                                    Finish();
+                                                    break;
+                                                }
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    break;
                                 }
-                            } 
+                                default:
+                                    Methods.DisplayAndHudErrorResult(this, respond);
+                                    break;
+                            }
+
+                            break;
                         }
-                        else  
-                        {
-                            Methods.DisplayAndHudErrorResult(this, respond);
-                        } 
                     }
                 }
             }
@@ -361,29 +384,42 @@ namespace WoWonder.Activities.Album
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item == null) return;
-                    if (item.TypeAttachment != "Default") return;
-                    // Check if we're running on Android 5.0 or higher 
-                    if ((int)Build.VERSION.SdkInt < 23)
+                    case >= 0:
                     {
-                        OpenDialogGallery();
-                    }
-                    else
-                    {
-                        if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
-                                                                                                  && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                        var item = MAdapter.GetItem(position);
+                        switch (item)
                         {
-                            OpenDialogGallery();
+                            case null:
+                                return;
                         }
-                        else
+                        if (item.TypeAttachment != "Default") return;
+                        switch ((int)Build.VERSION.SdkInt)
                         {
-                            new PermissionsController(this).RequestPermission(108);
+                            // Check if we're running on Android 5.0 or higher 
+                            case < 23:
+                                OpenDialogGallery();
+                                break;
+                            default:
+                            {
+                                if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                    && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                {
+                                    OpenDialogGallery();
+                                }
+                                else
+                                {
+                                    new PermissionsController(this).RequestPermission(108);
+                                }
+
+                                break;
+                            }
                         }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -401,43 +437,57 @@ namespace WoWonder.Activities.Album
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                if (requestCode == CropImage.CropImageActivityRequestCode && resultCode == Result.Ok) // Add image 
+                switch (requestCode)
                 {
-                    var result = CropImage.GetActivityResult(data);
-
-                    if (result.IsSuccessful)
+                    // Add image 
+                    case CropImage.CropImageActivityRequestCode when resultCode == Result.Ok:
                     {
-                        var resultUri = result.Uri;
+                        var result = CropImage.GetActivityResult(data);
 
-                        if (!string.IsNullOrEmpty(resultUri.Path))
+                        switch (result.IsSuccessful)
                         {
-                            //  Chick if it was successful
-                            var check = WoWonderTools.CheckMimeTypesWithServer(resultUri.Path);
-                            if (!check)
+                            case true:
                             {
-                                //this file not supported on the server , please select another file 
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                                return;
-                            } 
+                                var resultUri = result.Uri;
 
-                            var attach = new Attachments
-                            {
-                                Id = MAdapter.AttachmentList.Count + 1,
-                                TypeAttachment = "postPhotos[]",
-                                FileSimple = resultUri.Path,
-                                FileUrl = resultUri.Path
-                            };
+                                switch (string.IsNullOrEmpty(resultUri.Path))
+                                {
+                                    case false:
+                                    {
+                                        //  Chick if it was successful
+                                        var check = WoWonderTools.CheckMimeTypesWithServer(resultUri.Path);
+                                        switch (check)
+                                        {
+                                            case false:
+                                                //this file not supported on the server , please select another file 
+                                                Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                                                return;
+                                        } 
 
-                            MAdapter.Add(attach);
+                                        var attach = new Attachments
+                                        {
+                                            Id = MAdapter.AttachmentList.Count + 1,
+                                            TypeAttachment = "postPhotos[]",
+                                            FileSimple = resultUri.Path,
+                                            FileUrl = resultUri.Path
+                                        };
+
+                                        MAdapter.Add(attach);
+                                        break;
+                                    }
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        break;
+                                }
+
+                                break;
+                            }
+                            default:
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                break;
                         }
-                        else
-                        {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                        }
-                    }
-                    else
-                    {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+
+                        break;
                     }
                 }
             }
@@ -453,16 +503,14 @@ namespace WoWonder.Activities.Album
             try
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-                if (requestCode == 108)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery();
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -477,25 +525,10 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -508,10 +541,31 @@ namespace WoWonder.Activities.Album
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }

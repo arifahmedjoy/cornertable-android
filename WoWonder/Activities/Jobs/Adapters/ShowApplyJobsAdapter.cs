@@ -72,24 +72,29 @@ namespace WoWonder.Activities.Jobs.Adapters
         {
             try
             {
-                if (viewHolder is ShowApplyJobsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = JobList[position];
-                    if (item != null)
+                    case ShowApplyJobsAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                        var item = JobList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
-                        holder.Username.Text = WoWonderTools.GetNameFinal(item.UserData);
-                        holder.AddressText.Text = item.Position;
-                        holder.TimeText.Text = item.Location;
-                        holder.PhoneText.Text = item.PhoneNumber;
-                        holder.EmailText.Text = item.Email;
-                        holder.PositionText.Text = item.Position;
-                        holder.StartDateText.Text = item.ExperienceStartDate;
-                        holder.EndDateText.Text = item.ExperienceEndDate;
+                            holder.Username.Text = WoWonderTools.GetNameFinal(item.UserData);
+                            holder.AddressText.Text = item.Position;
+                            holder.TimeText.Text = item.Location;
+                            holder.PhoneText.Text = item.PhoneNumber;
+                            holder.EmailText.Text = item.Email;
+                            holder.PositionText.Text = item.Position;
+                            holder.StartDateText.Text = item.ExperienceStartDate;
+                            holder.EndDateText.Text = item.ExperienceEndDate;
                          
-                        holder.Description.Text = Methods.FunString.DecodeString(item.ExperienceDescription);
-                        ReadMoreOption.AddReadMoreTo(holder.Description, new String(holder.Description.Text)); 
+                            holder.Description.Text = Methods.FunString.DecodeString(item.ExperienceDescription);
+                            ReadMoreOption.AddReadMoreTo(holder.Description, new String(holder.Description.Text)); 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -105,9 +110,11 @@ namespace WoWonder.Activities.Jobs.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is ShowApplyJobsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case ShowApplyJobsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -174,14 +181,21 @@ namespace WoWonder.Activities.Jobs.Adapters
             {
                 var d = new List<string>();
                 var item = JobList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.UserData.Avatar))
-                        d.Add(item.UserData.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.UserData.Avatar))
+                        {
+                            case false:
+                                d.Add(item.UserData.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)
@@ -216,7 +230,7 @@ namespace WoWonder.Activities.Jobs.Adapters
 
         #endregion
 
-        public ShowApplyJobsAdapterViewHolder(View itemView, Action<ShowApplyJobsAdapterClickEventArgs> MessageButtonClickListener, Action<ShowApplyJobsAdapterClickEventArgs> clickListener, Action<ShowApplyJobsAdapterClickEventArgs> longClickListener) : base(itemView)
+        public ShowApplyJobsAdapterViewHolder(View itemView, Action<ShowApplyJobsAdapterClickEventArgs> messageButtonClickListener, Action<ShowApplyJobsAdapterClickEventArgs> clickListener, Action<ShowApplyJobsAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
@@ -244,7 +258,7 @@ namespace WoWonder.Activities.Jobs.Adapters
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmailIcon, IonIconsFonts.IosMail);
 
                 //Event  
-                Button.Click += (sender, e) => MessageButtonClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => messageButtonClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
                 itemView.Click += (sender, e) => clickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
                 itemView.LongClick += (sender, e) => longClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
 

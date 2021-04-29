@@ -67,16 +67,21 @@ namespace WoWonder.Activities.SettingsPreferences.InviteFriends.Adapter
         {
             try
             {
-                if (viewHolder is InviteFriendsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MUsersPhoneContacts[position];
-                    if (item != null)
+                    case InviteFriendsAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, "no_profile_image", holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = MUsersPhoneContacts[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, "no_profile_image", holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                        string name = Methods.FunString.DecodeString(item.UserDisplayName);
-                        holder.Name.Text = name;
-                        holder.About.Text = item.PhoneNumber;
+                            string name = Methods.FunString.DecodeString(item.UserDisplayName);
+                            holder.Name.Text = name;
+                            holder.About.Text = item.PhoneNumber;
+                        }
+
+                        break;
                     }
                 }
             }

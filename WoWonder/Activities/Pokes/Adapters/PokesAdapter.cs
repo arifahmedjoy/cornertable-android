@@ -70,32 +70,40 @@ namespace WoWonder.Activities.Pokes.Adapters
         {
             try
             {
-               
-                if (viewHolder is PokesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = PokeList[position];
-                    if (item != null)
-                    { 
-                        if (item.UserData?.UserDataClass != null)
-                        {
-                            GlideImageLoader.LoadImage(ActivityContext, item.UserData?.UserDataClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable, true);
-                            holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item.UserData?.UserDataClass), 20);
+                    case PokesAdapterViewHolder holder:
+                    {
+                        var item = PokeList[position];
+                        if (item != null)
+                        { 
+                            if (item.UserData?.UserDataClass != null)
+                            {
+                                GlideImageLoader.LoadImage(ActivityContext, item.UserData?.UserDataClass.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable, true);
+                                holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item.UserData?.UserDataClass), 20);
 
-                            if (item.UserData?.UserDataClass.Verified == "1")
-                                holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                switch (item.UserData?.UserDataClass.Verified)
+                                {
+                                    case "1":
+                                        holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                        break;
+                                }
 
-                            holder.About.Text = ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.UserData?.UserDataClass.LastseenUnixTime), false);
+                                holder.About.Text = ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.UserData?.UserDataClass.LastseenUnixTime), false);
 
-                            //Online Or offline
-                            var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.UserData?.UserDataClass.LastseenUnixTime), item.UserData?.UserDataClass.LastseenStatus);
-                            holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
+                                //Online Or offline
+                                var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.UserData?.UserDataClass.LastseenUnixTime), item.UserData?.UserDataClass.LastseenStatus);
+                                holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
+                            }
+
+                            holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                            holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
+                            holder.Button.Text = ActivityContext.GetText(Resource.String.Lbl_PokeBack);
+                            holder.BindEvents(position, item, holder.Button, PokeItemClickListener);
+                      
                         }
 
-                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                        holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
-                        holder.Button.Text = ActivityContext.GetText(Resource.String.Lbl_PokeBack);
-                        holder.BindEvents(position, item, holder.Button, PokeItemClickListener);
-                      
+                        break;
                     }
                 }
             }
@@ -112,9 +120,11 @@ namespace WoWonder.Activities.Pokes.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is PokesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case PokesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -172,8 +182,11 @@ namespace WoWonder.Activities.Pokes.Adapters
             {
                 var d = new List<string>();
                 var item = PokeList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.UserData?.UserDataClass != null && item.UserData.Value.UserDataClass.Avatar != "")
                 {

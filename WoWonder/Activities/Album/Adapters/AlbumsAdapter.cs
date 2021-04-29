@@ -60,14 +60,19 @@ namespace WoWonder.Activities.Album.Adapters
         {
             try
             {
-                if (viewHolder is AlbumsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = AlbumList[position];
-                    if (item != null)
+                    case AlbumsAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.PhotoAlbum[0]?.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                        holder.TxtTitle.Text = Methods.FunString.DecodeString(item.AlbumName); 
-                        holder.TxtCounter.Text = item.PhotoAlbum.Count.ToString();
+                        var item = AlbumList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.PhotoAlbum[0]?.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                            holder.TxtTitle.Text = Methods.FunString.DecodeString(item.AlbumName); 
+                            holder.TxtCounter.Text = item.PhotoAlbum.Count.ToString();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -84,8 +89,12 @@ namespace WoWonder.Activities.Album.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is AlbumsAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                switch (holder)
+                {
+                    case AlbumsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
+                }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -136,8 +145,11 @@ namespace WoWonder.Activities.Album.Adapters
                 var d = new List<string>();
                 var item = AlbumList[p0];
 
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.PhotoAlbum[0]?.Image != "")  
                 {

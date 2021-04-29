@@ -398,7 +398,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             {
                 if (Methods.CheckConnectivity())
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Global.Get_General_Data(false, UserDetails.OnlineUsers, UserDetails.DeviceId, "1", "group_chat_requests");
+                    var (apiStatus, respond) = await RequestsAsync.Global.Get_General_Data(false, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, "1", "group_chat_requests");
                     if (apiStatus == 200)
                     {
                         if (respond is GetGeneralDataObject result)

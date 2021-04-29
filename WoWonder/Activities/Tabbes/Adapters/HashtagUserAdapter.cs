@@ -57,15 +57,19 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-               
-                if (viewHolder is HashtagUserAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MHashtagList[position];
-                    if (item != null)
+                    case HashtagUserAdapterViewHolder holder:
                     {
-                        holder.Button.Text = "#" + item.Tag;
+                        var item = MHashtagList[position];
+                        if (item != null)
+                        {
+                            holder.Button.Text = "#" + item.Tag;
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {

@@ -255,22 +255,23 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtCategories.Touch += TxtCategoryOnClick;
-                    TxtSubCategories.Touch += TxtSubCategoriesOnTouch;
-                    RadioEnable.CheckedChange += RadioEnableOnCheckedChange;
-                    RadioDisable.CheckedChange += RadioDisableOnCheckedChange;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtCategories.Touch -= TxtCategoryOnClick;
-                    TxtSubCategories.Touch -= TxtSubCategoriesOnTouch;
-                    RadioEnable.CheckedChange -= RadioEnableOnCheckedChange;
-                    RadioDisable.CheckedChange -= RadioDisableOnCheckedChange;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtCategories.Touch += TxtCategoryOnClick;
+                        TxtSubCategories.Touch += TxtSubCategoriesOnTouch;
+                        RadioEnable.CheckedChange += RadioEnableOnCheckedChange;
+                        RadioDisable.CheckedChange += RadioDisableOnCheckedChange;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtCategories.Touch -= TxtCategoryOnClick;
+                        TxtSubCategories.Touch -= TxtSubCategoriesOnTouch;
+                        RadioEnable.CheckedChange -= RadioEnableOnCheckedChange;
+                        RadioDisable.CheckedChange -= RadioDisableOnCheckedChange;
+                        break;
                 }
             }
             catch (Exception e)
@@ -324,10 +325,12 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             try
             {
                 var isChecked = RadioDisable.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RadioEnable.Checked = false;
-                    UsersPost = "0";
+                    case true:
+                        RadioEnable.Checked = false;
+                        UsersPost = "0";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -341,10 +344,12 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             try
             {
                 var isChecked = RadioEnable.Checked;
-                if (isChecked)
+                switch (isChecked)
                 {
-                    RadioDisable.Checked = false;
-                    UsersPost = "1";
+                    case true:
+                        RadioDisable.Checked = false;
+                        UsersPost = "1";
+                        break;
                 }
             }
             catch (Exception exception)
@@ -360,29 +365,33 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesPage.Count > 0)
+                switch (CategoriesController.ListCategoriesPage.Count)
                 {
-                    DialogType = "SubCategories";
-
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                    var arrayAdapter = new List<string>();
-
-                    var subCat = CategoriesController.ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == CategoryId)?.SubList;
-                    if (subCat?.Count > 0)
+                    case > 0:
                     {
-                        arrayAdapter = subCat.Select(item => item.Lang).ToList();
-                    }
+                        DialogType = "SubCategories";
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Page");
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+
+                        var arrayAdapter = new List<string>();
+
+                        var subCat = CategoriesController.ListCategoriesPage.FirstOrDefault(a => a.CategoriesId == CategoryId)?.SubList;
+                        arrayAdapter = subCat?.Count switch
+                        {
+                            > 0 => subCat.Select(item => item.Lang).ToList(),
+                            _ => arrayAdapter
+                        };
+
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Page");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -397,23 +406,26 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesPage.Count > 0)
+                switch (CategoriesController.ListCategoriesPage.Count)
                 {
-                    DialogType = "Categories";
+                    case > 0:
+                    {
+                        DialogType = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Page");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Page");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -461,41 +473,54 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         {"sub_category", SubCategoryId},
                     };
 
-                    if (MAdapter.FieldList.Count > 0)
+                    switch (MAdapter.FieldList.Count)
                     {
-                        foreach (var field in MAdapter.FieldList)
+                        case > 0:
                         {
-                            dictionary.Add(field.Fid, field.FieldAnswer);
+                            foreach (var field in MAdapter.FieldList)
+                            {
+                                dictionary.Add(field.Fid, field.FieldAnswer);
+                            }
+
+                            break;
                         }
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Page.Update_Page_Data(PagesId, dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                            AndHUD.Shared.Dismiss(this);
-                            Console.WriteLine(result.Message);
+                            switch (respond)
+                            {
+                                case MessageObject result:
+                                {
+                                    AndHUD.Shared.Dismiss(this);
+                                    Console.WriteLine(result.Message);
 
-                            PageData.PageTitle = TxtTitle.Text;
-                            PageData.Username = TxtUrl.Text;
-                            PageData.Category = TxtCategories.Text;
+                                    PageData.PageTitle = TxtTitle.Text;
+                                    PageData.Username = TxtUrl.Text;
+                                    PageData.Category = TxtCategories.Text;
 
-                            PageData.PageCategory = CategoryId;
+                                    PageData.PageCategory = CategoryId;
 
-                            PageProfileActivity.PageData = PageData;
+                                    PageProfileActivity.PageData = PageData;
                           
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
                               
-                            Intent returnIntent = new Intent();
-                            returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
-                            SetResult(Result.Ok, returnIntent);
-                            Finish();
+                                    Intent returnIntent = new Intent();
+                                    returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
+                                    SetResult(Result.Ok, returnIntent);
+                                    Finish();
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
-                    }
-                    else  
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
             }
@@ -523,16 +548,17 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         {
                             CategoryId = category.CategoriesId;
 
-                            if (category.SubList.Count > 0)
+                            switch (category.SubList.Count)
                             {
-                                SubCategoriesLayout.Visibility = ViewStates.Visible;
-                                TxtSubCategories.Text = "";
-                                SubCategoryId = "";
-                            }
-                            else
-                            {
-                                SubCategoriesLayout.Visibility = ViewStates.Gone;
-                                SubCategoryId = "";
+                                case > 0:
+                                    SubCategoriesLayout.Visibility = ViewStates.Visible;
+                                    TxtSubCategories.Text = "";
+                                    SubCategoryId = "";
+                                    break;
+                                default:
+                                    SubCategoriesLayout.Visibility = ViewStates.Gone;
+                                    SubCategoryId = "";
+                                    break;
                             }
                         }
                         TxtCategories.Text = itemString.ToString();
@@ -590,36 +616,46 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     TxtCategories.Text = Methods.FunString.DecodeString(PageData.Category);
                     CategoryId = PageData.PageCategory;
 
-                    if (!string.IsNullOrEmpty(PageData.PageSubCategory))
-                    { 
-                        var category = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.CategoryId == PageData.PageSubCategory);
-                        if (category != null)
+                    switch (string.IsNullOrEmpty(PageData.PageSubCategory))
+                    {
+                        case false:
                         {
-                            TxtSubCategories.Text = category.Lang;
-                            SubCategoryId = category.CategoryId;
-                            SubCategoriesLayout.Visibility = ViewStates.Visible;
+                            var category = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.CategoryId == PageData.PageSubCategory);
+                            if (category != null)
+                            {
+                                TxtSubCategories.Text = category.Lang;
+                                SubCategoryId = category.CategoryId;
+                                SubCategoriesLayout.Visibility = ViewStates.Visible;
+                            }
+
+                            break;
                         }
                     }
 
                     UsersPost = PageData.UsersPost;
 
-                    if (PageData.UsersPost == "1") //Enable
+                    switch (PageData.UsersPost)
                     {
-                        RadioDisable.Checked = false;
-                        RadioEnable.Checked = true;
-                    }
-                    else //Disable
-                    {
-                        RadioDisable.Checked = true;
-                        RadioEnable.Checked = false;
+                        //Enable
+                        case "1":
+                            RadioDisable.Checked = false;
+                            RadioEnable.Checked = true;
+                            break;
+                        //Disable
+                        default:
+                            RadioDisable.Checked = true;
+                            RadioEnable.Checked = false;
+                            break;
                     }
 
-                    if (ListUtils.SettingsSiteList?.PageCustomFields?.Count > 0)
+                    switch (ListUtils.SettingsSiteList?.PageCustomFields?.Count)
                     {
-                        MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList.PageCustomFields);
-                        MAdapter.NotifyDataSetChanged();
+                        case > 0:
+                            MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList.PageCustomFields);
+                            MAdapter.NotifyDataSetChanged();
 
-                        MRecycler.Visibility = ViewStates.Visible;
+                            MRecycler.Visibility = ViewStates.Visible;
+                            break;
                     }
 
                 }

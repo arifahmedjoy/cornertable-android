@@ -212,14 +212,15 @@ namespace WoWonder.Activities.Memories
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -279,37 +280,54 @@ namespace WoWonder.Activities.Memories
             if (Methods.CheckConnectivity())
             {
                 var (apiStatus, respond) = await RequestsAsync.Posts.FetchMemoriesPost(type);
-                if (apiStatus.Equals(200))
+                switch (apiStatus)
                 {
-                    if (respond is FetchMemoriesObject result)
+                    case 200:
                     {
-                        var respondListFriends = result.Data.Friends.Count;
-                        if (respondListFriends > 0)
+                        switch (respond)
                         {
-                            LoadFriendsLayout(result.Data.Friends, Methods.FunString.FormatPriceValue(result.Data.Friends.Count));
-                        }
-
-                        if (result.Data.Posts.Count > 0)
-                        { 
-                            var time = Methods.Time.TimeAgo(Convert.ToInt32(result.Data.Posts.FirstOrDefault()?.Time ?? "0"), false);
-                            var section = new AdapterModelsClass
+                            case FetchMemoriesObject result:
                             {
-                                Id = 000001010101,
-                                AboutModel = new AboutModelClass
+                                var respondListFriends = result.Data.Friends.Count;
+                                switch (respondListFriends)
                                 {
-                                    TitleHead = GetText(Resource.String.Lbl_Post) + " " + time
-                                },
-                                TypeView = PostModelType.Section
-                            };
+                                    case > 0:
+                                        LoadFriendsLayout(result.Data.Friends, Methods.FunString.FormatPriceValue(result.Data.Friends.Count));
+                                        break;
+                                }
 
-                            PostFeedAdapter.ListDiffer.Add(section); 
-                            PostFeedAdapter.NotifyDataSetChanged();
+                                switch (result.Data.Posts.Count)
+                                {
+                                    case > 0:
+                                    {
+                                        var time = Methods.Time.TimeAgo(Convert.ToInt32(result.Data.Posts.FirstOrDefault()?.Time ?? "0"), false);
+                                        var section = new AdapterModelsClass
+                                        {
+                                            Id = 000001010101,
+                                            AboutModel = new AboutModelClass
+                                            {
+                                                TitleHead = GetText(Resource.String.Lbl_Post) + " " + time
+                                            },
+                                            TypeView = PostModelType.Section
+                                        };
+
+                                        PostFeedAdapter.ListDiffer.Add(section); 
+                                        PostFeedAdapter.NotifyDataSetChanged();
+                                        break;
+                                    }
+                                }
+
+                                MainRecyclerView.ApiPostAsync.LoadMemoriesDataApi(apiStatus, respond, PostFeedAdapter.ListDiffer);
+                                break;
+                            }
                         }
 
-                        MainRecyclerView.ApiPostAsync.LoadMemoriesDataApi(apiStatus, respond, PostFeedAdapter.ListDiffer);
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -318,10 +336,12 @@ namespace WoWonder.Activities.Memories
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -362,24 +382,29 @@ namespace WoWonder.Activities.Memories
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (PostFeedAdapter.ListDiffer.Count > 0)
+                switch (PostFeedAdapter.ListDiffer.Count)
                 {
-                    MainRecyclerView.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MainRecyclerView.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoMemories);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MainRecyclerView.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MainRecyclerView.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoMemories);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

@@ -234,8 +234,12 @@ namespace WoWonder.Activities.Comment
                 RecordSoundFragment = new RecordSoundFragment();
                 SupportFragmentManager.BeginTransaction().Add(TopFragment.Id, RecordSoundFragment, RecordSoundFragment.Tag);
                  
-                if (AppSettings.FlowDirectionRightToLeft)
-                    ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
+                }
 
                 ImgGallery.SetImageDrawable(AppSettings.SetTabDarkTheme ? GetDrawable(Resource.Drawable.ic_action_addpost_Ligth) : GetDrawable(Resource.Drawable.ic_action_AddPost));
 
@@ -283,26 +287,27 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    ImgSent.Click += ImgSentOnClick;
-                    ImgGallery.Click += ImgGalleryOnClick;
-                    ImgBack.Click += ImgBackOnClick;
-                    BtnVoice.LongClick += BtnVoiceOnLongClick;
-                    BtnVoice.Touch += BtnVoiceOnTouch; 
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    LikeCountBox.Click += LikeCountBoxOnClick;
-                }
-                else
-                {
-                    ImgSent.Click -= ImgSentOnClick;
-                    ImgGallery.Click -= ImgGalleryOnClick;
-                    ImgBack.Click -= ImgBackOnClick;
-                    BtnVoice.LongClick -= BtnVoiceOnLongClick;
-                    BtnVoice.Touch -= BtnVoiceOnTouch;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    LikeCountBox.Click -= LikeCountBoxOnClick;
+                    // true +=  // false -=
+                    case true:
+                        ImgSent.Click += ImgSentOnClick;
+                        ImgGallery.Click += ImgGalleryOnClick;
+                        ImgBack.Click += ImgBackOnClick;
+                        BtnVoice.LongClick += BtnVoiceOnLongClick;
+                        BtnVoice.Touch += BtnVoiceOnTouch; 
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        LikeCountBox.Click += LikeCountBoxOnClick;
+                        break;
+                    default:
+                        ImgSent.Click -= ImgSentOnClick;
+                        ImgGallery.Click -= ImgGalleryOnClick;
+                        ImgBack.Click -= ImgBackOnClick;
+                        BtnVoice.LongClick -= BtnVoiceOnLongClick;
+                        BtnVoice.Touch -= BtnVoiceOnTouch;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        LikeCountBox.Click -= LikeCountBoxOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -358,21 +363,32 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+                switch (AppSettings.PostButton)
                 {
-                    if (PostObject.Reaction.Count > 0)
+                    case PostButtonSystem.ReactionDefault:
+                    case PostButtonSystem.ReactionSubShine:
                     {
-                        var intent = new Intent(this, typeof(ReactionPostTabbedActivity));
-                        intent.PutExtra("PostObject", JsonConvert.SerializeObject(PostObject));
-                        StartActivity(intent);
+                        switch (PostObject.Reaction.Count)
+                        {
+                            case > 0:
+                            {
+                                var intent = new Intent(this, typeof(ReactionPostTabbedActivity));
+                                intent.PutExtra("PostObject", JsonConvert.SerializeObject(PostObject));
+                                StartActivity(intent);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    var intent = new Intent(this, typeof(PostDataActivity));
-                    intent.PutExtra("PostId", PostObject.PostId);
-                    intent.PutExtra("PostType", "post_likes");
-                    StartActivity(intent);
+                    default:
+                    {
+                        var intent = new Intent(this, typeof(PostDataActivity));
+                        intent.PutExtra("PostId", PostObject.PostId);
+                        intent.PutExtra("PostType", "post_likes");
+                        StartActivity(intent);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -387,48 +403,67 @@ namespace WoWonder.Activities.Comment
             {
                 var handled = false;
 
-                if (e.Event?.Action == MotionEventActions.Up)
+                switch (e.Event?.Action)
                 {
-                    try
-                    {
-                        if (IsRecording)
+                    case MotionEventActions.Up:
+                        try
                         {
-                            RecorderService.StopRecording();
-                            PathVoice = RecorderService.GetRecorded_Sound_Path();
-
-                            BtnVoice.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
-                            BtnVoice.SetImageResource(Resource.Drawable.microphone);
-
-                            if (TextRecorder == "Recording")
+                            switch (IsRecording)
                             {
-                                if (!string.IsNullOrEmpty(PathVoice))
+                                case true:
                                 {
-                                    Bundle bundle = new Bundle();
-                                    bundle.PutString("FilePath", PathVoice);
-                                    RecordSoundFragment.Arguments = bundle;
-                                    ReplaceTopFragment(RecordSoundFragment);
+                                    RecorderService.StopRecording();
+                                    PathVoice = RecorderService.GetRecorded_Sound_Path();
+
+                                    BtnVoice.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                    BtnVoice.SetImageResource(Resource.Drawable.microphone);
+
+                                    switch (TextRecorder)
+                                    {
+                                        case "Recording":
+                                        {
+                                            switch (string.IsNullOrEmpty(PathVoice))
+                                            {
+                                                case false:
+                                                {
+                                                    Bundle bundle = new Bundle();
+                                                    bundle.PutString("FilePath", PathVoice);
+                                                    RecordSoundFragment.Arguments = bundle;
+                                                    ReplaceTopFragment(RecordSoundFragment);
+                                                    break;
+                                                }
+                                            }
+
+                                            TextRecorder = "";
+                                            break;
+                                        }
+                                    }
+
+                                    IsRecording = false;
+                                    break;
                                 }
+                                default:
+                                {
+                                    switch (UserDetails.SoundControl)
+                                    {
+                                        case true:
+                                            Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                                            break;
+                                    }
 
-                                TextRecorder = "";
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short)?.Show();
+                                    break;
+                                }
                             }
-
-                            IsRecording = false;
                         }
-                        else
+                        catch (Exception exception)
                         {
-                            if (UserDetails.SoundControl)
-                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
-
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short)?.Show();
+                            Methods.DisplayReportResultTrack(exception);
                         }
-                    }
-                    catch (Exception exception)
-                    {
-                        Methods.DisplayReportResultTrack(exception);
-                    }
 
-                    BtnVoice.Pressed = false;
-                    handled = true;
+                        BtnVoice.Pressed = false;
+                        handled = true;
+                        break;
                 }
 
                 e.Handled = handled;
@@ -444,20 +479,24 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    StartRecording();
-                }
-                else
-                {
-                    //Check to see if any permission in our group is available, if one, then all are
-                    if (CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
-                    {
+                    case < 23:
                         StartRecording();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(102);
+                        //Check to see if any permission in our group is available, if one, then all are
+                        if (CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
+                        {
+                            StartRecording();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(102);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -471,24 +510,32 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if (BtnVoice.Tag?.ToString() == "Free")
+                switch (BtnVoice.Tag?.ToString())
                 {
-                    //Set Record Style
-                    IsRecording = true;
+                    case "Free":
+                    {
+                        //Set Record Style
+                        IsRecording = true;
 
-                    if (UserDetails.SoundControl)
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("RecourdVoiceButton.mp3");
+                        switch (UserDetails.SoundControl)
+                        {
+                            case true:
+                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("RecourdVoiceButton.mp3");
+                                break;
+                        }
 
-                    if (TextRecorder != null && TextRecorder != "Recording")
-                        TextRecorder = "Recording";
+                        if (TextRecorder != null && TextRecorder != "Recording")
+                            TextRecorder = "Recording";
 
-                    BtnVoice.SetColorFilter(Color.ParseColor("#FA3C4C"));
-                    BtnVoice.SetImageResource(Resource.Drawable.ic_stop_white_24dp);
+                        BtnVoice.SetColorFilter(Color.ParseColor("#FA3C4C"));
+                        BtnVoice.SetImageResource(Resource.Drawable.ic_stop_white_24dp);
 
-                    RecorderService = new Methods.AudioRecorderAndPlayer(PostId);
-                    //Start Audio record
-                    await Task.Delay(600);
-                    RecorderService.StartRecording();
+                        RecorderService = new Methods.AudioRecorderAndPlayer(PostId);
+                        //Start Audio record
+                        await Task.Delay(600);
+                        RecorderService.StartRecording();
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -530,13 +577,17 @@ namespace WoWonder.Activities.Comment
             {
                 IsRecording = false;
 
-                if (BtnVoice.Tag?.ToString() == "Audio")
+                switch (BtnVoice.Tag?.ToString())
                 {
-                    var interTortola = new FastOutSlowInInterpolator();
-                    TopFragment.Animate()?.SetInterpolator(interTortola)?.TranslationY(1200)?.SetDuration(300);
-                    SupportFragmentManager.BeginTransaction().Remove(RecordSoundFragment)?.Commit();
+                    case "Audio":
+                    {
+                        var interTortola = new FastOutSlowInInterpolator();
+                        TopFragment.Animate()?.SetInterpolator(interTortola)?.TranslationY(1200)?.SetDuration(300);
+                        SupportFragmentManager.BeginTransaction().Remove(RecordSoundFragment)?.Commit();
 
-                    PathVoice = RecorderService.GetRecorded_Sound_Path();
+                        PathVoice = RecorderService.GetRecorded_Sound_Path();
+                        break;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(TxtComment.Text) && string.IsNullOrWhiteSpace(TxtComment.Text) && string.IsNullOrEmpty(PathImage) && string.IsNullOrEmpty(PathVoice))
@@ -574,9 +625,11 @@ namespace WoWonder.Activities.Comment
                     MAdapter.CommentList.Add(comment);
 
                     var index = MAdapter.CommentList.IndexOf(comment);
-                    if (index > -1)
+                    switch (index)
                     {
-                        MAdapter.NotifyItemInserted(index);
+                        case > -1:
+                            MAdapter.NotifyItemInserted(index);
+                            break;
                     }
 
                     MRecycler.Visibility = ViewStates.Visible;
@@ -595,77 +648,107 @@ namespace WoWonder.Activities.Comment
                     TxtComment.Text = "";
 
                     var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostComments(PostObject.PostId, text, PathImage, PathVoice);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateComments result)
+                        case 200:
                         {
-                            var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data.Id);
-                            if (date != null)
+                            switch (respond)
                             {
-                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(result.Data);
-
-                                date = db;
-                                date.Id = result.Data.Id;
-
-                                index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
-                                if (index > -1)
+                                case CreateComments result:
                                 {
-                                    MAdapter.CommentList[index] = db;
-
-                                    //MAdapter.NotifyItemChanged(index);
-                                    //MRecycler.ScrollToPosition(index);
-                                }
-
-                                var postFeedAdapter = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter;
-                                var dataGlobal = postFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostObject?.PostId).ToList();
-                                if (dataGlobal?.Count > 0)
-                                {
-                                    foreach (var dataClass in from dataClass in dataGlobal let indexCom = postFeedAdapter.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
+                                    var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data.Id);
+                                    if (date != null)
                                     {
-                                        dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
+                                        var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(result.Data);
 
-                                        if (dataClass.PostData.GetPostComments?.Count > 0)
+                                        date = db;
+                                        date.Id = result.Data.Id;
+
+                                        index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
+                                        MAdapter.CommentList[index] = index switch
                                         {
-                                            var dataComment = dataClass.PostData.GetPostComments.FirstOrDefault(a => a.Id == date.Id);
-                                            if (dataComment == null)
+                                            > -1 => db,
+                                            _ => MAdapter.CommentList[index]
+                                        };
+
+                                        var postFeedAdapter = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter;
+                                        var dataGlobal = postFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostObject?.PostId).ToList();
+                                        switch (dataGlobal?.Count)
+                                        {
+                                            case > 0:
                                             {
-                                                dataClass.PostData.GetPostComments.Add(date);
+                                                foreach (var dataClass in from dataClass in dataGlobal let indexCom = postFeedAdapter.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
+                                                {
+                                                    dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
+
+                                                    switch (dataClass.PostData.GetPostComments?.Count)
+                                                    {
+                                                        case > 0:
+                                                        {
+                                                            var dataComment = dataClass.PostData.GetPostComments.FirstOrDefault(a => a.Id == date.Id);
+                                                            switch (dataComment)
+                                                            {
+                                                                case null:
+                                                                    dataClass.PostData.GetPostComments.Add(date);
+                                                                    break;
+                                                            }
+
+                                                            break;
+                                                        }
+                                                        default:
+                                                            dataClass.PostData.GetPostComments = new List<GetCommentObject> { date };
+                                                            break;
+                                                    }
+
+                                                    postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
+                                                }
+
+                                                break;
                                             }
                                         }
-                                        else
+
+                                        var postFeedAdapter2 = WRecyclerView.GetInstance()?.NativeFeedAdapter;
+                                        var dataGlobal2 = postFeedAdapter2?.ListDiffer?.Where(a => a.PostData?.Id == PostObject?.PostId).ToList();
+                                        switch (dataGlobal2?.Count)
                                         {
-                                            dataClass.PostData.GetPostComments = new List<GetCommentObject> { date };
-                                        }
-
-                                        postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
-                                    }
-                                }
-
-                                var postFeedAdapter2 = WRecyclerView.GetInstance()?.NativeFeedAdapter;
-                                var dataGlobal2 = postFeedAdapter2?.ListDiffer?.Where(a => a.PostData?.Id == PostObject?.PostId).ToList();
-                                if (dataGlobal2?.Count > 0)
-                                {
-                                    foreach (var dataClass in from dataClass in dataGlobal2 let indexCom = postFeedAdapter2.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
-                                    {
-                                        dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
-
-                                        if (dataClass.PostData.GetPostComments?.Count > 0)
-                                        {
-                                            var dataComment = dataClass.PostData.GetPostComments.FirstOrDefault(a => a.Id == date.Id);
-                                            if (dataComment == null)
+                                            case > 0:
                                             {
-                                                dataClass.PostData.GetPostComments.Add(date);
+                                                foreach (var dataClass in from dataClass in dataGlobal2 let indexCom = postFeedAdapter2.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
+                                                {
+                                                    dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
+
+                                                    switch (dataClass.PostData.GetPostComments?.Count)
+                                                    {
+                                                        case > 0:
+                                                        {
+                                                            var dataComment = dataClass.PostData.GetPostComments.FirstOrDefault(a => a.Id == date.Id);
+                                                            switch (dataComment)
+                                                            {
+                                                                case null:
+                                                                    dataClass.PostData.GetPostComments.Add(date);
+                                                                    break;
+                                                            }
+
+                                                            break;
+                                                        }
+                                                        default:
+                                                            dataClass.PostData.GetPostComments = new List<GetCommentObject> { date };
+                                                            break;
+                                                    }
+
+                                                    postFeedAdapter2.NotifyItemChanged(postFeedAdapter2.ListDiffer.IndexOf(dataClass), "commentReplies");
+                                                }
+
+                                                break;
                                             }
                                         }
-                                        else
-                                        {
-                                            dataClass.PostData.GetPostComments = new List<GetCommentObject> { date };
-                                        }
-
-                                        postFeedAdapter2.NotifyItemChanged(postFeedAdapter2.ListDiffer.IndexOf(dataClass), "commentReplies");
                                     }
+
+                                    break;
                                 }
                             }
+
+                            break;
                         }
                     }
                     //else Methods.DisplayReportResult(this, respond);
@@ -734,54 +817,61 @@ namespace WoWonder.Activities.Comment
             {
                 if (PostObject != null)
                 {
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+                    switch (AppSettings.PostButton)
                     {
-                        PostObject.Reaction ??= new Reaction();
-
-                        if (PostObject.Reaction != null)
-                            LikeCountBox.Text = PostObject.Reaction.Count + " " + GetString(Resource.String.Lbl_Reactions);
-                        else
-                            LikeCountBox.Text = "0 " + GetString(Resource.String.Lbl_Reactions);
-                    }
-                    else
-                    {
-                        if (PostObject.PostLikes != null)
-                            LikeCountBox.Text = PostObject.PostLikes + " " + GetString(Resource.String.Btn_Likes);
-                        else
-                            LikeCountBox.Text = "0 " + GetString(Resource.String.Btn_Likes);
-                    }
-                  
-                    if (PostObject.CommentsStatus == "0")
-                    {
-                        MAdapter.CommentList.Clear();
-
-                        MAdapter.CommentList.Add(new CommentObjectExtra
+                        case PostButtonSystem.ReactionDefault:
+                        case PostButtonSystem.ReactionSubShine:
                         {
-                            Id = MAdapter.EmptyState,
-                            Text = MAdapter.EmptyState,
-                            Orginaltext = GetText(Resource.String.Lbl_CommentsAreDisabledBy) + " " + WoWonderTools.GetNameFinal(PostObject.Publisher),
-                        });
+                            PostObject.Reaction ??= new Reaction();
 
-                        MAdapter.NotifyDataSetChanged();
-
-                        CommentLayout.Visibility = ViewStates.Gone;
+                            if (PostObject.Reaction != null)
+                                LikeCountBox.Text = PostObject.Reaction.Count + " " + GetString(Resource.String.Lbl_Reactions);
+                            else
+                                LikeCountBox.Text = "0 " + GetString(Resource.String.Lbl_Reactions);
+                            break;
+                        }
+                        default:
+                        {
+                            if (PostObject.PostLikes != null)
+                                LikeCountBox.Text = PostObject.PostLikes + " " + GetString(Resource.String.Btn_Likes);
+                            else
+                                LikeCountBox.Text = "0 " + GetString(Resource.String.Btn_Likes);
+                            break;
+                        }
                     }
-                    else
-                    {
-                        //if (PostObject?.GetPostComments?.Count > 0)
-                        //{
-                        //    var db = ClassMapper.Mapper?.Map<List<CommentObjectExtra>>(PostObject.GetPostComments);
-                        //    MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(db);
-                        //}
-                        //else
-                        //{
-                        //    MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>();
-                        //}
-                         
-                        //if (MAdapter.CommentList.Count > 0)
-                        //    MAdapter?.NotifyDataSetChanged();
 
-                        StartApiService();
+                    switch (PostObject.CommentsStatus)
+                    {
+                        case "0":
+                            MAdapter.CommentList.Clear();
+
+                            MAdapter.CommentList.Add(new CommentObjectExtra
+                            {
+                                Id = MAdapter.EmptyState,
+                                Text = MAdapter.EmptyState,
+                                Orginaltext = GetText(Resource.String.Lbl_CommentsAreDisabledBy) + " " + WoWonderTools.GetNameFinal(PostObject.Publisher),
+                            });
+
+                            MAdapter.NotifyDataSetChanged();
+
+                            CommentLayout.Visibility = ViewStates.Gone;
+                            break;
+                        default:
+                            //if (PostObject?.GetPostComments?.Count > 0)
+                            //{
+                            //    var db = ClassMapper.Mapper?.Map<List<CommentObjectExtra>>(PostObject.GetPostComments);
+                            //    MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(db);
+                            //}
+                            //else
+                            //{
+                            //    MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>();
+                            //}
+                         
+                            //if (MAdapter.CommentList.Count > 0)
+                            //    MAdapter?.NotifyDataSetChanged();
+
+                            StartApiService();
+                            break;
                     }
                 }
 
@@ -811,15 +901,18 @@ namespace WoWonder.Activities.Comment
 
         private async Task LoadDataComment(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.CommentList.Count; 
                 var (apiStatus, respond) = await RequestsAsync.Comment.GetPostComments(PostId, "10", offset);
-                if (apiStatus != 200 || (respond is not CommentObject result) || result.CommentList == null)
+                if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -827,30 +920,37 @@ namespace WoWonder.Activities.Comment
                 else
                 {
                     var respondList = result.CommentList?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        foreach (var item in result.CommentList)
+                        case > 0:
                         {
-                            CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
-                            if (check == null)
+                            foreach (var item in result.CommentList)
                             {
-                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                                if (db != null) MAdapter.CommentList.Add(db);
+                                CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
+                                switch (check)
+                                {
+                                    case null:
+                                    {
+                                        var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                        if (db != null) MAdapter.CommentList.Add(db);
+                                        break;
+                                    }
+                                    default:
+                                        check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                        check.Replies = item.Replies;
+                                        check.RepliesCount = item.RepliesCount;
+                                        break;
+                                }
                             }
-                            else
-                            {
-                                check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
-                                check.Replies = item.Replies;
-                                check.RepliesCount = item.RepliesCount;
-                            } 
-                        }
 
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                    } 
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        }
+                    }
                 }
 
                 RunOnUiThread(ShowEmptyPage);
-            } 
+            }
         }
 
         private void ShowEmptyPage()
@@ -860,21 +960,27 @@ namespace WoWonder.Activities.Comment
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
                  
-                if (MAdapter.CommentList.Count > 0)
-                { 
-                    var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
-                    if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                switch (MAdapter.CommentList.Count)
+                {
+                    case > 0:
                     {
-                        MAdapter.CommentList.Remove(emptyStateChecker);
+                        var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
+                        if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                        {
+                            MAdapter.CommentList.Remove(emptyStateChecker);
+                            MAdapter.NotifyDataSetChanged();
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        MAdapter.CommentList.Clear();
+                        var d = new CommentObjectExtra { Text = MAdapter.EmptyState };
+                        MAdapter.CommentList.Add(d);
                         MAdapter.NotifyDataSetChanged();
-                    } 
-                }
-                else
-                { 
-                    MAdapter.CommentList.Clear();
-                    var d = new CommentObjectExtra { Text = MAdapter.EmptyState };
-                    MAdapter.CommentList.Add(d);
-                    MAdapter.NotifyDataSetChanged();
+                        break;
+                    }
                 } 
             }
             catch (Exception e)
@@ -911,32 +1017,36 @@ namespace WoWonder.Activities.Comment
                     {
                         var result = CropImage.GetActivityResult(data);
 
-                        if (resultCode == Result.Ok)
+                        switch (resultCode)
                         {
-                            if (result.IsSuccessful)
+                            case Result.Ok when result.IsSuccessful:
                             {
                                 var resultUri = result.Uri;
 
-                                if (!string.IsNullOrEmpty(resultUri.Path))
+                                switch (string.IsNullOrEmpty(resultUri.Path))
                                 {
-                                    PathImage = resultUri.Path;
+                                    case false:
+                                    {
+                                        PathImage = resultUri.Path;
 
-                                    File file2 = new File(resultUri.Path);
-                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgGallery);
+                                        File file2 = new File(resultUri.Path);
+                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgGallery);
 
-                                    //GlideImageLoader.LoadImage(this, PathImage, ImgGallery, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        //GlideImageLoader.LoadImage(this, PathImage, ImgGallery, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        break;
+                                    }
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        break;
                                 }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                                }
+
+                                break;
                             }
-                            else
-                            {
+                            case Result.Ok:
                                 Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)
                                     .Show();
-                            }
+                                break;
                         }
 
                         break;
@@ -993,25 +1103,29 @@ namespace WoWonder.Activities.Comment
 
                 //  Chick if it was successful
                 var check = WoWonderTools.CheckMimeTypesWithServer(path);
-                if (!check)
+                switch (check)
                 {
-                    //this file not supported on the server , please select another file 
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                    return;
+                    case false:
+                        //this file not supported on the server , please select another file 
+                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                        return;
                 }
 
                 var type = Methods.AttachmentFiles.Check_FileExtension(path);
-                if (type == "Image")
+                switch (type)
                 {
-                    File file2 = new File(PathImage);
-                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgGallery);
+                    case "Image":
+                    {
+                        File file2 = new File(PathImage);
+                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgGallery);
 
-                    //GlideImageLoader.LoadImage(this, PathImage, ImgGallery, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                }
-                else
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        //GlideImageLoader.LoadImage(this, PathImage, ImgGallery, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                        break;
+                    }
+                    default:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -1027,22 +1141,26 @@ namespace WoWonder.Activities.Comment
             try
             {
                 var list = MAdapter.CommentList.Where(a => !string.IsNullOrEmpty(a.Record) && a.MediaPlayer != null).ToList();
-                if (list.Count > 0)
+                switch (list.Count)
                 {
-                    foreach (var item in list)
+                    case > 0:
                     {
-                        if (item.MediaPlayer != null)
+                        foreach (var item in list)
                         {
-                            item.MediaPlayer.Stop();
-                            item.MediaPlayer.Reset();
-                        }
-                        item.MediaPlayer = null!;
-                        item.MediaTimer = null!;
+                            if (item.MediaPlayer != null)
+                            {
+                                item.MediaPlayer.Stop();
+                                item.MediaPlayer.Reset();
+                            }
+                            item.MediaPlayer = null!;
+                            item.MediaTimer = null!;
 
-                        item.MediaPlayer?.Release();
-                        item.MediaPlayer = null!;
+                            item.MediaPlayer?.Release();
+                            item.MediaPlayer = null!;
+                        }
+                        MAdapter.NotifyDataSetChanged();
+                        break;
                     }
-                    MAdapter.NotifyDataSetChanged();
                 }
             }
             catch (Exception e)
@@ -1055,25 +1173,10 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -1086,10 +1189,31 @@ namespace WoWonder.Activities.Comment
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1103,15 +1227,20 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if (fragmentView.IsVisible)
-                    return;
+                switch (fragmentView.IsVisible)
+                {
+                    case true:
+                        return;
+                }
 
                 var trans = SupportFragmentManager.BeginTransaction();
                 trans.Replace(TopFragment.Id, fragmentView);
 
-                if (SupportFragmentManager.BackStackEntryCount == 0)
+                switch (SupportFragmentManager.BackStackEntryCount)
                 {
-                    trans.AddToBackStack(null);
+                    case 0:
+                        trans.AddToBackStack(null);
+                        break;
                 }
 
                 trans.Commit();

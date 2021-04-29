@@ -157,23 +157,29 @@ namespace WoWonder.Activities.Comment
         public void CommentReplyPostClick(CommentReplyClickEventArgs e)
         {
             try
-            { 
-                if (TypeClass == "Reply")
+            {
+                switch (TypeClass)
                 {
-                   var txtComment = ReplyCommentActivity.GetInstance().TxtComment;
-                    if (txtComment != null)
+                    case "Reply":
                     {
-                        txtComment.Text = "";
-                        txtComment.Text = "@" + e.CommentObject.Publisher.Username + " ";
-                    } 
+                        var txtComment = ReplyCommentActivity.GetInstance().TxtComment;
+                        if (txtComment != null)
+                        {
+                            txtComment.Text = "";
+                            txtComment.Text = "@" + e.CommentObject.Publisher.Username + " ";
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        var intent = new Intent(MainContext, typeof(ReplyCommentActivity));
+                        intent.PutExtra("CommentId", e.CommentObject.Id);
+                        intent.PutExtra("CommentObject", JsonConvert.SerializeObject(e.CommentObject));
+                        MainContext.StartActivity(intent);
+                        break;
+                    }
                 }
-                else
-                {
-                    var intent = new Intent(MainContext, typeof(ReplyCommentActivity));
-                    intent.PutExtra("CommentId", e.CommentObject.Id);
-                    intent.PutExtra("CommentObject", JsonConvert.SerializeObject(e.CommentObject));
-                    MainContext.StartActivity(intent);
-                } 
             }
             catch (Exception exception)
             {
@@ -191,58 +197,76 @@ namespace WoWonder.Activities.Comment
                     return;
                 }
 
-                if (e.Holder.LikeTextView?.Tag?.ToString() == "Liked")
-                { 
-                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                    e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                    e.Holder.LikeTextView.Tag = "Like";
-
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
-                    {
-                        var x = e.CommentObject.Reaction.Count;
-                        if (x > 0)
-                            e.CommentObject.Reaction.Count--;
-                        else
-                            e.CommentObject.Reaction.Count = 0;
-
-                        e.CommentObject.Reaction.IsReacted = false;
-                        e.CommentObject.Reaction.Type = "";
-                         
-                        if (e.Holder.CountLike != null && e.CommentObject.Reaction.Count > 0)
-                        {
-                            e.Holder.CountLikeSection.Visibility = ViewStates.Visible;
-                            e.Holder.CountLike.Text = Methods.FunString.FormatPriceValue(e.CommentObject.Reaction.Count);
-                        }
-                        else
-                        {
-                            e.Holder.CountLikeSection.Visibility = ViewStates.Gone;
-                        }
-                         
-                        PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> {() => RequestsAsync.Comment.ReactionCommentAsync(e.CommentObject.Id, "" , "reaction_reply") } : new List<Func<Task>> {() => RequestsAsync.Comment.ReactionCommentAsync(e.CommentObject.Id, "") });
-                    }
-                    else
-                    {
-                        e.CommentObject.IsCommentLiked = false;
-
-                        PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "reply_like")} : new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "comment_like")});
-                    } 
-                }
-                else
+                switch (e.Holder.LikeTextView?.Tag?.ToString())
                 {
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+                    case "Liked":
                     {
-                        new ReactionComment(MainContext, TypeClass)?.ClickDialog(e); 
+                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
+                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                        e.Holder.LikeTextView.Tag = "Like";
+
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.ReactionDefault:
+                            case PostButtonSystem.ReactionSubShine:
+                            {
+                                var x = e.CommentObject.Reaction.Count;
+                                switch (x)
+                                {
+                                    case > 0:
+                                        e.CommentObject.Reaction.Count--;
+                                        break;
+                                    default:
+                                        e.CommentObject.Reaction.Count = 0;
+                                        break;
+                                }
+
+                                e.CommentObject.Reaction.IsReacted = false;
+                                e.CommentObject.Reaction.Type = "";
+                         
+                                if (e.Holder.CountLike != null && e.CommentObject.Reaction.Count > 0)
+                                {
+                                    e.Holder.CountLikeSection.Visibility = ViewStates.Visible;
+                                    e.Holder.CountLike.Text = Methods.FunString.FormatPriceValue(e.CommentObject.Reaction.Count);
+                                }
+                                else
+                                {
+                                    e.Holder.CountLikeSection.Visibility = ViewStates.Gone;
+                                }
+                         
+                                PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> {() => RequestsAsync.Comment.ReactionCommentAsync(e.CommentObject.Id, "" , "reaction_reply") } : new List<Func<Task>> {() => RequestsAsync.Comment.ReactionCommentAsync(e.CommentObject.Id, "") });
+                                break;
+                            }
+                            default:
+                                e.CommentObject.IsCommentLiked = false;
+
+                                PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "reply_like")} : new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "comment_like")});
+                                break;
+                        }
+
+                        break;
                     }
-                    else
-                    { 
-                        e.CommentObject.IsCommentLiked = true;
+                    default:
+                    {
+                        switch (AppSettings.PostButton)
+                        {
+                            case PostButtonSystem.ReactionDefault:
+                            case PostButtonSystem.ReactionSubShine:
+                                new ReactionComment(MainContext, TypeClass)?.ClickDialog(e);
+                                break;
+                            default:
+                                e.CommentObject.IsCommentLiked = true;
 
-                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
-                        e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                        e.Holder.LikeTextView.Tag = "Liked";
+                                e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
+                                e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                e.Holder.LikeTextView.Tag = "Liked";
 
-                        PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "reply_like")} : new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "comment_like")});
-                    } 
+                                PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "reply_like")} : new List<Func<Task>> {() => RequestsAsync.Comment.LikeUnLikeCommentAsync(e.CommentObject.Id, "comment_like")});
+                                break;
+                        }
+
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -298,13 +322,15 @@ namespace WoWonder.Activities.Comment
                         }
                 }
 
-                if (e.Holder.LikeTextView?.Tag?.ToString() == "Liked")
+                switch (e.Holder.LikeTextView?.Tag?.ToString())
                 {
-                    e.CommentObject.IsCommentLiked = false;
+                    case "Liked":
+                        e.CommentObject.IsCommentLiked = false;
 
-                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                    e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                    e.Holder.LikeTextView.Tag = "Like"; 
+                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
+                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                        e.Holder.LikeTextView.Tag = "Like";
+                        break;
                 } 
             }
             catch (Exception exception)
@@ -332,20 +358,29 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                if (item == null)
-                    return;
+                switch (item)
+                {
+                    case null:
+                        return;
+                }
                 string imageUrl;
 
-                if (!string.IsNullOrEmpty(item.CFile) && (item.CFile.Contains("file://") || item.CFile.Contains("content://") || item.CFile.Contains("storage") || item.CFile.Contains("/data/user/0/")))
+                switch (string.IsNullOrEmpty(item.CFile))
                 {
-                    imageUrl = item.CFile;
-                }
-                else
-                {
-                    if (!item.CFile.Contains(Client.WebsiteUrl))
-                        item.CFile = WoWonderTools.GetTheFinalLink(item.CFile);
+                    case false when item.CFile.Contains("file://") || item.CFile.Contains("content://") || item.CFile.Contains("storage") || item.CFile.Contains("/data/user/0/"):
+                        imageUrl = item.CFile;
+                        break;
+                    default:
+                    {
+                        item.CFile = item.CFile.Contains(Client.WebsiteUrl) switch
+                        {
+                            false => WoWonderTools.GetTheFinalLink(item.CFile),
+                            _ => item.CFile
+                        };
 
-                    imageUrl = item.CFile;
+                        imageUrl = item.CFile;
+                        break;
+                    }
                 }
 
                 MainContext?.RunOnUiThread(() =>
@@ -458,25 +493,29 @@ namespace WoWonder.Activities.Comment
                 if (args.Holder.CommentAdapter.PositionSound != args.Position)
                 {
                     var list = args.Holder.CommentAdapter.CommentList.Where(a => a.MediaPlayer != null).ToList();
-                    if (list.Count > 0)
+                    switch (list.Count)
                     {
-                        foreach (var item in list)
+                        case > 0:
                         {
-                            item.MediaIsPlaying = false;
-
-                            if (item.MediaPlayer != null)
+                            foreach (var item in list)
                             {
-                                item.MediaPlayer.Stop();
-                                item.MediaPlayer.Reset();
+                                item.MediaIsPlaying = false;
+
+                                if (item.MediaPlayer != null)
+                                {
+                                    item.MediaPlayer.Stop();
+                                    item.MediaPlayer.Reset();
+                                }
+                                item.MediaPlayer = null!;
+                                item.MediaTimer = null!;
+
+                                item.MediaPlayer?.Release();
+                                item.MediaPlayer = null!;
                             }
-                            item.MediaPlayer = null!;
-                            item.MediaTimer = null!;
 
-                            item.MediaPlayer?.Release();
-                            item.MediaPlayer = null!;
+                            args.Holder.CommentAdapter.NotifyItemChanged(args.Holder.CommentAdapter.PositionSound, "WithoutBlobAudio");
+                            break;
                         }
-
-                        args.Holder.CommentAdapter.NotifyItemChanged(args.Holder.CommentAdapter.PositionSound, "WithoutBlobAudio");
                     }
                 }
 
@@ -494,139 +533,143 @@ namespace WoWonder.Activities.Comment
                 if (mediaFile.Contains("http"))
                     mediaFile = WoWonderTools.GetFile(args.CommentObject.PostId, Methods.Path.FolderDcimSound, fileName, args.CommentObject.Record);
 
-                if (args.CommentObject.MediaPlayer == null)
+                switch (args.CommentObject.MediaPlayer)
                 {
-                    args.Holder.DurationVoice.Text = "00:00";
-                    args.Holder.CommentAdapter.PositionSound = args.Position;
-                    args.CommentObject.MediaPlayer = new MediaPlayer();
-                    args.CommentObject.MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder().SetUsage(AudioUsageKind.Media).SetContentType(AudioContentType.Music).Build());
-
-                    args.CommentObject.MediaPlayer.Completion += (sender, e) =>
+                    case null:
                     {
-                        try
+                        args.Holder.DurationVoice.Text = "00:00";
+                        args.Holder.CommentAdapter.PositionSound = args.Position;
+                        args.CommentObject.MediaPlayer = new MediaPlayer();
+                        args.CommentObject.MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder().SetUsage(AudioUsageKind.Media).SetContentType(AudioContentType.Music).Build());
+
+                        args.CommentObject.MediaPlayer.Completion += (sender, e) =>
                         {
-                            args.Holder.PlayButton.Tag = "Play";
-                            args.Holder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
-
-                            args.CommentObject.MediaIsPlaying = false;
-
-                            args.CommentObject.MediaPlayer.Stop();
-                            args.CommentObject.MediaPlayer.Reset();
-                            args.CommentObject.MediaPlayer = null!;
-
-                            args.CommentObject.MediaTimer.Enabled = false;
-                            args.CommentObject.MediaTimer.Stop();
-                            args.CommentObject.MediaTimer = null!;
-                        }
-                        catch (Exception exception)
-                        {
-                            Methods.DisplayReportResultTrack(exception);
-                        }
-                    };
-
-                    args.CommentObject.MediaPlayer.Prepared += (s, ee) =>
-                    {
-                        try
-                        {
-                            args.CommentObject.MediaIsPlaying = true;
-                            args.Holder.PlayButton.Tag = "Pause";
-                            args.Holder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
-                             
-                            args.CommentObject.MediaTimer ??= new Timer { Interval = 1000 };
-
-                            args.CommentObject.MediaPlayer.Start();
-
-                            //var durationOfSound = message.MediaPlayer.Duration;
-
-                            args.CommentObject.MediaTimer.Elapsed += (sender, eventArgs) =>
+                            try
                             {
-                                args.Holder.CommentAdapter.ActivityContext?.RunOnUiThread(() =>
-                                {
-                                    try
-                                    {
-                                        if (args.CommentObject.MediaTimer != null && args.CommentObject.MediaTimer.Enabled)
-                                        {
-                                            if (args.CommentObject.MediaPlayer.CurrentPosition <= args.CommentObject.MediaPlayer.Duration)
-                                            {
-                                                args.Holder.DurationVoice.Text = Methods.AudioRecorderAndPlayer.GetTimeString(args.CommentObject.MediaPlayer.CurrentPosition.ToString());
-                                            }
-                                            else
-                                            {
-                                                args.Holder.DurationVoice.Text = Methods.AudioRecorderAndPlayer.GetTimeString(args.CommentObject.MediaPlayer.Duration.ToString());
+                                args.Holder.PlayButton.Tag = "Play";
+                                args.Holder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
 
-                                                args.Holder.PlayButton.Tag = "Play";
-                                                args.Holder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
-                                            }
-                                        }
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Methods.DisplayReportResultTrack(e);
-                                        args.Holder.PlayButton.Tag = "Play";
-                                    }
-                                });
-                            };
-                            args.CommentObject.MediaTimer.Start();
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    };
+                                args.CommentObject.MediaIsPlaying = false;
 
-                    if (mediaFile.Contains("http"))
-                    {
-                        args.CommentObject.MediaPlayer.SetDataSource(args.Holder.CommentAdapter.ActivityContext, Uri.Parse(mediaFile));
-                        args.CommentObject.MediaPlayer.PrepareAsync();
-                    }
-                    else
-                    {
-                        Java.IO.File file2 = new Java.IO.File(mediaFile);
-                        var photoUri = FileProvider.GetUriForFile(args.Holder.CommentAdapter.ActivityContext, args.Holder.CommentAdapter.ActivityContext.PackageName + ".fileprovider", file2);
+                                args.CommentObject.MediaPlayer.Stop();
+                                args.CommentObject.MediaPlayer.Reset();
+                                args.CommentObject.MediaPlayer = null!;
 
-                        args.CommentObject.MediaPlayer.SetDataSource(args.Holder.CommentAdapter.ActivityContext, photoUri);
-                        args.CommentObject.MediaPlayer.PrepareAsync();
-                    }
-
-                    //args.CommentObject.SoundViewHolder = soundViewHolder;
-                }
-                else
-                {
-                    switch (args.Holder.PlayButton?.Tag?.ToString())
-                    {
-                        case "Play":
-                        {
-                            args.Holder.PlayButton.Tag = "Pause";
-                            args.Holder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
-                         
-                            args.CommentObject.MediaIsPlaying = true;
-                            args.CommentObject.MediaPlayer?.Start();
-
-                            if (args.CommentObject.MediaTimer != null)
-                            {
-                                args.CommentObject.MediaTimer.Enabled = true;
-                                args.CommentObject.MediaTimer.Start();
-                            }
-
-                            break;
-                        }
-                        case "Pause":
-                        {
-                            args.Holder.PlayButton.Tag = "Play";
-                            args.Holder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
-
-                            args.CommentObject.MediaIsPlaying = false;
-                            args.CommentObject.MediaPlayer?.Pause();
-
-                            if (args.CommentObject.MediaTimer != null)
-                            {
                                 args.CommentObject.MediaTimer.Enabled = false;
                                 args.CommentObject.MediaTimer.Stop();
+                                args.CommentObject.MediaTimer = null!;
                             }
+                            catch (Exception exception)
+                            {
+                                Methods.DisplayReportResultTrack(exception);
+                            }
+                        };
 
-                            break;
+                        args.CommentObject.MediaPlayer.Prepared += (s, ee) =>
+                        {
+                            try
+                            {
+                                args.CommentObject.MediaIsPlaying = true;
+                                args.Holder.PlayButton.Tag = "Pause";
+                                args.Holder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+                             
+                                args.CommentObject.MediaTimer ??= new Timer { Interval = 1000 };
+
+                                args.CommentObject.MediaPlayer.Start();
+
+                                //var durationOfSound = message.MediaPlayer.Duration;
+
+                                args.CommentObject.MediaTimer.Elapsed += (sender, eventArgs) =>
+                                {
+                                    args.Holder.CommentAdapter.ActivityContext?.RunOnUiThread(() =>
+                                    {
+                                        try
+                                        {
+                                            if (args.CommentObject.MediaTimer != null && args.CommentObject.MediaTimer.Enabled)
+                                            {
+                                                if (args.CommentObject.MediaPlayer.CurrentPosition <= args.CommentObject.MediaPlayer.Duration)
+                                                {
+                                                    args.Holder.DurationVoice.Text = Methods.AudioRecorderAndPlayer.GetTimeString(args.CommentObject.MediaPlayer.CurrentPosition.ToString());
+                                                }
+                                                else
+                                                {
+                                                    args.Holder.DurationVoice.Text = Methods.AudioRecorderAndPlayer.GetTimeString(args.CommentObject.MediaPlayer.Duration.ToString());
+
+                                                    args.Holder.PlayButton.Tag = "Play";
+                                                    args.Holder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+                                                }
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Methods.DisplayReportResultTrack(e);
+                                            args.Holder.PlayButton.Tag = "Play";
+                                        }
+                                    });
+                                };
+                                args.CommentObject.MediaTimer.Start();
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        };
+
+                        if (mediaFile.Contains("http"))
+                        {
+                            args.CommentObject.MediaPlayer.SetDataSource(args.Holder.CommentAdapter.ActivityContext, Uri.Parse(mediaFile));
+                            args.CommentObject.MediaPlayer.PrepareAsync();
                         }
+                        else
+                        {
+                            Java.IO.File file2 = new Java.IO.File(mediaFile);
+                            var photoUri = FileProvider.GetUriForFile(args.Holder.CommentAdapter.ActivityContext, args.Holder.CommentAdapter.ActivityContext.PackageName + ".fileprovider", file2);
+
+                            args.CommentObject.MediaPlayer.SetDataSource(args.Holder.CommentAdapter.ActivityContext, photoUri);
+                            args.CommentObject.MediaPlayer.PrepareAsync();
+                        }
+
+                        //args.CommentObject.SoundViewHolder = soundViewHolder;
+                        break;
                     }
+                    default:
+                        switch (args.Holder.PlayButton?.Tag?.ToString())
+                        {
+                            case "Play":
+                            {
+                                args.Holder.PlayButton.Tag = "Pause";
+                                args.Holder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+                         
+                                args.CommentObject.MediaIsPlaying = true;
+                                args.CommentObject.MediaPlayer?.Start();
+
+                                if (args.CommentObject.MediaTimer != null)
+                                {
+                                    args.CommentObject.MediaTimer.Enabled = true;
+                                    args.CommentObject.MediaTimer.Start();
+                                }
+
+                                break;
+                            }
+                            case "Pause":
+                            {
+                                args.Holder.PlayButton.Tag = "Play";
+                                args.Holder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+
+                                args.CommentObject.MediaIsPlaying = false;
+                                args.CommentObject.MediaPlayer?.Pause();
+
+                                if (args.CommentObject.MediaTimer != null)
+                                {
+                                    args.CommentObject.MediaTimer.Enabled = false;
+                                    args.CommentObject.MediaTimer.Stop();
+                                }
+
+                                break;
+                            }
+                        }
+
+                        break;
                 }
             }
             catch (Exception e)
@@ -676,87 +719,104 @@ namespace WoWonder.Activities.Comment
             {
                 if (p1 == DialogAction.Positive)
                 {
-                    if (TypeDialog == "DeleteComment")
+                    switch (TypeDialog)
                     {
-                        MainContext?.RunOnUiThread(() =>
-                        {
-                            try
+                        case "DeleteComment":
+                            MainContext?.RunOnUiThread(() =>
                             {
-                                switch (TypeClass)
+                                try
                                 {
-                                    case "Comment":
+                                    switch (TypeClass)
                                     {
-                                        //TypeClass
-                                        var adapterGlobal = CommentActivity.GetInstance()?.MAdapter;
-                                        var dataGlobal = adapterGlobal?.CommentList?.FirstOrDefault(a => a.Id == CommentObject?.Id);
-                                        if (dataGlobal != null)
-                                        { 
-                                            var index = adapterGlobal.CommentList.IndexOf(dataGlobal);
-                                            if (index > -1)
-                                            {
-                                                adapterGlobal.CommentList.RemoveAt(index);
-                                                adapterGlobal.NotifyItemRemoved(index);
-                                            }
-                                        } 
-
-                                        var dataPost = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.PostId == CommentObject?.PostId).ToList();
-                                        if (dataPost?.Count > 0)
+                                        case "Comment":
                                         {
-                                            foreach (var post in dataPost.Where(post => post.TypeView == PostModelType.CommentSection || post.TypeView == PostModelType.AddCommentSection))
+                                            //TypeClass
+                                            var adapterGlobal = CommentActivity.GetInstance()?.MAdapter;
+                                            var dataGlobal = adapterGlobal?.CommentList?.FirstOrDefault(a => a.Id == CommentObject?.Id);
+                                            if (dataGlobal != null)
                                             {
-                                                TabbedMainActivity.GetInstance()?.NewsFeedTab?.MainRecyclerView?.RemoveByRowIndex(post);
-                                            }
-                                        }
+                                                var index = adapterGlobal.CommentList.IndexOf(dataGlobal);
+                                                switch (index)
+                                                {
+                                                    case > -1:
+                                                        adapterGlobal.CommentList.RemoveAt(index);
+                                                        adapterGlobal.NotifyItemRemoved(index);
+                                                        break;
+                                                }
+                                            } 
 
-                                        var dataPost2 = WRecyclerView.GetInstance()?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.PostId == CommentObject?.PostId).ToList();
-                                        if (dataPost2?.Count > 0)
+                                            var dataPost = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.PostId == CommentObject?.PostId).ToList();
+                                            switch (dataPost?.Count)
+                                            {
+                                                case > 0:
+                                                {
+                                                    foreach (var post in dataPost.Where(post => post.TypeView == PostModelType.CommentSection || post.TypeView == PostModelType.AddCommentSection))
+                                                    {
+                                                        TabbedMainActivity.GetInstance()?.NewsFeedTab?.MainRecyclerView?.RemoveByRowIndex(post);
+                                                    }
+
+                                                    break;
+                                                }
+                                            }
+
+                                            var dataPost2 = WRecyclerView.GetInstance()?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.PostId == CommentObject?.PostId).ToList();
+                                            switch (dataPost2?.Count)
+                                            {
+                                                case > 0:
+                                                {
+                                                    foreach (var post in dataPost2.Where(post => post.TypeView == PostModelType.CommentSection || post.TypeView == PostModelType.AddCommentSection))
+                                                    { 
+                                                        WRecyclerView.GetInstance()?.RemoveByRowIndex(post);
+                                                    }
+
+                                                    break;
+                                                }
+                                            }
+
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Comment.DeleteCommentAsync(CommentObject.Id) });
+                                            break; 
+                                        }
+                                        case "Reply":
                                         {
-                                            foreach (var post in dataPost2.Where(post => post.TypeView == PostModelType.CommentSection || post.TypeView == PostModelType.AddCommentSection))
-                                            { 
-                                                WRecyclerView.GetInstance()?.RemoveByRowIndex(post);
+                                            //TypeClass
+                                            var adapterGlobal = ReplyCommentActivity.GetInstance()?.MAdapter;
+                                            var dataGlobal = adapterGlobal?.ReplyCommentList?.FirstOrDefault(a => a.Id == CommentObject?.Id);
+                                            if (dataGlobal != null)
+                                            {
+                                                var index = adapterGlobal.ReplyCommentList.IndexOf(dataGlobal);
+                                                switch (index)
+                                                {
+                                                    case > -1:
+                                                        adapterGlobal.ReplyCommentList.RemoveAt(index);
+                                                        adapterGlobal.NotifyItemRemoved(index);
+                                                        break;
+                                                }
                                             }
-                                        }
 
-                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Comment.DeleteCommentAsync(CommentObject.Id) });
-                                        break; 
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Comment.DeleteCommentAsync(CommentObject.Id, "delete_reply") });
+                                            break;
+                                        }
                                     }
-                                    case "Reply":
-                                    {
-                                        //TypeClass
-                                        var adapterGlobal = ReplyCommentActivity.GetInstance()?.MAdapter;
-                                        var dataGlobal = adapterGlobal?.ReplyCommentList?.FirstOrDefault(a => a.Id == CommentObject?.Id);
-                                        if (dataGlobal != null)
-                                        {
 
-                                            var index = adapterGlobal.ReplyCommentList.IndexOf(dataGlobal);
-                                            if (index > -1)
-                                            {
-                                                adapterGlobal.ReplyCommentList.RemoveAt(index);
-                                                adapterGlobal.NotifyItemRemoved(index);
-                                            }
-                                        }
-
-                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Comment.DeleteCommentAsync(CommentObject.Id, "delete_reply") });
-                                        break;
-                                    }
+                                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short)?.Show();
                                 }
-
-                                Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short)?.Show();
-                            }
-                            catch (Exception e)
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            break;
+                        default:
+                        {
+                            if (p1 == DialogAction.Positive)
                             {
-                                Methods.DisplayReportResultTrack(e);
                             }
-                        });
-                    }
-                    else
-                    {
-                        if (p1 == DialogAction.Positive)
-                        {
-                        }
-                        else if (p1 == DialogAction.Negative)
-                        {
-                            p0.Dismiss();
+                            else if (p1 == DialogAction.Negative)
+                            {
+                                p0.Dismiss();
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -796,30 +856,39 @@ namespace WoWonder.Activities.Comment
                                 {
                                     dataGlobal.Text = strName;
                                     var index = adapterGlobal.CommentList.IndexOf(dataGlobal);
-                                    if (index > -1)
+                                    switch (index)
                                     {
-                                        adapterGlobal.NotifyItemChanged(index);
+                                        case > -1:
+                                            adapterGlobal.NotifyItemChanged(index);
+                                            break;
                                     }
                                 }
 
                                 var dataPost = WRecyclerView.GetInstance()?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == CommentObject.PostId).ToList();
-                                if (dataPost?.Count > 0)
+                                switch (dataPost?.Count)
                                 {
-                                    foreach (var post in dataPost)
+                                    case > 0:
                                     {
-                                        if (post.TypeView != PostModelType.CommentSection) 
-                                            continue;
-
-                                        var dataComment = post.PostData.GetPostComments?.FirstOrDefault(a => a.Id == CommentObject?.Id);
-                                        if (dataComment != null)
+                                        foreach (var post in dataPost)
                                         {
-                                            dataComment.Text = strName;
-                                            var index = post.PostData.GetPostComments.IndexOf(dataComment);
-                                            if (index > -1)
+                                            if (post.TypeView != PostModelType.CommentSection) 
+                                                continue;
+
+                                            var dataComment = post.PostData.GetPostComments?.FirstOrDefault(a => a.Id == CommentObject?.Id);
+                                            if (dataComment != null)
                                             {
-                                                WRecyclerView.GetInstance()?.NativeFeedAdapter.NotifyItemChanged(index);
+                                                dataComment.Text = strName;
+                                                var index = post.PostData.GetPostComments.IndexOf(dataComment);
+                                                switch (index)
+                                                {
+                                                    case > -1:
+                                                        WRecyclerView.GetInstance()?.NativeFeedAdapter.NotifyItemChanged(index);
+                                                        break;
+                                                }
                                             }
                                         }
+
+                                        break;
                                     }
                                 }
 
@@ -835,9 +904,11 @@ namespace WoWonder.Activities.Comment
                                 {
                                     dataGlobal.Text = strName;
                                     var index = adapterGlobal.ReplyCommentList.IndexOf(dataGlobal);
-                                    if (index > -1)
+                                    switch (index)
                                     {
-                                        adapterGlobal.NotifyItemChanged(index);
+                                        case > -1:
+                                            adapterGlobal.NotifyItemChanged(index);
+                                            break;
                                     }
                                 }
 

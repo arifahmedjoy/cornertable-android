@@ -63,55 +63,69 @@ namespace WoWonder.Activities.AddPost.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is AttachmentsAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = AttachmentList[position];
-                    if (item != null)
+                    case AttachmentsAdapterViewHolder holder:
                     {
-                        if (item.TypeAttachment == "Default")
-                            Glide.With(ActivityContext).Load(Resource.Drawable.addImage).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)).Into(holder.Image);
-                        else
+                        var item = AttachmentList[position];
+                        if (item != null)
                         {
-                            if (item.FileSimple.Contains("http") || item.FileSimple == "Image_File" || item.FileSimple == "Audio_File")
+                            switch (item.TypeAttachment)
                             {
-                                GlideImageLoader.LoadImage(ActivityContext, item.FileSimple, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                            }
-                            else
-                            {
-                                if (item.TypeAttachment == "postVideo" && string.IsNullOrEmpty(item.FileSimple) && !new File(item.FileSimple).Exists())
+                                case "Default":
+                                    Glide.With(ActivityContext).Load(Resource.Drawable.addImage).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)).Into(holder.Image);
+                                    break;
+                                default:
                                 {
-                                    File file2 = new File(item.FileUrl);
-                                    var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                    if (item.FileSimple.Contains("http") || item.FileSimple == "Image_File" || item.FileSimple == "Audio_File")
+                                    {
+                                        GlideImageLoader.LoadImage(ActivityContext, item.FileSimple, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                    }
+                                    else
+                                    {
+                                        switch (item.TypeAttachment)
+                                        {
+                                            case "postVideo" when string.IsNullOrEmpty(item.FileSimple) && !new File(item.FileSimple).Exists():
+                                            {
+                                                File file2 = new File(item.FileUrl);
+                                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
 
-                                    Glide.With(ActivityContext)
-                                        .AsBitmap()
-                                        .Placeholder(Resource.Drawable.default_video_thumbnail)
-                                        .Error(Resource.Drawable.default_video_thumbnail)
-                                        .Load(photoUri) // or URI/path
-                                        .Into(new MySimpleTarget(this, holder, position));  //image view to set thumbnail to
-                                }
-                                else
-                                {
-                                    Glide.With(ActivityContext).Load(new File(item.FileUrl)).Apply(new RequestOptions().Placeholder(Resource.Drawable.Blue_Color).Error(Resource.Drawable.Blue_Color)).Into(holder.Image);
+                                                Glide.With(ActivityContext)
+                                                    .AsBitmap()
+                                                    .Placeholder(Resource.Drawable.default_video_thumbnail)
+                                                    .Error(Resource.Drawable.default_video_thumbnail)
+                                                    .Load(photoUri) // or URI/path
+                                                    .Into(new MySimpleTarget(this, holder, position));  //image view to set thumbnail to
+                                                break;
+                                            }
+                                            default:
+                                                Glide.With(ActivityContext).Load(new File(item.FileUrl)).Apply(new RequestOptions().Placeholder(Resource.Drawable.Blue_Color).Error(Resource.Drawable.Blue_Color)).Into(holder.Image);
+                                                break;
+                                        }
+                                    }
+
+                                    break;
                                 }
                             }
+
+                            switch (item.TypeAttachment)
+                            {
+                                case "postVideo":
+                                    holder.AttachType.Visibility = ViewStates.Visible;
+                                    break;
+                                case "postPhotos":
+                                case "postMusic":
+                                case "postFile":
+                                    holder.AttachType.Visibility = ViewStates.Gone;
+                                    break;
+                                case "Default":
+                                    holder.ImageDelete.Visibility = ViewStates.Invisible;
+                                    break;
+                            }
                         }
-                         
-                        switch (item.TypeAttachment)
-                        {
-                            case "postVideo":
-                                holder.AttachType.Visibility = ViewStates.Visible;
-                                break;
-                            case "postPhotos":
-                            case "postMusic":
-                            case "postFile":
-                                holder.AttachType.Visibility = ViewStates.Gone;
-                                break;
-                            case "Default":
-                                holder.ImageDelete.Visibility = ViewStates.Invisible;
-                                break;
-                        }
+
+                        break;
                     }
                 }
             }
@@ -144,47 +158,62 @@ namespace WoWonder.Activities.AddPost.Adapters
             {
                 try
                 {
-                    if (MAdapter.AttachmentList?.Count > 0)
+                    switch (MAdapter.AttachmentList?.Count)
                     {
-                        var item = MAdapter.AttachmentList[Position];
-                        if (item != null && string.IsNullOrEmpty(item.Thumb?.FileUrl))
+                        case > 0:
                         {
-                            var fileName = item.FileUrl.Split('/').Last();
-                            var fileNameWithoutExtension = fileName.Split('.').First();
-
-                            var pathImage = Methods.Path.FolderDcimImage + "/" + fileNameWithoutExtension + ".png";
-
-                            var videoImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
-                            if (videoImage == "File Dont Exists")
+                            var item = MAdapter.AttachmentList[Position];
+                            if (item != null && string.IsNullOrEmpty(item.Thumb?.FileUrl))
                             {
-                                if (resource is Bitmap bitmap)
+                                var fileName = item.FileUrl.Split('/').Last();
+                                var fileNameWithoutExtension = fileName.Split('.').First();
+
+                                var pathImage = Methods.Path.FolderDcimImage + "/" + fileNameWithoutExtension + ".png";
+
+                                var videoImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
+                                switch (videoImage)
                                 {
-                                    Methods.MultiMedia.Export_Bitmap_As_Image(bitmap, fileNameWithoutExtension, Methods.Path.FolderDcimImage);
-                                     
-                                    File file2 = new File(pathImage);
-                                    var photoUri = FileProvider.GetUriForFile(MAdapter.ActivityContext, MAdapter.ActivityContext.PackageName + ".fileprovider", file2);
-
-                                    Glide.With(MAdapter.ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(ViewHolder.Image);
-
-                                    item.Thumb = new Attachments.VideoThumb
+                                    case "File Dont Exists":
                                     {
-                                        FileUrl = photoUri.ToString()
-                                    };
-                                } 
-                            }
-                            else
-                            { 
-                                File file2 = new File(pathImage);
-                                var photoUri = FileProvider.GetUriForFile(MAdapter.ActivityContext, MAdapter.ActivityContext.PackageName + ".fileprovider", file2);
+                                        switch (resource)
+                                        {
+                                            case Bitmap bitmap:
+                                            {
+                                                Methods.MultiMedia.Export_Bitmap_As_Image(bitmap, fileNameWithoutExtension, Methods.Path.FolderDcimImage);
+                                     
+                                                File file2 = new File(pathImage);
+                                                var photoUri = FileProvider.GetUriForFile(MAdapter.ActivityContext, MAdapter.ActivityContext.PackageName + ".fileprovider", file2);
 
-                                Glide.With(MAdapter.ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(ViewHolder.Image);
+                                                Glide.With(MAdapter.ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(ViewHolder.Image);
+
+                                                item.Thumb = new Attachments.VideoThumb
+                                                {
+                                                    FileUrl = photoUri.ToString()
+                                                };
+                                                break;
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        File file2 = new File(pathImage);
+                                        var photoUri = FileProvider.GetUriForFile(MAdapter.ActivityContext, MAdapter.ActivityContext.PackageName + ".fileprovider", file2);
+
+                                        Glide.With(MAdapter.ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(ViewHolder.Image);
                              
-                                item.Thumb = new Attachments.VideoThumb
-                                {
-                                    FileUrl = photoUri.ToString()
-                                };
+                                        item.Thumb = new Attachments.VideoThumb
+                                        {
+                                            FileUrl = photoUri.ToString()
+                                        };
+                                        break;
+                                    }
+                                }
                             }
-                        } 
+
+                            break;
+                        }
                     }
                 }
                 catch (Exception e)
@@ -203,8 +232,12 @@ namespace WoWonder.Activities.AddPost.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is AttachmentsAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                switch (holder)
+                {
+                    case AttachmentsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
+                }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)

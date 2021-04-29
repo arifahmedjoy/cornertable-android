@@ -224,16 +224,17 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    BtnDownload.Click += BtnDownloadOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    BtnDownload.Click -= BtnDownloadOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        BtnDownload.Click += BtnDownloadOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        BtnDownload.Click -= BtnDownloadOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -313,34 +314,47 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
                 }
                  
                 var position = e.Position;
-                if (position > -1 )
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case > -1:
                     {
-                        //Show a progress
-                        AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
-
-                        var (apiStatus, respond) = await RequestsAsync.Global.DownloadInfoAsync(item.Type);
-                        if (apiStatus == 200)
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
                         {
-                            if (respond is DownloadInfoObject result)
+                            //Show a progress
+                            AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
+
+                            var (apiStatus, respond) = await RequestsAsync.Global.DownloadInfoAsync(item.Type);
+                            switch (apiStatus)
                             {
-                                Link = result.Link;
-                                var fileName = Link.Split('/').Last();
-                                 WoWonderTools.GetFile("", Methods.Path.FolderDcimFile, fileName, Link);
+                                case 200:
+                                {
+                                    switch (respond)
+                                    {
+                                        case DownloadInfoObject result:
+                                        {
+                                            Link = result.Link;
+                                            var fileName = Link.Split('/').Last();
+                                            WoWonderTools.GetFile("", Methods.Path.FolderDcimFile, fileName, Link);
 
-                                BtnDownload.Visibility = ViewStates.Visible;
+                                            BtnDownload.Visibility = ViewStates.Visible;
                                  
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_YourFileIsReady), ToastLength.Long)?.Show(); 
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_YourFileIsReady), ToastLength.Long)?.Show(); 
                                 
-                                AndHUD.Shared.Dismiss(this); 
-                            }
+                                            AndHUD.Shared.Dismiss(this);
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    Methods.DisplayAndHudErrorResult(this, respond);
+                                    break;
+                            } 
                         }
-                        else
-                        {
-                            Methods.DisplayAndHudErrorResult(this, respond);
-                        } 
+
+                        break;
                     }
                 } 
             }

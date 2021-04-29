@@ -71,56 +71,67 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
         {
             try
             {
-                if (viewHolder is NearbyBusinessAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = NearbyBusinessList[position];
-                    if (item.Job?.JobInfoClass != null)
+                    case NearbyBusinessAdapterViewHolder holder:
                     {
-                        if (!item.Job.Value.JobInfoClass.Image.Contains(Client.WebsiteUrl))
-                            item.Job.Value.JobInfoClass.Image = WoWonderTools.GetTheFinalLink(item.Job?.JobInfoClass.Image);
-
-                        item.Job.Value.JobInfoClass.IsOwner = item.Job?.JobInfoClass.UserId == UserDetails.UserId;
-
-                        if (item.Job.Value.JobInfoClass.Image.Contains("http"))
+                        var item = NearbyBusinessList[position];
+                        if (item.Job?.JobInfoClass != null)
                         {
-                            GlideImageLoader.LoadImage(ActivityContext, item.Job.Value.JobInfoClass.Image, holder.Image, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
+                            item.Job.Value.JobInfoClass.Image =
+                                item.Job.Value.JobInfoClass.Image.Contains(Client.WebsiteUrl) switch
+                                {
+                                    false => WoWonderTools.GetTheFinalLink(item.Job?.JobInfoClass.Image),
+                                    _ => item.Job.Value.JobInfoClass.Image
+                                };
+
+                            item.Job.Value.JobInfoClass.IsOwner = item.Job?.JobInfoClass.UserId == UserDetails.UserId;
+
+                            if (item.Job.Value.JobInfoClass.Image.Contains("http"))
+                            {
+                                GlideImageLoader.LoadImage(ActivityContext, item.Job.Value.JobInfoClass.Image, holder.Image, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
+                            }
+                            else
+                            {
+                                File file2 = new File(item.Job.Value.JobInfoClass.Image);
+                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                            }
+
+                            holder.Title.Text = Methods.FunString.DecodeString(item.Job.Value.JobInfoClass.Title);
+
+                            var (currency, currencyIcon) = WoWonderTools.GetCurrency(item.Job.Value.JobInfoClass.Currency);
+                            var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == item.Job.Value.JobInfoClass.Category)?.CategoriesName;
+                            Console.WriteLine(currency);
+                            if (string.IsNullOrEmpty(categoryName))
+                                categoryName = Application.Context.GetText(Resource.String.Lbl_Unknown);
+
+                            holder.Salary.Text = item.Job.Value.JobInfoClass.Minimum + " " + currencyIcon + " - " + item.Job.Value.JobInfoClass.Maximum + " " + currencyIcon + " . " + categoryName;
+
+                            holder.Description.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Job.Value.JobInfoClass.Description), 100);
+
+                            if (item.Job.Value.JobInfoClass.IsOwner != null && item.Job.Value.JobInfoClass.IsOwner.Value)
+                            {
+                                holder.IconMore.Visibility = ViewStates.Visible;
+                                holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_show_applies) + " (" + item.Job.Value.JobInfoClass.ApplyCount + ")";
+                                holder.Button.Tag = "ShowApply";
+                            }
+                            else
+                            {
+                                holder.IconMore.Visibility = ViewStates.Gone;
+                            }
+
+                            switch (item.Job.Value.JobInfoClass.Apply)
+                            {
+                                //Set Button if its applied
+                                case "true":
+                                    holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_already_applied);
+                                    holder.Button.Enabled = false;
+                                    break;
+                            }  
                         }
-                        else
-                        {
-                            File file2 = new File(item.Job.Value.JobInfoClass.Image);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
-                        }
 
-                        holder.Title.Text = Methods.FunString.DecodeString(item.Job.Value.JobInfoClass.Title);
-
-                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(item.Job.Value.JobInfoClass.Currency);
-                        var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == item.Job.Value.JobInfoClass.Category)?.CategoriesName;
-                        Console.WriteLine(currency);
-                        if (string.IsNullOrEmpty(categoryName))
-                            categoryName = Application.Context.GetText(Resource.String.Lbl_Unknown);
-
-                        holder.Salary.Text = item.Job.Value.JobInfoClass.Minimum + " " + currencyIcon + " - " + item.Job.Value.JobInfoClass.Maximum + " " + currencyIcon + " . " + categoryName;
-
-                        holder.Description.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Job.Value.JobInfoClass.Description), 100);
-
-                        if (item.Job.Value.JobInfoClass.IsOwner != null && item.Job.Value.JobInfoClass.IsOwner.Value)
-                        {
-                            holder.IconMore.Visibility = ViewStates.Visible;
-                            holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_show_applies) + " (" + item.Job.Value.JobInfoClass.ApplyCount + ")";
-                            holder.Button.Tag = "ShowApply";
-                        }
-                        else
-                        {
-                            holder.IconMore.Visibility = ViewStates.Gone;
-                        }
-
-                        //Set Button if its applied
-                        if (item.Job.Value.JobInfoClass.Apply == "true")
-                        {
-                            holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_already_applied);
-                            holder.Button.Enabled = false;
-                        }  
+                        break;
                     }
                 }
             }
@@ -137,9 +148,11 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is NearbyBusinessAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case NearbyBusinessAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -202,14 +215,17 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
             {
                 var d = new List<string>();
                 var item = NearbyBusinessList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (item.Job != null && !string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Image))
-                        d.Add(item.Job.Value.JobInfoClass.Image);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        if (item.Job != null && !string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Image))
+                            d.Add(item.Job.Value.JobInfoClass.Image);
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

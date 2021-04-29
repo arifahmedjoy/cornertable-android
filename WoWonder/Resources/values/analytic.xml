@@ -23,10 +23,10 @@
 	<!--===============================================================-->
 
 	<!--google ID >> Google Login - Map - YouTube Player  https://prnt.sc/vysrsw -->
-	<string name="google_key">AIzaSyDxZutB1QL5P-d9ARlTXAk7mNdkCEasNLo</string>
+	<string name="google_key">MTQ1MGE0OWItODg3YS00MzRlLWI1ZGQtZGUxNWJmZTI5OTk1</string>
 
 	<!-- https://developers.google.com/maps/documentation/maps-static/intro -->
-	<string name="google_maps_key">AIzaSyDxZutB1QL5P-d9ARlTXAk7mNdkCEasNLo</string>
+	<string name="google_maps_key">MTQ1MGE0OWItODg3YS00MzRlLWI1ZGQtZGUxNWJmZTI5OTk1</string>
 
 	<string name="razorpay_api_Key">rzp_test_ruzI7R7AkonOIi</string>
 

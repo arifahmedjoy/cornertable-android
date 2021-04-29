@@ -21,15 +21,18 @@ namespace WoWonder.Activities.Live.Utils
             try
             {
                 File folder;
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+                switch (Build.VERSION.SdkInt)
                 {
-                    folder = new File(context.GetExternalFilesDir(Android.OS.Environment.DirectoryDocuments), LogFolderName);
-                }
-                else
-                {
-                    string path = Methods.Path.FolderDcimMyApp + File.Separator + context.PackageName + File.Separator + LogFolderName;
-                    folder = new File(path);
-                    if (!folder.Exists() && !folder.Mkdir()) folder = null;
+                    case >= BuildVersionCodes.P:
+                        folder = new File(context.GetExternalFilesDir(Android.OS.Environment.DirectoryDocuments), LogFolderName);
+                        break;
+                    default:
+                    {
+                        string path = Methods.Path.FolderDcimMyApp + File.Separator + context.PackageName + File.Separator + LogFolderName;
+                        folder = new File(path);
+                        if (!folder.Exists() && !folder.Mkdir()) folder = null;
+                        break;
+                    }
                 }
 
                 if (folder != null && !folder.Exists() && !folder.Mkdir())

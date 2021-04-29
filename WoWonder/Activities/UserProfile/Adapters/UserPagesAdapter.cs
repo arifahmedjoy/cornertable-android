@@ -62,22 +62,27 @@ namespace WoWonder.Activities.UserProfile.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is UserPagesAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = PageList[position];
-                    if (item != null)
+                    case UserPagesAdapterViewHolder holder:
                     {
-                        if (item.Avatar.Contains("http"))
-                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                        else
-                            Glide.With(ActivityContext).Load(new File(item.Avatar)).Apply(new RequestOptions().CircleCrop().Placeholder(Resource.Drawable.ImagePlacholder).Error(Resource.Drawable.ImagePlacholder)).Into(holder.Image);
+                        var item = PageList[position];
+                        if (item != null)
+                        {
+                            if (item.Avatar.Contains("http"))
+                                GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            else
+                                Glide.With(ActivityContext).Load(new File(item.Avatar)).Apply(new RequestOptions().CircleCrop().Placeholder(Resource.Drawable.ImagePlacholder).Error(Resource.Drawable.ImagePlacholder)).Into(holder.Image);
 
-                        string name = Methods.FunString.DecodeString(item.PageName);
-                        holder.Name.Text = name;
+                            string name = Methods.FunString.DecodeString(item.PageName);
+                            holder.Name.Text = name;
                          
-                        if (item.UserId == UserDetails.UserId)
-                            item.IsPageOnwer = true;
+                            if (item.UserId == UserDetails.UserId)
+                                item.IsPageOnwer = true;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -93,9 +98,11 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is UserPagesAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case UserPagesAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -151,14 +158,21 @@ namespace WoWonder.Activities.UserProfile.Adapters
             {
                 var d = new List<string>();
                 var item = PageList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

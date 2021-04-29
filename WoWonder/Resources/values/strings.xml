@@ -4,12 +4,11 @@
 	<!-- - If the text is marked ' Please replace with the symbol &apos; and add at the beginning and end of the sentence "
         Example: Let's get started! >> "Let&apos;s get started!"  -->
 	<!-- - If the text is marked & Please replace with the symbol &amp; 
-        Example. Movies & Animation >> Movies &amp; Animation   -->
+        Example. Movies & Animation >> Movies &amp; Animation   --> 
 
 	<!--supportsRtl-->
 	<bool name="Is_arabic">false</bool>
-	<!--===============================================================-->
-	<string name="google_app_id">1:33032197338:android:33d3c8c5ea4f23c56381e3</string>
+	<!--===============================================================--> 
 	<!--Range seeker-->
 	<string name="demo_min_label">Min</string>
 	<string name="demo_max_label">Max</string>
@@ -180,7 +179,10 @@
 	<string name="Lbl_File">File</string>
 	<string name="Lbl_Music">Music</string>
 	<string name="Lbl_Whats_Going_On">"What&apos;s going on? #Hashtag.. @Mention."</string>
-	<!--===============================================================-->
+  <string name="Lbl_Gallery">Gallery</string>
+  <string name="Lbl_Friend">Tag Friends</string>
+  <string name="Lbl_PostLive">Live</string>
+  <!--===============================================================-->
 
 	<!--Type Activity-->
 	<string name="Lbl_ListeningTo">Listening to</string>
@@ -1397,197 +1399,202 @@
 	<string name="Lbl_CoronaVirus_HeadText">Help prevent the spread of coronavirus.</string> 
 	<string name="Lbl_CoronaVirus_SubText">See the latest info from the world health organization so you can help prevent the spread of covid-19.</string>
 
-	<!--Chat Messanger-->
-	<string name="Lbl_Clear_chat">Clear chat</string>
-	<string name="Lbl_Uploading">Uploading</string>
-	<string name="Lbl_TextChatNotSupported">Message is not supported on this version</string>
-	<string name="Lbl_Select_what_you_want">Select what you want</string>
-	<!--Tabbed_Main_Page-->
-	<string name="Lbl_Tab_Chats">Chats</string>
-	<string name="Lbl_Tab_GroupChats">Groups</string>
-	<string name="Lbl_Tab_Stories">Stories</string>
-	<string name="Lbl_Tab_Calls">Calls</string>
-	<string name="Lbl_is_calling_you">is calling you</string>
-	<string name="Lbl_SendGifFile">Gif</string>
-	<string name="Lbl_SendMessage">Send you a message</string>
-	<string name="Lbl_SendStickerFile">Sticker</string>
-	<string name="Lbl_SendContactnumber">Contact number</string>
-	<string name="Lbl_SendFile">File</string>
-	<string name="Lbl_SendVideoFile">Video</string>
-	<string name="Lbl_SendAudioFile">Audio</string>
-	<string name="Lbl_SendImageFile">Photo</string>
-	<string name="Lbl_Empty_Lastmessages">No more messages</string>
-	<string name="Lbl_Start_Lastmessages">Start new conversations by going to >> Contacts</string>
-	<string name="Lbl_CreateGroup">Create Group</string>
-	<string name="Lbl_ErrorLengthGroupName">Group name must be between 4 and 15 character</string>
-	<string name="Lbl_PleaseSelectUser">Please select at least one user</string>
-	<string name="Lbl_AreYouSureExitGroup">Are you sure to exit the group</string>
-	<string name="Lbl_AreYouSureDeleteGroup">Are you sure you want to delete the group</string>
-	<string name="Lbl_Exit">Exit</string>
-	<string name="Lbl_GroupSuccessfullyLeaved">You are successfully leaved this group</string>
-	<string name="Lbl_Write_your_message">Write your message</string>
-	<string name="Lbl_SendProductFile">Sent product to you</string>
-	<string name="Lbl_ExitGroup">Exit group</string>
-	<string name="Lbl_GroupName">Group Name</string>
-	<string name="Lbl_NewGroup">New Group</string>
-	<string name="Lbl_AddParticipants">Add participants</string>
-	<string name="Lbl_GroupMembers">Group members</string>
-	<!--Call-->
-	<string name="Lbl_Select_contact">Select contact</string>
-	<string name="Lbl_Web">Web</string>
-	<string name="Lbl_Calling">Calling...</string>
-	<string name="Lbl_Waiting_to_connect">Waiting to connect...</string>
-	<string name="Lbl_Faild_to_connect">Failed to connect !!</string>
-	<string name="Lbl_No_respond_from_the_user">No response from the user</string>
-	<string name="Lbl_The_user_declinde_your_call">The user declined your call</string>
-	<string name="Lbl_Lost_his_connection">Lost his connection</string>
-	<string name="Lbl_Lost_Connection">Lost Connection</string>
-	<string name="Lbl_Calls">Calls</string>
-	<string name="Lbl_Empty_calls">No calls</string>
-	<string name="Lbl_Start_calls">Start a new call from your friends list, by pressing the button at the bottom of the screen.</string>
-	<string name="Lbl_Notification_of_Messages">Notification of Messages</string>
-	<string name="Lbl_Dismiss">Dismiss</string>
-	<string name="Lbl_Answer">Answer</string>
-	<string name="Lbl_Clear_call_log">Clear call log</string>
-	<string name="Lbl_Answered_call">Answered call</string>
-	<string name="Lbl_Missed_call">Missed call</string>
-	<string name="Lbl_Declined_call">Declined call</string>
-	<string name="Lbl_Waiting_for_answer">Waiting for answer</string>
-	<string name="Lbl_Need_Camera">Need Camera and Microphone permissions to call.</string>
-	<string name="Lbl_Room_Disconnected">User Disconnected.</string>
-	<string name="Lbl_Connected">Connected</string>
-	<string name="Lbl_User_Lost_Connection">User Lost Connection</string>
-	<string name="Lbl_Calling_video">Calling video</string>
-	<string name="Lbl_Call">Call</string>
-	<string name="Lbl_Select_Type_Call">Select Type Call ?</string>
-	<string name="Lbl_Voice_call">Voice call</string>
-	<string name="Lbl_Video_call">Video call</string>
-	<string name="Lbl_Muted_his_video">Muted his video</string>
-	<string name="Lbl_View_Profile">View Profile</string>
-	<string name="Lbl_Doyouwanttodeletechatwith">Delete chat conversation</string>
-	<string name="Btn_DeleteMessage">Delete</string>
-	<string name="Lbl_Summary_Onlineusers">Show when users are online</string>
-	<string name="Lbl_Recording">Recording...</string>
-	<string name="Lbl_Empty_Group">There are no groups</string>
-	<string name="Lbl_Start_Group">Start adding new groups</string>
-	<string name="Lbl_CopyLinkToProfile">Copy Link To Profile</string>
-	<string name="Lbl_Media">Media</string>
-	<string name="Lbl_NoAnyMedia">No Any Media</string>
-	<string name="Lbl_Forward">Forward</string>
-	<string name="Lbl_ForwardTo">Forward To...</string>
-	<string name="Lbl_MessagesSent">Messages sent</string>
-	<string name="Lbl_Remove">Remove</string>
-	<string name="Lbl_Group">Group</string>
-	<string name="Lbl_InvitedToJoinGroup">You have been invited to join the group chat</string>
-	<string name="Lbl_NoAnyGroupRequest">There are no invites to join the chat group</string>
-	<string name="Lbl_GroupRequest">Group Requests</string>
-	<string name="Lbl_ViewAllInviteRequest">View all invite requests</string>
-	<string name="Lbl_AreYouSureDeleteMessages">Are you sure you want to delete messages?</string>
-	<string name="Lbl_MessageCall1">"Can&apos;t Talk Now, What&apos;s Up?"</string>
-	<string name="Lbl_MessageCall2">"I&apos;ll Call You Right Back"</string>
-	<string name="Lbl_MessageCall3">"I&apos;ll Call You Later"</string>
-	<string name="Lbl_MessageCall4">"Can&apos;t talk now.call me later"</string>
-	<string name="Lbl_MessageCall5">Custom message..</string>
-	<string name="Btn_Image">Image</string>
-	<string name="Camera">Camera</string>
-	<string name="Btn_Video">Video</string>
-	<string name="Lbl_Tab_PageChats">Pages</string>
-	<string name="Lbl_NoMorePage">No more page found</string>
-	<string name="Lbl_Empty_Page">There are no pages</string>
-	<string name="Lbl_CreateNewGroup">Create New Group</string>
-	<string name="Lbl_TypeChat">Type Chat</string>
-
-	<string name="Lbl_SendLocationFile">Location</string>
-	<string name="Lbl_DeleteMessage">Delete Message</string>
-	<string name="Lbl_NotAnswered_call">Not answered</string>
-
-	<string name="Lbl_StartedMessages">Favorited Messages</string>
-	<string name="Lbl_Favorite">Favorite</string>
-	<string name="Lbl_UnFavorite">UnFavorite</string>
-	<string name="Lbl_Empty_StartedMessages">No Favorited Messages</string>
-
-	<!--Editor-->
-	<string name="Lbl_Color">Color</string>
-	<string name="Lbl_Discard">Discard</string>
-	<string name="Lbl_Are_you_want_to_exit_without_saving_image">Are you want to exit without saving image ?</string>
-	<string name="Lbl_Failed_to_save_Image">Failed to save Image</string>
-	<string name="Lbl_Tap_To_Type">Type something</string>
-
-	<string name="Lbl_TakeImageFromCamera">Take a picture from the camera</string>
-
-	<string name="Lbl_Group_Add_Description">Select from your contact list</string>
-	<string name="Lbl_Group_Chat_Description">tab here for group info</string>
-	<!--===============================================================-->
-
-	<string name="Lbl_SuggestionMessages1">Say Hi 🖐️</string>
-	<string name="Lbl_SuggestionRealMessages1">Hi 🖐️</string>
-	<string name="Lbl_SuggestionMessages2">How are you?</string>
-	<string name="Lbl_SuggestionRealMessages2">How are you?</string>
-	<string name="Lbl_SuggestionMessages3">Can we speak?</string>
-	<string name="Lbl_SuggestionRealMessages3">Hi</string>
-	<string name="Lbl_SuggestionMessages4">I like your picture ❤️</string>
-	<string name="Lbl_SuggestionRealMessages4">I like your picture ❤️</string>
-	<!--===============================================================-->
-	<string name="Lbl_ChatHeads">Chat Heads</string>
-	<string name="Lbl_ChatHead_Title">Chat heads active</string>
-	<string name="Lbl_ChatHead_Text">Conversation</string>
-	<string name="Lbl_TurnOnChatHeads">Turn on Chat Heads</string>
-	<string name="Lbl_EnableChatHead_SubTitle1">Chat Heads let you talk on</string>
-	<string name="Lbl_EnableChatHead_SubTitle2">even white you are using other apps.</string>
-	<string name="Lbl_EnableChatHead_SubTitle3">Turn on permit drawing over other apps</string>
-	<string name="Lbl_GoToSettings">Go To Settings</string>
-	<string name="Lbl_NotNow">Not Now</string>
-	<string name="Lbl_DeleteTheEntireConversation">Delete The Entire Conversation?</string>
-	<string name="Lbl_OnceYouDeleteConversation">Once you delete your copy of conversation, it cannot be undone.</string>
-	<string name="Lbl_TheConversationHasBeenDeleted">The conversation has been deleted</string>
-	<string name="Lbl_Contact">Contact</string>
-	<string name="Lbl_MessageInfo">Message Info</string>
-	<string name="Lbl_Typping">Typping...</string>
-	<string name="Lbl_Menu_More">More Menu</string>
-	<string name="Lbl_GroupInfo">Group Info</string>
-	<string name="Lbl_Read">Read</string>
-	<string name="Lbl_Delivered">Delivered</string>
-	<string name="Lbl_PeopleLikeThis">People like this</string>
-	<string name="Lbl_PeopleJoinThis">people join this</string>
-	<string name="Lbl_SayHiTo">Say Hi to</string>
+  <!-- V4.0 String translate -->
+  <!--===============================================================-->
+	<string name="Lbl_NoPageManaged">"You don&apos;t have any page managed"</string> 
+	<string name="Lbl_NoGroupManaged">"You don&apos;t have any group"</string>
  
-	<string name="Lbl_NoOneViewTheStory">No one view the story</string>
-	<string name="Lbl_ViewedBy">Viewed by</string>
+  <!--Chat Messanger-->
+  <string name="Lbl_Clear_chat">Clear chat</string>
+  <string name="Lbl_Uploading">Uploading</string>
+  <string name="Lbl_TextChatNotSupported">Message is not supported on this version</string>
+  <string name="Lbl_Select_what_you_want">Select what you want</string>
+  <!--Tabbed_Main_Page-->
+  <string name="Lbl_Tab_Chats">Chats</string>
+  <string name="Lbl_Tab_GroupChats">Groups</string>
+  <string name="Lbl_Tab_Stories">Stories</string>
+  <string name="Lbl_Tab_Calls">Calls</string>
+  <string name="Lbl_is_calling_you">is calling you</string>
+  <string name="Lbl_SendGifFile">Gif</string>
+  <string name="Lbl_SendMessage">Send you a message</string>
+  <string name="Lbl_SendStickerFile">Sticker</string>
+  <string name="Lbl_SendContactnumber">Contact number</string>
+  <string name="Lbl_SendFile">File</string>
+  <string name="Lbl_SendVideoFile">Video</string>
+  <string name="Lbl_SendAudioFile">Audio</string>
+  <string name="Lbl_SendImageFile">Photo</string>
+  <string name="Lbl_Empty_Lastmessages">No more messages</string>
+  <string name="Lbl_Start_Lastmessages">Start new conversations by going to >> Contacts</string>
+  <string name="Lbl_CreateGroup">Create Group</string>
+  <string name="Lbl_ErrorLengthGroupName">Group name must be between 4 and 15 character</string>
+  <string name="Lbl_PleaseSelectUser">Please select at least one user</string>
+  <string name="Lbl_AreYouSureExitGroup">Are you sure to exit the group</string>
+  <string name="Lbl_AreYouSureDeleteGroup">Are you sure you want to delete the group</string>
+  <string name="Lbl_Exit">Exit</string>
+  <string name="Lbl_GroupSuccessfullyLeaved">You are successfully leaved this group</string>
+  <string name="Lbl_Write_your_message">Write your message</string>
+  <string name="Lbl_SendProductFile">Sent product to you</string>
+  <string name="Lbl_ExitGroup">Exit group</string>
+  <string name="Lbl_GroupName">Group Name</string>
+  <string name="Lbl_NewGroup">New Group</string>
+  <string name="Lbl_AddParticipants">Add participants</string>
+  <string name="Lbl_GroupMembers">Group members</string>
+  <!--Call-->
+  <string name="Lbl_Select_contact">Select contact</string>
+  <string name="Lbl_Web">Web</string>
+  <string name="Lbl_Calling">Calling...</string>
+  <string name="Lbl_Waiting_to_connect">Waiting to connect...</string>
+  <string name="Lbl_Faild_to_connect">Failed to connect !!</string>
+  <string name="Lbl_No_respond_from_the_user">No response from the user</string>
+  <string name="Lbl_The_user_declinde_your_call">The user declined your call</string>
+  <string name="Lbl_Lost_his_connection">Lost his connection</string>
+  <string name="Lbl_Lost_Connection">Lost Connection</string>
+  <string name="Lbl_Calls">Calls</string>
+  <string name="Lbl_Empty_calls">No calls</string>
+  <string name="Lbl_Start_calls">Start a new call from your friends list, by pressing the button at the bottom of the screen.</string>
+  <string name="Lbl_Notification_of_Messages">Notification of Messages</string>
+  <string name="Lbl_Dismiss">Dismiss</string>
+  <string name="Lbl_Answer">Answer</string>
+  <string name="Lbl_Clear_call_log">Clear call log</string>
+  <string name="Lbl_Answered_call">Answered call</string>
+  <string name="Lbl_Missed_call">Missed call</string>
+  <string name="Lbl_Declined_call">Declined call</string>
+  <string name="Lbl_Waiting_for_answer">Waiting for answer</string>
+  <string name="Lbl_Need_Camera">Need Camera and Microphone permissions to call.</string>
+  <string name="Lbl_Room_Disconnected">User Disconnected.</string>
+  <string name="Lbl_Connected">Connected</string>
+  <string name="Lbl_User_Lost_Connection">User Lost Connection</string>
+  <string name="Lbl_Calling_video">Calling video</string>
+  <string name="Lbl_Call">Call</string>
+  <string name="Lbl_Select_Type_Call">Select Type Call ?</string>
+  <string name="Lbl_Voice_call">Voice call</string>
+  <string name="Lbl_Video_call">Video call</string>
+  <string name="Lbl_Muted_his_video">Muted his video</string>
+  <string name="Lbl_View_Profile">View Profile</string>
+  <string name="Lbl_Doyouwanttodeletechatwith">Delete chat conversation</string>
+  <string name="Btn_DeleteMessage">Delete</string>
+  <string name="Lbl_Summary_Onlineusers">Show when users are online</string>
+  <string name="Lbl_Recording">Recording...</string>
+  <string name="Lbl_Empty_Group">There are no groups</string>
+  <string name="Lbl_Start_Group">Start adding new groups</string>
+  <string name="Lbl_CopyLinkToProfile">Copy Link To Profile</string>
+  <string name="Lbl_Media">Media</string>
+  <string name="Lbl_NoAnyMedia">No Any Media</string>
+  <string name="Lbl_Forward">Forward</string>
+  <string name="Lbl_ForwardTo">Forward To...</string>
+  <string name="Lbl_MessagesSent">Messages sent</string>
+  <string name="Lbl_Remove">Remove</string>
+  <string name="Lbl_Group">Group</string>
+  <string name="Lbl_InvitedToJoinGroup">You have been invited to join the group chat</string>
+  <string name="Lbl_NoAnyGroupRequest">There are no invites to join the chat group</string>
+  <string name="Lbl_GroupRequest">Group Requests</string>
+  <string name="Lbl_ViewAllInviteRequest">View all invite requests</string>
+  <string name="Lbl_AreYouSureDeleteMessages">Are you sure you want to delete messages?</string>
+  <string name="Lbl_MessageCall1">"Can&apos;t Talk Now, What&apos;s Up?"</string>
+  <string name="Lbl_MessageCall2">"I&apos;ll Call You Right Back"</string>
+  <string name="Lbl_MessageCall3">"I&apos;ll Call You Later"</string>
+  <string name="Lbl_MessageCall4">"Can&apos;t talk now.call me later"</string>
+  <string name="Lbl_MessageCall5">Custom message..</string>
+  <string name="Btn_Image">Image</string>
+  <string name="Camera">Camera</string>
+  <string name="Btn_Video">Video</string>
+  <string name="Lbl_Tab_PageChats">Pages</string>
+  <string name="Lbl_NoMorePage">No more page found</string>
+  <string name="Lbl_Empty_Page">There are no pages</string>
+  <string name="Lbl_CreateNewGroup">Create New Group</string>
+  <string name="Lbl_TypeChat">Type Chat</string>
 
-	<string name="Lbl_Wallpaper">Wallpaper</string>
-	<string name="Lbl_DefaultWallpaper">Default Wallpaper</string>
-	<string name="Lbl_ColorPalette">Color Palette</string>
+  <string name="Lbl_SendLocationFile">Location</string>
+  <string name="Lbl_DeleteMessage">Delete Message</string>
+  <string name="Lbl_NotAnswered_call">Not answered</string>
 
-	<string name="Lbl_Archive">Archive</string>
-	<string name="Lbl_UnArchive">Unarchive</string>
-	<string name="Lbl_Archived">Archived</string>
+  <string name="Lbl_StartedMessages">Favorited Messages</string>
+  <string name="Lbl_Favorite">Favorite</string>
+  <string name="Lbl_UnFavorite">UnFavorite</string>
+  <string name="Lbl_Empty_StartedMessages">No Favorited Messages</string>
 
-	<string name="Lbl_PinnedMessage">Pinned Message</string>
-	<string name="Lbl_LastPinnedMessage">Last Pinned Message</string>
-	<string name="Lbl_Empty_PinnedMessages">No Pinned Message</string>
-	<string name="Lbl_UnPin">Unpin</string>
-	<string name="Lbl_Pin">Pin</string>
-	<string name="Lbl_MessagePinned">Message pinned</string>
-	<string name="Lbl_MessageUnPinned">Message unpinned</string>
+  <!--Editor-->
+  <string name="Lbl_Color">Color</string>
+  <string name="Lbl_Discard">Discard</string>
+  <string name="Lbl_Are_you_want_to_exit_without_saving_image">Are you want to exit without saving image ?</string>
+  <string name="Lbl_Failed_to_save_Image">Failed to save Image</string>
+  <string name="Lbl_Tap_To_Type">Type something</string>
 
-	<string name="Lbl_MarkAsReadAll">Mark as read all</string>
-	<string name="Lbl_MarkAsRead">Mark as read</string>
-	<string name="Lbl_MarkAsUnRead">Mark as unread</string>
+  <string name="Lbl_TakeImageFromCamera">Take a picture from the camera</string>
 
-	<string name="Lbl_MuteNotification">Mute notification</string>
-	<string name="Lbl_UnMuteNotification">Unmute notification</string>
-	<string name="Lbl_AddedMute">Added to mute list</string>
-	<string name="Lbl_RemovedMute">Removed from mute list</string>
+  <string name="Lbl_Group_Add_Description">Select from your contact list</string>
+  <string name="Lbl_Group_Chat_Description">tab here for group info</string>
+  <!--===============================================================-->
 
-	<string name="Lbl_AddMembers">Add Members</string> 
+  <string name="Lbl_SuggestionMessages1">Say Hi 🖐️</string>
+  <string name="Lbl_SuggestionRealMessages1">Hi 🖐️</string>
+  <string name="Lbl_SuggestionMessages2">How are you?</string>
+  <string name="Lbl_SuggestionRealMessages2">How are you?</string>
+  <string name="Lbl_SuggestionMessages3">Can we speak?</string>
+  <string name="Lbl_SuggestionRealMessages3">Hi</string>
+  <string name="Lbl_SuggestionMessages4">I like your picture ❤️</string>
+  <string name="Lbl_SuggestionRealMessages4">I like your picture ❤️</string>
+  <!--===============================================================-->
+  <string name="Lbl_ChatHeads">Chat Heads</string>
+  <string name="Lbl_ChatHead_Title">Chat heads active</string>
+  <string name="Lbl_ChatHead_Text">Conversation</string>
+  <string name="Lbl_TurnOnChatHeads">Turn on Chat Heads</string>
+  <string name="Lbl_EnableChatHead_SubTitle1">Chat Heads let you talk on</string>
+  <string name="Lbl_EnableChatHead_SubTitle2">even white you are using other apps.</string>
+  <string name="Lbl_EnableChatHead_SubTitle3">Turn on permit drawing over other apps</string>
+  <string name="Lbl_GoToSettings">Go To Settings</string>
+  <string name="Lbl_NotNow">Not Now</string>
+  <string name="Lbl_DeleteTheEntireConversation">Delete The Entire Conversation?</string>
+  <string name="Lbl_OnceYouDeleteConversation">Once you delete your copy of conversation, it cannot be undone.</string>
+  <string name="Lbl_TheConversationHasBeenDeleted">The conversation has been deleted</string>
+  <string name="Lbl_Contact">Contact</string>
+  <string name="Lbl_MessageInfo">Message Info</string>
+  <string name="Lbl_Typping">Typping...</string>
+  <string name="Lbl_Menu_More">More Menu</string>
+  <string name="Lbl_GroupInfo">Group Info</string>
+  <string name="Lbl_Read">Read</string>
+  <string name="Lbl_Delivered">Delivered</string>
+  <string name="Lbl_PeopleLikeThis">People like this</string>
+  <string name="Lbl_PeopleJoinThis">people join this</string>
+  <string name="Lbl_SayHiTo">Say Hi to</string>
 
-	<string name="Lbl_SlideToCancelAudio">Slide To Cancel</string>
-	<string name="Lbl_You">You</string>
-	<string name="Lbl_Sticker">Sticker</string>
-	<string name="Lbl_Product">Product</string>
-	<string name="Lbl_VoiceMessage">Voice message</string>
- 
-	<string name="Lbl_AllowYourLocation">Allow your location</string>
-	<string name="Lbl_DescriptionAllowYourLocation">We want to access your lotion only to provide a better experience by helping you find a new friend nearby.</string>
+  <string name="Lbl_NoOneViewTheStory">No one view the story</string>
+  <string name="Lbl_ViewedBy">Viewed by</string>
+
+  <string name="Lbl_Wallpaper">Wallpaper</string>
+  <string name="Lbl_DefaultWallpaper">Default Wallpaper</string>
+  <string name="Lbl_ColorPalette">Color Palette</string>
+
+  <string name="Lbl_Archive">Archive</string>
+  <string name="Lbl_UnArchive">Unarchive</string>
+  <string name="Lbl_Archived">Archived</string>
+
+  <string name="Lbl_PinnedMessage">Pinned Message</string>
+  <string name="Lbl_LastPinnedMessage">Last Pinned Message</string>
+  <string name="Lbl_Empty_PinnedMessages">No Pinned Message</string>
+  <string name="Lbl_UnPin">Unpin</string>
+  <string name="Lbl_Pin">Pin</string>
+  <string name="Lbl_MessagePinned">Message pinned</string>
+  <string name="Lbl_MessageUnPinned">Message unpinned</string>
+
+  <string name="Lbl_MarkAsReadAll">Mark as read all</string>
+  <string name="Lbl_MarkAsRead">Mark as read</string>
+  <string name="Lbl_MarkAsUnRead">Mark as unread</string>
+
+  <string name="Lbl_MuteNotification">Mute notification</string>
+  <string name="Lbl_UnMuteNotification">Unmute notification</string>
+  <string name="Lbl_AddedMute">Added to mute list</string>
+  <string name="Lbl_RemovedMute">Removed from mute list</string>
+
+  <string name="Lbl_AddMembers">Add Members</string>
+
+  <string name="Lbl_SlideToCancelAudio">Slide To Cancel</string>
+  <string name="Lbl_You">You</string>
+  <string name="Lbl_Sticker">Sticker</string>
+  <string name="Lbl_Product">Product</string>
+  <string name="Lbl_VoiceMessage">Voice message</string>
+
+  <string name="Lbl_AllowYourLocation">Allow your location</string>
+  <string name="Lbl_DescriptionAllowYourLocation">We want to access your lotion only to provide a better experience by helping you find a new friend nearby.</string>
 
 </resources>

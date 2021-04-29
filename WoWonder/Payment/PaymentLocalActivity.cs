@@ -158,18 +158,25 @@ namespace WoWonder.Payment
                 var splitText = bankDescription?.Split(new[] { "<p>", "</p>" }, StringSplitOptions.None);
                 Console.WriteLine(splitText);
                   
-                if (splitText?.Length > 0)
-                { 
-                    CardNumber.Text = splitText[1];
-                    CardName.Text = splitText[3];
-                    CardCode.Text = splitText[5];
-                    CardCountry.Text = splitText[7];
-
-                    var bankName = splitText[0].Split(new[] { ">", "</h4>" }, StringSplitOptions.None);
-                    if (bankName.Length > 0)
+                switch (splitText?.Length)
+                {
+                    case > 0:
                     {
-                        BankName.Text = bankName[12];
-                        BankName.Visibility = ViewStates.Visible;
+                        CardNumber.Text = splitText[1];
+                        CardName.Text = splitText[3];
+                        CardCode.Text = splitText[5];
+                        CardCountry.Text = splitText[7];
+
+                        var bankName = splitText[0].Split(new[] { ">", "</h4>" }, StringSplitOptions.None);
+                        switch (bankName.Length)
+                        {
+                            case > 0:
+                                BankName.Text = bankName[12];
+                                BankName.Visibility = ViewStates.Visible;
+                                break;
+                        }
+
+                        break;
                     }
                 } 
             }
@@ -205,18 +212,19 @@ namespace WoWonder.Payment
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    ImageClose.Click += ImageCloseOnClick;
-                    BtnAddImage.Click += BtnAddImageOnClick;
-                    BtnApply.Click += BtnApplyOnClick;
-                }
-                else
-                {
-                    ImageClose.Click -= ImageCloseOnClick;
-                    BtnAddImage.Click -= BtnAddImageOnClick;
-                    BtnApply.Click -= BtnApplyOnClick;
+                    // true +=  // false -=
+                    case true:
+                        ImageClose.Click += ImageCloseOnClick;
+                        BtnAddImage.Click += BtnAddImageOnClick;
+                        BtnApply.Click += BtnApplyOnClick;
+                        break;
+                    default:
+                        ImageClose.Click -= ImageCloseOnClick;
+                        BtnAddImage.Click -= BtnAddImageOnClick;
+                        BtnApply.Click -= BtnApplyOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -276,25 +284,26 @@ namespace WoWonder.Payment
                             break;
                     }
 
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        RunOnUiThread(() =>
-                        {
-                            try
+                        case 200:
+                            RunOnUiThread(() =>
                             {
-                                AndHUD.Shared.Dismiss(this);
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_YourWasReceiptSuccessfullyUploaded), ToastLength.Short)?.Show();
-                                Finish();
-                            }
-                            catch (Exception exception)
-                            {
-                                Methods.DisplayReportResultTrack(exception);
-                            }
-                        });
-                    }
-                    else
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                                try
+                                {
+                                    AndHUD.Shared.Dismiss(this);
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourWasReceiptSuccessfullyUploaded), ToastLength.Short)?.Show();
+                                    Finish();
+                                }
+                                catch (Exception exception)
+                                {
+                                    Methods.DisplayReportResultTrack(exception);
+                                }
+                            });
+                            break;
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
                 else
@@ -332,31 +341,45 @@ namespace WoWonder.Payment
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                if (requestCode == 108 || requestCode == CropImage.CropImageActivityRequestCode)
+                switch (requestCode)
                 {
-                    if (Methods.CheckConnectivity())
+                    case 108:
+                    case CropImage.CropImageActivityRequestCode:
                     {
-                        var result = CropImage.GetActivityResult(data);
-                        if (result.IsSuccessful)
+                        if (Methods.CheckConnectivity())
                         {
-                            var resultPathImage = result.Uri.Path;
-                            if (!string.IsNullOrEmpty(resultPathImage))
+                            var result = CropImage.GetActivityResult(data);
+                            switch (result.IsSuccessful)
                             {
-                                PathImage = resultPathImage;
+                                case true:
+                                {
+                                    var resultPathImage = result.Uri.Path;
+                                    switch (string.IsNullOrEmpty(resultPathImage))
+                                    {
+                                        case false:
+                                        {
+                                            PathImage = resultPathImage;
 
-                                File file2 = new File(PathImage);
-                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                Glide.With(this).Load(photoUri).Apply(new RequestOptions().CenterCrop()).Into(Image); 
+                                            File file2 = new File(PathImage);
+                                            var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                            Glide.With(this).Load(photoUri).Apply(new RequestOptions().CenterCrop()).Into(Image);
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                    break;
                             }
                         }
                         else
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
                         }
-                    }
-                    else
-                    {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+
+                        break;
                     }
                 }
             }
@@ -373,16 +396,14 @@ namespace WoWonder.Payment
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 106)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 106 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery();
-                    }
-                    else
-                    {
+                        break;
+                    case 106:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -398,25 +419,10 @@ namespace WoWonder.Payment
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDcimImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -429,11 +435,32 @@ namespace WoWonder.Payment
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        //request Code 108
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDcimImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            //request Code 108
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }

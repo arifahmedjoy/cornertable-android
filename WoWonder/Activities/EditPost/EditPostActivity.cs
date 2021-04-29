@@ -199,16 +199,17 @@ namespace WoWonder.Activities.EditPost
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    PostPrivacyButton.Click += PostPrivacyButton_Click;
-                    TxtAddPost.Click += TxtAddPostOnClick;
-                }
-                else
-                {
-                    PostPrivacyButton.Click -= PostPrivacyButton_Click;
-                    TxtAddPost.Click -= TxtAddPostOnClick;
+                    // true +=  // false -=
+                    case true:
+                        PostPrivacyButton.Click += PostPrivacyButton_Click;
+                        TxtAddPost.Click += TxtAddPostOnClick;
+                        break;
+                    default:
+                        PostPrivacyButton.Click -= PostPrivacyButton_Click;
+                        TxtAddPost.Click -= TxtAddPostOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -258,32 +259,36 @@ namespace WoWonder.Activities.EditPost
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
                     var (apiStatus, respond) = await RequestsAsync.Global.Post_Actions(IdPost, "edit","", TxtContentPost.Text, PostPrivacy);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is PostActionsObject result)
+                        case 200:
                         {
-                            if (result.Action.Contains("edited"))
+                            switch (respond)
                             {
-                                Toast.MakeText(this, result.Action, ToastLength.Short)?.Show();
-                                AndHUD.Shared.Dismiss(this);
+                                case PostActionsObject result when result.Action.Contains("edited"):
+                                {
+                                    Toast.MakeText(this, result.Action, ToastLength.Short)?.Show();
+                                    AndHUD.Shared.Dismiss(this);
 
-                                // put the String to pass back into an Intent and close this activity
-                                var resultIntent = new Intent();
-                                resultIntent?.PutExtra("PostId", IdPost);
-                                resultIntent?.PutExtra("PostText", TxtContentPost.Text);
-                                SetResult(Result.Ok, resultIntent);
-                                Finish();
+                                    // put the String to pass back into an Intent and close this activity
+                                    var resultIntent = new Intent();
+                                    resultIntent?.PutExtra("PostId", IdPost);
+                                    resultIntent?.PutExtra("PostText", TxtContentPost.Text);
+                                    SetResult(Result.Ok, resultIntent);
+                                    Finish();
+                                    break;
+                                }
+                                case PostActionsObject result:
+                                    //Show a Error image with a message
+                                    AndHUD.Shared.ShowError(this, result.Action, MaskType.Clear, TimeSpan.FromSeconds(1));
+                                    break;
                             }
-                            else
-                            {
-                                //Show a Error image with a message
-                                AndHUD.Shared.ShowError(this, result.Action, MaskType.Clear, TimeSpan.FromSeconds(1));
-                            }
+
+                            break;
                         }
-                    }
-                    else
-                    { 
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     } 
                 }
             }
@@ -302,21 +307,25 @@ namespace WoWonder.Activities.EditPost
         {
             try
             {
-                if (TypeDialog == "PostPrivacy")
+                switch (TypeDialog)
                 {
-                    PostPrivacyButton.Text = itemString.ToString();
+                    case "PostPrivacy":
+                    {
+                        PostPrivacyButton.Text = itemString.ToString();
 
-                    if (itemString.ToString() == GetString(Resource.String.Lbl_Everyone))
-                        PostPrivacy = "0";
-                    else if (itemString.ToString() == GetString(Resource.String.Lbl_People_i_Follow))
-                        PostPrivacy = "2";
-                    else if (itemString.ToString() == GetString(Resource.String.Lbl_People_Follow_Me))
-                        PostPrivacy = "1";
-                    else if (itemString.ToString() == GetString(Resource.String.Lbl_No_body))
-                        PostPrivacy = "3";
-                    else
-                        PostPrivacy = "0";
-                } 
+                        if (itemString.ToString() == GetString(Resource.String.Lbl_Everyone))
+                            PostPrivacy = "0";
+                        else if (itemString.ToString() == GetString(Resource.String.Lbl_People_i_Follow))
+                            PostPrivacy = "2";
+                        else if (itemString.ToString() == GetString(Resource.String.Lbl_People_Follow_Me))
+                            PostPrivacy = "1";
+                        else if (itemString.ToString() == GetString(Resource.String.Lbl_No_body))
+                            PostPrivacy = "3";
+                        else
+                            PostPrivacy = "0";
+                        break;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -409,50 +418,71 @@ namespace WoWonder.Activities.EditPost
         {
             try
             {
-                if (!string.IsNullOrEmpty(PostData.GroupId) && PostData.GroupId != "0")
+                switch (string.IsNullOrEmpty(PostData.GroupId))
                 {
-                    var dataGroup = PostData.GroupRecipient;
-                    if (dataGroup != null)
+                    case false when PostData.GroupId != "0":
                     {
-                        PostPrivacyButton.Visibility = ViewStates.Gone;
-                        GlideImageLoader.LoadImage(this, dataGroup.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                        TxtUserName.Text = dataGroup.GroupName;
-                    }
-                    else
-                    {
-                        LoadDataUser();
-                    }
-                }
-                else if (!string.IsNullOrEmpty(PostData.PageId) && PostData.PageId != "0")
-                {
-                    PostPrivacyButton.Visibility = ViewStates.Gone;
-                    GlideImageLoader.LoadImage(this, PostData.Publisher.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                    TxtUserName.Text = PostData.Publisher.Name;
-                }
-                else if (!string.IsNullOrEmpty(PostData.EventId) && PostData.EventId != "0")  
-                {
-                    if (PostData.Event != null)
-                    {
-                        var dataEvent = PostData.Event.Value.EventClass;
-                        if (dataEvent != null)
+                        var dataGroup = PostData.GroupRecipient;
+                        if (dataGroup != null)
                         {
                             PostPrivacyButton.Visibility = ViewStates.Gone;
-                            GlideImageLoader.LoadImage(this, dataEvent.Cover, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                            TxtUserName.Text = dataEvent.Name;
+                            GlideImageLoader.LoadImage(this, dataGroup.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            TxtUserName.Text = dataGroup.GroupName;
                         }
                         else
                         {
                             LoadDataUser();
                         }
+
+                        break;
                     }
-                    else
+                    default:
                     {
-                        LoadDataUser();
+                        switch (string.IsNullOrEmpty(PostData.PageId))
+                        {
+                            case false when PostData.PageId != "0":
+                                PostPrivacyButton.Visibility = ViewStates.Gone;
+                                GlideImageLoader.LoadImage(this, PostData.Publisher.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                TxtUserName.Text = PostData.Publisher.Name;
+                                break;
+                            default:
+                            {
+                                switch (string.IsNullOrEmpty(PostData.EventId))
+                                {
+                                    case false when PostData.EventId != "0":
+                                    {
+                                        if (PostData.Event != null)
+                                        {
+                                            var dataEvent = PostData.Event.Value.EventClass;
+                                            if (dataEvent != null)
+                                            {
+                                                PostPrivacyButton.Visibility = ViewStates.Gone;
+                                                GlideImageLoader.LoadImage(this, dataEvent.Cover, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                TxtUserName.Text = dataEvent.Name;
+                                            }
+                                            else
+                                            {
+                                                LoadDataUser();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            LoadDataUser();
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                        LoadDataUser();
+                                        break;
+                                }
+
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    LoadDataUser();
                 }
             }
             catch (Exception e)

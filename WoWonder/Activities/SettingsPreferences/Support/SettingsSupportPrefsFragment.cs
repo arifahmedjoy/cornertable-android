@@ -134,24 +134,48 @@ namespace WoWonder.Activities.SettingsPreferences.Support
 
                 //Delete Preference
                 var mCategorySupport = (PreferenceCategory)FindPreference("SectionSupport_key");
-                if (!AppSettings.ShowSettingsHelp)
-                    mCategorySupport.RemovePreference(HelpPref);
+                switch (AppSettings.ShowSettingsHelp)
+                {
+                    case false:
+                        mCategorySupport.RemovePreference(HelpPref);
+                        break;
+                }
 
-                if (!AppSettings.ShowSettingsReportProblem)
-                    mCategorySupport.RemovePreference(ReportProblemPref);
+                switch (AppSettings.ShowSettingsReportProblem)
+                {
+                    case false:
+                        mCategorySupport.RemovePreference(ReportProblemPref);
+                        break;
+                }
 
                 var mCategoryAbout = (PreferenceCategory)FindPreference("SectionAbout_key");
-                if (!AppSettings.ShowSettingsAbout)
-                    mCategoryAbout.RemovePreference(AboutAppPref);
+                switch (AppSettings.ShowSettingsAbout)
+                {
+                    case false:
+                        mCategoryAbout.RemovePreference(AboutAppPref);
+                        break;
+                }
 
-                if (!AppSettings.ShowSettingsRateApp)
-                    mCategoryAbout.RemovePreference(RateAppPref);
+                switch (AppSettings.ShowSettingsRateApp)
+                {
+                    case false:
+                        mCategoryAbout.RemovePreference(RateAppPref);
+                        break;
+                }
 
-                if (!AppSettings.ShowSettingsPrivacyPolicy)
-                    mCategoryAbout.RemovePreference(PrivacyPolicyPref);
+                switch (AppSettings.ShowSettingsPrivacyPolicy)
+                {
+                    case false:
+                        mCategoryAbout.RemovePreference(PrivacyPolicyPref);
+                        break;
+                }
 
-                if (!AppSettings.ShowSettingsTermsOfUse)
-                    mCategoryAbout.RemovePreference(TermsOfUsePref);
+                switch (AppSettings.ShowSettingsTermsOfUse)
+                {
+                    case false:
+                        mCategoryAbout.RemovePreference(TermsOfUsePref);
+                        break;
+                }
                   
             }
             catch (Exception e)
@@ -164,24 +188,25 @@ namespace WoWonder.Activities.SettingsPreferences.Support
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    HelpPref.PreferenceClick += HelpPref_OnPreferenceClick;
-                    ReportProblemPref.PreferenceClick += ReportProblemPref_OnPreferenceClick;
-                    AboutAppPref.PreferenceClick += AboutAppPref_OnPreferenceClick;
-                    PrivacyPolicyPref.PreferenceClick += PrivacyPolicyPref_OnPreferenceClick;
-                    TermsOfUsePref.PreferenceClick += TermsOfUsePref_OnPreferenceClick;
-                    RateAppPref.PreferenceClick += RateAppPrefOnPreferenceClick;
-                }
-                else
-                {
-                    HelpPref.PreferenceClick -= HelpPref_OnPreferenceClick;
-                    ReportProblemPref.PreferenceClick -= ReportProblemPref_OnPreferenceClick;
-                    AboutAppPref.PreferenceClick -= AboutAppPref_OnPreferenceClick;
-                    PrivacyPolicyPref.PreferenceClick -= PrivacyPolicyPref_OnPreferenceClick;
-                    TermsOfUsePref.PreferenceClick -= TermsOfUsePref_OnPreferenceClick;
-                    RateAppPref.PreferenceClick -= RateAppPrefOnPreferenceClick;
+                    // true +=  // false -=
+                    case true:
+                        HelpPref.PreferenceClick += HelpPref_OnPreferenceClick;
+                        ReportProblemPref.PreferenceClick += ReportProblemPref_OnPreferenceClick;
+                        AboutAppPref.PreferenceClick += AboutAppPref_OnPreferenceClick;
+                        PrivacyPolicyPref.PreferenceClick += PrivacyPolicyPref_OnPreferenceClick;
+                        TermsOfUsePref.PreferenceClick += TermsOfUsePref_OnPreferenceClick;
+                        RateAppPref.PreferenceClick += RateAppPrefOnPreferenceClick;
+                        break;
+                    default:
+                        HelpPref.PreferenceClick -= HelpPref_OnPreferenceClick;
+                        ReportProblemPref.PreferenceClick -= ReportProblemPref_OnPreferenceClick;
+                        AboutAppPref.PreferenceClick -= AboutAppPref_OnPreferenceClick;
+                        PrivacyPolicyPref.PreferenceClick -= PrivacyPolicyPref_OnPreferenceClick;
+                        TermsOfUsePref.PreferenceClick -= TermsOfUsePref_OnPreferenceClick;
+                        RateAppPref.PreferenceClick -= RateAppPrefOnPreferenceClick;
+                        break;
                 }
             }
             catch (Exception e)

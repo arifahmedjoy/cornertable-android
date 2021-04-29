@@ -142,8 +142,11 @@ namespace WoWonder.Activities.NearBy
         {
             try
             {
-                if (MAdapter.UserList.Count > 0)
-                    ListUtils.ListCachedDataNearby = MAdapter.UserList;
+                ListUtils.ListCachedDataNearby = MAdapter.UserList.Count switch
+                {
+                    > 0 => MAdapter.UserList,
+                    _ => ListUtils.ListCachedDataNearby
+                };
 
                 DestroyBasic();
 
@@ -260,20 +263,21 @@ namespace WoWonder.Activities.NearBy
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    MAdapter.FollowButtonItemClick += OnFollowButtonItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    FloatingActionButtonView.Click += FloatingActionButtonViewOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    MAdapter.FollowButtonItemClick -= OnFollowButtonItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    FloatingActionButtonView.Click -= FloatingActionButtonViewOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        MAdapter.FollowButtonItemClick += OnFollowButtonItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        FloatingActionButtonView.Click += FloatingActionButtonViewOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        MAdapter.FollowButtonItemClick -= OnFollowButtonItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        FloatingActionButtonView.Click -= FloatingActionButtonViewOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -380,12 +384,17 @@ namespace WoWonder.Activities.NearBy
                 }
                 else
                 {
-                    if (e.Position > -1)
+                    switch (e.Position)
                     {
-                        UserDataObject item = MAdapter.GetItem(e.Position);
-                        if (item != null)
+                        case > -1:
                         {
-                            WoWonderTools.SetAddFriend(this, item, e.BtnAddUser);
+                            UserDataObject item = MAdapter.GetItem(e.Position);
+                            if (item != null)
+                            {
+                                WoWonderTools.SetAddFriend(this, item, e.BtnAddUser);
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -407,26 +416,31 @@ namespace WoWonder.Activities.NearBy
             {
                 if (MAdapter != null)
                 {
-                    if (ListUtils.ListCachedDataNearby.Count > 0)
+                    switch (ListUtils.ListCachedDataNearby.Count)
                     {
-                        MAdapter.UserList = ListUtils.ListCachedDataNearby;
-                        MAdapter.NotifyDataSetChanged();
+                        case > 0:
+                            MAdapter.UserList = ListUtils.ListCachedDataNearby;
+                            MAdapter.NotifyDataSetChanged();
+                            break;
                     }
                 }
 
                 GetFilter();
 
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    StartApiService();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         StartApiService();
-                    else
-                      new PermissionsController(this).RequestPermission(105);
+                        break;
+                    default:
+                    {
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                            StartApiService();
+                        else
+                            new PermissionsController(this).RequestPermission(105);
+                        break;
+                    }
                 } 
             }
             catch (Exception e)
@@ -445,15 +459,22 @@ namespace WoWonder.Activities.NearBy
 
         private async Task LoadNearByAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
 
-                if (offset == "0")
-                    await GetPosition();
+                switch (offset)
+                {
+                    case "0":
+                        await GetPosition();
+                        break;
+                }
 
                 var dictionary = new Dictionary<string, string>
                 {
@@ -470,28 +491,50 @@ namespace WoWonder.Activities.NearBy
 
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Nearby.Get_Nearby_Users(dictionary);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetNearbyUsersObject result)
+                    case 200:
                     {
-                        var respondList = result.NearbyUsers.Count;
-                        if (respondList > 0)
+                        switch (respond)
                         {
-                            foreach (var item in from item in result.NearbyUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                            case GetNearbyUsersObject result:
                             {
-                                MAdapter.UserList.Add(item);
-                            }
+                                var respondList = result.NearbyUsers.Count;
+                                switch (respondList)
+                                {
+                                    case > 0:
+                                    {
+                                        foreach (var item in from item in result.NearbyUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                        {
+                                            MAdapter.UserList.Add(item);
+                                        }
 
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        switch (MAdapter.UserList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
                         }
-                        else
-                        {
-                            if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -500,10 +543,12 @@ namespace WoWonder.Activities.NearBy
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -518,24 +563,29 @@ namespace WoWonder.Activities.NearBy
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoNearBy);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoNearBy);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)
@@ -588,20 +638,24 @@ namespace WoWonder.Activities.NearBy
             {
                 await Task.Delay(0);
 
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    CheckAndGetLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         CheckAndGetLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            CheckAndGetLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -617,35 +671,37 @@ namespace WoWonder.Activities.NearBy
             {
                 if (!LocationManager.IsProviderEnabled(LocationManager.GpsProvider))
                 {
-                    if (ShowAlertDialogGps)
+                    switch (ShowAlertDialogGps)
                     {
-                        ShowAlertDialogGps = false;
+                        case true:
+                            ShowAlertDialogGps = false;
 
-                        RunOnUiThread(() =>
-                        {
-                            try
+                            RunOnUiThread(() =>
                             {
-                                // Call your Alert message
-                                AlertDialog.Builder alert = new AlertDialog.Builder(this);
-                                alert.SetTitle(GetString(Resource.String.Lbl3_Use_Location) + "?");
-                                alert.SetMessage(GetString(Resource.String.Lbl3_GPS_is_disabled) + "?");
-
-                                alert.SetPositiveButton(GetString(Resource.String.Lbl_Ok), (senderAlert, args) =>
+                                try
                                 {
-                                    //Open intent Gps
-                                    new IntentController(this).OpenIntentGps(LocationManager);
-                                });
+                                    // Call your Alert message
+                                    AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                                    alert.SetTitle(GetString(Resource.String.Lbl3_Use_Location) + "?");
+                                    alert.SetMessage(GetString(Resource.String.Lbl3_GPS_is_disabled) + "?");
 
-                                alert.SetNegativeButton(GetString(Resource.String.Lbl_Cancel), (senderAlert, args) => { });
+                                    alert.SetPositiveButton(GetString(Resource.String.Lbl_Ok), (senderAlert, args) =>
+                                    {
+                                        //Open intent Gps
+                                        new IntentController(this).OpenIntentGps(LocationManager);
+                                    });
 
-                                Dialog gpsDialog = alert.Create();
-                                gpsDialog.Show();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
+                                    alert.SetNegativeButton(GetString(Resource.String.Lbl_Cancel), (senderAlert, args) => { });
+
+                                    Dialog gpsDialog = alert.Create();
+                                    gpsDialog.Show();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            break;
                     }
                 }
                 else
@@ -681,16 +737,14 @@ namespace WoWonder.Activities.NearBy
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 105)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         StartApiService();
-                    }
-                    else
-                    {
+                        break;
+                    case 105:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)

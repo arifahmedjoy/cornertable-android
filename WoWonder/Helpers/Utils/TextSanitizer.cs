@@ -28,16 +28,22 @@ namespace WoWonder.Helpers.Utils
             {
                 AutoLinkTextView = linkTextView;
                 Activity = activity;
-                if (typePage == "AddPost")
+                switch (typePage)
                 {
-                    if (!AutoLinkTextView.HasOnClickListeners)
+                    case "AddPost":
                     {
-                        AutoLinkTextView.AutoLinkOnClick += AddPostAutoLinkTextViewOnAutoLinkOnClick;
+                        switch (AutoLinkTextView.HasOnClickListeners)
+                        {
+                            case false:
+                                AutoLinkTextView.AutoLinkOnClick += AddPostAutoLinkTextViewOnAutoLinkOnClick;
+                                break;
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    AutoLinkTextView.AutoLinkOnClick += AutoLinkTextViewOnAutoLinkOnClick;
+                    default:
+                        AutoLinkTextView.AutoLinkOnClick += AutoLinkTextViewOnAutoLinkOnClick;
+                        break;
                 }
             }
             catch (Exception exception)
@@ -57,15 +63,21 @@ namespace WoWonder.Helpers.Utils
                 AutoLinkTextView.SetUrlModeColor(ContextCompat.GetColor(Activity, Resource.Color.AutoLinkText_ModeUrl_color));
                 AutoLinkTextView.SetMentionModeColor(Color.ParseColor(AppSettings.MainColor));
                 var textSplit = text.Split('/');
-                if (textSplit.Count() > 1)
+                switch (textSplit.Count())
                 {
-                    AutoLinkTextView.SetCustomModeColor(ContextCompat.GetColor(Activity, Resource.Color.AutoLinkText_ModeUrl_color));
-                    AutoLinkTextView.SetCustomRegex(@"\b(" + textSplit.LastOrDefault() + @")\b");
+                    case > 1:
+                        AutoLinkTextView.SetCustomModeColor(ContextCompat.GetColor(Activity, Resource.Color.AutoLinkText_ModeUrl_color));
+                        AutoLinkTextView.SetCustomRegex(@"\b(" + textSplit.LastOrDefault() + @")\b");
+                        break;
                 }
 
                 string lastString = text.Replace(" /", " ");
-                if (!string.IsNullOrEmpty(lastString))
-                    AutoLinkTextView.SetAutoLinkText(lastString);
+                switch (string.IsNullOrEmpty(lastString))
+                {
+                    case false:
+                        AutoLinkTextView.SetAutoLinkText(lastString);
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -77,18 +89,18 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                var typetext = Methods.FunString.Check_Regex(autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", "").Replace("\n", ""));
+                var typetext = Methods.FunString.Check_Regex(autoLinkOnClickEventArgs.P1.Replace(" ", ""));
                 if (typetext == "Email" || autoLinkOnClickEventArgs.P0 == AutoLinkMode.ModeEmail)
                 {
-                    Methods.App.SendEmail(Activity, autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", ""));
+                    Methods.App.SendEmail(Activity, autoLinkOnClickEventArgs.P1.Replace(" ", ""));
                 }
                 else if (typetext == "Website" || autoLinkOnClickEventArgs.P0 == AutoLinkMode.ModeUrl)
                 {
-                    string url = autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", "");
-                    if (!autoLinkOnClickEventArgs.P1.Contains("http"))
+                    string url = autoLinkOnClickEventArgs.P1.Contains("http") switch
                     {
-                        url = "http://" + autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", "");
-                    }
+                        false => "http://" + autoLinkOnClickEventArgs.P1.Replace(" ", ""),
+                        _ => autoLinkOnClickEventArgs.P1.Replace(" ", "")
+                    };
 
                     //var intent = new Intent(Activity, typeof(LocalWebViewActivity));
                     //intent.PutExtra("URL", url);
@@ -99,14 +111,14 @@ namespace WoWonder.Helpers.Utils
                 else if (typetext == "Hashtag" || autoLinkOnClickEventArgs.P0 == AutoLinkMode.ModeHashtag)
                 {
                     var intent = new Intent(Activity, typeof(HashTagPostsActivity));
-                    intent.PutExtra("Id", autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", ""));
-                    intent.PutExtra("Tag", autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", ""));
+                    intent.PutExtra("Id", autoLinkOnClickEventArgs.P1.Replace(" ", ""));
+                    intent.PutExtra("Tag", autoLinkOnClickEventArgs.P1.Replace(" ", ""));
                     Activity.StartActivity(intent);
                 }
                 else if (typetext == "Mention" || autoLinkOnClickEventArgs.P0 == AutoLinkMode.ModeMention)
                 {
                     var dataUSer = ListUtils.MyProfileList?.FirstOrDefault();
-                    string name = autoLinkOnClickEventArgs.P1.Replace("@", "").Replace(" ", "").Replace("\n", "");
+                    string name = autoLinkOnClickEventArgs.P1.Replace("@", "").Replace(" ", "");
 
                     var sqlEntity = new SqLiteDatabase();
                     var user = sqlEntity.Get_DataOneUser(name);
@@ -120,9 +132,17 @@ namespace WoWonder.Helpers.Utils
                     {
                         if (name == dataUSer?.Name || name == dataUSer?.Username)
                         {
-                            if (PostClickListener.OpenMyProfile) return;
-                            var intent = new Intent(Activity, typeof(MyProfileActivity));
-                            Activity.StartActivity(intent);
+                            switch (PostClickListener.OpenMyProfile)
+                            {
+                                case true:
+                                    return;
+                                default:
+                                {
+                                    var intent = new Intent(Activity, typeof(MyProfileActivity));
+                                    Activity.StartActivity(intent);
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
@@ -135,7 +155,7 @@ namespace WoWonder.Helpers.Utils
                 }
                 else if (typetext == "Number" || autoLinkOnClickEventArgs.P0 == AutoLinkMode.ModePhone)
                 {
-                    Methods.App.SaveContacts(Activity, autoLinkOnClickEventArgs.P1.Replace(" ", "").Replace("\n", ""), "", "2");
+                    Methods.App.SaveContacts(Activity, autoLinkOnClickEventArgs.P1.Replace(" ", ""), "", "2");
                 }
             }
             catch (Exception exception)
@@ -150,15 +170,15 @@ namespace WoWonder.Helpers.Utils
             {
                 if (e.P0 == AutoLinkMode.ModeEmail)
                 {
-                    Methods.App.SendEmail(Activity, e.P1.Replace(" ", "").Replace("\n", ""));
+                    Methods.App.SendEmail(Activity, e.P1.Replace(" ", ""));
                 }
                 else if (e.P0 == AutoLinkMode.ModeUrl)
                 {
-                    string url = e.P1.Replace(" ", "").Replace("\n", "");
-                    if (!e.P1.Contains("http"))
+                    string url = e.P1.Contains("http") switch
                     {
-                        url = "http://" + e.P1.Replace(" ", "").Replace("\n", "");
-                    }
+                        false => "http://" + e.P1.Replace(" ", ""),
+                        _ => e.P1.Replace(" ", "")
+                    };
 
                     //var intent = new Intent(Activity, typeof(LocalWebViewActivity));
                     //intent.PutExtra("URL", url);
@@ -169,14 +189,14 @@ namespace WoWonder.Helpers.Utils
                 else if (e.P0 == AutoLinkMode.ModeHashtag)
                 {
                     var intent = new Intent(Activity, typeof(HashTagPostsActivity));
-                    intent.PutExtra("Id", e.P1.Replace(" ", "").Replace("\n", ""));
-                    intent.PutExtra("Tag", e.P1.Replace(" ", "").Replace("\n", ""));
+                    intent.PutExtra("Id", e.P1.Replace(" ", ""));
+                    intent.PutExtra("Tag", e.P1.Replace(" ", ""));
                     Activity.StartActivity(intent);
                 }
                 else if (e.P0 == AutoLinkMode.ModeMention)
                 {
                     var dataUSer = ListUtils.MyProfileList?.FirstOrDefault();
-                    string name = e.P1.Replace("@", "").Replace(" ", "").Replace("\n", "");
+                    string name = e.P1.Replace("@", "").Replace(" ", "");
 
                     var sqlEntity = new SqLiteDatabase();
                     var user = sqlEntity.Get_DataOneUser(name);
@@ -190,9 +210,17 @@ namespace WoWonder.Helpers.Utils
                     {
                         if (name == dataUSer?.Name || name == dataUSer?.Username)
                         {
-                            if (PostClickListener.OpenMyProfile) return;
-                            var intent = new Intent(Activity, typeof(MyProfileActivity));
-                            Activity.StartActivity(intent);
+                            switch (PostClickListener.OpenMyProfile)
+                            {
+                                case true:
+                                    return;
+                                default:
+                                {
+                                    var intent = new Intent(Activity, typeof(MyProfileActivity));
+                                    Activity.StartActivity(intent);
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
@@ -205,7 +233,7 @@ namespace WoWonder.Helpers.Utils
                 }
                 else if (e.P0 == AutoLinkMode.ModePhone)
                 {
-                    Methods.App.SaveContacts(Activity, e.P1.Replace(" ", "").Replace("\n", ""), "", "2");
+                    Methods.App.SaveContacts(Activity, e.P1.Replace(" ", ""), "", "2");
                 }
                 else if (e.P0 == AutoLinkMode.ModeCustom)
                 {

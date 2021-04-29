@@ -11,6 +11,7 @@ using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
+using ImageViews.Rounded;
 using Java.IO;
 using Java.Util;
 using Refractored.Controls;
@@ -27,6 +28,7 @@ namespace WoWonder.Activities.Story.Adapters
     {
         public event EventHandler<StoryAdapterClickEventArgs> ItemClick;
         public event EventHandler<StoryAdapterClickEventArgs> ItemLongClick;
+        private string YourImageUri;
 
         private readonly Activity ActivityContext;
 
@@ -40,21 +42,23 @@ namespace WoWonder.Activities.Story.Adapters
                 ActivityContext = context;
 
                 var dataOwner = StoryList.FirstOrDefault(a => a.Type == "Your");
-                if (dataOwner == null)
+                switch (dataOwner)
                 {
-                    StoryList.Add(new GetUserStoriesObject.StoryObject
-                    {
-                        Avatar = UserDetails.Avatar,
-                        Type = "Your",
-                        Username = context.GetText(Resource.String.Lbl_YourStory),
-                        Stories = new List<GetUserStoriesObject.StoryObject.Story>
+                    case null:
+                        StoryList.Add(new GetUserStoriesObject.StoryObject
                         {
-                            new GetUserStoriesObject.StoryObject.Story
+                            Avatar = UserDetails.Avatar,
+                            Type = "Your",
+                            Username = context.GetText(Resource.String.Lbl_YourStory),
+                            Stories = new List<GetUserStoriesObject.StoryObject.Story>
                             {
-                                Thumbnail = UserDetails.Avatar,
+                                new GetUserStoriesObject.StoryObject.Story
+                                {
+                                    Thumbnail = UserDetails.Avatar,
+                                }
                             }
-                        }
-                    });
+                        });
+                        break;
                 }
             }
             catch (Exception e)
@@ -86,37 +90,61 @@ namespace WoWonder.Activities.Story.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is StoryAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = StoryList[position];
-                    if (item != null)
-                    { 
-                        switch (item.Stories?.Count)
-                        {
-                            case > 0 when item.Stories[0].Thumbnail.Contains("http"):
-                                GlideImageLoader.LoadImage(ActivityContext, item.Stories[0]?.Thumbnail, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                                break;
-                            case > 0:
-                                Glide.With(ActivityContext).Load(new File(item.Stories[0].Thumbnail)).Apply(new RequestOptions().CircleCrop().Placeholder(Resource.Drawable.ImagePlacholder_circle).Error(Resource.Drawable.ImagePlacholder_circle)).Into(holder.Image);
-                                break;
-                        }
+                    case StoryAdapterViewHolder holder:
+                    {
+                        var item = StoryList[position];
+                        if (item != null)
+                        { 
+                            switch (item.Stories?.Count)
+                            {
+                                case > 0 when item.Stories[0].Thumbnail.Contains("http"):
+                                    GlideImageLoader.LoadImage(ActivityContext, item.Stories[0]?.Thumbnail, holder.RoundImage, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
+                                    //GlideImageLoader.LoadImage(ActivityContext, item.Stories[0]?.Thumbnail, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    break;
+                                case > 0:
+                                    //Glide.With(ActivityContext).Load(new File(item.Stories[0].Thumbnail)).Apply(new RequestOptions().CircleCrop().Placeholder(Resource.Drawable.ImagePlacholder_circle).Error(Resource.Drawable.ImagePlacholder_circle)).Into(holder.Image);
+                                    Glide.With(ActivityContext).Load(new File(item.Stories[0].Thumbnail)).Apply(new RequestOptions().CircleCrop().Placeholder(Resource.Drawable.ImagePlacholder_circle).Error(Resource.Drawable.ImagePlacholder_circle)).Into(holder.RoundImage);
+                                    break;
+                            }
 
-                        if (item.Type == "Your")
-                        {
-                            holder.Circleindicator.Visibility = ViewStates.Invisible;
-                        }
-                        else
-                        {
-                            item.ProfileIndicator ??= AppSettings.MainColor;
+                            switch (item.Type)
+                            {
+                                case "Your":
+                                {
+                                    holder.Circleindicator.Visibility = ViewStates.Gone;
+                                    //holder.Circleindicator.Visibility = ViewStates.Invisible;
+                                    YourImageUri = item.Stories[0]?.Thumbnail;
+                                    GlideImageLoader.LoadImage(ActivityContext, YourImageUri, holder.RoundImage, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
 
-                            holder.Circleindicator.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(item.ProfileIndicator)); // Default_Color 
-                        }
+                                    RelativeLayout.LayoutParams imgViewParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+                                    imgViewParams.SetMargins(15, 15, 15, 15);
+                                    holder.Image.LayoutParameters = imgViewParams;
+                                    break;
+                                }
+                                default:
+                                    item.ProfileIndicator ??= AppSettings.MainColor;
 
-                        holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item), 12);
+                                    holder.Circleindicator.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(item.ProfileIndicator)); // Default_Color 
+
+                                    GlideImageLoader.LoadImage(ActivityContext, YourImageUri, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                    break;
+                            }
+
+
+                            holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item), 12);
                          
-                        if (!holder.Circleindicator.HasOnClickListeners)
-                            holder.Circleindicator.Click += (sender, e) => Click(new StoryAdapterClickEventArgs { View = holder.MainView, Position = position }); 
+                            switch (holder.Circleindicator.HasOnClickListeners)
+                            {
+                                case false:
+                                    holder.Circleindicator.Click += (sender, e) => Click(new StoryAdapterClickEventArgs { View = holder.MainView, Position = position });
+                                    break;
+                            } 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -132,9 +160,11 @@ namespace WoWonder.Activities.Story.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is StoryAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case StoryAdapterViewHolder viewHolder:
+                        //Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -191,14 +221,21 @@ namespace WoWonder.Activities.Story.Adapters
             {
                 var d = new List<string>();
                 var item = StoryList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Stories[0].Thumbnail))
-                        d.Add(item.Stories[0].Thumbnail);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Stories[0].Thumbnail))
+                        {
+                            case false:
+                                d.Add(item.Stories[0].Thumbnail);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)
@@ -222,6 +259,7 @@ namespace WoWonder.Activities.Story.Adapters
             {
                 MainView = itemView;
 
+                RoundImage = MainView.FindViewById<RoundedImageView>(Resource.Id.iv_round_story);
                 Image = MainView.FindViewById<ImageView>(Resource.Id.userProfileImage);
                 Name = MainView.FindViewById<TextView>(Resource.Id.Txt_Username);
                 Circleindicator = MainView.FindViewById<CircleImageView>(Resource.Id.profile_indicator);
@@ -241,10 +279,10 @@ namespace WoWonder.Activities.Story.Adapters
 
         public View MainView { get; private set; }
 
+        public RoundedImageView RoundImage { get; set; }
         public ImageView Image { get; set; }
         public TextView Name { get; private set; }
         public CircleImageView Circleindicator { get; private set; }
-
 
         #endregion
     }

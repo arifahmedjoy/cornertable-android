@@ -179,17 +179,16 @@ namespace WoWonder.Activities.Videos
                 base.OnConfigurationChanged(newConfig);
 
                 var currentNightMode = newConfig.UiMode & UiMode.NightMask;
-                switch (currentNightMode)
+                AppSettings.SetTabDarkTheme = currentNightMode switch
                 {
-                    case UiMode.NightNo:
+                    UiMode.NightNo =>
                         // Night mode is not active, we're using the light theme
-                        AppSettings.SetTabDarkTheme = false;
-                        break;
-                    case UiMode.NightYes:
+                        false,
+                    UiMode.NightYes =>
                         // Night mode is active, we're using dark theme
-                        AppSettings.SetTabDarkTheme = true;
-                        break;
-                }
+                        true,
+                    _ => AppSettings.SetTabDarkTheme
+                };
 
                 SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
             }
@@ -309,14 +308,15 @@ namespace WoWonder.Activities.Videos
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
-                { 
-                    ImgSent.Click += ImgSentOnClick;
-                }
-                else
-                { 
-                    ImgSent.Click -= ImgSentOnClick;
+                switch (addEvent)
+                {
+                    // true +=  // false -=
+                    case true:
+                        ImgSent.Click += ImgSentOnClick;
+                        break;
+                    default:
+                        ImgSent.Click -= ImgSentOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -379,9 +379,20 @@ namespace WoWonder.Activities.Videos
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                if (requestCode == 2000)
-                    if (resultCode == Result.Ok)
-                        VideoActionsController.RestartPlayAfterShrinkScreen();
+                switch (requestCode)
+                {
+                    case 2000:
+                    {
+                        switch (resultCode)
+                        {
+                            case Result.Ok:
+                                VideoActionsController.RestartPlayAfterShrinkScreen();
+                                break;
+                        }
+
+                        break;
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -397,10 +408,15 @@ namespace WoWonder.Activities.Videos
         {
             try
             {
-                if (p1.IsUserRecoverableError)
-                    p1.GetErrorDialog(this, 1).Show();
-                else
-                    Toast.MakeText(this, p1.ToString(), ToastLength.Short)?.Show();
+                switch (p1.IsUserRecoverableError)
+                {
+                    case true:
+                        p1.GetErrorDialog(this, 1).Show();
+                        break;
+                    default:
+                        Toast.MakeText(this, p1.ToString(), ToastLength.Short)?.Show();
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -412,13 +428,18 @@ namespace WoWonder.Activities.Videos
         {
             try
             {
-                if (YoutubePlayer == null)
-                    YoutubePlayer = player;
-
-                if (!wasRestored)
+                YoutubePlayer = YoutubePlayer switch
                 {
-                    YoutubePlayer.LoadVideo(VideoIdYoutube);
-                    //YoutubePlayer.AddFullscreenControlFlag(YouTubePlayer.FullscreenFlagControlOrientation  | YouTubePlayer.FullscreenFlagControlSystemUi  | YouTubePlayer.FullscreenFlagCustomLayout); 
+                    null => player,
+                    _ => YoutubePlayer
+                };
+
+                switch (wasRestored)
+                {
+                    case false:
+                        YoutubePlayer.LoadVideo(VideoIdYoutube);
+                        //YoutubePlayer.AddFullscreenControlFlag(YouTubePlayer.FullscreenFlagControlOrientation  | YouTubePlayer.FullscreenFlagControlSystemUi  | YouTubePlayer.FullscreenFlagCustomLayout); 
+                        break;
                 }
             }
             catch (Exception e)
@@ -465,9 +486,11 @@ namespace WoWonder.Activities.Videos
                     MAdapter.CommentList.Add(comment);
 
                     var index = MAdapter.CommentList.IndexOf(comment);
-                    if (index > -1)
+                    switch (index)
                     {
-                        MAdapter.NotifyItemInserted(index);
+                        case > -1:
+                            MAdapter.NotifyItemInserted(index);
+                            break;
                     }
 
                     MRecycler.Visibility = ViewStates.Visible;
@@ -485,28 +508,42 @@ namespace WoWonder.Activities.Videos
                     TxtComment.Text = "";
 
                     var (apiStatus, respond) = await RequestsAsync.Movies.CreateComments(MoviesId, text);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetCommentsMoviesObject result)
+                        case 200:
                         {
-                            var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
-                            if (date != null)
+                            switch (respond)
                             {
-                                date = result.Data[0];
-                                date.Id = result.Data[0].Id;
-
-                                index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
-                                if (index > -1)
+                                case GetCommentsMoviesObject result:
                                 {
-                                    MAdapter.CommentList[index] = result.Data[0];
+                                    var date = MAdapter.CommentList.FirstOrDefault(a => a.Id == comment.Id) ?? MAdapter.CommentList.FirstOrDefault(x => x.Id == result.Data[0]?.Id);
+                                    if (date != null)
+                                    {
+                                        date = result.Data[0];
+                                        date.Id = result.Data[0].Id;
 
-                                    //MAdapter.NotifyItemChanged(index);
-                                    MRecycler.ScrollToPosition(index);
+                                        index = MAdapter.CommentList.IndexOf(MAdapter.CommentList.FirstOrDefault(a => a.Id == unixTimestamp.ToString()));
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                                MAdapter.CommentList[index] = result.Data[0];
+
+                                                //MAdapter.NotifyItemChanged(index);
+                                                MRecycler.ScrollToPosition(index);
+                                                break;
+                                        }
+                                    }
+
+                                    break;
                                 }
                             }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
 
                     //Hide keyboard
                     TxtComment.Text = "";
@@ -561,19 +598,33 @@ namespace WoWonder.Activities.Videos
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Movies.Get_Movies("", "", MoviesId);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is GetMoviesObject result)
+                        case 200:
                         {
-                            var respondList = result.Movies.Count;
-                            if (respondList > 0)
+                            switch (respond)
                             {
-                                Video = result.Movies.FirstOrDefault(w => w.Id == MoviesId);
-                                LoadDataVideo();
+                                case GetMoviesObject result:
+                                {
+                                    var respondList = result.Movies.Count;
+                                    switch (respondList)
+                                    {
+                                        case > 0:
+                                            Video = result.Movies.FirstOrDefault(w => w.Id == MoviesId);
+                                            LoadDataVideo();
+                                            break;
+                                    }
+
+                                    break;
+                                }
                             }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 } 
             }
             catch (Exception e)
@@ -586,38 +637,47 @@ namespace WoWonder.Activities.Videos
         {
             try
             {
-                if (Video == null)
-                    return;
+                switch (Video)
+                {
+                    case null:
+                        return;
+                }
 
                 LoadVideo_Data(Video);
-                if (!string.IsNullOrEmpty(Video.Iframe))
-                { 
-                    if (Video.Iframe.Contains("Youtube") || Video.Iframe.Contains("youtu"))
-                    { 
-                        VideoIdYoutube = Video.Iframe.Split(new[] { "v=", "/" }, StringSplitOptions.None).LastOrDefault();
-
-                        YouTubePlayerView youTubeView = new YouTubePlayerView(this);
-
-                        var youtubeView = FindViewById<FrameLayout>(Resource.Id.root);
-                        youtubeView.RemoveAllViews();
-                        youtubeView.AddView(youTubeView);
-
-                        youTubeView.Initialize(GetText(Resource.String.google_key), this);
-
-                        VideoActionsController.SimpleExoPlayerView.Visibility = ViewStates.Gone;
-                        VideoActionsController.ReleaseVideo();
-
-                        YoutubePlayer?.LoadVideo(VideoIdYoutube);
-                    }
-                }
-                else
+                switch (string.IsNullOrEmpty(Video.Iframe))
                 {
-                    var dbDatabase = new SqLiteDatabase();
-                    var dataVideos = dbDatabase.Get_WatchOfflineVideos_ById(Video.Id);
-                    if (dataVideos != null)
-                        VideoActionsController.PlayVideo(dataVideos.Source, dataVideos);
-                    else
-                        VideoActionsController.PlayVideo(Video.Source, Video); 
+                    case false:
+                    {
+                        if (Video.Iframe.Contains("Youtube") || Video.Iframe.Contains("youtu"))
+                        { 
+                            VideoIdYoutube = Video.Iframe.Split(new[] { "v=", "/" }, StringSplitOptions.None).LastOrDefault();
+
+                            YouTubePlayerView youTubeView = new YouTubePlayerView(this);
+
+                            var youtubeView = FindViewById<FrameLayout>(Resource.Id.root);
+                            youtubeView.RemoveAllViews();
+                            youtubeView.AddView(youTubeView);
+
+                            youTubeView.Initialize(GetText(Resource.String.google_key), this);
+
+                            VideoActionsController.SimpleExoPlayerView.Visibility = ViewStates.Gone;
+                            VideoActionsController.ReleaseVideo();
+
+                            YoutubePlayer?.LoadVideo(VideoIdYoutube);
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        var dbDatabase = new SqLiteDatabase();
+                        var dataVideos = dbDatabase.Get_WatchOfflineVideos_ById(Video.Id);
+                        if (dataVideos != null)
+                            VideoActionsController.PlayVideo(dataVideos.Source, dataVideos);
+                        else
+                            VideoActionsController.PlayVideo(Video.Source, Video);
+                        break;
+                    }
                 }
 
                 StartApiService(); 
@@ -663,15 +723,18 @@ namespace WoWonder.Activities.Videos
 
         private async Task LoadDataComment(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
                 var countList = MAdapter.CommentList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Movies.GetComments(MoviesId, "25", offset);
-                if (apiStatus != 200 || (respond is not GetCommentsMoviesObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not GetCommentsMoviesObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -679,9 +742,9 @@ namespace WoWonder.Activities.Videos
                 else
                 {
                     var respondList = result.Data?.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -689,12 +752,12 @@ namespace WoWonder.Activities.Videos
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.CommentList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.CommentList = new ObservableCollection<CommentsMoviesObject>(result.Data);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                        }
+                            break;
                     }
                 }
 
@@ -708,21 +771,27 @@ namespace WoWonder.Activities.Videos
             {
                 MainScrollEvent.IsLoading = false;
 
-                if (MAdapter.CommentList.Count > 0)
+                switch (MAdapter.CommentList.Count)
                 {
-                    var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
-                    if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                    case > 0:
                     {
-                        MAdapter.CommentList.Remove(emptyStateChecker);
-                        MAdapter.NotifyDataSetChanged();
+                        var emptyStateChecker = MAdapter.CommentList.FirstOrDefault(a => a.Text == MAdapter.EmptyState);
+                        if (emptyStateChecker != null && MAdapter.CommentList.Count > 1)
+                        {
+                            MAdapter.CommentList.Remove(emptyStateChecker);
+                            MAdapter.NotifyDataSetChanged();
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    MAdapter.CommentList.Clear();
-                    var d = new CommentsMoviesObject { Text = MAdapter.EmptyState };
-                    MAdapter.CommentList.Add(d);
-                    MAdapter.NotifyDataSetChanged();
+                    default:
+                    {
+                        MAdapter.CommentList.Clear();
+                        var d = new CommentsMoviesObject { Text = MAdapter.EmptyState };
+                        MAdapter.CommentList.Add(d);
+                        MAdapter.NotifyDataSetChanged();
+                        break;
+                    }
                 }
             }
             catch (Exception e)

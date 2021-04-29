@@ -266,14 +266,15 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    AddWalletLayouts.Click += AddWalletLayoutsOnClick;
-                }
-                else
-                {
-                    AddWalletLayouts.Click -= AddWalletLayoutsOnClick;
+                    // true +=  // false -=
+                    case true:
+                        AddWalletLayouts.Click += AddWalletLayoutsOnClick;
+                        break;
+                    default:
+                        AddWalletLayouts.Click -= AddWalletLayoutsOnClick;
+                        break;
                 }
             }
             catch (Exception e)

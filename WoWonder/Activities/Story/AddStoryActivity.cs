@@ -74,10 +74,15 @@ namespace WoWonder.Activities.Story
                         Type = dataType; // Type file  
                 }
 
-                if (Type == "image")
-                    SetImageStory(PathStory);
-                else
-                    SetVideoStory(PathStory);
+                switch (Type)
+                {
+                    case "image":
+                        SetImageStory(PathStory);
+                        break;
+                    default:
+                        SetVideoStory(PathStory);
+                        break;
+                }
 
             }
             catch (Exception e)
@@ -231,18 +236,19 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    AddStoryButton.Click += AddStoryButtonOnClick;
-                    StoryVideoView.Completion += StoryVideoViewOnCompletion;
-                    PlayIconVideo.Click += PlayIconVideoOnClick;
-                }
-                else
-                {
-                    AddStoryButton.Click -= AddStoryButtonOnClick;
-                    StoryVideoView.Completion -= StoryVideoViewOnCompletion;
-                    PlayIconVideo.Click -= PlayIconVideoOnClick;
+                    // true +=  // false -=
+                    case true:
+                        AddStoryButton.Click += AddStoryButtonOnClick;
+                        StoryVideoView.Completion += StoryVideoViewOnCompletion;
+                        PlayIconVideo.Click += PlayIconVideoOnClick;
+                        break;
+                    default:
+                        AddStoryButton.Click -= AddStoryButtonOnClick;
+                        StoryVideoView.Completion -= StoryVideoViewOnCompletion;
+                        PlayIconVideo.Click -= PlayIconVideoOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -255,8 +261,11 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                if (StoryImageView.Visibility == ViewStates.Gone)
-                    StoryImageView.Visibility = ViewStates.Visible;
+                StoryImageView.Visibility = StoryImageView.Visibility switch
+                {
+                    ViewStates.Gone => ViewStates.Visible,
+                    _ => StoryImageView.Visibility
+                };
 
                 var file = Uri.FromFile(new File(url));
 
@@ -264,8 +273,11 @@ namespace WoWonder.Activities.Story
 
                 // GlideImageLoader.LoadImage(this, file.Path, StoryImageView, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
-                if (StoryVideoView.Visibility == ViewStates.Visible)
-                    StoryVideoView.Visibility = ViewStates.Gone;
+                StoryVideoView.Visibility = StoryVideoView.Visibility switch
+                {
+                    ViewStates.Visible => ViewStates.Gone,
+                    _ => StoryVideoView.Visibility
+                };
             }
             catch (Exception e)
             {
@@ -277,18 +289,28 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                if (StoryImageView.Visibility == ViewStates.Visible)
-                    StoryImageView.Visibility = ViewStates.Gone;
+                StoryImageView.Visibility = StoryImageView.Visibility switch
+                {
+                    ViewStates.Visible => ViewStates.Gone,
+                    _ => StoryImageView.Visibility
+                };
 
-                if (StoryVideoView.Visibility == ViewStates.Gone)
-                    StoryVideoView.Visibility = ViewStates.Visible;
+                StoryVideoView.Visibility = StoryVideoView.Visibility switch
+                {
+                    ViewStates.Gone => ViewStates.Visible,
+                    _ => StoryVideoView.Visibility
+                };
 
                 PlayIconVideo.Visibility = ViewStates.Visible;
                 PlayIconVideo.Tag = "Play";
                 PlayIconVideo.SetImageResource(Resource.Drawable.ic_play_arrow);
 
-                if (StoryVideoView.IsPlaying)
-                    StoryVideoView.Suspend();
+                switch (StoryVideoView.IsPlaying)
+                {
+                    case true:
+                        StoryVideoView.Suspend();
+                        break;
+                }
 
                 if (url.Contains("http"))
                 {
@@ -332,55 +354,66 @@ namespace WoWonder.Activities.Story
         {
             try
             {
-                if (PlayIconVideo?.Tag?.ToString() == "Play")
+                switch (PlayIconVideo?.Tag?.ToString())
                 {
-                    MediaMetadataRetriever retriever;
-                    if (PathStory.Contains("http"))
+                    case "Play":
                     {
-                        StoryVideoView.SetVideoURI(Uri.Parse(PathStory));
+                        MediaMetadataRetriever retriever;
+                        if (PathStory.Contains("http"))
+                        {
+                            StoryVideoView.SetVideoURI(Uri.Parse(PathStory));
 
-                        retriever = new MediaMetadataRetriever();
-                        if ((int)Build.VERSION.SdkInt >= 14)
-                            retriever.SetDataSource(PathStory, new Dictionary<string, string>());
+                            retriever = new MediaMetadataRetriever();
+                            switch ((int)Build.VERSION.SdkInt)
+                            {
+                                case >= 14:
+                                    retriever.SetDataSource(PathStory, new Dictionary<string, string>());
+                                    break;
+                                default:
+                                    retriever.SetDataSource(PathStory);
+                                    break;
+                            }
+                        }
                         else
-                            retriever.SetDataSource(PathStory);
+                        {
+                            var file = Uri.FromFile(new File(PathStory));
+                            StoryVideoView.SetVideoPath(file?.Path);
+
+                            retriever = new MediaMetadataRetriever();
+                            //if ((int)Build.VERSION.SdkInt >= 14)
+                            //    retriever.SetDataSource(file.Path, new Dictionary<string, string>());
+                            //else
+                            //    retriever.SetDataSource(file.Path);
+                            retriever.SetDataSource(file?.Path);
+                        }
+                        StoryVideoView.Start();
+
+                        Duration = Long.ParseLong(retriever.ExtractMetadata(MetadataKey.Duration) ?? string.Empty);
+                        retriever.Release();
+
+                        StoriesProgress.Visibility = ViewStates.Visible;
+                        StoriesProgress.SetStoriesCount(1); // <- set stories
+                        StoriesProgress.SetStoryDuration(Duration); // <- set a story duration
+                        StoriesProgress.StartStories(); // <- start progress
+
+                        PlayIconVideo.Tag = "Stop";
+                        PlayIconVideo.SetImageResource(Resource.Drawable.ic_stop_white_24dp);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        var file = Uri.FromFile(new File(PathStory));
-                        StoryVideoView.SetVideoPath(file?.Path);
+                        StoriesProgress.Visibility = ViewStates.Gone;
+                        StoriesProgress.Pause();
 
-                        retriever = new MediaMetadataRetriever();
-                        //if ((int)Build.VERSION.SdkInt >= 14)
-                        //    retriever.SetDataSource(file.Path, new Dictionary<string, string>());
-                        //else
-                        //    retriever.SetDataSource(file.Path);
-                        retriever.SetDataSource(file?.Path);
-                    }
-                    StoryVideoView.Start();
+                        StoryVideoView.Pause();
 
-                    Duration = Long.ParseLong(retriever.ExtractMetadata(MetadataKey.Duration) ?? string.Empty);
-                    retriever.Release();
+                        if (PlayIconVideo != null)
+                        {
+                            PlayIconVideo.Tag = "Play";
+                            PlayIconVideo.SetImageResource(Resource.Drawable.ic_play_arrow);
+                        }
 
-                    StoriesProgress.Visibility = ViewStates.Visible;
-                    StoriesProgress.SetStoriesCount(1); // <- set stories
-                    StoriesProgress.SetStoryDuration(Duration); // <- set a story duration
-                    StoriesProgress.StartStories(); // <- start progress
-
-                    PlayIconVideo.Tag = "Stop";
-                    PlayIconVideo.SetImageResource(Resource.Drawable.ic_stop_white_24dp);
-                }
-                else
-                {
-                    StoriesProgress.Visibility = ViewStates.Gone;
-                    StoriesProgress.Pause();
-
-                    StoryVideoView.Pause();
-
-                    if (PlayIconVideo != null)
-                    {
-                        PlayIconVideo.Tag = "Play";
-                        PlayIconVideo.SetImageResource(Resource.Drawable.ic_play_arrow);
+                        break;
                     }
                 }
             }

@@ -174,20 +174,21 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    PrivacyConfirmRequestFollowsPref.PreferenceChange += PrivacyConfirmRequestFollowsPref_OnPreferenceChange;
-                    PrivacyShowMyActivitiesPref.PreferenceChange += PrivacyShowMyActivitiesPref_OnPreferenceChange;
-                    PrivacyOnlineUserPref.PreferenceChange += PrivacyOnlineUserPref_OnPreferenceChange;
-                    PrivacyShareMyLocationPref.PreferenceChange += PrivacyShareMyLocationPref_OnPreferenceChange;
-                }
-                else
-                {
-                    PrivacyConfirmRequestFollowsPref.PreferenceChange -= PrivacyConfirmRequestFollowsPref_OnPreferenceChange;
-                    PrivacyShowMyActivitiesPref.PreferenceChange -= PrivacyShowMyActivitiesPref_OnPreferenceChange;
-                    PrivacyOnlineUserPref.PreferenceChange -= PrivacyOnlineUserPref_OnPreferenceChange;
-                    PrivacyShareMyLocationPref.PreferenceChange -= PrivacyShareMyLocationPref_OnPreferenceChange;
+                    // true +=  // false -=
+                    case true:
+                        PrivacyConfirmRequestFollowsPref.PreferenceChange += PrivacyConfirmRequestFollowsPref_OnPreferenceChange;
+                        PrivacyShowMyActivitiesPref.PreferenceChange += PrivacyShowMyActivitiesPref_OnPreferenceChange;
+                        PrivacyOnlineUserPref.PreferenceChange += PrivacyOnlineUserPref_OnPreferenceChange;
+                        PrivacyShareMyLocationPref.PreferenceChange += PrivacyShareMyLocationPref_OnPreferenceChange;
+                        break;
+                    default:
+                        PrivacyConfirmRequestFollowsPref.PreferenceChange -= PrivacyConfirmRequestFollowsPref_OnPreferenceChange;
+                        PrivacyShowMyActivitiesPref.PreferenceChange -= PrivacyShowMyActivitiesPref_OnPreferenceChange;
+                        PrivacyOnlineUserPref.PreferenceChange -= PrivacyOnlineUserPref_OnPreferenceChange;
+                        PrivacyShareMyLocationPref.PreferenceChange -= PrivacyShareMyLocationPref_OnPreferenceChange;
+                        break;
                 }
             }
             catch (Exception e)
@@ -205,48 +206,60 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
         {
             try
             {
-                if (eventArgs.Handled)
+                switch (eventArgs.Handled)
                 {
-                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-
-                    var etp = (SwitchPreferenceCompat)sender;
-                    var value = eventArgs.NewValue.ToString();
-                    etp.Checked = bool.Parse(value);
-                    if (etp.Checked)
+                    case true:
                     {
-                        SConfirmRequestFollowsPref = "1";
-                        if (dataUser != null)
+                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+
+                        var etp = (SwitchPreferenceCompat)sender;
+                        var value = eventArgs.NewValue.ToString();
+                        etp.Checked = bool.Parse(value);
+                        switch (etp.Checked)
                         {
-                            dataUser.ConfirmFollowers = "1";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                            case true:
+                            {
+                                SConfirmRequestFollowsPref = "1";
+                                if (dataUser != null)
+                                {
+                                    dataUser.ConfirmFollowers = "1";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                             
-                        }
-                    }
-                    else
-                    {
-                        SConfirmRequestFollowsPref = "0";
-                        if (dataUser != null)
-                        {
-                            dataUser.ConfirmFollowers = "0";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                }
+
+                                break;
+                            }
+                            default:
+                            {
+                                SConfirmRequestFollowsPref = "0";
+                                if (dataUser != null)
+                                {
+                                    dataUser.ConfirmFollowers = "0";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                             
+                                }
+
+                                break;
+                            }
                         }
-                    }
 
-                    if (Methods.CheckConnectivity())
-                    {
-                        var dataPrivacy = new Dictionary<string, string>
+                        if (Methods.CheckConnectivity())
                         {
-                            {"confirm_followers", SConfirmRequestFollowsPref}
-                        };
+                            var dataPrivacy = new Dictionary<string, string>
+                            {
+                                {"confirm_followers", SConfirmRequestFollowsPref}
+                            };
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
-                    }
-                    else
-                    {
-                        Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                        }
+                        else
+                        {
+                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -262,52 +275,59 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
         {
             try
             {
-                if (eventArgs.Handled)
+                switch (eventArgs.Handled)
                 {
-                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                    var etp = (SwitchPreferenceCompat)sender;
-                    var value = eventArgs.NewValue.ToString();
-                    etp.Checked = bool.Parse(value);
-                    if (etp.Checked)
+                    case true:
                     {
-                        if (dataUser != null)
+                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                        var etp = (SwitchPreferenceCompat)sender;
+                        var value = eventArgs.NewValue.ToString();
+                        etp.Checked = bool.Parse(value);
+                        switch (etp.Checked)
                         {
-                            dataUser.ShowActivitiesPrivacy = "1";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                            case true:
+                            {
+                                if (dataUser != null)
+                                {
+                                    dataUser.ShowActivitiesPrivacy = "1";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                             
+                                }
+
+                                SShowMyActivitiesPref = "1";
+                                break;
+                            }
+                            default:
+                            {
+                                if (dataUser != null)
+                                {
+                                    dataUser.ShowActivitiesPrivacy = "0";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                            
+                                }
+
+                                SShowMyActivitiesPref = "0";
+                                break;
+                            }
                         }
 
-                        SShowMyActivitiesPref = "1";
-                    }
-                    else
-                    {
-                        if (dataUser != null)
+                        if (Methods.CheckConnectivity())
                         {
-                            dataUser.ShowActivitiesPrivacy = "0";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
-                            
+                            var dataPrivacy = new Dictionary<string, string>
+                            {
+                                {"show_activities_privacy", SShowMyActivitiesPref}
+                            };
+
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                        }
+                        else
+                        {
+                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
                         }
 
-                        SShowMyActivitiesPref = "0";
-                    }
-
-                    if (Methods.CheckConnectivity())
-                    {
-                        var dataPrivacy = new Dictionary<string, string>
-                        {
-                            {"show_activities_privacy", SShowMyActivitiesPref}
-                        };
-
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
-                    }
-                    else
-                    {
-                        Toast.MakeText(ActivityContext,
-                                ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection),
-                                ToastLength.Long)
-                            .Show();
+                        break;
                     }
                 }
             }
@@ -322,50 +342,64 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
         {
             try
             {
-                if (eventArgs.Handled)
+                switch (eventArgs.Handled)
                 {
-                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                    var etp = (SwitchPreferenceCompat)sender;
-                    var value = eventArgs.NewValue.ToString();
-                    etp.Checked = bool.Parse(value);
-                    if (etp.Checked) //Online >> value = 0
+                    case true:
                     {
-                        SOnlineUsersPref = "0";
-
-                        if (dataUser != null)
+                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                        var etp = (SwitchPreferenceCompat)sender;
+                        var value = eventArgs.NewValue.ToString();
+                        etp.Checked = bool.Parse(value);
+                        switch (etp.Checked)
                         {
-                            dataUser.Status = "0";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                            //Online >> value = 0
+                            case true:
+                            {
+                                SOnlineUsersPref = "0";
+
+                                if (dataUser != null)
+                                {
+                                    dataUser.Status = "0";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                             
-                        }
-                    }
-                    else //Offline >> value = 1
-                    {
-                        SOnlineUsersPref = "1";
+                                }
 
-                        if (dataUser != null)
-                        {
-                            dataUser.Status = "1";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                break;
+                            }
+                            //Offline >> value = 1
+                            default:
+                            {
+                                SOnlineUsersPref = "1";
+
+                                if (dataUser != null)
+                                {
+                                    dataUser.Status = "1";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                             
+                                }
+
+                                break;
+                            }
                         }
-                    }
 
-                    if (Methods.CheckConnectivity())
-                    {
-                        var dataPrivacy = new Dictionary<string, string>
+                        if (Methods.CheckConnectivity())
                         {
-                            {"status", SOnlineUsersPref}
-                        };
+                            var dataPrivacy = new Dictionary<string, string>
+                            {
+                                {"status", SOnlineUsersPref}
+                            };
 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                        }
+                        else
+                        {
+                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        }
+
+                        break;
                     }
-                    else
-                    {
-                        Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                    } 
                 }
             }
             catch (Exception e)
@@ -379,49 +413,61 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
         {
             try
             {
-                if (eventArgs.Handled)
+                switch (eventArgs.Handled)
                 {
-                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                    var etp = (SwitchPreferenceCompat)sender;
-                    var value = eventArgs.NewValue.ToString();
-                    etp.Checked = bool.Parse(value);
-                    if (etp.Checked) //Yes >> value = 1
+                    case true:
                     {
-                        if (dataUser != null)
+                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                        var etp = (SwitchPreferenceCompat)sender;
+                        var value = eventArgs.NewValue.ToString();
+                        etp.Checked = bool.Parse(value);
+                        switch (etp.Checked)
                         {
-                            dataUser.ShareMyLocation = "1";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                            //Yes >> value = 1
+                            case true:
+                            {
+                                if (dataUser != null)
+                                {
+                                    dataUser.ShareMyLocation = "1";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                             
+                                }
+
+                                SShareMyLocationPref = "1";
+                                break;
+                            }
+                            //No >> value = 0
+                            default:
+                            {
+                                if (dataUser != null)
+                                {
+                                    dataUser.ShareMyLocation = "0";
+                                    var sqLiteDatabase = new SqLiteDatabase();
+                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                            
+                                }
+
+                                SShareMyLocationPref = "0";
+                                break;
+                            }
                         }
 
-                        SShareMyLocationPref = "1";
-                    }
-                    else //No >> value = 0
-                    {
-                        if (dataUser != null)
+                        if (Methods.CheckConnectivity())
                         {
-                            dataUser.ShareMyLocation = "0";
-                            var sqLiteDatabase = new SqLiteDatabase();
-                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
-                            
+                            var dataPrivacy = new Dictionary<string, string>
+                            {
+                                {"share_my_location", SShareMyLocationPref}
+                            };
+
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
+                        }
+                        else
+                        {
+                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
                         }
 
-                        SShareMyLocationPref = "0";
-                    }
-
-                    if (Methods.CheckConnectivity())
-                    {
-                        var dataPrivacy = new Dictionary<string, string>
-                        {
-                            {"share_my_location", SShareMyLocationPref}
-                        };
-
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Update_User_Data(dataPrivacy) });
-                    }
-                    else
-                    {
-                        Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        break;
                     }
                 }
             }

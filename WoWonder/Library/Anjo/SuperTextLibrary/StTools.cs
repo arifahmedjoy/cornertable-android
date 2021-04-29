@@ -95,32 +95,15 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
             {
                 try
                 {
-                    switch (anAutoLinkMode)
+                    return anAutoLinkMode switch
                     {
-                        case XAutoLinkMode.ModeHashTag:
-                            return XRegexParser.HashtagPattern;
-                        case XAutoLinkMode.ModeMention:
-                            return XRegexParser.MentionPattern;
-                        case XAutoLinkMode.ModePhone:
-                            return XRegexParser.PhonePattern;
-                        case XAutoLinkMode.ModeEmail:
-                            return XRegexParser.EmailPattern;
-                        case XAutoLinkMode.ModeUrl:
-                            return XRegexParser.UrlPattern;
-                        default:
-                            //if (anAutoLinkMode == XAutoLinkMode.ModeCustom)
-                            //{
-                            //    if (string.IsNullOrEmpty(customRegex) && !IsValidRegex(customRegex) )
-                            //    {
-                            //        //Console.WriteLine("Your custom regex is null, returning URL_PATTERN");
-                            //        return XRegexParser.UrlPattern;
-                            //    }
-
-                            //    return customRegex;
-                            //}
-
-                            return "";
-                    }
+                        XAutoLinkMode.ModeHashTag => XRegexParser.HashtagPattern,
+                        XAutoLinkMode.ModeMention => XRegexParser.MentionPattern,
+                        XAutoLinkMode.ModePhone => XRegexParser.PhonePattern,
+                        XAutoLinkMode.ModeEmail => XRegexParser.EmailPattern,
+                        XAutoLinkMode.ModeUrl => XRegexParser.UrlPattern,
+                        _ => ""
+                    };
                 }
                 catch (Exception e)
                 {

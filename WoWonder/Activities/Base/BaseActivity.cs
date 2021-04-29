@@ -46,17 +46,16 @@ namespace WoWonder.Activities.Base
                 base.OnConfigurationChanged(newConfig);
 
                 var currentNightMode = newConfig.UiMode & UiMode.NightMask;
-                switch (currentNightMode)
+                AppSettings.SetTabDarkTheme = currentNightMode switch
                 {
-                    case UiMode.NightNo:
+                    UiMode.NightNo =>
                         // Night mode is not active, we're using the light theme
-                        AppSettings.SetTabDarkTheme = false;
-                        break;
-                    case UiMode.NightYes:
+                        false,
+                    UiMode.NightYes =>
                         // Night mode is active, we're using dark theme
-                        AppSettings.SetTabDarkTheme = true;
-                        break;
-                }
+                        true,
+                    _ => AppSettings.SetTabDarkTheme
+                };
 
                 SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
             }

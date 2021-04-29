@@ -19,108 +19,147 @@ namespace WoWonder.Activities.AddPost.Adapters
         {
             try
             {
-                if (AppSettings.ShowGalleryImage)
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 1,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_ImageGallery),
-                        Image = Resource.Drawable.icon_photos_vector,
-                        ImageColor = ""
-                    });
-
-                if (AppSettings.ShowGalleryVideo && WoWonderTools.CheckAllowedFileSharingInServer("Video"))
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 2,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_VideoGallery),
-                        Image = Resource.Drawable.icon_video_gallary_vector,
-                        ImageColor = "#00CF91"
-                    });
-
-                if (AppSettings.ShowMention)
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 3,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_MentionContact),
-                        Image = Resource.Drawable.icon_mention_contact_vector,
-                        ImageColor = "#1776CD"
-                    });
-
-                if (AppSettings.ShowLocation)
+                switch (AppSettings.ShowGalleryImage)
                 {
-                    var name = activityContext.GetText(Resource.String.Lbl_Location) + "/" +
-                               activityContext.GetText(Resource.String.Lbl_Place);
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 4,
-                        TypeText = name,
-                        Image = Resource.Drawable.icon_map_marker_filled_vector,
-                        ImageColor = "#F85C50"
-                    });
+                    case true:
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 1,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_ImageGallery),
+                            Image = Resource.Drawable.icon_photos_vector,
+                            ImageColor = ""
+                        });
+                        break;
                 }
 
-                if (AppSettings.ShowFeelingActivity)
+                switch (AppSettings.ShowGalleryVideo)
                 {
-                    var name = activityContext.GetText(Resource.String.Lbl_Feeling) + "/" +
-                               activityContext.GetText(Resource.String.Lbl_Activity);
+                    case true when WoWonderTools.CheckAllowedFileSharingInServer("Video"):
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 2,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_VideoGallery),
+                            Image = Resource.Drawable.icon_video_gallary_vector,
+                            ImageColor = "#00CF91"
+                        });
+                        break;
+                }
 
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 5,
-                        TypeText = name,
-                        Image = Resource.Drawable.icon_smile_emoji_vector,
-                        ImageColor = ""
-                    });
-                } 
-                //if (AppSettings.ShowCamera)
-                //    PostTypeList.Add(new Classes.PostType
-                //    {
-                //        Id = 6,
-                //        TypeText = activityContext.GetText(Resource.String.Lbl_Camera),
-                //        Image = Resource.Drawable.ic__Attach_video,
-                //        ImageColor = ""
-                //    });
-                if (AppSettings.ShowGif)
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 7,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_Gif),
-                        Image = Resource.Drawable.icon_gif_vector,
-                        ImageColor = "#A854A5"
-                    });
-                if (AppSettings.ShowFile && WoWonderTools.CheckAllowedFileSharingInServer("File"))
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 8,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_File),
-                        Image = Resource.Drawable.ic_attach_file,
-                        ImageColor = ""
-                    });
-                if (AppSettings.ShowMusic && WoWonderTools.CheckAllowedFileSharingInServer("Audio"))
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 9,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_Music),
-                        Image = Resource.Drawable.ic_attach_music,
-                        ImageColor = ""
-                    });
-                if (AppSettings.ShowMusic && WoWonderTools.CheckAllowedFileSharingInServer("Audio"))
-                    PostTypeList.Add(new Classes.PostType
-                    {
-                        Id = 10,
-                        TypeText = activityContext.GetText(Resource.String.Lbl_VoiceRecord),
-                        Image = Resource.Drawable.ic_attach_microphone,
-                        ImageColor = ""
-                    });
-                if (AppSettings.ShowPolls)
+                switch (AppSettings.ShowMention)
                 {
-                    PostTypeList.Add(new Classes.PostType
+                    case true:
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 3,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_MentionContact),
+                            Image = Resource.Drawable.icon_mention_contact_vector,
+                            ImageColor = "#1776CD"
+                        });
+                        break;
+                }
+
+                switch (AppSettings.ShowLocation)
+                {
+                    case true:
                     {
-                        Id = 11,
-                        TypeText = activityContext.GetText(Resource.String.Lbl2_Polls),
-                        Image = Resource.Drawable.icon_bar_polls_vector,
-                        ImageColor = "#8CBA51"
-                    });
+                        var name = activityContext.GetText(Resource.String.Lbl_Location) + "/" +
+                                   activityContext.GetText(Resource.String.Lbl_Place);
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 4,
+                            TypeText = name,
+                            Image = Resource.Drawable.icon_map_marker_filled_vector,
+                            ImageColor = "#F85C50"
+                        });
+                        break;
+                    }
+                }
+
+                switch (AppSettings.ShowFeelingActivity)
+                {
+                    case true:
+                    {
+                        var name = activityContext.GetText(Resource.String.Lbl_Feeling) + "/" +
+                                   activityContext.GetText(Resource.String.Lbl_Activity);
+
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 5,
+                            TypeText = name,
+                            Image = Resource.Drawable.icon_smile_emoji_vector,
+                            ImageColor = ""
+                        });
+                        break;
+                    }
+                }
+
+                switch (AppSettings.ShowGif)
+                {
+                    //if (AppSettings.ShowCamera)
+                    //    PostTypeList.Add(new Classes.PostType
+                    //    {
+                    //        Id = 6,
+                    //        TypeText = activityContext.GetText(Resource.String.Lbl_Camera),
+                    //        Image = Resource.Drawable.ic__Attach_video,
+                    //        ImageColor = ""
+                    //    });
+                    case true:
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 7,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_Gif),
+                            Image = Resource.Drawable.icon_gif_vector,
+                            ImageColor = "#A854A5"
+                        });
+                        break;
+                }
+                switch (AppSettings.ShowFile)
+                {
+                    case true when WoWonderTools.CheckAllowedFileSharingInServer("File"):
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 8,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_File),
+                            Image = Resource.Drawable.ic_attach_file,
+                            ImageColor = ""
+                        });
+                        break;
+                }
+                switch (AppSettings.ShowMusic)
+                {
+                    case true when WoWonderTools.CheckAllowedFileSharingInServer("Audio"):
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 9,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_Music),
+                            Image = Resource.Drawable.ic_attach_music,
+                            ImageColor = ""
+                        });
+                        break;
+                }
+                switch (AppSettings.ShowMusic)
+                {
+                    case true when WoWonderTools.CheckAllowedFileSharingInServer("Audio"):
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 10,
+                            TypeText = activityContext.GetText(Resource.String.Lbl_VoiceRecord),
+                            Image = Resource.Drawable.ic_attach_microphone,
+                            ImageColor = ""
+                        });
+                        break;
+                }
+                switch (AppSettings.ShowPolls)
+                {
+                    case true:
+                        PostTypeList.Add(new Classes.PostType
+                        {
+                            Id = 11,
+                            TypeText = activityContext.GetText(Resource.String.Lbl2_Polls),
+                            Image = Resource.Drawable.icon_bar_polls_vector,
+                            ImageColor = "#8CBA51"
+                        });
+                        break;
                 }
             }
             catch (Exception e)
@@ -155,17 +194,25 @@ namespace WoWonder.Activities.AddPost.Adapters
         {
             try
             {
-               
-                if (viewHolder is MainPostAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = PostTypeList[position];
-                    if (item != null)
+                    case MainPostAdapterViewHolder holder:
                     {
-                        holder.PostTypeText.Text = item.TypeText;
-                        holder.PostImageIcon.SetImageResource(item.Image);
+                        var item = PostTypeList[position];
+                        if (item != null)
+                        {
+                            holder.PostTypeText.Text = item.TypeText;
+                            holder.PostImageIcon.SetImageResource(item.Image);
 
-                        if (!string.IsNullOrEmpty(item.ImageColor))
-                            holder.PostImageIcon.SetColorFilter(Color.ParseColor(item.ImageColor));
+                            switch (string.IsNullOrEmpty(item.ImageColor))
+                            {
+                                case false:
+                                    holder.PostImageIcon.SetColorFilter(Color.ParseColor(item.ImageColor));
+                                    break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }

@@ -118,21 +118,22 @@ namespace WoWonder.Activities.Articles
                     return;
                 }
 
-                if (e.Holder.LikeTextView?.Tag?.ToString() == "Liked")
+                switch (e.Holder.LikeTextView?.Tag?.ToString())
                 {
-                    e.CommentObject.IsCommentLiked = false;
+                    case "Liked":
+                        e.CommentObject.IsCommentLiked = false;
 
-                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                    e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#000000"));
-                    e.Holder.LikeTextView.Tag = "Like"; 
-                }
-                else
-                {
-                    e.CommentObject.IsCommentLiked = true;
+                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
+                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#000000"));
+                        e.Holder.LikeTextView.Tag = "Like";
+                        break;
+                    default:
+                        e.CommentObject.IsCommentLiked = true;
 
-                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
-                    e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                    e.Holder.LikeTextView.Tag = "Liked"; 
+                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
+                        e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        e.Holder.LikeTextView.Tag = "Liked";
+                        break;
                 }
                  
                 //sent api like comment 
@@ -162,32 +163,34 @@ namespace WoWonder.Activities.Articles
                     return;
                 }
 
-                if (e.Holder.LikeTextView?.Tag?.ToString() == "Liked")
+                switch (e.Holder.LikeTextView?.Tag?.ToString())
                 {
-                    e.CommentObject.IsCommentLiked = false;
+                    case "Liked":
+                        e.CommentObject.IsCommentLiked = false;
 
-                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                    e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#000000"));
-                    e.Holder.LikeTextView.Tag = "Like"; 
-                }
-                else
-                {
-                    e.CommentObject.IsCommentLiked = true;
+                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
+                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#000000"));
+                        e.Holder.LikeTextView.Tag = "Like";
+                        break;
+                    default:
+                        e.CommentObject.IsCommentLiked = true;
 
-                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
-                    e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                    e.Holder.LikeTextView.Tag = "Liked";
+                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
+                        e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        e.Holder.LikeTextView.Tag = "Liked";
 
-                    //sent api dislike comment 
-                    switch (TypeClass)
-                    {
-                        case "Comment":
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.DisLikeUnDisLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id) });
-                            break;
-                        case "Reply":
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.DisLikeUnDisLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "reply_dislike") });
-                            break;
-                    }
+                        //sent api dislike comment 
+                        switch (TypeClass)
+                        {
+                            case "Comment":
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.DisLikeUnDisLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id) });
+                                break;
+                            case "Reply":
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.DisLikeUnDisLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "reply_dislike") });
+                                break;
+                        }
+
+                        break;
                 }
             }
             catch (Exception exception)
@@ -240,10 +243,9 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                if (TypeDialog == "DeleteComment")
+                switch (TypeDialog)
                 {
-                    if (p1 == DialogAction.Positive)
-                    {
+                    case "DeleteComment" when p1 == DialogAction.Positive:
                         MainContext?.RunOnUiThread(() =>
                         {
                             try
@@ -257,12 +259,13 @@ namespace WoWonder.Activities.Articles
                                         var dataGlobal = adapterGlobal?.CommentList?.FirstOrDefault(a => a.Id == CommentObject?.Id);
                                         if (dataGlobal != null)
                                         {
-
                                             var index = adapterGlobal.CommentList.IndexOf(dataGlobal);
-                                            if (index > -1)
+                                            switch (index)
                                             {
-                                                adapterGlobal.CommentList.RemoveAt(index);
-                                                adapterGlobal.NotifyItemRemoved(index);
+                                                case > -1:
+                                                    adapterGlobal.CommentList.RemoveAt(index);
+                                                    adapterGlobal.NotifyItemRemoved(index);
+                                                    break;
                                             }
                                         }
 
@@ -279,12 +282,13 @@ namespace WoWonder.Activities.Articles
                                         var dataGlobal = adapterGlobal?.CommentList?.FirstOrDefault(a => a.Id == CommentObject?.Id);
                                         if (dataGlobal != null)
                                         {
-
                                             var index = adapterGlobal.CommentList.IndexOf(dataGlobal);
-                                            if (index > -1)
+                                            switch (index)
                                             {
-                                                adapterGlobal.CommentList.RemoveAt(index);
-                                                adapterGlobal.NotifyItemRemoved(index);
+                                                case > -1:
+                                                    adapterGlobal.CommentList.RemoveAt(index);
+                                                    adapterGlobal.NotifyItemRemoved(index);
+                                                    break;
                                             }
                                         }
 
@@ -303,23 +307,30 @@ namespace WoWonder.Activities.Articles
                                 Methods.DisplayReportResultTrack(e);
                             }
                         });
-                    }
-                    else if (p1 == DialogAction.Negative)
+                        break;
+                    case "DeleteComment":
                     {
-                        p0.Dismiss();
-                    } 
-                }
-                else
-                {
-                    if (p1 == DialogAction.Positive)
-                    {
+                        if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
 
+                        break;
                     }
-                    else if (p1 == DialogAction.Negative)
+                    default:
                     {
-                        p0.Dismiss();
+                        if (p1 == DialogAction.Positive)
+                        {
+
+                        }
+                        else if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception e)
             {

@@ -207,18 +207,19 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    BtnAddImage.Click += BtnAddImageOnClick;
-                    BtnSubmit.Click += BtnSubmitOnClick;
-                    BtnAddImagePassport.Click += BtnAddImagePassportOnClick;
-                }
-                else
-                {
-                    BtnAddImage.Click -= BtnAddImageOnClick;
-                    BtnSubmit.Click -= BtnSubmitOnClick;
-                    BtnAddImagePassport.Click -= BtnAddImagePassportOnClick;
+                    // true +=  // false -=
+                    case true:
+                        BtnAddImage.Click += BtnAddImageOnClick;
+                        BtnSubmit.Click += BtnSubmitOnClick;
+                        BtnAddImagePassport.Click += BtnAddImagePassportOnClick;
+                        break;
+                    default:
+                        BtnAddImage.Click -= BtnAddImageOnClick;
+                        BtnSubmit.Click -= BtnSubmitOnClick;
+                        BtnAddImagePassport.Click -= BtnAddImagePassportOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -287,18 +288,27 @@ namespace WoWonder.Activities.SettingsPreferences.General
                         AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
                         var (apiStatus, respond) = await RequestsAsync.Global.VerificationAsync(NameEdit.Text, MessagesEdit.Text, PathYourImage , PathPassportImage);
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            if (respond is MessageObject result)
+                            case 200:
                             {
-                                Console.WriteLine(result.Message);
-                                AndHUD.Shared.Dismiss(this);
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Successfully_Verification), ToastLength.Short)?.Show();
+                                switch (respond)
+                                {
+                                    case MessageObject result:
+                                        Console.WriteLine(result.Message);
+                                        AndHUD.Shared.Dismiss(this);
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_Successfully_Verification), ToastLength.Short)?.Show();
 
-                                Finish();
+                                        Finish();
+                                        break;
+                                }
+
+                                break;
                             }
+                            default:
+                                Methods.DisplayAndHudErrorResult(this, respond);
+                                break;
                         }
-                        else Methods.DisplayAndHudErrorResult(this, respond);
                     }
                 }
             }
@@ -343,41 +353,53 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                //If its from Camera or Gallery  
-                if (requestCode == CropImage.CropImageActivityRequestCode)
+                switch (requestCode)
                 {
-                    CropImage.ActivityResult result = CropImage.GetActivityResult(data);
-
-                    if (resultCode == Result.Ok && result.IsSuccessful)
+                    //If its from Camera or Gallery  
+                    case CropImage.CropImageActivityRequestCode:
                     {
-                        Uri resultUri = result.Uri;
+                        CropImage.ActivityResult result = CropImage.GetActivityResult(data);
 
-                        if (!string.IsNullOrEmpty(resultUri.Path))
+                        switch (resultCode)
                         {
-                            switch (TypeImage)
+                            case Result.Ok when result.IsSuccessful:
                             {
-                                case "YourImage":
+                                Uri resultUri = result.Uri;
+
+                                switch (string.IsNullOrEmpty(resultUri.Path))
                                 {
-                                    PathYourImage = resultUri.Path;
-                                    File file2 = new File(resultUri.Path);
-                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(YourImage);
-                                    break;
+                                    case false:
+                                        switch (TypeImage)
+                                        {
+                                            case "YourImage":
+                                            {
+                                                PathYourImage = resultUri.Path;
+                                                File file2 = new File(resultUri.Path);
+                                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(YourImage);
+                                                break;
+                                            }
+                                            case "Passport":
+                                            {
+                                                PathPassportImage = resultUri.Path;
+                                                File file2 = new File(resultUri.Path);
+                                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(PassportImage);
+                                                break;
+                                            }
+                                        }
+
+                                        break;
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Short)?.Show();
+                                        break;
                                 }
-                                case "Passport":
-                                {
-                                    PathPassportImage = resultUri.Path;
-                                    File file2 = new File(resultUri.Path);
-                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(PassportImage);
-                                    break;
-                                }
+
+                                break;
                             }
                         }
-                        else
-                        {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
                 }
             }
@@ -393,17 +415,16 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 108) //Image Picker
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    //Image Picker
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open Image 
                         OpenGallery(TypeImage);
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception exception)
@@ -424,25 +445,10 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 }
                 else
                 {
-                    // Check if we're running on Android 5.0 or higher
-                    if ((int)Build.VERSION.SdkInt < 23)
+                    switch ((int)Build.VERSION.SdkInt)
                     {
-                        Methods.Path.Chack_MyFolder();
-
-                        //Open Image 
-                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                        CropImage.Activity()
-                            .SetInitialCropWindowPaddingRatio(0)
-                            .SetAutoZoomEnabled(true)
-                            .SetMaxZoom(4)
-                            .SetGuidelines(CropImageView.Guidelines.On)
-                            .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                            .SetOutputUri(myUri).Start(this);
-                    }
-                    else
-                    {
-                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        // Check if we're running on Android 5.0 or higher
+                        case < 23:
                         {
                             Methods.Path.Chack_MyFolder();
 
@@ -455,10 +461,31 @@ namespace WoWonder.Activities.SettingsPreferences.General
                                 .SetGuidelines(CropImageView.Guidelines.On)
                                 .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                                 .SetOutputUri(myUri).Start(this);
+                            break;
                         }
-                        else
+                        default:
                         {
-                            new PermissionsController(this).RequestPermission(108);
+                            if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                                CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                            {
+                                Methods.Path.Chack_MyFolder();
+
+                                //Open Image 
+                                var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                                CropImage.Activity()
+                                    .SetInitialCropWindowPaddingRatio(0)
+                                    .SetAutoZoomEnabled(true)
+                                    .SetMaxZoom(4)
+                                    .SetGuidelines(CropImageView.Guidelines.On)
+                                    .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                    .SetOutputUri(myUri).Start(this);
+                            }
+                            else
+                            {
+                                new PermissionsController(this).RequestPermission(108);
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -475,25 +502,30 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                if (ListUtils.MyProfileList?.Count == 0)
-                    await ApiRequest.Get_MyProfileData_Api(this);
+                switch (ListUtils.MyProfileList?.Count)
+                {
+                    case 0:
+                        await ApiRequest.Get_MyProfileData_Api(this);
+                        break;
+                }
 
                 var local = ListUtils.MyProfileList?.FirstOrDefault();
                 if (local != null)
                 {
-                    if (local.Verified == "1")
+                    switch (local.Verified)
                     {
-                        VerifiedLinear.Visibility = ViewStates.Visible;
-                        NotVerifiedLinear.Visibility = ViewStates.Gone;
-                        ScrollView.Visibility = ViewStates.Gone;
-                        TextTitleVerified.Text = GetText(Resource.String.Lbl_WelcomeTo) + " " + AppSettings.ApplicationName;
-                    }
-                    else
-                    {
-                        VerifiedLinear.Visibility = ViewStates.Gone;
-                        NotVerifiedLinear.Visibility = ViewStates.Visible;
-                        ScrollView.Visibility = ViewStates.Visible;
-                        TextTitleVerified.Text = GetText(Resource.String.Lbl_Please_select_Image_passport);
+                        case "1":
+                            VerifiedLinear.Visibility = ViewStates.Visible;
+                            NotVerifiedLinear.Visibility = ViewStates.Gone;
+                            ScrollView.Visibility = ViewStates.Gone;
+                            TextTitleVerified.Text = GetText(Resource.String.Lbl_WelcomeTo) + " " + AppSettings.ApplicationName;
+                            break;
+                        default:
+                            VerifiedLinear.Visibility = ViewStates.Gone;
+                            NotVerifiedLinear.Visibility = ViewStates.Visible;
+                            ScrollView.Visibility = ViewStates.Visible;
+                            TextTitleVerified.Text = GetText(Resource.String.Lbl_Please_select_Image_passport);
+                            break;
                     }
                 }
             }

@@ -257,18 +257,19 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtCurrency.Touch += TxtCurrencyOnTouch;
-                    TxtDiscountType.Touch += TxtDiscountTypeOnTouch;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtCurrency.Touch -= TxtCurrencyOnTouch;
-                    TxtDiscountType.Touch -= TxtDiscountTypeOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtCurrency.Touch += TxtCurrencyOnTouch;
+                        TxtDiscountType.Touch += TxtDiscountTypeOnTouch;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtCurrency.Touch -= TxtCurrencyOnTouch;
+                        TxtDiscountType.Touch -= TxtDiscountTypeOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -322,15 +323,19 @@ namespace WoWonder.Activities.Offers
                     TypeDialog = "Currency";
 
                     var arrayAdapter = WoWonderTools.GetCurrencySymbolList();
-                    if (arrayAdapter?.Count > 0)
+                    switch (arrayAdapter?.Count)
                     {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        case > 0:
+                        {
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                            dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
+                            dialogList.Items(arrayAdapter);
+                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                            dialogList.AlwaysCallSingleChoiceCallback();
+                            dialogList.ItemsCallback(this).Build().Show();
+                            break;
+                        }
                     }
                 }
                 else
@@ -404,83 +409,106 @@ namespace WoWonder.Activities.Offers
                         {"discounted_items", TxtDiscountItems.Text},
                     };
 
-                    if (MAdapter.DiscountList.Count > 0)
+                    switch (MAdapter.DiscountList.Count)
                     {
-                        foreach (var discount in MAdapter.DiscountList)
+                        case > 0:
                         {
-                            if (discount == null) continue;
-                            switch (discount.DiscountType)
+                            foreach (var discount in MAdapter.DiscountList)
                             {
-                                case "discount_percent":
-                                    dictionary.Add("discount_percent", discount.DiscountFirst);
+                                switch (discount)
+                                {
+                                    case null:
+                                        continue;
+                                    default:
+                                        switch (discount.DiscountType)
+                                        {
+                                            case "discount_percent":
+                                                dictionary.Add("discount_percent", discount.DiscountFirst);
 
-                                    newInfoObject.DiscountPercent = discount.DiscountFirst;
-                                    break;
-                                case "discount_amount":
-                                    dictionary.Add("discount_amount", discount.DiscountFirst);
+                                                newInfoObject.DiscountPercent = discount.DiscountFirst;
+                                                break;
+                                            case "discount_amount":
+                                                dictionary.Add("discount_amount", discount.DiscountFirst);
 
-                                    newInfoObject.DiscountAmount = discount.DiscountFirst;
-                                    break;
-                                case "buy_get_discount":
-                                    dictionary.Add("discount_percent", discount.DiscountFirst);
-                                    dictionary.Add("buy", discount.DiscountSec);
-                                    dictionary.Add("get", discount.DiscountThr);
+                                                newInfoObject.DiscountAmount = discount.DiscountFirst;
+                                                break;
+                                            case "buy_get_discount":
+                                                dictionary.Add("discount_percent", discount.DiscountFirst);
+                                                dictionary.Add("buy", discount.DiscountSec);
+                                                dictionary.Add("get", discount.DiscountThr);
 
-                                    newInfoObject.DiscountPercent = discount.DiscountFirst;
-                                    newInfoObject.Buy = discount.DiscountSec;
-                                    newInfoObject.GetPrice = discount.DiscountThr;
-                                    break;
-                                case "spend_get_off":
-                                    dictionary.Add("spend", discount.DiscountSec);
-                                    dictionary.Add("amount_off", discount.DiscountThr);
+                                                newInfoObject.DiscountPercent = discount.DiscountFirst;
+                                                newInfoObject.Buy = discount.DiscountSec;
+                                                newInfoObject.GetPrice = discount.DiscountThr;
+                                                break;
+                                            case "spend_get_off":
+                                                dictionary.Add("spend", discount.DiscountSec);
+                                                dictionary.Add("amount_off", discount.DiscountThr);
 
-                                    newInfoObject.Spend = discount.DiscountSec;
-                                    newInfoObject.AmountOff = discount.DiscountThr; 
-                                    break;
-                                case "free_shipping": //Not have tag
-                                    break;
+                                                newInfoObject.Spend = discount.DiscountSec;
+                                                newInfoObject.AmountOff = discount.DiscountThr; 
+                                                break;
+                                            case "free_shipping": //Not have tag
+                                                break;
+                                        }
+
+                                        break;
+                                }
                             }
+
+                            break;
                         }
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Offers.EditOffer(dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageOfferObject result)
+                        case 200:
                         {
-                            Console.WriteLine(result.MessageData);
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short)?.Show();
-
-                            AndHUD.Shared.Dismiss(this);
-
-                            var data = OffersActivity.GetInstance()?.MAdapter?.OffersList?.FirstOrDefault(a => a.Id == newInfoObject.Id);
-                            if (data != null)
+                            switch (respond)
                             {
-                                data.DiscountType = AddDiscountId;
-                                data.Currency = CurrencyId;
-                                data.ExpireDate = TxtDate.Text;
-                                data.Time = TxtTime.Text;
-                                data.Description = TxtDescription.Text;
-                                data.DiscountedItems = TxtDiscountItems.Text;
-                                data.Description = TxtDescription.Text;
-                                data.DiscountPercent = newInfoObject.DiscountPercent;
-                                data.DiscountAmount = newInfoObject.DiscountAmount;
-                                data.DiscountPercent = newInfoObject.DiscountPercent;
-                                data.Buy = newInfoObject.Buy;
-                                data.GetPrice = newInfoObject.GetPrice;
-                                data.Spend = newInfoObject.Spend;
-                                data.AmountOff = newInfoObject.AmountOff;
+                                case MessageOfferObject result:
+                                {
+                                    Console.WriteLine(result.MessageData);
+                                    Toast.MakeText(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short)?.Show();
 
-                                OffersActivity.GetInstance().MAdapter.NotifyItemChanged(OffersActivity.GetInstance().MAdapter.OffersList.IndexOf(data));
+                                    AndHUD.Shared.Dismiss(this);
+
+                                    var data = OffersActivity.GetInstance()?.MAdapter?.OffersList?.FirstOrDefault(a => a.Id == newInfoObject.Id);
+                                    if (data != null)
+                                    {
+                                        data.DiscountType = AddDiscountId;
+                                        data.Currency = CurrencyId;
+                                        data.ExpireDate = TxtDate.Text;
+                                        data.Time = TxtTime.Text;
+                                        data.Description = TxtDescription.Text;
+                                        data.DiscountedItems = TxtDiscountItems.Text;
+                                        data.Description = TxtDescription.Text;
+                                        data.DiscountPercent = newInfoObject.DiscountPercent;
+                                        data.DiscountAmount = newInfoObject.DiscountAmount;
+                                        data.DiscountPercent = newInfoObject.DiscountPercent;
+                                        data.Buy = newInfoObject.Buy;
+                                        data.GetPrice = newInfoObject.GetPrice;
+                                        data.Spend = newInfoObject.Spend;
+                                        data.AmountOff = newInfoObject.AmountOff;
+
+                                        OffersActivity.GetInstance().MAdapter.NotifyItemChanged(OffersActivity.GetInstance().MAdapter.OffersList.IndexOf(data));
+                                    }
+
+                                    Intent intent = new Intent();
+                                    intent.PutExtra("OffersItem", JsonConvert.SerializeObject(newInfoObject));
+                                    SetResult(Result.Ok, intent);
+                                    Finish();
+                                    break;
+                                }
                             }
 
-                            Intent intent = new Intent();
-                            intent.PutExtra("OffersItem", JsonConvert.SerializeObject(newInfoObject));
-                            SetResult(Result.Ok, intent);
-                            Finish();
+                            break;
                         }
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayAndHudErrorResult(this, respond);
                 }
                 else
                 {
@@ -537,25 +565,26 @@ namespace WoWonder.Activities.Offers
 
                         TxtDiscountType.Text = itemString.ToString();
 
-                        if (AddDiscountId == "free_shipping")
+                        switch (AddDiscountId)
                         {
-                            MRecycler.Visibility = ViewStates.Gone;
-                            MAdapter.DiscountList.Clear();
-                            MAdapter.NotifyDataSetChanged();
-                        }
-                        else
-                        {
-                            MRecycler.Visibility = ViewStates.Visible;
-                            MAdapter.DiscountList.Clear();
+                            case "free_shipping":
+                                MRecycler.Visibility = ViewStates.Gone;
+                                MAdapter.DiscountList.Clear();
+                                MAdapter.NotifyDataSetChanged();
+                                break;
+                            default:
+                                MRecycler.Visibility = ViewStates.Visible;
+                                MAdapter.DiscountList.Clear();
 
-                            MAdapter.DiscountList.Add(new DiscountOffers
-                            {
-                                DiscountType = AddDiscountId,
-                                DiscountFirst = "",
-                                DiscountSec = "",
-                                DiscountThr = "",
-                            });
-                            MAdapter.NotifyDataSetChanged();
+                                MAdapter.DiscountList.Add(new DiscountOffers
+                                {
+                                    DiscountType = AddDiscountId,
+                                    DiscountFirst = "",
+                                    DiscountSec = "",
+                                    DiscountThr = "",
+                                });
+                                MAdapter.NotifyDataSetChanged();
+                                break;
                         }
 
                         break;

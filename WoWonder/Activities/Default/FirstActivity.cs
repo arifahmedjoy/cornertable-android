@@ -71,29 +71,36 @@ namespace WoWonder.Activities.Default
                         break;
                 }
 
-                if (!AppSettings.EnableRegisterSystem)
-                    RegisterButton.Visibility = ViewStates.Gone;
+                RegisterButton.Visibility = AppSettings.EnableRegisterSystem switch
+                {
+                    false => ViewStates.Gone,
+                    _ => RegisterButton.Visibility
+                };
 
-                // Check if we're running on Android 5.0 or higher
-                if ((int) Build.VERSION.SdkInt < 23)
+                switch ((int) Build.VERSION.SdkInt)
                 {
-                    LoadConfigSettings();
-                    CheckCrossAppAuthentication();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         LoadConfigSettings();
                         CheckCrossAppAuthentication();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        RequestPermissions(new[]
+                        if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
                         {
-                            Manifest.Permission.ReadExternalStorage,
-                            Manifest.Permission.WriteExternalStorage
-                        }, 101);
+                            LoadConfigSettings();
+                            CheckCrossAppAuthentication();
+                        }
+                        else
+                        {
+                            RequestPermissions(new[]
+                            {
+                                Manifest.Permission.ReadExternalStorage,
+                                Manifest.Permission.WriteExternalStorage
+                            }, 101);
+                        }
+
+                        break;
                     }
                 }
 
@@ -114,12 +121,20 @@ namespace WoWonder.Activities.Default
             {
                 base.OnResume();
 
-                if (AppSettings.BackgroundScreenWelcomeType == "Video")
+                switch (AppSettings.BackgroundScreenWelcomeType)
                 {
-                    if (!VideoViewer.IsPlaying)
-                        VideoViewer.Start();
+                    case "Video":
+                    {
+                        switch (VideoViewer.IsPlaying)
+                        {
+                            case false:
+                                VideoViewer.Start();
+                                break;
+                        }
 
-                    VideoViewer.Completion += VideoViewer_Completion;
+                        VideoViewer.Completion += VideoViewer_Completion;
+                        break;
+                    }
                 }
 
 
@@ -145,8 +160,12 @@ namespace WoWonder.Activities.Default
                 LoginButton.Click -= LoginButton_Click;
                 ContinueButton.Click -= ContinueButtonOnClick;
 
-                if (AppSettings.BackgroundScreenWelcomeType == "Video")
-                    VideoViewer.Completion -= VideoViewer_Completion;
+                switch (AppSettings.BackgroundScreenWelcomeType)
+                {
+                    case "Video":
+                        VideoViewer.Completion -= VideoViewer_Completion;
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -160,8 +179,12 @@ namespace WoWonder.Activities.Default
             {
                 base.OnStop();
 
-                if (AppSettings.BackgroundScreenWelcomeType == "Video")
-                    VideoViewer.StopPlayback();
+                switch (AppSettings.BackgroundScreenWelcomeType)
+                {
+                    case "Video":
+                        VideoViewer.StopPlayback();
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -224,18 +247,16 @@ namespace WoWonder.Activities.Default
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 101)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         LoadConfigSettings();
                         CheckCrossAppAuthentication();
-                    }
-                    else
-                    {
+                        break;
+                    case 101:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
                         Finish();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -394,15 +415,18 @@ namespace WoWonder.Activities.Default
 
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
 
-                    if (AppSettings.ShowWalkTroutPage)
+                    switch (AppSettings.ShowWalkTroutPage)
                     {
-                        Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
-                        newIntent?.PutExtra("class", "login");
-                        StartActivity(newIntent);
-                    }
-                    else
-                    {
-                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                        case true:
+                        {
+                            Intent newIntent = new Intent(this, typeof(AppIntroWalkTroutPage));
+                            newIntent?.PutExtra("class", "login");
+                            StartActivity(newIntent);
+                            break;
+                        }
+                        default:
+                            StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                            break;
                     }
 
                     Finish();

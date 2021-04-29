@@ -27,8 +27,11 @@ namespace WoWonder.Payment
             try
             {
                 var init = InitPayPal(price, payType);
-                if (!init)
-                    return;
+                switch (init)
+                {
+                    case false:
+                        return;
+                }
 
                 Intent intent = new Intent(ActivityContext, typeof(PaymentActivity));
                 intent.PutExtra(PayPalService.ExtraPaypalConfiguration, PayPalConfig);

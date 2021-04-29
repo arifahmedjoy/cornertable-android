@@ -63,13 +63,17 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-               
-                if (viewHolder is JoinAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = JoinList[position];
-                    if (item != null)
+                    case JoinAdapterViewHolder holder:
                     {
-                        Initialize(holder, item); 
+                        var item = JoinList[position];
+                        if (item != null)
+                        {
+                            Initialize(holder, item); 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -87,8 +91,12 @@ namespace WoWonder.Activities.Communities.Adapters
 
                 holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item.UserData), 25);
 
-                if (item.UserData.Verified == "1")
-                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                switch (item.UserData.Verified)
+                {
+                    case "1":
+                        holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                        break;
+                }
 
                 holder.About.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.UserData.LastseenUnixTime), false);
             }
@@ -104,10 +112,12 @@ namespace WoWonder.Activities.Communities.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is JoinAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case JoinAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -163,8 +173,11 @@ namespace WoWonder.Activities.Communities.Adapters
             {
                 var d = new List<string>();
                 var item = JoinList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.UserData.Avatar != "")
                 {

@@ -214,14 +214,15 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -261,50 +262,55 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        switch (item.Id)
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
                         {
-                            // General
-                            case 1:
+                            switch (item.Id)
                             {
-                                var intent = new Intent(this, typeof(GroupGeneralActivity));
-                                intent.PutExtra("GroupData", JsonConvert.SerializeObject(GroupDataClass));
-                                intent.PutExtra("GroupId", GroupId);
-                                StartActivityForResult(intent, 1250);
-                                break;
-                            }
-                            //Privacy
-                            case 2:
-                            {
-                                var intent = new Intent(this, typeof(GroupPrivacyActivity));
-                                intent.PutExtra("GroupData", JsonConvert.SerializeObject(GroupDataClass));
-                                intent.PutExtra("GroupId", GroupId);
-                                StartActivityForResult(intent, 1250);
-                                break;
-                            }
-                            //Members
-                            case 3:
-                            {
-                                var intent = new Intent(this, typeof(GroupMembersActivity));
-                                intent.PutExtra("itemObject", JsonConvert.SerializeObject(GroupDataClass));
-                                intent.PutExtra("GroupId", GroupId);
-                                StartActivity(intent);
-                                break;
-                            }
-                            //DeleteGroup
-                            case 4:
-                            {
-                                var intent = new Intent(this, typeof(DeleteCommunitiesActivity));
-                                intent.PutExtra("Id", GroupId);
-                                intent.PutExtra("Type", "Group");
-                                StartActivityForResult(intent, 2019);
-                                break;
+                                // General
+                                case 1:
+                                {
+                                    var intent = new Intent(this, typeof(GroupGeneralActivity));
+                                    intent.PutExtra("GroupData", JsonConvert.SerializeObject(GroupDataClass));
+                                    intent.PutExtra("GroupId", GroupId);
+                                    StartActivityForResult(intent, 1250);
+                                    break;
+                                }
+                                //Privacy
+                                case 2:
+                                {
+                                    var intent = new Intent(this, typeof(GroupPrivacyActivity));
+                                    intent.PutExtra("GroupData", JsonConvert.SerializeObject(GroupDataClass));
+                                    intent.PutExtra("GroupId", GroupId);
+                                    StartActivityForResult(intent, 1250);
+                                    break;
+                                }
+                                //Members
+                                case 3:
+                                {
+                                    var intent = new Intent(this, typeof(GroupMembersActivity));
+                                    intent.PutExtra("itemObject", JsonConvert.SerializeObject(GroupDataClass));
+                                    intent.PutExtra("GroupId", GroupId);
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                //DeleteGroup
+                                case 4:
+                                {
+                                    var intent = new Intent(this, typeof(DeleteCommunitiesActivity));
+                                    intent.PutExtra("Id", GroupId);
+                                    intent.PutExtra("Type", "Group");
+                                    StartActivityForResult(intent, 2019);
+                                    break;
+                                }
                             }
                         }
+
+                        break;
                     }
                 }
             }

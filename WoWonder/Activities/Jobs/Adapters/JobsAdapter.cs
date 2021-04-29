@@ -79,62 +79,75 @@ namespace WoWonder.Activities.Jobs.Adapters
         {
             try
             {
-                if (viewHolder is JobsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = JobList[position];
-                    if (item != null)
-                    { 
-                        if (item.Image.Contains("http"))
-                        {
-                            var image = item.Image.Replace(Client.WebsiteUrl + "/", "");
-                            if (!image.Contains("http"))
-                                item.Image = Client.WebsiteUrl + "/" + image;
+                    case JobsAdapterViewHolder holder:
+                    {
+                        var item = JobList[position];
+                        if (item != null)
+                        { 
+                            if (item.Image.Contains("http"))
+                            {
+                                var image = item.Image.Replace(Client.WebsiteUrl + "/", "");
+                                item.Image = image.Contains("http") switch
+                                {
+                                    false => Client.WebsiteUrl + "/" + image,
+                                    _ => image
+                                };
+
+                                GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
+                            }
                             else
-                                item.Image = image;
-
-                            GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
-                        }
-                        else
-                        {
-                            File file2 = new File(item.Image);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
-                        }
+                            {
+                                File file2 = new File(item.Image);
+                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                            }
                        
-                        holder.Title.Text = Methods.FunString.DecodeString(item.Title);
+                            holder.Title.Text = Methods.FunString.DecodeString(item.Title);
 
-                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(item.Currency);
-                        var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == item.Category)?.CategoriesName;
-                        Console.WriteLine(currency);
-                        if (string.IsNullOrEmpty(categoryName))
-                            categoryName = Application.Context.GetText(Resource.String.Lbl_Unknown);
+                            var (currency, currencyIcon) = WoWonderTools.GetCurrency(item.Currency);
+                            var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == item.Category)?.CategoriesName;
+                            Console.WriteLine(currency);
+                            if (string.IsNullOrEmpty(categoryName))
+                                categoryName = Application.Context.GetText(Resource.String.Lbl_Unknown);
 
-                        holder.Salary.Text =  item.Minimum + " " + currencyIcon + " - " + item.Maximum + " " + currencyIcon + " . " + categoryName;
+                            holder.Salary.Text =  item.Minimum + " " + currencyIcon + " - " + item.Maximum + " " + currencyIcon + " . " + categoryName;
 
-                        holder.Description.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Description), 100);
+                            holder.Description.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Description), 100);
 
-                        if (item.IsOwner != null && item.IsOwner.Value)
-                        {
-                            holder.IconMore.Visibility = ViewStates.Visible;
-                            holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_show_applies) + " (" + item.ApplyCount + ")";
-                            holder.Button.Tag = "ShowApply";
+                            if (item.IsOwner != null && item.IsOwner.Value)
+                            {
+                                holder.IconMore.Visibility = ViewStates.Visible;
+                                holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_show_applies) + " (" + item.ApplyCount + ")";
+                                holder.Button.Tag = "ShowApply";
+                            }
+                            else
+                            {
+                                holder.IconMore.Visibility = ViewStates.Gone;
+                            }
+
+                            switch (item.Apply)
+                            {
+                                //Set Button if its applied
+                                case "true":
+                                    holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_already_applied);
+                                    holder.Button.Enabled = false;
+                                    break;
+                                default:
+                                {
+                                    if (item.Apply != "true" && item.Page.IsPageOnwer != null && !item.Page.IsPageOnwer.Value)
+                                    {
+                                        holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_apply_now);
+                                        holder.Button.Tag = "Apply";
+                                    }
+
+                                    break;
+                                }
+                            }
                         }
-                        else
-                        {
-                            holder.IconMore.Visibility = ViewStates.Gone;
-                        }
 
-                        //Set Button if its applied
-                        if (item.Apply == "true")
-                        {
-                            holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_already_applied);
-                            holder.Button.Enabled = false;
-                        }
-                        else if (item.Apply != "true" && item.Page.IsPageOnwer != null && !item.Page.IsPageOnwer.Value)
-                        {
-                            holder.Button.Text = ActivityContext.GetString(Resource.String.Lbl_apply_now);
-                            holder.Button.Tag = "Apply";
-                        }
+                        break;
                     }
                 }
             }
@@ -151,9 +164,11 @@ namespace WoWonder.Activities.Jobs.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is JobsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case JobsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -215,27 +230,31 @@ namespace WoWonder.Activities.Jobs.Adapters
             {
                 var d = new List<string>();
                 var item = JobList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (string.IsNullOrEmpty(item.Image)) return d;
-                    if (item.Image.Contains("http"))
+                    case null:
+                        return d;
+                    default:
                     {
-                        var image = item.Image.Replace(Client.WebsiteUrl + "/", "");
-                        if (!image.Contains("http"))
-                            item.Image = Client.WebsiteUrl + "/" + image;
+                        if (string.IsNullOrEmpty(item.Image)) return d;
+                        if (item.Image.Contains("http"))
+                        {
+                            var image = item.Image.Replace(Client.WebsiteUrl + "/", "");
+                            item.Image = image.Contains("http") switch
+                            {
+                                false => Client.WebsiteUrl + "/" + image,
+                                _ => image
+                            };
+
+                            d.Add(item.Image);
+                        }
                         else
-                            item.Image = image;
+                        {
+                            d.Add(item.Image);
+                        }
 
-                        d.Add(item.Image);
+                        return d;
                     }
-                    else
-                    {
-                        d.Add(item.Image);
-                    }
-
-                    return d;
                 }
             }
             catch (Exception e)
@@ -304,9 +323,9 @@ namespace WoWonder.Activities.Jobs.Adapters
         {
             try
             {
-                if (DialogType == "Delete")
+                switch (DialogType)
                 {
-                    if (p1 == DialogAction.Positive)
+                    case "Delete" when p1 == DialogAction.Positive:
                     {
                         // Send Api delete 
 
@@ -347,21 +366,30 @@ namespace WoWonder.Activities.Jobs.Adapters
                         {
                             Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
                         }
-                    }
-                    else if (p1 == DialogAction.Negative)
-                    {
-                        p0.Dismiss();
-                    }
-                }
-                else
-                {
-                    if (p1 == DialogAction.Positive)
-                    {
 
+                        break;
                     }
-                    else if (p1 == DialogAction.Negative)
+                    case "Delete":
                     {
-                        p0.Dismiss();
+                        if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
+                    }
+                    default:
+                    {
+                        if (p1 == DialogAction.Positive)
+                        {
+
+                        }
+                        else if (p1 == DialogAction.Negative)
+                        {
+                            p0.Dismiss();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -445,10 +473,11 @@ namespace WoWonder.Activities.Jobs.Adapters
                         // Open Apply Job Activity 
                         case "ShowApply":
                             {
-                                if (item.ApplyCount == "0")
+                                switch (item.ApplyCount)
                                 {
-                                    Toast.MakeText(JobsAdapter.ActivityContext, JobsAdapter.ActivityContext.GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
-                                    return;
+                                    case "0":
+                                        Toast.MakeText(JobsAdapter.ActivityContext, JobsAdapter.ActivityContext.GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
+                                        return;
                                 }
 
                                 var intent = new Intent(JobsAdapter.ActivityContext, typeof(ShowApplyJobActivity));

@@ -25,7 +25,7 @@ using Com.Luseen.Autolinklibrary;
 using Google.Android.Material.FloatingActionButton;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.Lang;
-using MeoNavLib.Com; 
+using MeoNavLib.Com;
 using Newtonsoft.Json;
 using Plugin.Geolocator;
 using WoWonder.Activities.AddPost;
@@ -38,19 +38,21 @@ using WoWonder.Activities.Communities.Groups;
 using WoWonder.Activities.Communities.Pages;
 using WoWonder.Activities.Events;
 using WoWonder.Activities.Live.Page;
+using WoWonder.Activities.Live.Utils;
 using WoWonder.Activities.Market;
+using WoWonder.Activities.MyProfile;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.NativePost.Services;
 using WoWonder.Activities.Search;
 using WoWonder.Activities.SettingsPreferences;
 using WoWonder.Activities.Story;
-using WoWonder.Activities.Story.Adapters; 
+using WoWonder.Activities.Story.Adapters;
 using WoWonder.Activities.Tabbes.Fragment;
 using WoWonder.Adapters;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
-using WoWonder.Helpers.Utils; 
+using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient;
 using WoWonderClient.Classes.Global;
@@ -63,18 +65,18 @@ using File = Java.IO.File;
 using LayoutDirection = Android.Views.LayoutDirection;
 using SearchView = AndroidX.AppCompat.Widget.SearchView;
 using Task = System.Threading.Tasks.Task;
-using Uri = Android.Net.Uri; 
+using Uri = Android.Net.Uri;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace WoWonder.Activities.Tabbes
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges =ConfigChanges.Keyboard | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden |ConfigChanges.ScreenLayout | ConfigChanges.ScreenSize | ConfigChanges.SmallestScreenSize | ConfigChanges.UiMode | ConfigChanges.Locale)]
-    public class TabbedMainActivity : AppCompatActivity, View.IOnClickListener, View.IOnFocusChangeListener, MaterialDialog.IListCallback 
+    public class TabbedMainActivity : AppCompatActivity, MaterialDialog.IListCallback 
     {
         #region Variables Basic
 
         public Toolbar ToolBar;
-        private static TabbedMainActivity Instance; 
+        private static TabbedMainActivity Instance;
         private CustomNavigationController FragmentBottomNavigator;
         public ViewPager ViewPager;
         private MainTabAdapter TabAdapter;
@@ -85,15 +87,16 @@ namespace WoWonder.Activities.Tabbes
         public MsgTabbedMainActivity ChatTab;
         private MeowBottomNavigation NavigationTabBar;
         public FloatingActionButton FloatingActionButton;
-        private SearchView SearchViewBar;
-        private ImageButton BtnAdd;
         private string ImageType = "";
         private static string CountNotificationsStatic = "0", CountMessagesStatic = "0", CountFriendStatic = "0";
         private static bool AddAnnouncement, RecentlyBackPressed; 
         private readonly Handler ExitHandler = new Handler(Looper.MainLooper);
         
         private PowerManager.WakeLock Wl;
-        
+
+        // insert ar dev
+        public RelativeLayout RlFilter;
+        private RelativeLayout RlSearch, RlFriend, RlAdd;
    
         #endregion
 
@@ -139,10 +142,9 @@ namespace WoWonder.Activities.Tabbes
         {
             try
             {
-                base.OnResume();
-                SearchViewBar?.ClearFocus();
+                base.OnResume();  
                 AddOrRemoveEvent(true);
-                NewsFeedTab?.StartHandler();
+                NewsFeedTab?.StartHandler();  
                 MoreTab?.MAdView?.Resume();
             }
             catch (Exception e)
@@ -186,7 +188,7 @@ namespace WoWonder.Activities.Tabbes
             {
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
                 base.OnTrimMemory(level);
-                Glide.Get(this).TrimMemory((int)level);  
+                Glide.Get(this).TrimMemory((int)level); 
             }
             catch (Exception e)
             {
@@ -234,17 +236,16 @@ namespace WoWonder.Activities.Tabbes
                 base.OnConfigurationChanged(newConfig);
 
                 var currentNightMode = newConfig.UiMode & UiMode.NightMask;
-                switch (currentNightMode)
+                AppSettings.SetTabDarkTheme = currentNightMode switch
                 {
-                    case UiMode.NightNo:
+                    UiMode.NightNo =>
                         // Night mode is not active, we're using the light theme
-                        AppSettings.SetTabDarkTheme = false;
-                        break;
-                    case UiMode.NightYes:
+                        false,
+                    UiMode.NightYes =>
                         // Night mode is active, we're using dark theme
-                        AppSettings.SetTabDarkTheme = true;
-                        break;
-                }
+                        true,
+                    _ => AppSettings.SetTabDarkTheme
+                };
 
                 SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
 
@@ -270,24 +271,24 @@ namespace WoWonder.Activities.Tabbes
 
                 ViewPager = FindViewById<ViewPager>(Resource.Id.vp_horizontal_ntb);
                 TabAdapter = new MainTabAdapter(SupportFragmentManager);
-                SearchViewBar = FindViewById<SearchView>(Resource.Id.searchView);
-                if (SearchViewBar != null)
-                {
-                    SearchViewBar.SetIconifiedByDefault(false);
-                    SearchViewBar.SetOnClickListener(this);
-                    SearchViewBar.SetOnSearchClickListener(this);
-                    SearchViewBar.SetOnQueryTextFocusChangeListener(this);
-                }
+                 
+                RlSearch = FindViewById<RelativeLayout>(Resource.Id.rlSearch);
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    NavigationTabBar.LayoutDirection = LayoutDirection.Rtl;
+
+                RlFilter = FindViewById<RelativeLayout>(Resource.Id.rlFilter); 
+                RlFriend = FindViewById<RelativeLayout>(Resource.Id.rlFriend);
+                RlAdd = FindViewById<RelativeLayout>(Resource.Id.rlAdd);
+
+                NavigationTabBar.LayoutDirection = AppSettings.FlowDirectionRightToLeft switch
+                {
+                    true => LayoutDirection.Rtl,
+                    _ => NavigationTabBar.LayoutDirection
+                };
 
                 FloatingActionButton = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
                 FloatingActionButton.Tag = "AddPost";
                 FloatingActionButton.SupportImageTintList = ColorStateList.ValueOf(Color.White);
                 FloatingActionButton.Visibility = AppSettings.ShowAddPostOnNewsFeed ? ViewStates.Visible : ViewStates.Gone;
-
-                BtnAdd = FindViewById<ImageButton>(Resource.Id.addButton);  
             }
             catch (Exception e)
             {
@@ -312,16 +313,23 @@ namespace WoWonder.Activities.Tabbes
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
-                {  
-                    BtnAdd.Click += BtnAddOnClick;
-                    FloatingActionButton.Click += Btn_AddPost_OnClick;
-                }
-                else
-                { 
-                    BtnAdd.Click -= BtnAddOnClick;
-                    FloatingActionButton.Click -= Btn_AddPost_OnClick;
+                switch (addEvent)
+                {
+                    // true +=  // false -=
+                    case true:
+                        RlAdd.Click += BtnAddOnClick;
+                        FloatingActionButton.Click += Btn_AddPost_OnClick;
+                        RlSearch.Click += RlSearchOnClick;
+                        RlFilter.Click += RlFilterOnClick;
+                        RlFriend.Click += RlFriendOnClick;
+                        break;
+                    default:
+                        RlAdd.Click -= BtnAddOnClick;
+                        FloatingActionButton.Click -= Btn_AddPost_OnClick;
+                        RlSearch.Click -= RlSearchOnClick;
+                        RlFilter.Click -= RlFilterOnClick;
+                        RlFriend.Click -= RlFriendOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -347,6 +355,67 @@ namespace WoWonder.Activities.Tabbes
 
         #region Events
 
+        private void RlSearchOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var intent = new Intent(this, typeof(SearchTabbedActivity));
+                intent.PutExtra("Key", "");
+                StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
+        private void RlFriendOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var intent = new Intent(this, typeof(MyProfileActivity));
+                StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+
+        private void RlFilterOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var arrayAdapter = new List<string>();
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+
+                arrayAdapter.Add(GetString(Resource.String.Lbl_All));
+                arrayAdapter.Add(GetString(Resource.String.Lbl_People_i_Follow));
+
+                dialogList.Title(GetString(Resource.String.Lbl_Filter));
+                dialogList.Items(arrayAdapter);
+                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                dialogList.AlwaysCallSingleChoiceCallback();
+                dialogList.ItemsCallback((p0, p1, itemId, itemString) =>
+                {
+                    try
+                    { 
+                        WRecyclerView.GetInstance()?.SetFilter(itemId.ToString());
+                    }
+                    catch (Exception exception)
+                    {
+                        Methods.DisplayReportResultTrack(exception);
+                    }
+                });
+                dialogList.Build().Show();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
         //Add 
         private void BtnAddOnClick(object sender, EventArgs e)
         {
@@ -354,24 +423,41 @@ namespace WoWonder.Activities.Tabbes
             {
                 var arrayAdapter = new List<string>();
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                 
+                switch (AppSettings.ShowAdvertise)
+                {
+                    case true:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Ad));
+                        break;
+                }
 
-                if (AppSettings.ShowLive)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_CreateLiveVideo));
+                switch (AppSettings.ShowEvents)
+                {
+                    case true:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Events));
+                        break;
+                }
 
-                if (AppSettings.ShowAdvertise)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Ad));
+                switch (AppSettings.ShowMarket)
+                {
+                    case true:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_CreateNewProduct));
+                        break;
+                }
 
-                if (AppSettings.ShowEvents)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_Create_Events));
+                switch (AppSettings.ShowCommunitiesPages)
+                {
+                    case true:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Page));
+                        break;
+                }
 
-                if (AppSettings.ShowMarket)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_CreateNewProduct));
-
-                if (AppSettings.ShowCommunitiesPages)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Page));
-
-                if (AppSettings.ShowCommunitiesGroups)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Group));
+                switch (AppSettings.ShowCommunitiesGroups)
+                {
+                    case true:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Create_New_Group));
+                        break;
+                }
 
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
@@ -400,7 +486,7 @@ namespace WoWonder.Activities.Tabbes
                 else
                 {
                     ChatTab.FloatingActionButtonView_Click();
-                } 
+                }
             }
             catch (Exception e)
             {
@@ -436,25 +522,33 @@ namespace WoWonder.Activities.Tabbes
                         if (filepath != null)
                         {
                             var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                            if (type == "Video")
+                            switch (type)
                             {
-                                var fileName = filepath.Split('/').Last();
-                                var fileNameWithoutExtension = fileName.Split('.').First();
-                                var pathWithoutFilename = Methods.Path.FolderDcimImage;
-                                var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
-
-                                var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
-                                if (videoPlaceHolderImage == "File Dont Exists")
+                                case "Video":
                                 {
-                                    var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
-                                    Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
-                                }
+                                    var fileName = filepath.Split('/').Last();
+                                    var fileNameWithoutExtension = fileName.Split('.').First();
+                                    var pathWithoutFilename = Methods.Path.FolderDcimImage;
+                                    var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
 
-                                Intent intent = new Intent(this, typeof(AddStoryActivity));
-                                intent.PutExtra("Uri", filepath);
-                                intent.PutExtra("Thumbnail", fullPathFile.Path);
-                                intent.PutExtra("Type", "video");
-                                StartActivity(intent);
+                                    var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
+                                    switch (videoPlaceHolderImage)
+                                    {
+                                        case "File Dont Exists":
+                                        {
+                                            var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
+                                            Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                            break;
+                                        }
+                                    }
+
+                                    Intent intent = new Intent(this, typeof(AddStoryActivity));
+                                    intent.PutExtra("Uri", filepath);
+                                    intent.PutExtra("Thumbnail", fullPathFile.Path);
+                                    intent.PutExtra("Type", "video");
+                                    StartActivity(intent);
+                                    break;
+                                }
                             }
                         }
                         else
@@ -473,25 +567,33 @@ namespace WoWonder.Activities.Tabbes
                         if (filepath != null)
                         {
                             var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                            if (type == "Video")
+                            switch (type)
                             {
-                                var fileName = filepath.Split('/').Last();
-                                var fileNameWithoutExtension = fileName.Split('.').First();
-                                var pathWithoutFilename = Methods.Path.FolderDcimImage;
-                                var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
-
-                                var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
-                                if (videoPlaceHolderImage == "File Dont Exists")
+                                case "Video":
                                 {
-                                    var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
-                                    Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
-                                }
+                                    var fileName = filepath.Split('/').Last();
+                                    var fileNameWithoutExtension = fileName.Split('.').First();
+                                    var pathWithoutFilename = Methods.Path.FolderDcimImage;
+                                    var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
 
-                                Intent intent = new Intent(this, typeof(AddStoryActivity));
-                                intent.PutExtra("Uri", filepath);
-                                intent.PutExtra("Thumbnail", fullPathFile.Path);
-                                intent.PutExtra("Type", "video");
-                                StartActivity(intent);
+                                    var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
+                                    switch (videoPlaceHolderImage)
+                                    {
+                                        case "File Dont Exists":
+                                        {
+                                            var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
+                                            Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                            break;
+                                        }
+                                    }
+
+                                    Intent intent = new Intent(this, typeof(AddStoryActivity));
+                                    intent.PutExtra("Uri", filepath);
+                                    intent.PutExtra("Thumbnail", fullPathFile.Path);
+                                    intent.PutExtra("Type", "video");
+                                    StartActivity(intent);
+                                    break;
+                                }
                             }
                         }
                         else
@@ -507,38 +609,37 @@ namespace WoWonder.Activities.Tabbes
                     {
                         var result = CropImage.GetActivityResult(data);
 
-                        if (resultCode == Result.Ok)
+                        switch (resultCode)
                         {
-                            if (result.IsSuccessful)
+                            case Result.Ok when result.IsSuccessful:
                             {
                                 var resultUri = result.Uri;
 
-                                if (!string.IsNullOrEmpty(resultUri.Path))
+                                switch (string.IsNullOrEmpty(resultUri.Path))
                                 {
-                                    //Do something with your Uri
-                                    Intent intent = new Intent(this, typeof(AddStoryActivity));
-                                    intent.PutExtra("Uri", resultUri.Path);
-                                    intent.PutExtra("Type", "image");
-                                    StartActivity(intent);
+                                    case false:
+                                    {
+                                        //Do something with your Uri
+                                        Intent intent = new Intent(this, typeof(AddStoryActivity));
+                                        intent.PutExtra("Uri", resultUri.Path);
+                                        intent.PutExtra("Type", "image");
+                                        StartActivity(intent);
+                                        break;
+                                    }
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
+                                        break;
                                 }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
-                                }
+
+                                break;
                             }
-                            else
-                            {
+                            case Result.Ok:
                                 Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                            }
+                                break;
                         }
 
                         break;
-                    }
-                    case 2 when resultCode == Result.Ok:
-                        SearchViewBar.Focusable = false;
-                        SearchViewBar.FocusableInTouchMode = false;
-                        SearchViewBar.ClearFocus();
-                        break;
+                    } 
                     //add post
                     case 2500 when resultCode == Result.Ok:
                     {
@@ -586,36 +687,50 @@ namespace WoWonder.Activities.Tabbes
                         var postText = data.GetStringExtra("PostText") ?? "";
                         var diff = NewsFeedTab.PostFeedAdapter.ListDiffer;
                         List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        if (dataGlobal.Count > 0)
+                        switch (dataGlobal.Count)
                         {
-                            foreach (var postData in dataGlobal)
+                            case > 0:
                             {
-                                postData.PostData.Orginaltext = postText;
-                                var index = diff.IndexOf(postData);
-                                if (index > -1)
+                                foreach (var postData in dataGlobal)
                                 {
-                                    NewsFeedTab.PostFeedAdapter.NotifyItemChanged(index);
+                                    postData.PostData.Orginaltext = postText;
+                                    var index = diff.IndexOf(postData);
+                                    switch (index)
+                                    {
+                                        case > -1:
+                                            NewsFeedTab.PostFeedAdapter.NotifyItemChanged(index);
+                                            break;
+                                    }
                                 }
-                            }
 
-                            var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                            if (checkTextSection == null)
-                            {
-                                var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                var item = new AdapterModelsClass
+                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
+                                switch (checkTextSection)
                                 {
-                                    TypeView = PostModelType.TextSectionPostPart,
-                                    Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true
-                                };
+                                    case null:
+                                    {
+                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
+                                        var item = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.TextSectionPostPart,
+                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true
+                                        };
 
-                                var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                if (headerPostIndex > -1)
-                                {
-                                    diff.Insert(headerPostIndex + 1, item);
-                                    NewsFeedTab.PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
+                                        switch (headerPostIndex)
+                                        {
+                                            case > -1:
+                                                diff.Insert(headerPostIndex + 1, item);
+                                                NewsFeedTab.PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
+
+                                break;
                             }
                         }
 
@@ -630,20 +745,29 @@ namespace WoWonder.Activities.Tabbes
                         {
                             var diff = NewsFeedTab.PostFeedAdapter.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            if (dataGlobal.Count > 0)
+                            switch (dataGlobal.Count)
                             {
-                                foreach (var postData in dataGlobal)
+                                case > 0:
                                 {
-                                    var index = diff.IndexOf(postData);
-                                    if (index > -1)
+                                    foreach (var postData in dataGlobal)
                                     {
-                                        var productUnion = postData.PostData.Product?.ProductClass;
-                                        if (productUnion != null) productUnion.Id = item.Id;
-                                        productUnion = item;
-                                        Console.WriteLine(productUnion);
+                                        var index = diff.IndexOf(postData);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                            {
+                                                var productUnion = postData.PostData.Product?.ProductClass;
+                                                if (productUnion != null) productUnion.Id = item.Id;
+                                                productUnion = item;
+                                                Console.WriteLine(productUnion);
                                      
-                                        NewsFeedTab.PostFeedAdapter.NotifyItemChanged(index);
+                                                NewsFeedTab.PostFeedAdapter.NotifyItemChanged(index);
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    break;
                                 }
                             } 
                         }
@@ -654,9 +778,7 @@ namespace WoWonder.Activities.Tabbes
                         switch (resultCode) // The switch block will be triggered only with flexible update since it returns the install result codes
                         {
                             case Result.Ok:
-                                // In app update success
-                                if (UpdateManagerApp.AppUpdateTypeSupported == AppUpdateType.Immediate)
-                                    Toast.MakeText(this, "App updated", ToastLength.Short)?.Show();
+                                Toast.MakeText(this, "App updated", ToastLength.Short)?.Show();
                                 break;
                             case Result.Canceled:
                                 Toast.MakeText(this, "In app update cancelled", ToastLength.Short)?.Show();
@@ -734,15 +856,17 @@ namespace WoWonder.Activities.Tabbes
                         break;
                     case 123:
                     {
-                        if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                        switch (grantResults.Length)
                         {
-                            CheckAndGetLocation().ConfigureAwait(false);
+                            case > 0 when grantResults[0] == Permission.Granted:
+                                CheckAndGetLocation().ConfigureAwait(false);
+                                break;
                         }
 
                         break;
                     }
                     case 235 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
-                        OpenDialogLive();
+                        new LiveUtil(this).OpenDialogLive();
                         break;
                     case 235:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
@@ -756,47 +880,7 @@ namespace WoWonder.Activities.Tabbes
         }
          
         #endregion
-            
-        #region Search View
-
-        public void OnClick(View v)
-        {
-            if (v.Id == SearchViewBar.Id)
-            {
-                //Hide keyboard programmatically in MonoDroid
-
-                var inputManager = (InputMethodManager) GetSystemService(InputMethodService);
-                inputManager?.HideSoftInputFromWindow(SearchViewBar.WindowToken, HideSoftInputFlags.None);
-
-                SearchViewBar.ClearFocus();
-
-                var intent = new Intent(this, typeof(SearchTabbedActivity));
-                intent.PutExtra("Key", "");
-                StartActivity(intent);
-            }
-        }
-
-        public void OnFocusChange(View v, bool hasFocus)
-        {
-            try
-            {
-                if (v.Id == SearchViewBar.Id && hasFocus)
-                {
-                    var intent = new Intent(this, typeof(SearchTabbedActivity));
-                    intent.PutExtra("Key", "");
-                    StartActivity(intent);
-                }
-
-                SearchViewBar.ClearFocus();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        #endregion
-
+             
         #region Set Tab
 
         private void AddFragmentsTabs()
@@ -816,8 +900,12 @@ namespace WoWonder.Activities.Tabbes
                     TabAdapter.AddFragment(NewsFeedTab, GetText(Resource.String.Lbl_News_Feed));
                     TabAdapter.AddFragment(NotificationsTab, GetText(Resource.String.Lbl_Notifications));
 
-                    if (AppSettings.ShowTrendingPage)
-                        TabAdapter.AddFragment(TrendingTab, GetText(Resource.String.Lbl_Trending));
+                    switch (AppSettings.ShowTrendingPage)
+                    {
+                        case true:
+                            TabAdapter.AddFragment(TrendingTab, GetText(Resource.String.Lbl_Trending));
+                            break;
+                    }
 
                     TabAdapter.AddFragment(ChatTab, GetText(Resource.String.Lbl_Message));
                     TabAdapter.AddFragment(MoreTab, GetText(Resource.String.Lbl_More));
@@ -848,23 +936,23 @@ namespace WoWonder.Activities.Tabbes
                         return;
                     // News_Feed_Tab
                     case 0:
-                    {
-                        ToolBar.Visibility = ViewStates.Visible;
-
-                        switch (AppSettings.ShowAddPostOnNewsFeed)
                         {
-                            case true when FloatingActionButton.Visibility != ViewStates.Visible:
-                                FloatingActionButton.Tag = "AddPost";
-                                FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
-                                FloatingActionButton.Visibility = ViewStates.Visible;
-                                break;
-                            default:
-                                FloatingActionButton.Visibility = ViewStates.Gone;
-                                break;
-                        }
+                            ToolBar.Visibility = ViewStates.Visible;
 
-                        break;
-                    }
+                            switch (AppSettings.ShowAddPostOnNewsFeed)
+                            {
+                                case true when FloatingActionButton.Visibility != ViewStates.Visible:
+                                    FloatingActionButton.Tag = "AddPost";
+                                    FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
+                                    FloatingActionButton.Visibility = ViewStates.Visible;
+                                    break;
+                                default:
+                                    FloatingActionButton.Visibility = ViewStates.Gone;
+                                    break;
+                            }
+
+                            break;
+                        }
                     // Notifications_Tab
                     case 1:
                         ToolBar.Visibility = ViewStates.Visible;
@@ -910,6 +998,8 @@ namespace WoWonder.Activities.Tabbes
                         if (NavigationTabBar.GetSelectedId() != e.Position)
                             NavigationTabBar.Show(0, true);
 
+                        RlFilter.Visibility = ViewStates.Visible;
+
                         if (AppSettings.ShowAddPostOnNewsFeed && FloatingActionButton.Visibility != ViewStates.Visible)
                         {
                             FloatingActionButton.Tag = "AddPost";
@@ -931,7 +1021,8 @@ namespace WoWonder.Activities.Tabbes
                             NavigationTabBar.Show(1, true);
 
                         ToolBar.Visibility = ViewStates.Visible;
-                            
+                        RlFilter.Visibility = ViewStates.Gone;
+
                         NewsFeedTab?.MainRecyclerView?.StopVideo();
                         break;
                     }
@@ -942,7 +1033,8 @@ namespace WoWonder.Activities.Tabbes
                             NavigationTabBar.Show(2, true);
 
                         ToolBar.Visibility = ViewStates.Visible;
-                            
+                        RlFilter.Visibility = ViewStates.Gone;
+                             
                         NewsFeedTab?.MainRecyclerView?.StopVideo();
                         break;
                     }
@@ -951,14 +1043,15 @@ namespace WoWonder.Activities.Tabbes
                     {
                         if (NavigationTabBar.GetSelectedId() != e.Position)
                             NavigationTabBar.Show(3, true);
-
+                        
+                        RlFilter.Visibility = ViewStates.Gone;
                         ToolBar.Visibility = ViewStates.Gone;
 
                         if (FloatingActionButton.Visibility != ViewStates.Visible)
                             ChatTab.FloatingActionButtonView_Tag();
 
                         NewsFeedTab?.MainRecyclerView?.StopVideo();
-                         
+
                         break;
                     }
                     // More_Tab
@@ -967,11 +1060,12 @@ namespace WoWonder.Activities.Tabbes
                         if (NavigationTabBar.GetSelectedId() != e.Position)
                             NavigationTabBar.Show(4, true);
 
+                        RlFilter.Visibility = ViewStates.Gone;
                         ToolBar.Visibility = ViewStates.Visible;
-                             
+
                         NewsFeedTab?.MainRecyclerView?.StopVideo();
                         break;
-                    }
+                    } 
                 }
             }
             catch (Exception exception)
@@ -1042,26 +1136,30 @@ namespace WoWonder.Activities.Tabbes
                     OpenDialogVideo(); 
                 } 
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_VideoGallery))
-                { 
+                {
                     ImageType = "Video";
 
-                    // Check if we're running on Android 5.0 or higher
-                    if ((int)Build.VERSION.SdkInt < 23)
+                    switch ((int)Build.VERSION.SdkInt)
                     {
-                        //requestCode >> 501 => video Gallery
-                        new IntentController(this).OpenIntentVideoGallery();
-                    }
-                    else
-                    {
-                        if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted 
-                            && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                        {
+                        // Check if we're running on Android 5.0 or higher
+                        case < 23:
                             //requestCode >> 501 => video Gallery
                             new IntentController(this).OpenIntentVideoGallery();
-                        }
-                        else
+                            break;
+                        default:
                         {
-                            new PermissionsController(this).RequestPermission(108);
+                            if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted 
+                                && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                            {
+                                //requestCode >> 501 => video Gallery
+                                new IntentController(this).OpenIntentVideoGallery();
+                            }
+                            else
+                            {
+                                new PermissionsController(this).RequestPermission(108);
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -1069,35 +1167,31 @@ namespace WoWonder.Activities.Tabbes
                 {
                     ImageType = "VideoCamera";
 
-                    // Check if we're running on Android 5.0 or higher
-                    if ((int)Build.VERSION.SdkInt < 23)
+                    switch ((int)Build.VERSION.SdkInt)
                     {
-                        //requestCode >> 513 => video Camera
-                        new IntentController(this).OpenIntentVideoCamera();
-                    }
-                    else
-                    {
-                        if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted
-                            && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
-                            && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                        {
+                        // Check if we're running on Android 5.0 or higher
+                        case < 23:
                             //requestCode >> 513 => video Camera
                             new IntentController(this).OpenIntentVideoCamera();
-                        }
-                        else
+                            break;
+                        default:
                         {
-                            new PermissionsController(this).RequestPermission(108);
+                            if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted
+                                && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                            {
+                                //requestCode >> 513 => video Camera
+                                new IntentController(this).OpenIntentVideoCamera();
+                            }
+                            else
+                            {
+                                new PermissionsController(this).RequestPermission(108);
+                            }
+
+                            break;
                         }
                     }
-                }
-                else if (itemString.ToString() == GetText(Resource.String.text))
-                {
-                    OpenEditColor();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_CreateLiveVideo))
-                {
-                    GoLiveOnClick(); 
-                }
+                }  
                 else if (itemString.ToString() == GetText(Resource.String.Lbl_Create_Ad))
                 {
                     StartActivity(new Intent(this, typeof(CreateAdvertiseActivity)));
@@ -1144,20 +1238,23 @@ namespace WoWonder.Activities.Tabbes
                         //var circleIndicator = e.View.FindViewById<CircleImageView>(Resource.Id.profile_indicator); 
                         //circleIndicator.BorderColor = Color.ParseColor(Settings.StoryReadColor);
 
-                        if (item.Type == "Your")
+                        switch (item.Type)
                         {
-                            ShowDialogAddStory();
-                        }
-                        else
-                        { 
-                            Intent intent = new Intent(this, typeof(ViewStoryActivity));
-                            intent.PutExtra("UserId", item.UserId);
-                            intent.PutExtra("DataItem", JsonConvert.SerializeObject(item));
-                            intent.PutExtra("IndexItem", e.Position);
-                            StartActivity(intent);
+                            case "Your":
+                                ShowDialogAddStory();
+                                break;
+                            default:
+                            {
+                                Intent intent = new Intent(this, typeof(ViewStoryActivity));
+                                intent.PutExtra("UserId", item.UserId);
+                                intent.PutExtra("DataItem", JsonConvert.SerializeObject(item));
+                                intent.PutExtra("IndexItem", e.Position);
+                                StartActivity(intent);
 
-                            item.ProfileIndicator = AppSettings.StoryReadColor;
-                            NewsFeedTab.PostFeedAdapter?.HolderStory?.StoryAdapter.NotifyItemChanged(e.Position);
+                                item.ProfileIndicator = AppSettings.StoryReadColor;
+                                NewsFeedTab.PostFeedAdapter?.HolderStory?.StoryAdapter.NotifyItemChanged(e.Position);
+                                break;
+                            }
                         }
                     }
                 }
@@ -1176,18 +1273,19 @@ namespace WoWonder.Activities.Tabbes
         {
             try
             {
-                if (RecentlyBackPressed)
+                switch (RecentlyBackPressed)
                 {
-                    ExitHandler.RemoveCallbacks(() => { RecentlyBackPressed = false; });
-                    RecentlyBackPressed = false;
-                    MoveTaskToBack(true);
-                    Finish();
-                }
-                else
-                {
-                    RecentlyBackPressed = true; 
-                    Toast.MakeText(this, GetString(Resource.String.press_again_exit), ToastLength.Long)?.Show();
-                    ExitHandler.PostDelayed(() => { RecentlyBackPressed = false; }, 2000L);
+                    case true:
+                        ExitHandler.RemoveCallbacks(() => { RecentlyBackPressed = false; });
+                        RecentlyBackPressed = false;
+                        MoveTaskToBack(true);
+                        Finish();
+                        break;
+                    default:
+                        RecentlyBackPressed = true; 
+                        Toast.MakeText(this, GetString(Resource.String.press_again_exit), ToastLength.Long)?.Show();
+                        ExitHandler.PostDelayed(() => { RecentlyBackPressed = false; }, 2000L);
+                        break;
                 }
             }
             catch (Exception exception)
@@ -1205,20 +1303,24 @@ namespace WoWonder.Activities.Tabbes
         {
             try
             {
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.WakeLock) == Permission.Granted)
-                    {
+                    case < 23:
                         Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        //request Code 110
-                        new PermissionsController(this).RequestPermission(110);
+                        if (CheckSelfPermission(Manifest.Permission.WakeLock) == Permission.Granted)
+                        {
+                            Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        }
+                        else
+                        {
+                            //request Code 110
+                            new PermissionsController(this).RequestPermission(110);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1286,8 +1388,10 @@ namespace WoWonder.Activities.Tabbes
                 Methods.DisplayReportResultTrack(e);
             }
         }
-          
+
         #endregion
+
+        #region General App Data
 
         private void GetGeneralAppData()
         {
@@ -1314,16 +1418,20 @@ namespace WoWonder.Activities.Tabbes
 
                 var dataUser = sqlEntity.Get_MyProfile();
 
-                if (!string.IsNullOrEmpty(UserDetails.Avatar))
-                    Glide.With(this).Load(UserDetails.Avatar).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CircleCrop()).Preload();
+                switch (string.IsNullOrEmpty(UserDetails.Avatar))
+                {
+                    case false:
+                        Glide.With(this).Load(UserDetails.Avatar).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CircleCrop()).Preload();
+                        break;
+                }
 
                 if (Methods.CheckConnectivity())
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => ApiRequest.Get_MyProfileData_Api(this), ApiRequest.GetMyGroups, ApiRequest.GetMyPages, ApiRequest.GetLastArticles, ApiRequest.LoadSuggestedUser, ApiRequest.LoadSuggestedGroup });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this), ApiRequest.GetMyGroups, ApiRequest.GetMyPages, ApiRequest.GetLastArticles, ApiRequest.LoadSuggestedUser, ApiRequest.LoadSuggestedGroup });
 
-                if (dataUser?.ShareMyLocation == "1")
+                switch (dataUser?.ShareMyLocation)
                 {
                     // Check if we're running on Android 5.0 or higher
-                    if ((int)Build.VERSION.SdkInt >= 23)
+                    case "1" when (int)Build.VERSION.SdkInt >= 23:
                     {
                         if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
                             CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted &&
@@ -1347,18 +1455,18 @@ namespace WoWonder.Activities.Tabbes
                         //        Manifest.Permission.AccessMediaLocation,
                         //    }, 123);
                         //}
+                        break;
                     }
-                    else
-                    {
+                    case "1":
                         CheckAndGetLocation().ConfigureAwait(false);
-                    }
+                        break;
                 }
-                
+
                 Methods.Path.Chack_MyFolder();
 
                 LoadConfigSettings();
 
-                InAppUpdate(); 
+                InAppUpdate();
             }
             catch (Exception e)
             {
@@ -1370,14 +1478,14 @@ namespace WoWonder.Activities.Tabbes
         {
             try
             {
-                var dbDatabase = new SqLiteDatabase();  
+                var dbDatabase = new SqLiteDatabase();
                 var settingsData = dbDatabase.GetSettings();
                 if (settingsData != null)
                     ListUtils.SettingsSiteList = settingsData;
 
                 if (Methods.CheckConnectivity())
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.GetSettings_Api(this) });
-                 
+
                 if (ListUtils.SettingsSiteList?.PostColors?.PostColorsList != null)
                 {
                     var fullGlideRequestBuilder = Glide.With(this).AsDrawable().SetDiskCacheStrategy(DiskCacheStrategy.Automatic).SkipMemoryCache(true).Override(200);
@@ -1388,24 +1496,35 @@ namespace WoWonder.Activities.Tabbes
                         {
                             foreach (var item in ListUtils.SettingsSiteList?.PostColors?.PostColorsList.Values)
                             {
-                                if (!string.IsNullOrEmpty(item.Image))
+                                switch (string.IsNullOrEmpty(item.Image))
                                 {
-                                    fullGlideRequestBuilder.Load(item.Image).Preload();
-                                }
-                                else
-                                {
-                                    var colorsList = new List<int>();
+                                    case false:
+                                        fullGlideRequestBuilder.Load(item.Image).Preload();
+                                        break;
+                                    default:
+                                    {
+                                        var colorsList = new List<int>();
 
-                                    if (!string.IsNullOrEmpty(item.Color1))
-                                        colorsList.Add(Color.ParseColor(item.Color1));
+                                        switch (string.IsNullOrEmpty(item.Color1))
+                                        {
+                                            case false:
+                                                colorsList.Add(Color.ParseColor(item.Color1));
+                                                break;
+                                        }
 
-                                    if (!string.IsNullOrEmpty(item.Color2))
-                                        colorsList.Add(Color.ParseColor(item.Color2));
+                                        switch (string.IsNullOrEmpty(item.Color2))
+                                        {
+                                            case false:
+                                                colorsList.Add(Color.ParseColor(item.Color2));
+                                                break;
+                                        }
 
-                                    GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
-                                    gd.SetCornerRadius(0f);
+                                        GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
+                                        gd.SetCornerRadius(0f);
 
-                                    fullGlideRequestBuilder.Load(gd).Preload();
+                                        fullGlideRequestBuilder.Load(gd).Preload();
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -1414,7 +1533,7 @@ namespace WoWonder.Activities.Tabbes
                             Methods.DisplayReportResultTrack(e);
                         }
                     });
-                } 
+                }
             }
             catch (Exception e)
             {
@@ -1425,7 +1544,7 @@ namespace WoWonder.Activities.Tabbes
         private async Task CheckAndGetLocation()
         {
             try
-            { 
+            {
                 var locationManager = (LocationManager)GetSystemService(LocationService);
                 if (!locationManager!.IsProviderEnabled(LocationManager.GpsProvider))
                 {
@@ -1482,219 +1601,6 @@ namespace WoWonder.Activities.Tabbes
             }
         }
 
-        public async Task Get_Notifications()
-        {
-            try
-            {
-                var (countNotifications, countFriend, countMessages, textAnnouncement) = await NotificationsTab.LoadGeneralData(false).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(countNotifications) && countNotifications != "0" && countNotifications != CountNotificationsStatic)
-                    RunOnUiThread(() =>
-                    {
-                        try
-                        {
-                            FragmentBottomNavigator.ShowBadge(1, countNotifications, true);
-                            CountNotificationsStatic = countNotifications;
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
-
-                if (!string.IsNullOrEmpty(countFriend) && countFriend != "0" && countFriend != CountFriendStatic)
-                    RunOnUiThread(() =>
-                    {
-                        try
-                        {
-                            if (AppSettings.ShowTrendingPage)
-                            {
-                                FragmentBottomNavigator.ShowBadge(2, countFriend, true);
-                                CountFriendStatic = countFriend;
-                            } 
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
-                 
-                if (AppSettings.MessengerIntegration)
-                {
-                    if (!string.IsNullOrEmpty(countMessages) && countMessages != "0" && countMessages != CountMessagesStatic)
-                    {
-                        RunOnUiThread(() =>
-                        {
-                            try
-                            {
-                                FragmentBottomNavigator.ShowBadge(3, countMessages, true);
-                                CountMessagesStatic = countMessages;
-
-
-                                //var listMore = MoreTab.MoreSectionAdapter.SectionList;
-                                //if (listMore?.Count > 0)
-                                //{
-                                //    var dataTab = listMore.FirstOrDefault(a => a.Id == 2);
-                                //    if (dataTab != null)
-                                //    {
-                                //        CountMessagesStatic = countMessages;
-                                //        dataTab.BadgeCount = Convert.ToInt32(countMessages);
-                                //        dataTab.Badgevisibilty = true;
-
-                                //        MoreTab.MoreSectionAdapter.NotifyItemChanged(listMore.IndexOf(dataTab));
-                                //    }
-                                //} 
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
-                    }
-                    //else
-                    //{
-                    //    RunOnUiThread(() =>
-                    //    {
-                    //        try
-                    //        {
-                    //            var listMore = MoreTab.MoreSectionAdapter?.SectionList;
-                    //            if (listMore?.Count > 0)
-                    //            {
-                    //                var dataTab = listMore.FirstOrDefault(a => a.Id == 2);
-                    //                if (dataTab != null)
-                    //                {
-                    //                    CountMessagesStatic = "0";
-                    //                    dataTab.BadgeCount = 0;
-                    //                    dataTab.Badgevisibilty = false;
-                    //                    dataTab.IconColor = Color.ParseColor("#03a9f4");
-
-                    //                    MoreTab.MoreSectionAdapter.NotifyItemChanged(listMore.IndexOf(dataTab));
-                    //                }
-                    //            }
-                    //        }
-                    //        catch (Exception e)
-                    //        {
-                    //            Methods.DisplayReportResultTrack(e);
-                    //        }
-                    //    });
-                    //}
-                }
-                 
-                if (!string.IsNullOrEmpty(textAnnouncement) && !AddAnnouncement)
-                {
-                    RunOnUiThread(() =>
-                    {
-                        try
-                        {
-                            AddAnnouncement = true;
-                            OpenDialogAnnouncement(textAnnouncement);
-                            //var combiner = new FeedCombiner(null, NewsFeedTab.PostFeedAdapter.ListDiffer, this);
-                            //combiner.SetAnnouncementAlertView(textAnnouncement, "#3c763d");
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        private void OpenDialogAnnouncement(string textAnnouncement)
-        {
-            try
-            {
-                if (UserDetails.SoundControl)
-                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("alert_announcement.mp3");
-
-                Dialog mAlertDialog = new Dialog(this);
-                mAlertDialog.RequestWindowFeature((int)WindowFeatures.NoTitle); // before
-                mAlertDialog.SetContentView(Resource.Layout.DialogAnnouncement);
-                mAlertDialog.SetCancelable(false);
-                mAlertDialog.Window.SetBackgroundDrawable(new ColorDrawable(Color.Transparent));
-
-                var subTitle = mAlertDialog?.FindViewById<AutoLinkTextView>(Resource.Id.text);
-                TextSanitizer headlineSanitizer = new TextSanitizer(subTitle, this);
-                headlineSanitizer.Load(Methods.FunString.DecodeString(textAnnouncement));
-
-                ImageView closeButton = mAlertDialog.FindViewById<ImageView>(Resource.Id.CloseButton);
-                   
-                closeButton.Click += (sender, args) =>
-                {
-                    try
-                    {
-                        mAlertDialog.Hide();
-                        mAlertDialog.Dismiss();
-                    }
-                    catch (Exception e)
-                    {
-                        Methods.DisplayReportResultTrack(e);
-                    }
-                };
-
-                mAlertDialog.Show(); 
-            }
-            catch (Exception ex)
-            {
-                Methods.DisplayReportResultTrack(ex);
-            }
-        }
-         
-
-        private void OpenDialogGallery(string typeImage)
-        {
-            try
-            {
-                ImageType = typeImage;
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
-                {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelinesColor(Resource.Color.accent)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
-                    {
-                        Methods.Path.Chack_MyFolder();
-
-                        //Open Image 
-                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                        CropImage.Activity()
-                            .SetInitialCropWindowPaddingRatio(0)
-                            .SetAutoZoomEnabled(true)
-                            .SetMaxZoom(4)
-                            .SetGuidelinesColor(Resource.Color.accent)
-                            .SetGuidelines(CropImageView.Guidelines.On)
-                            .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                            .SetOutputUri(myUri).Start(this);
-                    }
-                    else
-                    {
-                        new PermissionsController(this).RequestPermission(108);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-         
         public void GetOneSignalNotification()
         {
             try
@@ -1710,7 +1616,7 @@ namespace WoWonder.Activities.Tabbes
                     string type = Intent?.GetStringExtra("type") ?? "";
 
                     //PageId, GroupId,EventId
-                    NotificationsTab.EventClickNotification(this , new NotificationObject
+                    NotificationsTab.EventClickNotification(this, new NotificationObject
                     {
                         NotifierId = userId,
                         Notifier = new UserDataObject
@@ -1721,7 +1627,7 @@ namespace WoWonder.Activities.Tabbes
                         PageId = pageId,
                         GroupId = groupId,
                         EventId = eventId,
-                        Type = type, 
+                        Type = type,
                     });
                 }
                 else if (notifier == "Chat")
@@ -1788,12 +1694,260 @@ namespace WoWonder.Activities.Tabbes
             }
         }
 
+        #endregion
+
+        public async Task Get_Notifications()
+        {
+            try
+            {
+                var (countNotifications, countFriend, countMessages, textAnnouncement) = await NotificationsTab.LoadGeneralData(false).ConfigureAwait(false);
+                switch (string.IsNullOrEmpty(countNotifications))
+                {
+                    case false when countNotifications != "0" && countNotifications != CountNotificationsStatic:
+                        RunOnUiThread(() =>
+                        {
+                            try
+                            {
+                                FragmentBottomNavigator.ShowBadge(1, countNotifications, true);
+                                CountNotificationsStatic = countNotifications;
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        });
+                        break;
+                }
+
+                switch (string.IsNullOrEmpty(countFriend))
+                {
+                    case false when countFriend != "0" && countFriend != CountFriendStatic:
+                        RunOnUiThread(() =>
+                        {
+                            try
+                            {
+                                switch (AppSettings.ShowTrendingPage)
+                                {
+                                    case true:
+                                        FragmentBottomNavigator.ShowBadge(2, countFriend, true);
+                                        CountFriendStatic = countFriend;
+                                        break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        });
+                        break;
+                }
+                 
+                switch (AppSettings.MessengerIntegration)
+                {
+                    case true when !string.IsNullOrEmpty(countMessages) && countMessages != "0" && countMessages != CountMessagesStatic:
+                        RunOnUiThread(() =>
+                        {
+                            try
+                            {
+                                FragmentBottomNavigator.ShowBadge(3, countMessages, true);
+                                CountMessagesStatic = countMessages;
+
+
+                                //var listMore = MoreTab.MoreSectionAdapter.SectionList;
+                                //switch (listMore?.Count)
+                                //{
+                                //    case > 0:
+                                //    {
+                                //        var dataTab = listMore.FirstOrDefault(a => a.Id == 2);
+                                //        if (dataTab != null)
+                                //        {
+                                //            CountMessagesStatic = countMessages;
+                                //            dataTab.BadgeCount = Convert.ToInt32(countMessages);
+                                //            dataTab.Badgevisibilty = true;
+
+                                //            MoreTab.MoreSectionAdapter.NotifyItemChanged(listMore.IndexOf(dataTab));
+                                //        }
+
+                                //        break;
+                                //    }
+                                //}
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        });
+                        break;
+                    //case true:
+                    //    RunOnUiThread(() =>
+                    //    {
+                    //        try
+                    //        {
+                    //            var listMore = MoreTab.MoreSectionAdapter?.SectionList;
+                    //            switch (listMore?.Count)
+                    //            {
+                    //                case > 0:
+                    //                {
+                    //                    var dataTab = listMore.FirstOrDefault(a => a.Id == 2);
+                    //                    if (dataTab != null)
+                    //                    {
+                    //                        CountMessagesStatic = "0";
+                    //                        dataTab.BadgeCount = 0;
+                    //                        dataTab.Badgevisibilty = false;
+                    //                        dataTab.IconColor = Color.ParseColor("#03a9f4");
+
+                    //                        MoreTab.MoreSectionAdapter.NotifyItemChanged(listMore.IndexOf(dataTab));
+                    //                    }
+
+                    //                    break;
+                    //                }
+                    //            }
+                    //        }
+                    //        catch (Exception e)
+                    //        {
+                    //            Methods.DisplayReportResultTrack(e);
+                    //        }
+                    //    });
+                    //    break;
+                }
+                 
+                switch (string.IsNullOrEmpty(textAnnouncement))
+                {
+                    case false when !AddAnnouncement:
+                        RunOnUiThread(() =>
+                        {
+                            try
+                            {
+                                AddAnnouncement = true;
+                                OpenDialogAnnouncement(textAnnouncement);
+                                //var combiner = new FeedCombiner(null, NewsFeedTab.PostFeedAdapter.ListDiffer, this);
+                                //combiner.SetAnnouncementAlertView(textAnnouncement, "#3c763d");
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
+                        });
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void OpenDialogAnnouncement(string textAnnouncement)
+        {
+            try
+            {
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("alert_announcement.mp3");
+                        break;
+                }
+
+                Dialog mAlertDialog = new Dialog(this);
+                mAlertDialog.RequestWindowFeature((int)WindowFeatures.NoTitle); // before
+                mAlertDialog.SetContentView(Resource.Layout.DialogAnnouncement);
+                mAlertDialog.SetCancelable(false);
+                mAlertDialog.Window.SetBackgroundDrawable(new ColorDrawable(Color.Transparent));
+
+                var subTitle = mAlertDialog?.FindViewById<AutoLinkTextView>(Resource.Id.text);
+                TextSanitizer headlineSanitizer = new TextSanitizer(subTitle, this);
+                headlineSanitizer.Load(Methods.FunString.DecodeString(textAnnouncement));
+
+                ImageView closeButton = mAlertDialog.FindViewById<ImageView>(Resource.Id.CloseButton);
+                   
+                closeButton.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        mAlertDialog.Hide();
+                        mAlertDialog.Dismiss();
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+                };
+
+                mAlertDialog.Show(); 
+            }
+            catch (Exception ex)
+            {
+                Methods.DisplayReportResultTrack(ex);
+            }
+        }
+          
+        private void OpenDialogGallery(string typeImage)
+        {
+            try
+            {
+                ImageType = typeImage;
+                switch ((int)Build.VERSION.SdkInt)
+                {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
+                    {
+                        Methods.Path.Chack_MyFolder();
+
+                        //Open Image 
+                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                        CropImage.Activity()
+                            .SetInitialCropWindowPaddingRatio(0)
+                            .SetAutoZoomEnabled(true)
+                            .SetMaxZoom(4)
+                            .SetGuidelinesColor(Resource.Color.accent)
+                            .SetGuidelines(CropImageView.Guidelines.On)
+                            .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                            .SetOutputUri(myUri).Start(this);
+                        break;
+                    }
+                    default:
+                    {
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelinesColor(Resource.Color.accent)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+         
         private void InAppUpdate()
         {
             try
             {
-                if (AppSettings.ShowSettingsUpdateManagerApp)
-                    UpdateManagerApp.CheckUpdateApp(this, 4711, Intent);
+                switch (AppSettings.ShowSettingsUpdateManagerApp)
+                {
+                    case true:
+                        UpdateManagerApp.CheckUpdateApp(this, 4711, Intent);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1807,34 +1961,39 @@ namespace WoWonder.Activities.Tabbes
             try
             {
                 bool inAppReview = MainSettings.InAppReview?.GetBoolean(MainSettings.PrefKeyInAppReview, false) ?? false;
-                if (!inAppReview && AppSettings.ShowSettingsRateApp)
+                switch (inAppReview)
                 {
-                    if (CountRateApp == AppSettings.ShowRateAppCount)
+                    case false when AppSettings.ShowSettingsRateApp:
                     {
-                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                        dialog.Title(GetText(Resource.String.Lbl_RateOurApp));
-                        dialog.Content(GetText(Resource.String.Lbl_RateOurAppContent));
-                        dialog.PositiveText(GetText(Resource.String.Lbl_Rate)).OnPositive((materialDialog, action) =>
+                        if (CountRateApp == AppSettings.ShowRateAppCount)
                         {
-                            try
+                            var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            dialog.Title(GetText(Resource.String.Lbl_RateOurApp));
+                            dialog.Content(GetText(Resource.String.Lbl_RateOurAppContent));
+                            dialog.PositiveText(GetText(Resource.String.Lbl_Rate)).OnPositive((materialDialog, action) =>
                             {
-                                StoreReviewApp store = new StoreReviewApp();
-                                store.OpenStoreReviewPage(PackageName);
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
-                        dialog.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                        dialog.AlwaysCallSingleChoiceCallback();
-                        dialog.Build().Show();
+                                try
+                                {
+                                    StoreReviewApp store = new StoreReviewApp();
+                                    store.OpenStoreReviewPage(PackageName);
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            dialog.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                            dialog.AlwaysCallSingleChoiceCallback();
+                            dialog.Build().Show();
 
-                        MainSettings.InAppReview?.Edit()?.PutBoolean(MainSettings.PrefKeyInAppReview, true)?.Commit();
-                    }
-                    else
-                    {
-                        CountRateApp++;
+                            MainSettings.InAppReview?.Edit()?.PutBoolean(MainSettings.PrefKeyInAppReview, true)?.Commit();
+                        }
+                        else
+                        {
+                            CountRateApp++;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1858,43 +2017,52 @@ namespace WoWonder.Activities.Tabbes
 
                 //  Chick if it was successful
                 var check = WoWonderTools.CheckMimeTypesWithServer(path);
-                if (!check)
+                switch (check)
                 {
-                    //this file not supported on the server , please select another file 
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                    return;
-                }
-
-                var type = Methods.AttachmentFiles.Check_FileExtension(path);
-                switch (type)
-                {
-                    case "Image":
+                    case false:
+                        //this file not supported on the server , please select another file 
+                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                        return;
+                    default:
                     {
-                        Intent intent = new Intent(this, typeof(AddStoryActivity));
-                        intent.PutExtra("Uri", path);
-                        intent.PutExtra("Type", "image");
-                        StartActivity(intent);
-                        break;
-                    }
-                    case "Video":
-                    {
-                        var fileName = path.Split('/').Last();
-                        var fileNameWithoutExtension = fileName.Split('.').First();
-                        var pathWithoutFilename = Methods.Path.FolderDcimImage;
-                        var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
-
-                        var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
-                        if (videoPlaceHolderImage == "File Dont Exists")
+                        var type = Methods.AttachmentFiles.Check_FileExtension(path);
+                        switch (type)
                         {
-                            var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, path);
-                            Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                            case "Image":
+                            {
+                                Intent intent = new Intent(this, typeof(AddStoryActivity));
+                                intent.PutExtra("Uri", path);
+                                intent.PutExtra("Type", "image");
+                                StartActivity(intent);
+                                break;
+                            }
+                            case "Video":
+                            {
+                                var fileName = path.Split('/').Last();
+                                var fileNameWithoutExtension = fileName.Split('.').First();
+                                var pathWithoutFilename = Methods.Path.FolderDcimImage;
+                                var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
+
+                                var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
+                                switch (videoPlaceHolderImage)
+                                {
+                                    case "File Dont Exists":
+                                    {
+                                        var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, path);
+                                        Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                        break;
+                                    }
+                                }
+
+                                Intent intent = new Intent(this, typeof(AddStoryActivity));
+                                intent.PutExtra("Uri", path);
+                                intent.PutExtra("Thumbnail", fullPathFile.Path);
+                                intent.PutExtra("Type", "video");
+                                StartActivity(intent);
+                                break;
+                            }
                         }
 
-                        Intent intent = new Intent(this, typeof(AddStoryActivity));
-                        intent.PutExtra("Uri", path);
-                        intent.PutExtra("Thumbnail", fullPathFile.Path);
-                        intent.PutExtra("Type", "video");
-                        StartActivity(intent);
                         break;
                     }
                 }
@@ -1904,7 +2072,7 @@ namespace WoWonder.Activities.Tabbes
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         #endregion
 
         private void OpenEditColor()
@@ -1920,92 +2088,6 @@ namespace WoWonder.Activities.Tabbes
             }
         }
 
-        #region Live
-
-        //Go Live
-        private void GoLiveOnClick()
-        {
-            try
-            {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
-                {
-                    OpenDialogLive();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.AccessMediaLocation) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.ModifyAudioSettings) == Permission.Granted)
-                    {
-                        OpenDialogLive();
-                    }
-                    else
-                    {
-                        RequestPermissions(new[]
-                        {
-                            Manifest.Permission.ReadExternalStorage,
-                            Manifest.Permission.WriteExternalStorage,
-                            Manifest.Permission.Camera,
-                            Manifest.Permission.AccessMediaLocation,
-                            Manifest.Permission.RecordAudio,
-                            Manifest.Permission.ModifyAudioSettings,
-                        }, 235);
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void OpenDialogLive()
-        {
-            try
-            {
-
-                var streamName = "Live_" + Methods.Time.CurrentTimeMillis();
-                if (string.IsNullOrEmpty(streamName) || string.IsNullOrWhiteSpace(streamName))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short)?.Show();
-                    return;
-                }
-                //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
-                Intent intent = new Intent(this, typeof(LiveStreamingActivity));
-                intent.PutExtra(Constants.KeyClientRole, DT.Xamarin.Agora.Constants.ClientRoleBroadcaster);
-                intent.PutExtra("StreamName", streamName);
-                StartActivity(intent);
-
-                //var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                //dialog.Title(GetText(Resource.String.Lbl_CreateLiveVideo));
-                //dialog.Input(Resource.String.Lbl_AddLiveVideoContext, 0, false, (materialDialog, s) =>
-                //{
-                //    try
-                //    {
-                        
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        Methods.DisplayReportResultTrack(e);
-                //    }
-                //});
-                //dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                //dialog.PositiveText(GetText(Resource.String.Lbl_Go_Live)).OnPositive(new WoWonderTools.MyMaterialDialog());
-                //dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                //dialog.AlwaysCallSingleChoiceCallback();
-                //dialog.Build().Show();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        #endregion
 
     }
 }

@@ -66,26 +66,34 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-
-                if (viewHolder is InviteMembersAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = UserList[position];
-                    if (item != null)
+                    case InviteMembersAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = UserList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                        holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item), 25);
-                        holder.About.Text = item.UserId == UserDetails.UserId ? ActivityContext.GetString(Resource.String.Lbl_Online) : ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.LastseenUnixTime), false);
+                            holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(item), 25);
+                            holder.About.Text = item.UserId == UserDetails.UserId ? ActivityContext.GetString(Resource.String.Lbl_Online) : ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.LastseenUnixTime), false);
 
-                        if (item.Verified == "1")
-                            holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                            switch (item.Verified)
+                            {
+                                case "1":
+                                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                    break;
+                            }
 
-                        //Online Or offline
-                        var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.LastseenUnixTime), item.LastseenStatus);
-                        holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
+                            //Online Or offline
+                            var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.LastseenUnixTime), item.LastseenStatus);
+                            holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
                          
-                        if (item.UserId == UserDetails.UserId)
-                            holder.ButtonMore.Visibility = ViewStates.Gone;
+                            if (item.UserId == UserDetails.UserId)
+                                holder.ButtonMore.Visibility = ViewStates.Gone;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -103,10 +111,12 @@ namespace WoWonder.Activities.Communities.Adapters
                         return;
 
 
-                 if (holder is InviteMembersAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case InviteMembersAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -166,8 +176,11 @@ namespace WoWonder.Activities.Communities.Adapters
             {
                 var d = new List<string>();
                 var item = UserList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Avatar != "")
                 {

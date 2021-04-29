@@ -60,25 +60,35 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
         {
             try
             {
-                if (viewHolder is ManageSessionsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = SessionsList[position];
-                    if (item != null)
+                    case ManageSessionsAdapterViewHolder holder:
                     {
-                        holder.Platform.Text = item.Platform;
-                        holder.Browser.Text = ActivityContext.GetText(Resource.String.Lbl_Browser) + " : " + item.Browser;
-                        holder.Seen.Text = ActivityContext.GetText(Resource.String.Lbl_Last_seen) + " : " + item.Time;
-
-                        if (!string.IsNullOrEmpty(item.IpAddress))
-                            holder.Address.Text = ActivityContext.GetText(Resource.String.Lbl_IpAddress) + " : " + item.IpAddress;
-                        else
-                            holder.Address.Visibility = ViewStates.Gone;
-
-                        if (item.Browser != null)
+                        var item = SessionsList[position];
+                        if (item != null)
                         {
-                            var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(35).EndConfig().BuildRound(item.Browser.Substring(0, 1), Color.ParseColor(AppSettings.MainColor));
-                            holder.Image.SetImageDrawable(drawable);
+                            holder.Platform.Text = item.Platform;
+                            holder.Browser.Text = ActivityContext.GetText(Resource.String.Lbl_Browser) + " : " + item.Browser;
+                            holder.Seen.Text = ActivityContext.GetText(Resource.String.Lbl_Last_seen) + " : " + item.Time;
+
+                            switch (string.IsNullOrEmpty(item.IpAddress))
+                            {
+                                case false:
+                                    holder.Address.Text = ActivityContext.GetText(Resource.String.Lbl_IpAddress) + " : " + item.IpAddress;
+                                    break;
+                                default:
+                                    holder.Address.Visibility = ViewStates.Gone;
+                                    break;
+                            }
+
+                            if (item.Browser != null)
+                            {
+                                var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(35).EndConfig().BuildRound(item.Browser.Substring(0, 1), Color.ParseColor(AppSettings.MainColor));
+                                holder.Image.SetImageDrawable(drawable);
+                            }
                         }
+
+                        break;
                     }
                 }
             }

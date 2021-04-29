@@ -243,32 +243,33 @@ namespace WoWonder.Activities.Advertise
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtAdd.Click += TxtAddOnClick;
-                    BtnSelectImage.Click += BtnSelectImageOnClick;
-                    TxtStartDate.Touch += TxtStartDateOnTouch;
-                    TxtEndDate.Touch += TxtEndDateOnTouch;
-                    TxtMyPages.Touch += TxtMyPagesOnTouch;
-                    TxtLocation.Touch += TxtLocationOnTouch;
-                    TxtAudience.Touch += TxtAudienceOnTouch;
-                    TxtGender.Touch += TxtGenderOnTouch;
-                    TxtPlacement.Touch += TxtPlacementOnTouch;
-                    TxtBidding.Touch += TxtBiddingOnTouch;
-                }
-                else
-                {
-                    TxtAdd.Click -= TxtAddOnClick;
-                    BtnSelectImage.Click -= BtnSelectImageOnClick;
-                    TxtStartDate.Touch -= TxtStartDateOnTouch;
-                    TxtEndDate.Touch -= TxtEndDateOnTouch;
-                    TxtMyPages.Touch -= TxtMyPagesOnTouch;
-                    TxtLocation.Touch -= TxtLocationOnTouch;
-                    TxtAudience.Touch -= TxtAudienceOnTouch;
-                    TxtGender.Touch -= TxtGenderOnTouch;
-                    TxtPlacement.Touch -= TxtPlacementOnTouch;
-                    TxtBidding.Touch -= TxtBiddingOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtAdd.Click += TxtAddOnClick;
+                        BtnSelectImage.Click += BtnSelectImageOnClick;
+                        TxtStartDate.Touch += TxtStartDateOnTouch;
+                        TxtEndDate.Touch += TxtEndDateOnTouch;
+                        TxtMyPages.Touch += TxtMyPagesOnTouch;
+                        TxtLocation.Touch += TxtLocationOnTouch;
+                        TxtAudience.Touch += TxtAudienceOnTouch;
+                        TxtGender.Touch += TxtGenderOnTouch;
+                        TxtPlacement.Touch += TxtPlacementOnTouch;
+                        TxtBidding.Touch += TxtBiddingOnTouch;
+                        break;
+                    default:
+                        TxtAdd.Click -= TxtAddOnClick;
+                        BtnSelectImage.Click -= BtnSelectImageOnClick;
+                        TxtStartDate.Touch -= TxtStartDateOnTouch;
+                        TxtEndDate.Touch -= TxtEndDateOnTouch;
+                        TxtMyPages.Touch -= TxtMyPagesOnTouch;
+                        TxtLocation.Touch -= TxtLocationOnTouch;
+                        TxtAudience.Touch -= TxtAudienceOnTouch;
+                        TxtGender.Touch -= TxtGenderOnTouch;
+                        TxtPlacement.Touch -= TxtPlacementOnTouch;
+                        TxtBidding.Touch -= TxtBiddingOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -433,7 +434,12 @@ namespace WoWonder.Activities.Advertise
                 var arrayAdapter = new List<string>();
                 var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                if (ListUtils.MyPageList?.Count > 0) arrayAdapter.AddRange(ListUtils.MyPageList.Select(item => item.PageName));
+                switch (ListUtils.MyPageList?.Count)
+                {
+                    case > 0:
+                        arrayAdapter.AddRange(ListUtils.MyPageList.Select(item => item.PageName));
+                        break;
+                }
 
                 dialogList.Title(GetString(Resource.String.Lbl_MyPages));
                 dialogList.Items(arrayAdapter);
@@ -460,14 +466,15 @@ namespace WoWonder.Activities.Advertise
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_All));
 
-                if (ListUtils.SettingsSiteList?.Genders?.Count > 0)
+                switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
-                    arrayAdapter.AddRange(from item in ListUtils.SettingsSiteList?.Genders select item.Value);
-                }
-                else
-                { 
-                    arrayAdapter.Add(GetText(Resource.String.Radio_Male));
-                    arrayAdapter.Add(GetText(Resource.String.Radio_Female));
+                    case > 0:
+                        arrayAdapter.AddRange(from item in ListUtils.SettingsSiteList?.Genders select item.Value);
+                        break;
+                    default:
+                        arrayAdapter.Add(GetText(Resource.String.Radio_Male));
+                        arrayAdapter.Add(GetText(Resource.String.Radio_Female));
+                        break;
                 }
 
                 dialogList.Title(GetText(Resource.String.Lbl_Gender));
@@ -644,8 +651,11 @@ namespace WoWonder.Activities.Advertise
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                    if (TotalIdAudienceChecked.Length > 0)
-                        TotalIdAudienceChecked = TotalIdAudienceChecked.Remove(TotalIdAudienceChecked.Length - 1, 1);
+                    TotalIdAudienceChecked = TotalIdAudienceChecked.Length switch
+                    {
+                        > 0 => TotalIdAudienceChecked.Remove(TotalIdAudienceChecked.Length - 1, 1),
+                        _ => TotalIdAudienceChecked
+                    };
 
                     var dictionary = new Dictionary<string, string>
                     {
@@ -663,93 +673,101 @@ namespace WoWonder.Activities.Advertise
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Advertise.CreateAdvertise(dictionary, PathImage);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateAdvertiseObject result)
+                        case 200:
                         {
-                            AndHUD.Shared.Dismiss(this);
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
-
-                            //Add new item to list
-                            if (result.Data?.PostClass != null)
+                            switch (respond)
                             {
-                                result.Data.Value.PostClass.PostType = "ad";
+                                case CreateAdvertiseObject result:
+                                {
+                                    AndHUD.Shared.Dismiss(this);
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
 
-                                var countList = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
+                                    //Add new item to list
+                                    if (result.Data?.PostClass != null)
+                                    {
+                                        result.Data.Value.PostClass.PostType = "ad";
+
+                                        var countList = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
                                  
-                                var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer, this);
-                                combine.AddAdsPost();
+                                        var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer, this);
+                                        combine.AddAdsPost();
 
-                                int countIndex = 1;
-                                var model1 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                var model2 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                var model3 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                var model4 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                var model5 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                        int countIndex = 1;
+                                        var model1 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                        var model2 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                        var model3 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                        var model4 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                        var model5 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
-                                if (model5 != null)
-                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                                else if (model4 != null)
-                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                else if (model3 != null)
-                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                else if (model2 != null)
-                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                else if (model1 != null)
-                                    countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                else
-                                    countIndex = 0;
+                                        if (model5 != null)
+                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                        else if (model4 != null)
+                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                        else if (model3 != null)
+                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                        else if (model2 != null)
+                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                        else if (model1 != null)
+                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
+                                        else
+                                            countIndex = 0;
 
-                                var emptyStateChecker = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                if (emptyStateChecker != null && GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
-                                    GlobalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
+                                        var emptyStateChecker = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                        if (emptyStateChecker != null && GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
+                                            GlobalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
 
-                                GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
+                                        GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
 
-                                // My Profile
-                                MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
-                                if (myProfileActivity != null)
-                                { 
-                                    var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+                                        // My Profile
+                                        MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
+                                        if (myProfileActivity != null)
+                                        { 
+                                            var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
 
-                                    var combine1 = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), myProfileActivity.PostFeedAdapter.ListDiffer, this);
+                                            var combine1 = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), myProfileActivity.PostFeedAdapter.ListDiffer, this);
 
-                                    combine1.AddAdsPost();
+                                            combine1.AddAdsPost();
 
-                                    int countIndex1 = 1;
-                                    var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                    var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                    var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                    var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                    var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                            int countIndex1 = 1;
+                                            var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                            var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                            var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                            var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                            var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
-                                    if (model51 != null)
-                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
-                                    else if (model41 != null)
-                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
-                                    else if (model31 != null)
-                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
-                                    else if (model21 != null)
-                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
-                                    else if (model11 != null)
-                                        countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model11) + 1;
-                                    else
-                                        countIndex1 = 0;
+                                            if (model51 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
+                                            else if (model41 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
+                                            else if (model31 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
+                                            else if (model21 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
+                                            else if (model11 != null)
+                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model11) + 1;
+                                            else
+                                                countIndex1 = 0;
 
-                                    var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                    if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
-                                        myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
+                                            var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                            if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                                myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
 
-                                    myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                            myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                        }
+                                    }
+
+                                    Finish();
+                                    break;
                                 }
                             }
 
-                            Finish();
+                            break;
                         }
-                    }
-                    else
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
             }
@@ -770,31 +788,49 @@ namespace WoWonder.Activities.Advertise
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                //If its from Camera or Gallery
-                if (requestCode == CropImage.CropImageActivityRequestCode)
+                switch (requestCode)
                 {
-                    var result = CropImage.GetActivityResult(data);
-
-                    if (resultCode == Result.Ok)
+                    //If its from Camera or Gallery
+                    case CropImage.CropImageActivityRequestCode:
                     {
-                        if (result.IsSuccessful)
-                        {
-                            var resultUri = result.Uri;
+                        var result = CropImage.GetActivityResult(data);
 
-                            if (!string.IsNullOrEmpty(resultUri.Path))
+                        switch (resultCode)
+                        {
+                            case Result.Ok:
                             {
-                                PathImage = resultUri.Path;
-                                File file2 = new File(resultUri.Path);
-                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImageAd);
+                                switch (result.IsSuccessful)
+                                {
+                                    case true:
+                                    {
+                                        var resultUri = result.Uri;
+
+                                        switch (string.IsNullOrEmpty(resultUri.Path))
+                                        {
+                                            case false:
+                                            {
+                                                PathImage = resultUri.Path;
+                                                File file2 = new File(resultUri.Path);
+                                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImageAd);
                                  
-                                //GlideImageLoader.LoadImage(this, resultUri.Path, ImgCover, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                            }
-                            else
-                            {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                //GlideImageLoader.LoadImage(this, resultUri.Path, ImgCover, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                                break;
+                                            }
+                                            default:
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                break;
                             }
                         }
+
+                        break;
                     }
                 }
             }
@@ -811,16 +847,14 @@ namespace WoWonder.Activities.Advertise
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 108)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery();
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -835,25 +869,10 @@ namespace WoWonder.Activities.Advertise
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -866,10 +885,31 @@ namespace WoWonder.Activities.Advertise
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -973,20 +1013,25 @@ namespace WoWonder.Activities.Advertise
         {
             try
             {
-                if (TypeDialog == "Audience")
+                switch (TypeDialog)
                 {
-                    TotalIdAudienceChecked = "";
-                    var countriesArray = WoWonderTools.GetCountryList(this);
-                    for (int i = 0; i < which.Length; i++)
+                    case "Audience":
                     {
-                        var itemString = text[i];
-                        var check = countriesArray.FirstOrDefault(a => a.Value == itemString).Key;
-                        if (check != null)
+                        TotalIdAudienceChecked = "";
+                        var countriesArray = WoWonderTools.GetCountryList(this);
+                        for (int i = 0; i < which.Length; i++)
                         {
-                            TotalIdAudienceChecked += check + ",";
-                        } 
+                            var itemString = text[i];
+                            var check = countriesArray.FirstOrDefault(a => a.Value == itemString).Key;
+                            if (check != null)
+                            {
+                                TotalIdAudienceChecked += check + ",";
+                            } 
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception e)
             {
@@ -1002,12 +1047,12 @@ namespace WoWonder.Activities.Advertise
             {
                 if (p1 == DialogAction.Positive)
                 {
-                    switch (TypeDialog)
+                    TxtAudience.Text = TypeDialog switch
                     {
-                        case "Audience" when !string.IsNullOrEmpty(TotalIdAudienceChecked):
-                            TxtAudience.Text = GetText(Resource.String.Lbl_Selected);
-                            break; 
-                    }
+                        "Audience" when !string.IsNullOrEmpty(TotalIdAudienceChecked) => GetText(Resource.String
+                            .Lbl_Selected),
+                        _ => TxtAudience.Text
+                    };
 
                     p0.Dismiss();
                 }

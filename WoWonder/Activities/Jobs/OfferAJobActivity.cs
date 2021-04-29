@@ -248,18 +248,19 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    BtnAction.Click += BtnActionOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    BtnAction.Click -= BtnActionOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        BtnAction.Click += BtnActionOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        BtnAction.Click -= BtnActionOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -370,17 +371,22 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                base.OnActivityResult(requestCode, resultCode, data); 
-                if (requestCode == 369 && resultCode == Result.Ok)
+                base.OnActivityResult(requestCode, resultCode, data);
+                switch (requestCode)
                 {
-                    var jobsItem = data.GetStringExtra("JobsItem") ?? "";
-                    if (string.IsNullOrEmpty(jobsItem)) return;
-                    var dataObject = JsonConvert.DeserializeObject<JobInfoObject>(jobsItem);
-                    if (dataObject != null)
+                    case 369 when resultCode == Result.Ok:
                     {
-                        MAdapter.JobList.Insert(0, dataObject);
-                        MAdapter.NotifyDataSetChanged(); 
-                    } 
+                        var jobsItem = data.GetStringExtra("JobsItem") ?? "";
+                        if (string.IsNullOrEmpty(jobsItem)) return;
+                        var dataObject = JsonConvert.DeserializeObject<JobInfoObject>(jobsItem);
+                        if (dataObject != null)
+                        {
+                            MAdapter.JobList.Insert(0, dataObject);
+                            MAdapter.NotifyDataSetChanged(); 
+                        }
+
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -403,8 +409,11 @@ namespace WoWonder.Activities.Jobs
 
         private async Task LoadJobsAsync(string offset)
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -412,7 +421,7 @@ namespace WoWonder.Activities.Jobs
                 // api get job by page 
                 var countList = MAdapter.JobList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Jobs.JobByPage(PageId, "10", offset);
-                if (apiStatus != 200 || (respond is not JobByPageObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not JobByPageObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -420,27 +429,39 @@ namespace WoWonder.Activities.Jobs
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                        case > 0:
                         {
-                            if (item.Job != null)
-                                MAdapter.JobList.Add(WoWonderTools.ListFilterJobs(item.Job.Value.JobInfoClass));
-                        }
+                            foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            {
+                                if (item.Job != null)
+                                    MAdapter.JobList.Add(WoWonderTools.ListFilterJobs(item.Job.Value.JobInfoClass));
+                            }
 
-                        if (countList > 0)
-                        {
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
+                            switch (countList)
+                            {
+                                case > 0:
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
+                                    break;
+                                default:
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                            }
+
+                            break;
                         }
-                        else
+                        default:
                         {
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            switch (MAdapter.JobList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.JobList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -451,10 +472,12 @@ namespace WoWonder.Activities.Jobs
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -469,24 +492,29 @@ namespace WoWonder.Activities.Jobs
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.JobList.Count > 0)
+                switch (MAdapter.JobList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoJob);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoJob);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

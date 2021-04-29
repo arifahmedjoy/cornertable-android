@@ -7,9 +7,10 @@ namespace WoWonder.Library.RangeSlider
     {
         public static Bitmap DrawableToBitmap(Drawable drawable)
         {
-            if (drawable is BitmapDrawable)
+            switch (drawable)
             {
-                return ((BitmapDrawable) drawable).Bitmap;
+                case BitmapDrawable bitmapDrawable:
+                    return bitmapDrawable.Bitmap;
             }
 
             // We ask for the bounds if they have been set as they would be most

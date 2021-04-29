@@ -241,16 +241,17 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -358,8 +359,11 @@ namespace WoWonder.Activities.Communities.Groups
 
         private async Task LoadJoinAsync(string offset = "")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -367,7 +371,7 @@ namespace WoWonder.Activities.Communities.Groups
 
                 var countList = MAdapter.JoinList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Group.GetGroupJoinRequests(GroupId, "10", offset);
-                if (apiStatus != 200 || (respond is not GetGroupJoinRequestsObject result) || result.Data == null)
+                if (apiStatus != 200 || respond is not GetGroupJoinRequestsObject result || result.Data == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -375,9 +379,9 @@ namespace WoWonder.Activities.Communities.Groups
                 else
                 {
                     var respondList = result.Data.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Data let check = MAdapter.JoinList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -385,17 +389,23 @@ namespace WoWonder.Activities.Communities.Groups
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JoinList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.JoinList = new ObservableCollection<JoinRequestsObject>(result.Data);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.JoinList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.JoinList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -406,10 +416,12 @@ namespace WoWonder.Activities.Communities.Groups
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -424,24 +436,29 @@ namespace WoWonder.Activities.Communities.Groups
                 MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.JoinList.Count > 0)
+                switch (MAdapter.JoinList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)
@@ -482,9 +499,11 @@ namespace WoWonder.Activities.Communities.Groups
                         MAdapter?.NotifyItemRemoved(MAdapter.JoinList.IndexOf(local));
                     }
 
-                    if (MAdapter?.JoinList?.Count == 0)
+                    switch (MAdapter?.JoinList?.Count)
                     {
-                        ShowEmptyPage();
+                        case 0:
+                            ShowEmptyPage();
+                            break;
                     }
 
                     Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyAccepted), ToastLength.Short)?.Show();
@@ -500,9 +519,11 @@ namespace WoWonder.Activities.Communities.Groups
                         MAdapter?.NotifyItemRemoved(MAdapter.JoinList.IndexOf(local));
                     }
 
-                    if (MAdapter?.JoinList?.Count == 0)
+                    switch (MAdapter?.JoinList?.Count)
                     {
-                        ShowEmptyPage();
+                        case 0:
+                            ShowEmptyPage();
+                            break;
                     }
 
                     Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyDeleted), ToastLength.Short)?.Show();

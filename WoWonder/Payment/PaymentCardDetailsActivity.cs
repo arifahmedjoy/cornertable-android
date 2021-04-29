@@ -39,7 +39,7 @@ namespace WoWonder.Payment
         private Stripe Stripe;
         private PaymentSession PaymentSession;
 
-        private string Price, PayType, Id, tokenId;
+        private string Price, PayType, Id, TokenId;
       
         #endregion
 
@@ -193,18 +193,19 @@ namespace WoWonder.Payment
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MultilineWidget.CvcComplete += MultilineWidgetOnCvcComplete;
-                    EtName.TextChanged += EtNameOnTextChanged;
-                    BtnApply.Click += BtnApplyOnClick;
-                }
-                else
-                {
-                    MultilineWidget.CvcComplete -= MultilineWidgetOnCvcComplete;
-                    EtName.TextChanged -= EtNameOnTextChanged;
-                    BtnApply.Click -= BtnApplyOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MultilineWidget.CvcComplete += MultilineWidgetOnCvcComplete;
+                        EtName.TextChanged += EtNameOnTextChanged;
+                        BtnApply.Click += BtnApplyOnClick;
+                        break;
+                    default:
+                        MultilineWidget.CvcComplete -= MultilineWidgetOnCvcComplete;
+                        EtName.TextChanged -= EtNameOnTextChanged;
+                        BtnApply.Click -= BtnApplyOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -223,24 +224,24 @@ namespace WoWonder.Payment
             {
                 if (MultilineWidget.Card != null && MultilineWidget.Card.ValidateCard() && MultilineWidget.ValidateAllFields())
                 {
-                    if (MultilineWidget.Card.Number.Trim().Length == 0)
+                    switch (MultilineWidget.Card.Number.Trim().Length)
                     {
-                        CardNumber.Text = "**** **** **** ****";
-                    }
-                    else
-                    {
-                        string number = InsertPeriodically(MultilineWidget.Card.Number.Trim(), " ", 4);
-                        CardNumber.Text = number;
+                        case 0:
+                            CardNumber.Text = "**** **** **** ****";
+                            break;
+                        default:
+                        {
+                            string number = InsertPeriodically(MultilineWidget.Card.Number.Trim(), " ", 4);
+                            CardNumber.Text = number;
+                            break;
+                        }
                     }
 
-                    if (MultilineWidget.Card.ExpMonth.ToString().Trim().Length == 0 && MultilineWidget.Card.ExpYear.ToString().Trim().Length == 0)
+                    CardExpire.Text = MultilineWidget.Card.ExpMonth.ToString().Trim().Length switch
                     {
-                        CardExpire.Text = "MM/YY";
-                    }
-                    else
-                    {
-                        CardExpire.Text = MultilineWidget.Card.ExpMonth + "/" + MultilineWidget.Card.ExpYear;
-                    }
+                        0 when MultilineWidget.Card.ExpYear.ToString().Trim().Length == 0 => "MM/YY",
+                        _ => MultilineWidget.Card.ExpMonth + "/" + MultilineWidget.Card.ExpYear
+                    };
 
                     CardCvv.Text = MultilineWidget.Card.CVC.Trim().Length == 0 ? "***" : MultilineWidget.Card.CVC.Trim();
                 }
@@ -304,10 +305,16 @@ namespace WoWonder.Payment
 
         public static IEnumerable<string> SplitInParts(string s, int partLength)
         {
-            if (s == null)
-                throw new ArgumentNullException("s");
-            if (partLength <= 0)
-                throw new ArgumentException("Part length has to be positive.", "partLength");
+            switch (s)
+            {
+                case null:
+                    throw new ArgumentNullException("s");
+            }
+            switch (partLength)
+            {
+                case <= 0:
+                    throw new ArgumentException("Part length has to be positive.", "partLength");
+            }
 
             for (var i = 0; i < s.Length; i += partLength)
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
@@ -337,14 +344,15 @@ namespace WoWonder.Payment
             try
             {
                 var stripePublishableKey = ListUtils.SettingsSiteList?.StripeId ?? "";
-                if (!string.IsNullOrEmpty(stripePublishableKey))
+                switch (string.IsNullOrEmpty(stripePublishableKey))
                 {
-                    PaymentConfiguration.Init(stripePublishableKey);
-                    Stripe = new Stripe(this, stripePublishableKey);
-                }
-                else
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_ErrorConnectionSystemStripe), ToastLength.Long)?.Show();
+                    case false:
+                        PaymentConfiguration.Init(stripePublishableKey);
+                        Stripe = new Stripe(this, stripePublishableKey);
+                        break;
+                    default:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_ErrorConnectionSystemStripe), ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -381,33 +389,43 @@ namespace WoWonder.Payment
                         case "Funding":
                         {
                             var (apiStatus, respond) = await RequestsAsync.Funding.FundingPay(Id, Price);
-                            if (apiStatus == 200)
+                            switch (apiStatus)
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
-                                FundingViewActivity.GetInstance()?.StartApiService();
+                                case 200:
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
+                                    FundingViewActivity.GetInstance()?.StartApiService();
+                                    break;
+                                default:
+                                    Methods.DisplayReportResult(this, respond);
+                                    break;
                             }
-                            else Methods.DisplayReportResult(this, respond);
 
                             break;
                         }
                         case "membership" when Methods.CheckConnectivity():
                         {
                             var (apiStatus, respond) = await RequestsAsync.Global.SetProAsync(Id);
-                            if (apiStatus == 200)
+                            switch (apiStatus)
                             {
-                                var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                                if (dataUser != null)
+                                case 200:
                                 {
-                                    dataUser.IsPro = "1";
+                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                    if (dataUser != null)
+                                    {
+                                        dataUser.IsPro = "1";
 
-                                    var sqlEntity = new SqLiteDatabase();
-                                    sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                        var sqlEntity = new SqLiteDatabase();
+                                        sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
                                     
-                                }
+                                    }
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    break;
+                                }
+                                default:
+                                    Methods.DisplayReportResult(this, respond);
+                                    break;
                             }
-                            else Methods.DisplayReportResult(this, respond);
 
                             break;
                         }
@@ -420,14 +438,18 @@ namespace WoWonder.Payment
                             if (Methods.CheckConnectivity() && tabbedWallet != null)
                             {
                                 var (apiStatus, respond) = await RequestsAsync.Global.SendMoneyWalletAsync(tabbedWallet.SendMoneyFragment?.UserId, tabbedWallet.SendMoneyFragment?.TxtAmount.Text);
-                                if (apiStatus == 200)
+                                switch (apiStatus)
                                 {
-                                    tabbedWallet.SendMoneyFragment.TxtAmount.Text = string.Empty;
-                                    tabbedWallet.SendMoneyFragment.TxtEmail.Text = string.Empty;
+                                    case 200:
+                                        tabbedWallet.SendMoneyFragment.TxtAmount.Text = string.Empty;
+                                        tabbedWallet.SendMoneyFragment.TxtEmail.Text = string.Empty;
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Long)?.Show();
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Long)?.Show();
+                                        break;
+                                    default:
+                                        Methods.DisplayReportResult(this, respond);
+                                        break;
                                 }
-                                else Methods.DisplayReportResult(this, respond);
                             }
                             else
                             {
@@ -471,7 +493,7 @@ namespace WoWonder.Payment
                 //var stripeBankAccount = token.BankAccount;
                 //var stripeCard = token.Card;
                 //var stripeCreated = token.Created;
-                tokenId = token.Id;
+                TokenId = token.Id;
                 //var stripeLiveMode = token.Livemode;
                 //var stripeType = token.Type;
                 //var stripeUsed = token.Used;
@@ -479,7 +501,7 @@ namespace WoWonder.Payment
                  
                 CustomerSession.InitCustomerSession(this);
                 CustomerSession.Instance.SetCustomerShippingInformation(this, new ShippingInformation());
-                CustomerSession.Instance.AddProductUsageTokenIfValid(tokenId);
+                CustomerSession.Instance.AddProductUsageTokenIfValid(TokenId);
 
                 // Create the PaymentSession
                 PaymentSession = new PaymentSession(this);
@@ -547,10 +569,11 @@ namespace WoWonder.Payment
         {
             try
             {
-                if (data.PaymentReadyToCharge)
+                switch (data.PaymentReadyToCharge)
                 {
-                    
-                } 
+                    case true:
+                        break;
+                }
             }
             catch (Exception e)
             {

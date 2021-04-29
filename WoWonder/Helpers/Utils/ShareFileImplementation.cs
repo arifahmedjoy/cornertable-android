@@ -85,8 +85,12 @@ namespace WoWonder.Helpers.Utils
             }
             catch (Exception ex)
             {
-                if (!string.IsNullOrWhiteSpace(ex.Message))
-                    Console.WriteLine("Exception in ShareFile: ShareLocalFile Exception: {0}", ex);
+                switch (string.IsNullOrWhiteSpace(ex.Message))
+                {
+                    case false:
+                        Console.WriteLine("Exception in ShareFile: ShareLocalFile Exception: {0}", ex);
+                        break;
+                }
             }
         }
 

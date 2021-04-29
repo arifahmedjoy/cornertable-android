@@ -65,22 +65,30 @@ namespace WoWonder.Activities.Album.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is PhotosAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = PhotosList[position];
-                    if (item != null)
+                    case PhotosAdapterViewHolder holder:
                     {
-                        if (!string.IsNullOrEmpty(item.Image) && (item.Image.Contains("file://") || item.Image.Contains("content://") || item.Image.Contains("storage") || item.Image.Contains("/data/user/0/")))
+                        var item = PhotosList[position];
+                        if (item != null)
                         {
-                            File file2 = new File(item.Image);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                            switch (string.IsNullOrEmpty(item.Image))
+                            {
+                                case false when item.Image.Contains("file://") || item.Image.Contains("content://") || item.Image.Contains("storage") || item.Image.Contains("/data/user/0/"):
+                                {
+                                    File file2 = new File(item.Image);
+                                    var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                    Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                                    break;
+                                }
+                                default:
+                                    GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                    break;
+                            }
                         }
-                        else
-                        {
-                            GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable); 
-                        }
+
+                        break;
                     }
                 }
             }
@@ -93,8 +101,13 @@ namespace WoWonder.Activities.Album.Adapters
         {
             try
             {
-                if (holder is PhotosAdapterViewHolder viewHolder)
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                switch (holder)
+                {
+                    case PhotosAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
+                }
+
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -151,8 +164,11 @@ namespace WoWonder.Activities.Album.Adapters
                 var d = new List<string>();
                 var item = PhotosList[p0];
 
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Image != "")
                 {

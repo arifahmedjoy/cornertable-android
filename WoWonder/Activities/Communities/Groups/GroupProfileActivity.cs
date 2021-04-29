@@ -27,6 +27,7 @@ using Java.Lang;
 using WoWonder.Activities.AddPost;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Groups.Settings;
+using WoWonder.Activities.Live.Utils;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.Ads;
@@ -234,8 +235,12 @@ namespace WoWonder.Activities.Communities.Groups
 
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconEdit, IonIconsFonts.Create);
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                switch (AppSettings.FlowDirectionRightToLeft)
+                {
+                    case true:
+                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
+                }
                
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, MainRecyclerView);
@@ -265,32 +270,33 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    IconBack.Click += IconBackOnClick;
-                    EditAvatarImageGroup.Click += EditAvatarImageGroupOnClick;
-                    TxtEditGroupInfo.Click += TxtEditGroupInfoOnClick;
-                    BtnJoin.Click += BtnJoinOnClick;
-                    BtnMore.Click += BtnMoreOnClick;
-                    FloatingActionButtonView.Click += AddPostOnClick;
-                    LayoutJoinRequest.Click += LayoutJoinRequestOnClick;
-                    UserProfileImage.Click += UserProfileImageOnClick;
-                    CoverImage.Click += CoverImageOnClick;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    IconBack.Click -= IconBackOnClick;
-                    EditAvatarImageGroup.Click -= EditAvatarImageGroupOnClick;
-                    TxtEditGroupInfo.Click -= TxtEditGroupInfoOnClick;
-                    BtnJoin.Click -= BtnJoinOnClick;
-                    BtnMore.Click -= BtnMoreOnClick;
-                    FloatingActionButtonView.Click -= AddPostOnClick;
-                    LayoutJoinRequest.Click -= LayoutJoinRequestOnClick;
-                    UserProfileImage.Click -= UserProfileImageOnClick;
-                    CoverImage.Click -= CoverImageOnClick;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        IconBack.Click += IconBackOnClick;
+                        EditAvatarImageGroup.Click += EditAvatarImageGroupOnClick;
+                        TxtEditGroupInfo.Click += TxtEditGroupInfoOnClick;
+                        BtnJoin.Click += BtnJoinOnClick;
+                        BtnMore.Click += BtnMoreOnClick;
+                        FloatingActionButtonView.Click += AddPostOnClick;
+                        LayoutJoinRequest.Click += LayoutJoinRequestOnClick;
+                        UserProfileImage.Click += UserProfileImageOnClick;
+                        CoverImage.Click += CoverImageOnClick;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        IconBack.Click -= IconBackOnClick;
+                        EditAvatarImageGroup.Click -= EditAvatarImageGroupOnClick;
+                        TxtEditGroupInfo.Click -= TxtEditGroupInfoOnClick;
+                        BtnJoin.Click -= BtnJoinOnClick;
+                        BtnMore.Click -= BtnMoreOnClick;
+                        FloatingActionButtonView.Click -= AddPostOnClick;
+                        LayoutJoinRequest.Click -= LayoutJoinRequestOnClick;
+                        UserProfileImage.Click -= UserProfileImageOnClick;
+                        CoverImage.Click -= CoverImageOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -473,48 +479,57 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                if (BtnJoin?.Tag?.ToString() == "MyGroup")
+                switch (BtnJoin?.Tag?.ToString())
                 {
-                    SettingGroup_OnClick();
-                }
-                else
-                {
-                    if (!Methods.CheckConnectivity())
+                    case "MyGroup":
+                        SettingGroup_OnClick();
+                        break;
+                    default:
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    }
-                    else
-                    {
-                        string isJoined = BtnJoin.Text == GetText(Resource.String.Btn_Joined) ? "false" : "true";
-                        BtnJoin.BackgroundTintList = isJoined == "yes" || isJoined == "true" ? ColorStateList.ValueOf(Color.ParseColor("#efefef")) : ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
-                        BtnJoin.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
-                        BtnJoin.SetTextColor(isJoined == "yes" || isJoined == "true" ? Color.Black : Color.White);
-
-                        var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(GroupId);
-                        if (apiStatus == 200)
+                        if (!Methods.CheckConnectivity())
                         {
-                            if (respond is JoinGroupObject result)
-                            { 
-                                if (result.JoinStatus == "requested")
-                                { 
-                                    BtnJoin.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
-                                    BtnJoin.Text = GetText(Resource.String.Lbl_Request);
-                                    BtnJoin.SetTextColor(Color.White);
-                                    BtnMore.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
-                                    BtnMore.ImageTintList = ColorStateList.ValueOf(Color.White);
-                                } 
-                                else
+                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        }
+                        else
+                        {
+                            string isJoined = BtnJoin.Text == GetText(Resource.String.Btn_Joined) ? "false" : "true";
+                            BtnJoin.BackgroundTintList = isJoined == "yes" || isJoined == "true" ? ColorStateList.ValueOf(Color.ParseColor("#efefef")) : ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
+                            BtnJoin.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
+                            BtnJoin.SetTextColor(isJoined == "yes" || isJoined == "true" ? Color.Black : Color.White);
+
+                            var (apiStatus, respond) = await RequestsAsync.Group.Join_Group(GroupId);
+                            switch (apiStatus)
+                            {
+                                case 200:
                                 {
-                                    isJoined = result.JoinStatus == "left" ? "false" : "true";
-                                    BtnJoin.BackgroundTintList = isJoined == "yes" || isJoined == "true" ? ColorStateList.ValueOf(Color.ParseColor("#efefef")) : ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
-                                    BtnJoin.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
-                                    BtnJoin.SetTextColor(isJoined == "yes" || isJoined == "true" ? Color.Black : Color.White);
-                                }   
+                                    switch (respond)
+                                    {
+                                        case JoinGroupObject result when result.JoinStatus == "requested":
+                                            BtnJoin.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
+                                            BtnJoin.Text = GetText(Resource.String.Lbl_Request);
+                                            BtnJoin.SetTextColor(Color.White);
+                                            BtnMore.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
+                                            BtnMore.ImageTintList = ColorStateList.ValueOf(Color.White);
+                                            break;
+                                        case JoinGroupObject result:
+                                            isJoined = result.JoinStatus == "left" ? "false" : "true";
+                                            BtnJoin.BackgroundTintList = isJoined == "yes" || isJoined == "true" ? ColorStateList.ValueOf(Color.ParseColor("#efefef")) : ColorStateList.ValueOf(Color.ParseColor(AppSettings.MainColor));
+                                            BtnJoin.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
+                                            BtnJoin.SetTextColor(isJoined == "yes" || isJoined == "true" ? Color.Black : Color.White);
+                                            break;
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    Methods.DisplayReportResult(this, respond);
+                                    break;
                             }
                         }
-                        else Methods.DisplayReportResult(this, respond);
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -586,61 +601,75 @@ namespace WoWonder.Activities.Communities.Groups
                     {
                         var result = CropImage.GetActivityResult(data);
 
-                        if (resultCode == Result.Ok)
+                        switch (resultCode)
                         {
-                            if (result.IsSuccessful)
+                            case Result.Ok:
                             {
-                                var resultUri = result.Uri;
-
-                                if (!string.IsNullOrEmpty(resultUri.Path))
+                                switch (result.IsSuccessful)
                                 {
-                                    string pathImg;
-                                    switch (ImageType)
+                                    case true:
                                     {
-                                        case "Cover":
+                                        var resultUri = result.Uri;
+
+                                        switch (string.IsNullOrEmpty(resultUri.Path))
                                         {
-                                            pathImg = resultUri.Path;
-
-                                            //Set image
-                                            File file2 = new File(pathImg);
-                                            var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                            Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(CoverImage);
-
-                                            UpdateImageGroup_Api(ImageType, pathImg);
-                                            break;
-                                        }
-                                        case "Avatar":
-                                        {
-                                            pathImg = resultUri.Path;
-                                     
-                                            //Set image
-                                            File file2 = new File(pathImg);
-                                            var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                            Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(UserProfileImage);
-
-                                            var dataGroup = GroupsActivity.GetInstance()?.MAdapter?.GroupsAdapter?.GroupList?.FirstOrDefault(a => a.GroupId == GroupId);
-                                            if (dataGroup != null)
-                                            { 
-                                                dataGroup.Avatar = pathImg;
-                                                GroupsActivity.GetInstance()?.MAdapter?.GroupsAdapter?.NotifyDataSetChanged();
-
-                                                var dataGroup2 = ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == GroupId);
-                                                if (dataGroup2 != null)
+                                            case false:
+                                            {
+                                                string pathImg;
+                                                switch (ImageType)
                                                 {
-                                                    dataGroup2.Avatar = pathImg;
-                                                }
-                                            }
+                                                    case "Cover":
+                                                    {
+                                                        pathImg = resultUri.Path;
+
+                                                        //Set image
+                                                        File file2 = new File(pathImg);
+                                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(CoverImage);
+
+                                                        UpdateImageGroup_Api(ImageType, pathImg);
+                                                        break;
+                                                    }
+                                                    case "Avatar":
+                                                    {
+                                                        pathImg = resultUri.Path;
                                      
-                                            UpdateImageGroup_Api(ImageType, pathImg);
-                                            break;
+                                                        //Set image
+                                                        File file2 = new File(pathImg);
+                                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(UserProfileImage);
+
+                                                        var dataGroup = GroupsActivity.GetInstance()?.MAdapter?.GroupsAdapter?.GroupList?.FirstOrDefault(a => a.GroupId == GroupId);
+                                                        if (dataGroup != null)
+                                                        { 
+                                                            dataGroup.Avatar = pathImg;
+                                                            GroupsActivity.GetInstance()?.MAdapter?.GroupsAdapter?.NotifyDataSetChanged();
+
+                                                            var dataGroup2 = ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == GroupId);
+                                                            if (dataGroup2 != null)
+                                                            {
+                                                                dataGroup2.Avatar = pathImg;
+                                                            }
+                                                        }
+                                     
+                                                        UpdateImageGroup_Api(ImageType, pathImg);
+                                                        break;
+                                                    }
+                                                }
+
+                                                break;
+                                            }
+                                            default:
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
+                                                break;
                                         }
+
+                                        break;
                                     }
                                 }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
-                                }
-                            } 
+
+                                break;
+                            }
                         }
 
                         break;
@@ -692,36 +721,50 @@ namespace WoWonder.Activities.Communities.Groups
                         var postText = data.GetStringExtra("PostText") ?? "";
                         var diff = PostFeedAdapter.ListDiffer;
                         List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        if (dataGlobal.Count > 0)
+                        switch (dataGlobal.Count)
                         {
-                            foreach (var postData in dataGlobal)
+                            case > 0:
                             {
-                                postData.PostData.Orginaltext = postText;
-                                var index = diff.IndexOf(postData);
-                                if (index > -1)
+                                foreach (var postData in dataGlobal)
                                 {
-                                    PostFeedAdapter.NotifyItemChanged(index);
+                                    postData.PostData.Orginaltext = postText;
+                                    var index = diff.IndexOf(postData);
+                                    switch (index)
+                                    {
+                                        case > -1:
+                                            PostFeedAdapter.NotifyItemChanged(index);
+                                            break;
+                                    }
                                 }
-                            }
 
-                            var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                            if (checkTextSection == null)
-                            {
-                                var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                var item = new AdapterModelsClass
+                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
+                                switch (checkTextSection)
                                 {
-                                    TypeView = PostModelType.TextSectionPostPart,
-                                    Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true
-                                };
+                                    case null:
+                                    {
+                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
+                                        var item = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.TextSectionPostPart,
+                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true
+                                        };
 
-                                var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                if (headerPostIndex > -1)
-                                {
-                                    diff.Insert(headerPostIndex + 1, item);
-                                    PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
+                                        switch (headerPostIndex)
+                                        {
+                                            case > -1:
+                                                diff.Insert(headerPostIndex + 1, item);
+                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
+
+                                break;
                             }
                         }
 
@@ -736,20 +779,29 @@ namespace WoWonder.Activities.Communities.Groups
                         {
                             var diff = PostFeedAdapter.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            if (dataGlobal.Count > 0)
+                            switch (dataGlobal.Count)
                             {
-                                foreach (var postData in dataGlobal)
+                                case > 0:
                                 {
-                                    var index = diff.IndexOf(postData);
-                                    if (index > -1)
+                                    foreach (var postData in dataGlobal)
                                     {
-                                        var productUnion = postData.PostData.Product?.ProductClass;
-                                        if (productUnion != null) productUnion.Id = item.Id;
-                                        productUnion = item;
-                                        Console.WriteLine(productUnion);
+                                        var index = diff.IndexOf(postData);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                            {
+                                                var productUnion = postData.PostData.Product?.ProductClass;
+                                                if (productUnion != null) productUnion.Id = item.Id;
+                                                productUnion = item;
+                                                Console.WriteLine(productUnion);
 
-                                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    break;
                                 }
                             }
                         }
@@ -790,17 +842,21 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults); 
-                if (requestCode == 108)
+                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery(ImageType);
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
+                    case 235 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        new LiveUtil(this).OpenDialogLive();
+                        break;
+                    case 235:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -874,15 +930,20 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                //Share Plugin same as video
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = GroupDataClass.GroupName,
-                    Text = GroupDataClass.About,
-                    Url = GroupDataClass.Url
-                });
+                    //Share Plugin same as video
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = GroupDataClass.GroupName,
+                            Text = GroupDataClass.About,
+                            Url = GroupDataClass.Url
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -963,42 +1024,52 @@ namespace WoWonder.Activities.Communities.Groups
                 }
 
                 var modelsClass = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoGroupBox);
-                if (modelsClass == null)
+                switch (modelsClass)
                 {
-                    Combiner.InfoGroupBox(new GroupPrivacyModelClass {GroupClass = result, GroupId = result.GroupId}, 0);
-                }
-                else
-                {
-                    modelsClass.PrivacyModelClass = new GroupPrivacyModelClass
-                    {
-                        GroupClass = result,
-                        GroupId = result.GroupId
-                    };
-                    PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(modelsClass));
+                    case null:
+                        Combiner.InfoGroupBox(new GroupPrivacyModelClass {GroupClass = result, GroupId = result.GroupId}, 0);
+                        break;
+                    default:
+                        modelsClass.PrivacyModelClass = new GroupPrivacyModelClass
+                        {
+                            GroupClass = result,
+                            GroupId = result.GroupId
+                        };
+                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(modelsClass));
+                        break;
                 }
                  
                 var checkAboutBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AboutBox);
-                if (checkAboutBox == null)
+                switch (checkAboutBox)
                 {
-                    Combiner.AboutBoxPostView(Methods.FunString.DecodeString(result.About), 0);
-                }
-                else
-                {
-                    checkAboutBox.AboutModel.Description = Methods.FunString.DecodeString(result.About);
-                    PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(checkAboutBox));
+                    case null:
+                        Combiner.AboutBoxPostView(Methods.FunString.DecodeString(result.About), 0);
+                        break;
+                    default:
+                        checkAboutBox.AboutModel.Description = Methods.FunString.DecodeString(result.About);
+                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(checkAboutBox));
+                        break;
                 }
 
                 if (result.IsOwner != null && result.IsOwner.Value || WoWonderTools.IsJoinedGroup(result))
                 {
                     var checkSection = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                    if (checkSection == null)
-                    { 
-                        Combiner.AddPostBoxPostView("Group", -1, new PostDataObject { GroupRecipient = result });
+                    switch (checkSection)
+                    {
+                        case null:
+                        {
+                            Combiner.AddPostBoxPostView("Group", -1, new PostDataObject { GroupRecipient = result });
 
-                        if (AppSettings.ShowSearchForPosts)
-                            Combiner.SearchForPostsView("Group", new PostDataObject { GroupRecipient = result }); 
+                            switch (AppSettings.ShowSearchForPosts)
+                            {
+                                case true:
+                                    Combiner.SearchForPostsView("Group", new PostDataObject { GroupRecipient = result });
+                                    break;
+                            } 
 
-                        PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.Count -1 );
+                            PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.Count -1 );
+                            break;
+                        }
                     }
                     FloatingActionButtonView.Visibility = ViewStates.Visible;
                 }
@@ -1036,8 +1107,12 @@ namespace WoWonder.Activities.Communities.Groups
                     else
                     {
                         var emptyStateChecker = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                        if (emptyStateChecker == null)
-                            PostFeedAdapter.ListDiffer.Add(new AdapterModelsClass { TypeView = PostModelType.EmptyState, Id = 744747447 });
+                        switch (emptyStateChecker)
+                        {
+                            case null:
+                                PostFeedAdapter.ListDiffer.Add(new AdapterModelsClass { TypeView = PostModelType.EmptyState, Id = 744747447 });
+                                break;
+                        }
                     }
                     PostFeedAdapter.NotifyDataSetChanged();
                 }
@@ -1065,7 +1140,7 @@ namespace WoWonder.Activities.Communities.Groups
         {
             var (apiStatus, respond) = await RequestsAsync.Group.Get_Group_Data(GroupId);
 
-            if (apiStatus != 200 || (respond is not GetGroupDataObject result) || result.GroupData == null)
+            if (apiStatus != 200 || respond is not GetGroupDataObject result || result.GroupData == null)
                 Methods.DisplayReportResult(this, respond);
             else
             {
@@ -1083,25 +1158,10 @@ namespace WoWonder.Activities.Communities.Groups
             try
             {
                 ImageType = typeImage;
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -1114,10 +1174,31 @@ namespace WoWonder.Activities.Communities.Groups
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1143,30 +1224,45 @@ namespace WoWonder.Activities.Communities.Groups
                         case "Avatar":
                         {
                             var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Avatar(GroupId, path).ConfigureAwait(false);
-                            if (apiStatus == 200)
+                            switch (apiStatus)
                             {
-                                if (respond is MessageObject result)
+                                case 200:
                                 {
-                                    Toast.MakeText(this, result.Message, ToastLength.Short)?.Show(); 
-                                    //GlideImageLoader.LoadImage(this, file.Path, UserProfileImage, ImageStyle.RoundedCrop, ImagePlaceholders.Color);
+                                    switch (respond)
+                                    {
+                                        case MessageObject result:
+                                            Toast.MakeText(this, result.Message, ToastLength.Short)?.Show(); 
+                                            //GlideImageLoader.LoadImage(this, file.Path, UserProfileImage, ImageStyle.RoundedCrop, ImagePlaceholders.Color);
+                                            break;
+                                    }
+
+                                    break;
                                 }
+                                default:
+                                    Methods.DisplayReportResult(this, respond);
+                                    break;
                             }
-                            else Methods.DisplayReportResult(this, respond);
 
                             break;
                         }
                         case "Cover":
                         {
                             var (apiStatus, respond) = await RequestsAsync.Group.Update_Group_Cover(GroupId, path).ConfigureAwait(false);
-                            if (apiStatus == 200)
+                            switch (apiStatus)
                             {
-                                if ((respond is not MessageObject result))
-                                    return;
+                                case 200:
+                                {
+                                    if (respond is not MessageObject result)
+                                        return;
 
-                                Toast.MakeText(this, result.Message, ToastLength.Short)?.Show(); 
-                                //GlideImageLoader.LoadImage(this, file.Path, CoverImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                                    Toast.MakeText(this, result.Message, ToastLength.Short)?.Show(); 
+                                    //GlideImageLoader.LoadImage(this, file.Path, CoverImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                                    break;
+                                }
+                                default:
+                                    Methods.DisplayReportResult(this, respond);
+                                    break;
                             }
-                            else Methods.DisplayReportResult(this, respond);
 
                             break;
                         }
@@ -1186,54 +1282,69 @@ namespace WoWonder.Activities.Communities.Groups
             if (GroupDataClass.UserId == UserDetails.UserId)
             {
                 var (apiStatus, respond) = await RequestsAsync.Group.GetGroupJoinRequests(GroupId, "5");
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetGroupJoinRequestsObject result)
+                    case 200:
                     {
-                        RunOnUiThread(() =>
+                        switch (respond)
                         {
-                            var respondList = result.Data.Count;
-                            if (respondList > 0)
-                            {
-                                LayoutJoinRequest.Visibility = ViewStates.Visible;
-                                try
+                            case GetGroupJoinRequestsObject result:
+                                RunOnUiThread(() =>
                                 {
-                                    var list = result.Data.TakeLast(4).ToList();
-
-                                    for (var i = 0; i < list.Count; i++)
+                                    var respondList = result.Data.Count;
+                                    switch (respondList)
                                     {
-                                        var item = list[i];
-                                        if (item == null)
-                                            continue;
+                                        case > 0:
+                                            LayoutJoinRequest.Visibility = ViewStates.Visible;
+                                            try
+                                            {
+                                                var list = result.Data.TakeLast(4).ToList();
 
-                                        switch (i)
-                                        {
-                                            case 0:
-                                                GlideImageLoader.LoadImage(this, item?.UserData?.Avatar, JoinRequestImage1, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                                                break;
-                                            case 1:
-                                                GlideImageLoader.LoadImage(this, item?.UserData?.Avatar, JoinRequestImage2, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                                                break;
-                                            case 2:
-                                                GlideImageLoader.LoadImage(this, item?.UserData?.Avatar, JoinRequestImage3, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                                                break;
-                                        }
+                                                for (var i = 0; i < list.Count; i++)
+                                                {
+                                                    var item = list[i];
+                                                    switch (item)
+                                                    {
+                                                        case null:
+                                                            continue;
+                                                        default:
+                                                            switch (i)
+                                                            {
+                                                                case 0:
+                                                                    GlideImageLoader.LoadImage(this, item?.UserData?.Avatar, JoinRequestImage1, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                                    break;
+                                                                case 1:
+                                                                    GlideImageLoader.LoadImage(this, item?.UserData?.Avatar, JoinRequestImage2, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                                    break;
+                                                                case 2:
+                                                                    GlideImageLoader.LoadImage(this, item?.UserData?.Avatar, JoinRequestImage3, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                                                    break;
+                                                            }
 
+                                                            break;
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Methods.DisplayReportResultTrack(e);
+                                            }
+
+                                            break;
+                                        default:
+                                            LayoutJoinRequest.Visibility = ViewStates.Gone;
+                                            break;
                                     }
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e);
-                                }
-                            }
-                            else
-                            {
-                                LayoutJoinRequest.Visibility = ViewStates.Gone;
-                            }
-                        });
+                                });
+                                break;
+                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
             }
             else
             {

@@ -101,8 +101,12 @@ namespace WoWonder.Helpers.Controller
                     MainVideoFrameLayout = ActivityContext.FindViewById<FrameLayout>(Resource.Id.root);
                     MainVideoFrameLayout.SetOnClickListener(this);
                       
-                    if (!MFullScreenButton.HasOnClickListeners)
-                        MFullScreenButton.SetOnClickListener(this); 
+                    switch (MFullScreenButton.HasOnClickListeners)
+                    {
+                        case false:
+                            MFullScreenButton.SetOnClickListener(this);
+                            break;
+                    } 
                 }
                 else
                 {
@@ -113,8 +117,12 @@ namespace WoWonder.Helpers.Controller
                     MFullScreenIcon = ControlView.FindViewById<ImageView>(Resource.Id.exo_fullscreen_icon);
                     MFullScreenButton = ControlView.FindViewById<FrameLayout>(Resource.Id.exo_fullscreen_button);
 
-                    if (!MFullScreenButton.HasOnClickListeners)
-                        MFullScreenButton.SetOnClickListener(this);
+                    switch (MFullScreenButton.HasOnClickListeners)
+                    {
+                        case false:
+                            MFullScreenButton.SetOnClickListener(this);
+                            break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -150,71 +158,102 @@ namespace WoWonder.Helpers.Controller
                     // Produces DataSource instances through which media data is loaded.
                     var defaultSource = GetMediaSourceFromUrl(videoUrl, videoUrl?.Path?.Split('.').Last(), "normal");
 
-                    VideoSource = null!;
-
-                    //Set Interactive Media Ads 
-                    if (PlayerSettings.ShowInteractiveMediaAds)
-                        VideoSource = CreateMediaSourceWithAds(defaultSource, PlayerSettings.ImAdsUri);
-
-                    if (SimpleExoPlayerView == null)
-                        Initialize();
-
-                    //Set Cache Media Load
-                    if (PlayerSettings.EnableOfflineMode)
+                    VideoSource = PlayerSettings.ShowInteractiveMediaAds switch
                     {
-                        VideoSource = VideoSource == null? CreateCacheMediaSource(defaultSource, videoUrl): CreateCacheMediaSource(VideoSource, videoUrl);
-                        if (VideoSource != null)
+                        //Set Interactive Media Ads 
+                        true => CreateMediaSourceWithAds(defaultSource, PlayerSettings.ImAdsUri),
+                        _ => null!
+                    };
+
+                    switch (SimpleExoPlayerView)
+                    {
+                        case null:
+                            Initialize();
+                            break;
+                    }
+
+                    switch (PlayerSettings.EnableOfflineMode)
+                    {
+                        //Set Cache Media Load
+                        case true:
+                        {
+                            VideoSource = VideoSource == null? CreateCacheMediaSource(defaultSource, videoUrl): CreateCacheMediaSource(VideoSource, videoUrl);
+                            if (VideoSource != null)
+                            {
+                                SimpleExoPlayerView.Player = Player;
+                                Player.Prepare(VideoSource);
+                                    Player.AddListener(PlayerListener);
+
+                                    Player.PlayWhenReady = true;
+
+                                bool haveResumePosition = ResumeWindow != C.IndexUnset;
+                                switch (haveResumePosition)
+                                {
+                                    case true:
+                                        Player.SeekTo(ResumeWindow, ResumePosition);
+                                        break;
+                                }
+
+                                return;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    switch (VideoSource)
+                    {
+                        case null:
+                        {
+                            switch (string.IsNullOrEmpty(videoUrL))
+                            {
+                                case false when videoUrL.Contains("youtube") || videoUrL.Contains("Youtube") || videoUrL.Contains("youtu"):
+                                    //Task.Factory.StartNew(async () =>
+                                    //{
+                                    //    var newurl = await VideoInfoRetriever.GetEmbededVideo(VideoData.source);
+                                    //    videoSource = CreateDefaultMediaSource(Android.Net.Uri.Parse(newurl));
+                                    //});
+                                    break;
+                                case false:
+                                {
+                                    VideoSource = GetMediaSourceFromUrl(Uri.Parse(videoUrL), videoUrL?.Split('.').Last(), "normal");
+
+                                    SimpleExoPlayerView.Player = Player;
+                                    Player.Prepare(VideoSource);
+
+                                            Player.AddListener(PlayerListener);
+                                            Player.PlayWhenReady = true;
+
+                                    bool haveResumePosition = ResumeWindow != C.IndexUnset;
+                                    switch (haveResumePosition)
+                                    {
+                                        case true:
+                                            Player.SeekTo(ResumeWindow, ResumePosition);
+                                            break;
+                                    }
+                                    break;
+                                }
+                            }
+
+                            break;
+                        }
+                        default:
                         {
                             SimpleExoPlayerView.Player = Player;
                             Player.Prepare(VideoSource);
-                            //Player.AddListener(PlayerListener);
-                            Player.PlayWhenReady = true;
 
-                            bool haveResumePosition = ResumeWindow != C.IndexUnset;
-                            if (haveResumePosition)
-                                Player.SeekTo(ResumeWindow, ResumePosition);
-
-                            return;
-                        }
-                    }
-
-                    if (VideoSource == null)
-                    {
-                        if (!string.IsNullOrEmpty(videoUrL))
-                        {
-                            if (videoUrL.Contains("youtube") || videoUrL.Contains("Youtube") || videoUrL.Contains("youtu"))
-                            {
-                                //Task.Factory.StartNew(async () =>
-                                //{
-                                //    var newurl = await VideoInfoRetriever.GetEmbededVideo(VideoData.source);
-                                //    videoSource = CreateDefaultMediaSource(Android.Net.Uri.Parse(newurl));
-                                //});
-                            }
-                            else
-                            {
-                                VideoSource = GetMediaSourceFromUrl(Uri.Parse(videoUrL), videoUrL?.Split('.').Last(), "normal");
-
-                                SimpleExoPlayerView.Player = Player;
-                                Player.Prepare(VideoSource);
-                                //Player.AddListener(PlayerListener);
+                                Player.AddListener(PlayerListener);
                                 Player.PlayWhenReady = true;
 
-                                bool haveResumePosition = ResumeWindow != C.IndexUnset;
-                                if (haveResumePosition)
+                            bool haveResumePosition = ResumeWindow != C.IndexUnset;
+                            switch (haveResumePosition)
+                            {
+                                case true:
                                     Player.SeekTo(ResumeWindow, ResumePosition);
+                                    break;
                             }
+                            break;
                         }
-                    }
-                    else
-                    {
-                        SimpleExoPlayerView.Player = Player;
-                        Player.Prepare(VideoSource);
-                        //Player.AddListener(PlayerListener);
-                        Player.PlayWhenReady = true;
-
-                        bool haveResumePosition = ResumeWindow != C.IndexUnset;
-                        if (haveResumePosition)
-                            Player.SeekTo(ResumeWindow, ResumePosition);
                     }
                 }
             }
@@ -263,10 +302,11 @@ namespace WoWonder.Helpers.Controller
             {
                 if (SimpleExoPlayerView.Player != null)
                 {
-                    if (SimpleExoPlayerView.Player.PlaybackState == IPlayer.StateReady)
+                    SimpleExoPlayerView.Player.PlayWhenReady = SimpleExoPlayerView.Player.PlaybackState switch
                     {
-                        SimpleExoPlayerView.Player.PlayWhenReady = false;
-                    }
+                        IPlayer.StateReady => false,
+                        _ => SimpleExoPlayerView.Player.PlayWhenReady
+                    };
 
                     //GC Collector
                     GC.Collect();
@@ -284,14 +324,13 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                if (PlayerSettings.EnableOfflineMode)
+                switch (PlayerSettings.EnableOfflineMode)
                 {
-                    videoSource = GetMediaSourceFromUrl(videoUrL, videoUrL?.Path?.Split('.').Last(), "normal");
-                    return videoSource;
-                }
-                else
-                {
-                    return null!;
+                    case true:
+                        videoSource = GetMediaSourceFromUrl(videoUrL, videoUrL?.Path?.Split('.').Last(), "normal");
+                        return videoSource;
+                    default:
+                        return null!;
                 }
             }
             catch (Exception exception)
@@ -308,27 +347,35 @@ namespace WoWonder.Helpers.Controller
                 // Player = ExoPlayerFactory.NewSimpleInstance(ActivityContext);
                 SimpleExoPlayerView.Player = Player;
 
-                if (ImaAdsLoader == null)
+                switch (ImaAdsLoader)
                 {
-                    Player ??= new SimpleExoPlayer.Builder(ActivityContext).Build();
-                    SimpleExoPlayerView.Player = Player;
-
-                    if (ImaAdsLoader == null)
+                    case null:
                     {
-                        var imaSdkSettings = ImaSdkFactory.Instance.CreateImaSdkSettings();
-                        imaSdkSettings.AutoPlayAdBreaks = true;
-                        imaSdkSettings.DebugMode = true;
+                        Player ??= new SimpleExoPlayer.Builder(ActivityContext).Build();
+                        SimpleExoPlayerView.Player = Player;
 
-                        ImaAdsLoader = new ImaAdsLoader.Builder(ActivityContext)
-                            .SetImaSdkSettings(imaSdkSettings)
-                            .SetMediaLoadTimeoutMs(30 * 1000)
-                            .SetVastLoadTimeoutMs(30 * 1000)
-                            .BuildForAdTag(imAdsUri); // here is url for vast xml file
+                        switch (ImaAdsLoader)
+                        {
+                            case null:
+                            {
+                                var imaSdkSettings = ImaSdkFactory.Instance.CreateImaSdkSettings();
+                                imaSdkSettings.AutoPlayAdBreaks = true;
+                                imaSdkSettings.DebugMode = true;
 
-                        IMediaSourceFactory adMediaSourceFactory = new MediaSourceFactoryAnonymousInnerClass(this);
+                                ImaAdsLoader = new ImaAdsLoader.Builder(ActivityContext)
+                                    .SetImaSdkSettings(imaSdkSettings)
+                                    .SetMediaLoadTimeoutMs(30 * 1000)
+                                    .SetVastLoadTimeoutMs(30 * 1000)
+                                    .BuildForAdTag(imAdsUri); // here is url for vast xml file
 
-                        IMediaSource mediaSourceWithAds = new AdsMediaSource(videoSource, adMediaSourceFactory, ImaAdsLoader, SimpleExoPlayerView);
-                        return mediaSourceWithAds;
+                                IMediaSourceFactory adMediaSourceFactory = new MediaSourceFactoryAnonymousInnerClass(this);
+
+                                IMediaSource mediaSourceWithAds = new AdsMediaSource(videoSource, adMediaSourceFactory, ImaAdsLoader, SimpleExoPlayerView);
+                                return mediaSourceWithAds;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -348,18 +395,18 @@ namespace WoWonder.Helpers.Controller
 
         private class MediaSourceFactoryAnonymousInnerClass : Java.Lang.Object, IMediaSourceFactory
         {
-            private readonly VideoController outerInstance;
-            private IDrmSessionManager drmSessionManager = null;
+            private readonly VideoController OuterInstance;
+            private IDrmSessionManager DrmSessionManager = null;
 
             public MediaSourceFactoryAnonymousInnerClass(VideoController outerInstance)
             {
-                this.outerInstance = outerInstance;
-                drmSessionManager = IDrmSessionManager.DummyDrmSessionManager;
+                OuterInstance = outerInstance;
+                DrmSessionManager = IDrmSessionManager.DummyDrmSessionManager;
             }
 
             public IMediaSource CreateMediaSource(Uri uri)
             {
-                return outerInstance.GetMediaSourceFromUrl(uri, uri?.Path?.Split('.').Last(), "ads");
+                return OuterInstance.GetMediaSourceFromUrl(uri, uri?.Path?.Split('.').Last(), "ads");
             }
 
             public int[] GetSupportedTypes()
@@ -369,7 +416,7 @@ namespace WoWonder.Helpers.Controller
 
             public IMediaSourceFactory SetDrmSessionManager(IDrmSessionManager drmSessionManager)
             {
-                this.drmSessionManager = drmSessionManager ?? IDrmSessionManager.DummyDrmSessionManager;
+                DrmSessionManager = drmSessionManager ?? IDrmSessionManager.DummyDrmSessionManager;
                 return this;
             }
         }
@@ -378,10 +425,10 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(ActivityContext);
+                var bandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(ActivityContext);
                 //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(MainContext, AppSettings.ApplicationName), mBandwidthMeter);
-                var buildHttpDataSourceFactory = new DefaultDataSourceFactory(ActivityContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
-                var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(ActivityContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
+                var buildHttpDataSourceFactory = new DefaultDataSourceFactory(ActivityContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
+                var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(ActivityContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
                 int type = Util.InferContentType(uri, extension);
                 IMediaSource src = type switch
                 {
@@ -454,7 +501,7 @@ namespace WoWonder.Helpers.Controller
             {
                 if (FullscreenPlayerView != null)
                 {
-                    Player?.AddListener(PlayerListener);
+                    Player.AddListener(PlayerListener);
                     FullscreenPlayerView.Player = Player;
                     if (FullscreenPlayerView.Player != null) FullscreenPlayerView.Player.PlayWhenReady = true;
                     MFullScreenIcon.SetImageDrawable(ActivityContext.GetDrawable(Resource.Drawable.ic_action_ic_fullscreen_skrink));
@@ -524,18 +571,20 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                //Share Plugin same as flame
-                if (!CrossShare.IsSupported)
+                switch (CrossShare.IsSupported)
                 {
-                    return;
+                    //Share Plugin same as flame
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = video.Name,
+                            Text = video.Description,
+                            Url = video.Url
+                        });
+                        break;
                 }
-
-                await CrossShare.Current.Share(new ShareMessage
-                {
-                    Title = video.Name,
-                    Text = video.Description,
-                    Url = video.Url
-                });
             }
             catch (Exception exception)
             {

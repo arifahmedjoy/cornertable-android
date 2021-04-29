@@ -31,6 +31,7 @@ using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Pages;
 using WoWonder.Activities.Contacts;
 using WoWonder.Activities.General;
+using WoWonder.Activities.Live.Utils;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.SettingsPreferences.General;
@@ -262,34 +263,46 @@ namespace WoWonder.Activities.MyProfile
                 SwipeRefreshLayout.Enabled = true;
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
                  
-                if (AppSettings.FlowDirectionRightToLeft)
-                    IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-
-                if (AppSettings.ConnectivitySystem == 1) // Following
+                switch (AppSettings.FlowDirectionRightToLeft)
                 {
-                    TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
-                    TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
+                    case true:
+                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
                 }
-                else // Friend
+
+                switch (AppSettings.ConnectivitySystem)
                 {
-                    TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
-                    TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+                    // Following
+                    case 1:
+                        TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
+                        TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
+                        break;
+                    // Friend
+                    default:
+                        TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
+                        TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+                        break;
                 }
 
                 BtnEditDataUser.Visibility = ViewStates.Visible;
                 BtnMore.Visibility = ViewStates.Visible;
                 BtnEditImage.Visibility = ViewStates.Visible;
 
-                if (!AppSettings.ShowUserPoint)
+                switch (AppSettings.ShowUserPoint)
                 {
-                    ViewPoints.Visibility = ViewStates.Gone;
-                    CountPointsLayout.Visibility = ViewStates.Gone;
+                    case false:
+                        ViewPoints.Visibility = ViewStates.Gone;
+                        CountPointsLayout.Visibility = ViewStates.Gone;
 
-                    HeaderSection.WeightSum = 3;
+                        HeaderSection.WeightSum = 3;
+                        break;
                 }
 
-                if (!AppSettings.ShowWallet)
-                    WalletSection.Visibility = ViewStates.Gone;
+                WalletSection.Visibility = AppSettings.ShowWallet switch
+                {
+                    false => ViewStates.Gone,
+                    _ => WalletSection.Visibility
+                };
 
                 OnlineView.Visibility = ViewStates.Gone;
 
@@ -342,36 +355,37 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    BtnEditDataUser.Click += BtnEditDataUserOnClick;
-                    BtnEditImage.Click += BtnEditImageOnClick;
-                    BtnMore.Click += BtnMoreOnClick;
-                    IconBack.Click += IconBackOnClick;
-                    LayoutCountFollowers.Click += LayoutCountFollowersOnClick;
-                    LayoutCountFollowing.Click += LayoutCountFollowingOnClick;
-                    LayoutCountLikes.Click += LayoutCountLikesOnClick;
-                    CountPointsLayout.Click += CountPointsLayoutOnClick;
-                    WalletSection.Click += WalletSectionOnClick;
-                    UserProfileImage.Click += UserProfileImageOnClick;
-                    CoverImage.Click += CoverImageOnClick;
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    BtnEditDataUser.Click -= BtnEditDataUserOnClick;
-                    BtnEditImage.Click -= BtnEditImageOnClick;
-                    BtnMore.Click -= BtnMoreOnClick;
-                    IconBack.Click -= IconBackOnClick;
-                    LayoutCountFollowers.Click -= LayoutCountFollowersOnClick;
-                    LayoutCountFollowing.Click -= LayoutCountFollowingOnClick;
-                    LayoutCountLikes.Click -= LayoutCountLikesOnClick;
-                    CountPointsLayout.Click -= CountPointsLayoutOnClick;
-                    WalletSection.Click -= WalletSectionOnClick;
-                    UserProfileImage.Click -= UserProfileImageOnClick;
-                    CoverImage.Click -= CoverImageOnClick;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        BtnEditDataUser.Click += BtnEditDataUserOnClick;
+                        BtnEditImage.Click += BtnEditImageOnClick;
+                        BtnMore.Click += BtnMoreOnClick;
+                        IconBack.Click += IconBackOnClick;
+                        LayoutCountFollowers.Click += LayoutCountFollowersOnClick;
+                        LayoutCountFollowing.Click += LayoutCountFollowingOnClick;
+                        LayoutCountLikes.Click += LayoutCountLikesOnClick;
+                        CountPointsLayout.Click += CountPointsLayoutOnClick;
+                        WalletSection.Click += WalletSectionOnClick;
+                        UserProfileImage.Click += UserProfileImageOnClick;
+                        CoverImage.Click += CoverImageOnClick;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        BtnEditDataUser.Click -= BtnEditDataUserOnClick;
+                        BtnEditImage.Click -= BtnEditImageOnClick;
+                        BtnMore.Click -= BtnMoreOnClick;
+                        IconBack.Click -= IconBackOnClick;
+                        LayoutCountFollowers.Click -= LayoutCountFollowersOnClick;
+                        LayoutCountFollowing.Click -= LayoutCountFollowingOnClick;
+                        LayoutCountLikes.Click -= LayoutCountLikesOnClick;
+                        CountPointsLayout.Click -= CountPointsLayoutOnClick;
+                        WalletSection.Click -= WalletSectionOnClick;
+                        UserProfileImage.Click -= UserProfileImageOnClick;
+                        CoverImage.Click -= CoverImageOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -572,12 +586,16 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                if (LayoutCountFollowing?.Tag?.ToString() == "Following")
+                switch (LayoutCountFollowing?.Tag?.ToString())
                 {
-                    var intent = new Intent(this, typeof(MyContactsActivity));
-                    intent.PutExtra("ContactsType", "Following");
-                    intent.PutExtra("UserId", UserDetails.UserId);
-                    StartActivity(intent);
+                    case "Following":
+                    {
+                        var intent = new Intent(this, typeof(MyContactsActivity));
+                        intent.PutExtra("ContactsType", "Following");
+                        intent.PutExtra("UserId", UserDetails.UserId);
+                        StartActivity(intent);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -619,8 +637,12 @@ namespace WoWonder.Activities.MyProfile
                 arrayAdapter.Add(GetText(Resource.String.Lbl_ViewPrivacy));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_SettingsAccount));
 
-                if (ListUtils.SettingsSiteList?.Pro == "1" && AppSettings.ShowGoPro && SProType != "4")
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_upgrade_now));
+                switch (ListUtils.SettingsSiteList?.Pro)
+                {
+                    case "1" when AppSettings.ShowGoPro && SProType != "4":
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_upgrade_now));
+                        break;
+                }
                  
                 dialogList.Title(Resource.String.Lbl_More);
                 dialogList.Items(arrayAdapter);
@@ -680,8 +702,12 @@ namespace WoWonder.Activities.MyProfile
                 {
                     LoadPassedDate(dataUser);
                      
-                    if (ListUtils.MyFollowersList.Count > 0 && dataUser.Details.DetailsClass != null)
-                        LoadFriendsLayout(new List<UserDataObject>(ListUtils.MyFollowersList), Methods.FunString.FormatPriceValue(Convert.ToInt32(dataUser.Details.DetailsClass.FollowingCount)));
+                    switch (ListUtils.MyFollowersList.Count)
+                    {
+                        case > 0 when dataUser.Details.DetailsClass != null:
+                            LoadFriendsLayout(new List<UserDataObject>(ListUtils.MyFollowersList), Methods.FunString.FormatPriceValue(Convert.ToInt32(dataUser.Details.DetailsClass.FollowingCount)));
+                            break;
+                    }
                      
                     PostFeedAdapter.NotifyDataSetChanged();
                 }
@@ -708,7 +734,7 @@ namespace WoWonder.Activities.MyProfile
         {
             var (apiStatus, respond) = await RequestsAsync.Global.Get_User_Data(UserDetails.UserId, "user_data,followers,following");
 
-            if (apiStatus != 200 || (respond is not GetUserDataObject result) || result.UserData == null)
+            if (apiStatus != 200 || respond is not GetUserDataObject result || result.UserData == null)
             {
                 Methods.DisplayReportResult(this, respond);
             }
@@ -722,9 +748,13 @@ namespace WoWonder.Activities.MyProfile
                 //if (result.joinedGroups.Length > 0)
                 //    RunOnUiThread(() => { LoadGroupsLayout(result.joinedGroups, IMethods.FunString.FormatPriceValue(Convert.ToInt32(result.UserProfileObject.Details.GroupsCount))); });
 
-                //if (SPrivacyFriend == "0" || result.UserProfileObject?.IsFollowing == "1" && SPrivacyFriend == "1" || SPrivacyFriend == "2")
-                    if (result.Following.Count > 0 && result.UserData.Details.DetailsClass != null)
+                switch (result.Following.Count)
+                {
+                    //if (SPrivacyFriend == "0" || result.UserProfileObject?.IsFollowing == "1" && SPrivacyFriend == "1" || SPrivacyFriend == "2")
+                    case > 0 when result.UserData.Details.DetailsClass != null:
                         RunOnUiThread(() => { LoadFriendsLayout(result.Following, Methods.FunString.FormatPriceValue(Convert.ToInt32(result.UserData.Details.DetailsClass.FollowingCount))); });
+                        break;
+                }
                      
                 //##Set the AddBox place on Main RecyclerView
                 //------------------------------------------------------------------------
@@ -748,8 +778,12 @@ namespace WoWonder.Activities.MyProfile
                     Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check6) + 1);
                 }
                  
-                if (AppSettings.ShowSearchForPosts)
-                    Combiner.SearchForPostsView("user");
+                switch (AppSettings.ShowSearchForPosts)
+                {
+                    case true:
+                        Combiner.SearchForPostsView("user");
+                        break;
+                }
 
                 //------------------------------------------------------------------------ 
                 RunOnUiThread(() =>
@@ -760,13 +794,18 @@ namespace WoWonder.Activities.MyProfile
                         var sqlEntity = new SqLiteDatabase();
                         sqlEntity.Insert_Or_Update_To_MyProfileTable(result.UserData);
 
-                        if (result.Following?.Count > 0)
-                            sqlEntity.Insert_Or_Replace_MyContactTable(new ObservableCollection<UserDataObject>(result.Following));
+                        switch (result.Following?.Count)
+                        {
+                            case > 0:
+                                sqlEntity.Insert_Or_Replace_MyContactTable(new ObservableCollection<UserDataObject>(result.Following));
+                                break;
+                        }
 
-                        if (result.Followers?.Count > 0)
-                            ListUtils.MyFollowersList = new ObservableCollection<UserDataObject>(result.Followers);
-
-                        
+                        ListUtils.MyFollowersList = result.Followers?.Count switch
+                        {
+                            > 0 => new ObservableCollection<UserDataObject>(result.Followers),
+                            _ => ListUtils.MyFollowersList
+                        };
                     }
                     catch (Exception e)
                     {
@@ -793,36 +832,56 @@ namespace WoWonder.Activities.MyProfile
                 var textHighLighter = result.Name;
                 var textIsPro = string.Empty;
                 
-                if (result.Verified == "1")
-                    textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
-
-                if (result.IsPro == "1")
+                switch (result.Verified)
                 {
-                    textIsPro = " " + IonIconsFonts.Flash;
-                    textHighLighter += textIsPro;
+                    case "1":
+                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
+                        break;
+                }
+
+                switch (result.IsPro)
+                {
+                    case "1":
+                        textIsPro = " " + IonIconsFonts.Flash;
+                        textHighLighter += textIsPro;
+                        break;
                 }
                 
                 var decorator = TextDecorator.Decorate(TxtUsername, textHighLighter);
 
-                if (result.Verified == "1")
-                    decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                switch (result.Verified)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                        break;
+                }
 
-                if (result.IsPro == "1")
-                    decorator.SetTextColor(Resource.Color.gnt_white, textIsPro);
+                switch (result.IsPro)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.gnt_white, textIsPro);
+                        break;
+                }
 
                 SProType = result.ProType;
 
                 decorator.Build();
 
-                if (AppSettings.ShowWallet)
-                    TxtWalletNumber.Text = result.Wallet;
+                TxtWalletNumber.Text = AppSettings.ShowWallet switch
+                {
+                    true => result.Wallet,
+                    _ => TxtWalletNumber.Text
+                };
 
                 RunOnUiThread(() =>
                 {
                     try
                     {
-                        if (result.LastseenStatus == "on")
-                            OnlineView.Visibility = ViewStates.Visible;
+                        OnlineView.Visibility = result.LastseenStatus switch
+                        {
+                            "on" => ViewStates.Visible,
+                            _ => OnlineView.Visibility
+                        };
                     }
                     catch (Exception e)
                     {
@@ -832,16 +891,17 @@ namespace WoWonder.Activities.MyProfile
 
                 
                 var checkAboutBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AboutBox);
-                if (checkAboutBox == null)
-                { 
-                    Combiner.AboutBoxPostView(WoWonderTools.GetAboutFinal(result), 0);
-                    //PostFeedAdapter.ListDiffer.Insert(0, aboutBox);
-                    //PostFeedAdapter.NotifyItemInserted(0);
-                }
-                else
+                switch (checkAboutBox)
                 {
-                    checkAboutBox.AboutModel.Description = WoWonderTools.GetAboutFinal(result);
-                    //PostFeedAdapter.NotifyItemChanged(0);
+                    case null:
+                        Combiner.AboutBoxPostView(WoWonderTools.GetAboutFinal(result), 0);
+                        //PostFeedAdapter.ListDiffer.Insert(0, aboutBox);
+                        //PostFeedAdapter.NotifyItemInserted(0);
+                        break;
+                    default:
+                        checkAboutBox.AboutModel.Description = WoWonderTools.GetAboutFinal(result);
+                        //PostFeedAdapter.NotifyItemChanged(0);
+                        break;
                 }
 
                 GlideImageLoader.LoadImage(this, result.Avatar, UserProfileImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
@@ -860,34 +920,43 @@ namespace WoWonder.Activities.MyProfile
 
                 //SetProfilePrivacy(result);
 
-                if (AppSettings.ShowUserPoint)
-                    TxtCountPoints.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Points));
+                TxtCountPoints.Text = AppSettings.ShowUserPoint switch
+                {
+                    true => Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Points)),
+                    _ => TxtCountPoints.Text
+                };
 
                 if (result.Details.DetailsClass != null)
                 {
-                    // Following
-                    if (AppSettings.ConnectivitySystem == 1)
+                    switch (AppSettings.ConnectivitySystem)
                     {
-                        TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
-                        TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
+                        // Following
+                        case 1:
+                        {
+                            TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
+                            TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
 
-                        if (result.Details.DetailsClass != null)
-                            TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
+                            if (result.Details.DetailsClass != null)
+                                TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
 
-                        if (result.Details.DetailsClass != null)
-                            TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowingCount));
+                            if (result.Details.DetailsClass != null)
+                                TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowingCount));
 
-                        LayoutCountFollowing.Tag = "Following";
-                    }
-                    else // Friend
-                    {
-                        TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
-                        TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+                            LayoutCountFollowing.Tag = "Following";
+                            break;
+                        }
+                        // Friend
+                        default:
+                        {
+                            TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
+                            TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
 
-                        if (result.Details.DetailsClass != null) TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
-                        if (result.Details.DetailsClass != null) TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.PostCount));
+                            if (result.Details.DetailsClass != null) TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
+                            if (result.Details.DetailsClass != null) TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.PostCount));
 
-                        LayoutCountFollowing.Tag = "Post";
+                            LayoutCountFollowing.Tag = "Post";
+                            break;
+                        }
                     }
                 }
 
@@ -904,25 +973,28 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                BtnMore.Visibility = ViewStates.Visible;
+                if (followers?.Count > 0)
+                {
+                    BtnMore.Visibility = ViewStates.Visible;
 
-                var followersClass = new FollowersModelClass
-                {
-                    TitleHead = GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Following : Resource.String.Lbl_Friends),
-                    FollowersList = new List<UserDataObject>(followers.Take(12)),
-                    More = friendsCounter
-                };
-                 
-                var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
-                if (check != null)
-                {
-                    check.FollowersModel = followersClass;
-                }
-                else
-                {
-                    Combiner.FollowersBoxPostView(followersClass, 2);
-                    //PostFeedAdapter.ListDiffer.Insert(1, followersBox);
-                }
+                    var followersClass = new FollowersModelClass
+                    {
+                        TitleHead = GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Following : Resource.String.Lbl_Friends),
+                        FollowersList = new List<UserDataObject>(followers.Take(12)),
+                        More = friendsCounter
+                    };
+
+                    var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
+                    if (check != null)
+                    {
+                        check.FollowersModel = followersClass;
+                    }
+                    else
+                    {
+                        Combiner.FollowersBoxPostView(followersClass, 2);
+                        //PostFeedAdapter.ListDiffer.Insert(1, followersBox);
+                    }
+                } 
             }
             catch (Exception e)
             {
@@ -1014,15 +1086,20 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                //Share Plugin same as video
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = UserDetails.Username,
-                    Text = "",
-                    Url = SUrlUser
-                });
+                    //Share Plugin same as video
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = UserDetails.Username,
+                            Text = "",
+                            Url = SUrlUser
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1094,25 +1171,10 @@ namespace WoWonder.Activities.MyProfile
             try
             {
                 ImageType = typeImage;
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -1125,10 +1187,31 @@ namespace WoWonder.Activities.MyProfile
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1153,45 +1236,67 @@ namespace WoWonder.Activities.MyProfile
                         case "Avatar":
                         {
                             var (apiStatus, respond) = await RequestsAsync.Global.Update_User_Avatar(path);
-                            if (apiStatus == 200)
+                            switch (apiStatus)
                             {
-                                if (respond is MessageObject result)
+                                case 200:
                                 {
-                                    Console.WriteLine(result.Message);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Image_changed_successfully), ToastLength.Short)?.Show();
+                                    switch (respond)
+                                    {
+                                        case MessageObject result:
+                                        {
+                                            Console.WriteLine(result.Message);
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_Image_changed_successfully), ToastLength.Short)?.Show();
 
-                                    var file2 = new File(path);
-                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions().CircleCrop()).Into(UserProfileImage);
+                                            var file2 = new File(path);
+                                            var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                            Glide.With(this).Load(photoUri).Apply(new RequestOptions().CircleCrop()).Into(UserProfileImage);
 
 
-                                    //Set image  
-                                    //GlideImageLoader.LoadImage(this, path, UserProfileImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                            //Set image  
+                                            //GlideImageLoader.LoadImage(this, path, UserProfileImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                            break;
+                                        }
+                                    }
+
+                                    break;
                                 }
+                                default:
+                                    Methods.DisplayReportResult(this,respond);
+                                    break;
                             }
-                            else Methods.DisplayReportResult(this,respond);
 
                             break;
                         }
                         case "Cover":
                         {
                             var (apiStatus, respond) = await RequestsAsync.Global.Update_User_Cover(path);
-                            if (apiStatus == 200)
+                            switch (apiStatus)
                             {
-                                if (respond is MessageObject result)
+                                case 200:
                                 {
-                                    Console.WriteLine(result.Message);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Image_changed_successfully), ToastLength.Short)?.Show();
+                                    switch (respond)
+                                    {
+                                        case MessageObject result:
+                                        {
+                                            Console.WriteLine(result.Message);
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_Image_changed_successfully), ToastLength.Short)?.Show();
 
-                                    //Set image 
-                                    var file2 = new File(path);
-                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(CoverImage);
+                                            //Set image 
+                                            var file2 = new File(path);
+                                            var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                            Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(CoverImage);
                                          
-                                    //GlideImageLoader.LoadImage(this, path, CoverImage, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
+                                            //GlideImageLoader.LoadImage(this, path, CoverImage, ImageStyle.FitCenter, ImagePlaceholders.Drawable);
+                                            break;
+                                        }
+                                    }
+
+                                    break;
                                 }
+                                default:
+                                    Methods.DisplayReportResult(this, respond);
+                                    break;
                             }
-                            else Methods.DisplayReportResult(this, respond);
 
                             break;
                         }
@@ -1221,33 +1326,47 @@ namespace WoWonder.Activities.MyProfile
                     {
                         var result = CropImage.GetActivityResult(data);
 
-                        if (resultCode == Result.Ok)
+                        switch (resultCode)
                         {
-                            if (result.IsSuccessful)
+                            case Result.Ok:
                             {
-                                var resultUri = result.Uri;
-
-                                if (!string.IsNullOrEmpty(resultUri.Path))
+                                switch (result.IsSuccessful)
                                 {
-                                    string pathImg;
-                                    switch (ImageType)
+                                    case true:
                                     {
-                                        case "Cover":
-                                            pathImg = resultUri.Path;
-                                            UserDetails.Cover = pathImg;
-                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => Update_Image_Api(ImageType, pathImg) });
-                                            break;
-                                        case "Avatar":
-                                            pathImg = resultUri.Path;
-                                            UserDetails.Avatar = pathImg;
-                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => Update_Image_Api(ImageType, pathImg) });
-                                            break;
+                                        var resultUri = result.Uri;
+
+                                        switch (string.IsNullOrEmpty(resultUri.Path))
+                                        {
+                                            case false:
+                                            {
+                                                string pathImg;
+                                                switch (ImageType)
+                                                {
+                                                    case "Cover":
+                                                        pathImg = resultUri.Path;
+                                                        UserDetails.Cover = pathImg;
+                                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => Update_Image_Api(ImageType, pathImg) });
+                                                        break;
+                                                    case "Avatar":
+                                                        pathImg = resultUri.Path;
+                                                        UserDetails.Avatar = pathImg;
+                                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => Update_Image_Api(ImageType, pathImg) });
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
+                                            default:
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
+                                                break;
+                                        }
+
+                                        break;
                                     }
                                 }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
-                                }
+
+                                break;
                             }
                         }
 
@@ -1300,36 +1419,50 @@ namespace WoWonder.Activities.MyProfile
                         var postText = data.GetStringExtra("PostText") ?? "";
                         var diff = PostFeedAdapter.ListDiffer;
                         var dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        if (dataGlobal.Count > 0)
+                        switch (dataGlobal.Count)
                         {
-                            foreach (var postData in dataGlobal)
+                            case > 0:
                             {
-                                postData.PostData.Orginaltext = postText;
-                                var index = diff.IndexOf(postData);
-                                if (index > -1)
+                                foreach (var postData in dataGlobal)
                                 {
-                                    PostFeedAdapter.NotifyItemChanged(index);
+                                    postData.PostData.Orginaltext = postText;
+                                    var index = diff.IndexOf(postData);
+                                    switch (index)
+                                    {
+                                        case > -1:
+                                            PostFeedAdapter.NotifyItemChanged(index);
+                                            break;
+                                    }
                                 }
-                            }
 
-                            var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                            if (checkTextSection == null)
-                            {
-                                var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                var item = new AdapterModelsClass
+                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
+                                switch (checkTextSection)
                                 {
-                                    TypeView = PostModelType.TextSectionPostPart,
-                                    Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true
-                                };
+                                    case null:
+                                    {
+                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
+                                        var item = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.TextSectionPostPart,
+                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true
+                                        };
 
-                                var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                if (headerPostIndex > -1)
-                                {
-                                    diff.Insert(headerPostIndex + 1, item);
-                                    PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
+                                        switch (headerPostIndex)
+                                        {
+                                            case > -1:
+                                                diff.Insert(headerPostIndex + 1, item);
+                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
+
+                                break;
                             }
                         }
 
@@ -1344,20 +1477,29 @@ namespace WoWonder.Activities.MyProfile
                         {
                             var diff = PostFeedAdapter.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            if (dataGlobal.Count > 0)
+                            switch (dataGlobal.Count)
                             {
-                                foreach (var postData in dataGlobal)
+                                case > 0:
                                 {
-                                    var index = diff.IndexOf(postData);
-                                    if (index > -1)
+                                    foreach (var postData in dataGlobal)
                                     {
-                                        var productUnion = postData.PostData.Product?.ProductClass;
-                                        if (productUnion != null) productUnion.Id = item.Id;
-                                        productUnion = item;
-                                        Console.WriteLine(productUnion);
+                                        var index = diff.IndexOf(postData);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                            {
+                                                var productUnion = postData.PostData.Product?.ProductClass;
+                                                if (productUnion != null) productUnion.Id = item.Id;
+                                                productUnion = item;
+                                                Console.WriteLine(productUnion);
 
-                                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    break;
                                 }
                             }
                         }
@@ -1387,16 +1529,20 @@ namespace WoWonder.Activities.MyProfile
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 108)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery(ImageType);
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
+                    case 235 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        new LiveUtil(this).OpenDialogLive();
+                        break;
+                    case 235:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -1404,8 +1550,7 @@ namespace WoWonder.Activities.MyProfile
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-
+         
         #endregion
 
     }

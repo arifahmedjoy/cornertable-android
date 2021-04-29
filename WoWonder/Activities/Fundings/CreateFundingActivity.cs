@@ -219,18 +219,19 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtAdd.Click += TxtAddOnClick;
-                    BtnSelectImage.Click += BtnSelectImageOnClick;
-                    //TxtAmount.Touch += TxtAmountOnTouch;
-                }
-                else
-                {
-                    TxtAdd.Click -= TxtAddOnClick;
-                    BtnSelectImage.Click -= BtnSelectImageOnClick;
-                    //TxtAmount.Touch -= TxtAmountOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtAdd.Click += TxtAddOnClick;
+                        BtnSelectImage.Click += BtnSelectImageOnClick;
+                        //TxtAmount.Touch += TxtAmountOnTouch;
+                        break;
+                    default:
+                        TxtAdd.Click -= TxtAddOnClick;
+                        BtnSelectImage.Click -= BtnSelectImageOnClick;
+                        //TxtAmount.Touch -= TxtAmountOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -341,37 +342,45 @@ namespace WoWonder.Activities.Fundings
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
                     var (apiStatus, respond) = await RequestsAsync.Funding.CreateFunding(TxtTitle.Text, TxtDescription.Text, TxtAmount.Text, PathImage);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateFundingObject result)
+                        case 200:
                         {
-                            AndHUD.Shared.Dismiss(this);
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
-
-                            //Add new item to list
-                            if (result.Data?.FundData != null)
+                            switch (respond)
                             {
-                                result.Data.FundData.Value.FundDataClass.UserData ??= result.Data.Publisher;
-                                var instance = FundingActivity.GetInstance();
-                                if (instance?.FundingTab?.MAdapter != null)
+                                case CreateFundingObject result:
                                 {
-                                    instance?.FundingTab?.MAdapter?.FundingList.Insert(0, result.Data.FundData.Value.FundDataClass);
-                                    RunOnUiThread(() => instance.FundingTab?.MAdapter?.NotifyItemInserted(0));
-                                }
+                                    AndHUD.Shared.Dismiss(this);
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
 
-                                if (instance?.MyFundingTab?.MAdapter != null)
-                                {
-                                    instance?.MyFundingTab?.MAdapter?.FundingList.Insert(0, result.Data.FundData.Value.FundDataClass);
-                                    RunOnUiThread(() => instance.MyFundingTab?.MAdapter?.NotifyItemInserted(0));
+                                    //Add new item to list
+                                    if (result.Data?.FundData != null)
+                                    {
+                                        result.Data.FundData.Value.FundDataClass.UserData ??= result.Data.Publisher;
+                                        var instance = FundingActivity.GetInstance();
+                                        if (instance?.FundingTab?.MAdapter != null)
+                                        {
+                                            instance?.FundingTab?.MAdapter?.FundingList.Insert(0, result.Data.FundData.Value.FundDataClass);
+                                            RunOnUiThread(() => instance.FundingTab?.MAdapter?.NotifyItemInserted(0));
+                                        }
+
+                                        if (instance?.MyFundingTab?.MAdapter != null)
+                                        {
+                                            instance?.MyFundingTab?.MAdapter?.FundingList.Insert(0, result.Data.FundData.Value.FundDataClass);
+                                            RunOnUiThread(() => instance.MyFundingTab?.MAdapter?.NotifyItemInserted(0));
+                                        }
+                                    }
+
+                                    Finish();
+                                    break;
                                 }
                             }
 
-                            Finish(); 
+                            break;
                         }
-                    }
-                    else
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
             }
@@ -392,34 +401,52 @@ namespace WoWonder.Activities.Fundings
             try
             {
                 base.OnActivityResult(requestCode, resultCode, data);
-                //If its from Camera or Gallery
-                if (requestCode == CropImage.CropImageActivityRequestCode)
+                switch (requestCode)
                 {
-                    var result = CropImage.GetActivityResult(data);
-
-                    if (resultCode == Result.Ok)
+                    //If its from Camera or Gallery
+                    case CropImage.CropImageActivityRequestCode:
                     {
-                        if (result.IsSuccessful)
+                        var result = CropImage.GetActivityResult(data);
+
+                        switch (resultCode)
                         {
-                            var resultUri = result.Uri;
-
-                            if (!string.IsNullOrEmpty(resultUri.Path))
+                            case Result.Ok:
                             {
-                                PathImage = resultUri.Path;
-                                File file2 = new File(resultUri.Path);
-                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgCover);
+                                switch (result.IsSuccessful)
+                                {
+                                    case true:
+                                    {
+                                        var resultUri = result.Uri;
+
+                                        switch (string.IsNullOrEmpty(resultUri.Path))
+                                        {
+                                            case false:
+                                            {
+                                                PathImage = resultUri.Path;
+                                                File file2 = new File(resultUri.Path);
+                                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgCover);
 
 
-                                //GlideImageLoader.LoadImage(this, resultUri.Path, ImgCover, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                                //GlideImageLoader.LoadImage(this, resultUri.Path, ImgCover, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                                break;
+                                            }
+                                            default:
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                break;
                             }
-                            else
-                            {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                            }
-                        } 
-                    } 
-                } 
+                        }
+
+                        break;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -434,16 +461,14 @@ namespace WoWonder.Activities.Fundings
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 108)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery();
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -458,25 +483,10 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -489,10 +499,31 @@ namespace WoWonder.Activities.Fundings
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }

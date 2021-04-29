@@ -211,18 +211,19 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.CopyItemClick += MAdapterOnCopyItemClick;
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    GenerateButton.Click += GenerateButtonOnClick;
-                }
-                else
-                {
-                    MAdapter.CopyItemClick -= MAdapterOnCopyItemClick;
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    GenerateButton.Click -= GenerateButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.CopyItemClick += MAdapterOnCopyItemClick;
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        GenerateButton.Click += GenerateButtonOnClick;
+                        break;
+                    default:
+                        MAdapter.CopyItemClick -= MAdapterOnCopyItemClick;
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        GenerateButton.Click -= GenerateButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -266,27 +267,35 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
                 AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
                 var (apiStatus, respond) = await RequestsAsync.Global.CreateInvitationCodeAsync();
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is CreateInvitationCodeObject result)
+                    case 200:
                     {
-                        var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                        switch (respond)
+                        {
+                            case CreateInvitationCodeObject result:
+                            {
+                                var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                          
 
-                        MAdapter.LinksList.Add(new InvitationDataObject
-                        {
-                            Link = result.Link,
-                            Time = unixTimestamp.ToString()
-                        });
+                                MAdapter.LinksList.Add(new InvitationDataObject
+                                {
+                                    Link = result.Link,
+                                    Time = unixTimestamp.ToString()
+                                });
 
-                        MAdapter.NotifyDataSetChanged();
+                                MAdapter.NotifyDataSetChanged();
 
-                        AndHUD.Shared.Dismiss(this);
+                                AndHUD.Shared.Dismiss(this);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    Methods.DisplayAndHudErrorResult(this, respond);
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 } 
             }
             catch (Exception exception)
@@ -302,14 +311,19 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
             try
             {
                 var position = e.Position;
-                if (position > -1)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item?.UserData?.UserDataClass != null)
+                    case > -1:
                     {
-                        WoWonderTools.OpenProfile(this, item.UserData.Value.UserDataClass.UserId, item.UserData.Value.UserDataClass);
+                        var item = MAdapter.GetItem(position);
+                        if (item?.UserData?.UserDataClass != null)
+                        {
+                            WoWonderTools.OpenProfile(this, item.UserData.Value.UserDataClass.UserId, item.UserData.Value.UserDataClass);
+                        }
+
+                        break;
                     }
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -321,14 +335,21 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
         private void MAdapterOnCopyItemClick(object sender, InvitationLinksAdapterClickEventArgs e)
         {
             try
-            { 
+            {
                 var position = e.Position;
-                if (position > -1)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (!string.IsNullOrEmpty(item?.Link))
+                    case > -1:
                     {
-                        Methods.CopyToClipboard(this, item.Link);
+                        var item = MAdapter.GetItem(position);
+                        switch (string.IsNullOrEmpty(item?.Link))
+                        {
+                            case false:
+                                Methods.CopyToClipboard(this, item.Link);
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -356,54 +377,72 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
             {
                 var countList = MAdapter.LinksList.Count;
                 var (respondCode, respondString) = await RequestsAsync.Global.InvitationAsync();
-                if (respondCode.Equals(200))
+                switch (respondCode)
                 {
-                    if (respondString is InvitationObject result)
+                    case 200:
                     {
-                        RunOnUiThread(() => 
+                        switch (respondString)
                         {
-                            try
+                            case InvitationObject result:
                             {
-                                AvailableTextView.Text = result.AvailableLinks;
-
-                                if (result.GeneratedLinks != null)
-                                    GeneratedCount.Text = result.GeneratedLinks.Value.ToString();
-
-                                if (result.UsedLinks != null)
-                                    UsedCount.Text = result.UsedLinks.Value.ToString();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
-                      
-                        var respondList = result.Data.Count;
-                        if (respondList > 0)
-                        {
-                            if (countList > 0)
-                            {
-                                foreach (var item in from item in result.Data let check = MAdapter.LinksList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                RunOnUiThread(() => 
                                 {
-                                    MAdapter.LinksList.Add(item);
+                                    try
+                                    {
+                                        AvailableTextView.Text = result.AvailableLinks;
+
+                                        if (result.GeneratedLinks != null)
+                                            GeneratedCount.Text = result.GeneratedLinks.Value.ToString();
+
+                                        if (result.UsedLinks != null)
+                                            UsedCount.Text = result.UsedLinks.Value.ToString();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                });
+                      
+                                var respondList = result.Data.Count;
+                                switch (respondList)
+                                {
+                                    case > 0 when countList > 0:
+                                    {
+                                        foreach (var item in from item in result.Data let check = MAdapter.LinksList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            MAdapter.LinksList.Add(item);
+                                        }
+
+                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.LinksList.Count - countList); });
+                                        break;
+                                    }
+                                    case > 0:
+                                        MAdapter.LinksList = new ObservableCollection<InvitationDataObject>(result.Data);
+                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                        break;
+                                    default:
+                                    {
+                                        switch (MAdapter.LinksList.Count)
+                                        {
+                                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.LinksList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.LinksList = new ObservableCollection<InvitationDataObject>(result.Data);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
                             }
                         }
-                        else
-                        {
-                            if (MAdapter.LinksList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
-                        }
+
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respondString);
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -417,14 +456,11 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
         {
             try
             {
-                if (MAdapter.LinksList.Count > 0)
+                MRecycler.Visibility = MAdapter.LinksList.Count switch
                 {
-                    MRecycler.Visibility = ViewStates.Visible; 
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone; 
-                }
+                    > 0 => ViewStates.Visible,
+                    _ => ViewStates.Gone
+                };
             }
             catch (Exception e)
             {

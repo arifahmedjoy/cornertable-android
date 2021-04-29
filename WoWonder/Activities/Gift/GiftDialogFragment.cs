@@ -148,16 +148,21 @@ namespace WoWonder.Activities.Gift
                 }
 
                 int position = e.Position;
-                if (position > -1)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
-                    { 
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.SendGiftAsync(UserId, item.Id) });
+                    case > -1:
+                    {
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
+                        { 
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.SendGiftAsync(UserId, item.Id) });
 
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Short)?.Show();
-                        //Close Fragment 
-                        Dismiss();
+                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Short)?.Show();
+                            //Close Fragment 
+                            Dismiss();
+                        }
+
+                        break;
                     }
                 } 
             }

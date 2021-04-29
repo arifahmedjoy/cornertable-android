@@ -209,14 +209,15 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -252,84 +253,89 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        switch (item.Id)
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
                         {
-                            // General
-                            case 1:
+                            switch (item.Id)
                             {
-                                var intent = new Intent(this, typeof(PageGeneralActivity));
-                                intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivityForResult(intent , 1250);
-                                break;
-                            }
-                            // PageInformation
-                            case 2:
-                            {
-                                var intent = new Intent(this, typeof(PageInfoActivity));
-                                intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivityForResult(intent, 1250);
-                                break;
-                            }
-                            //ActionButtons
-                            case 3:
-                            {
-                                var intent = new Intent(this, typeof(PageActionButtonsActivity));
-                                intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivityForResult(intent, 1250);
-                                break;
-                            }
-                            //SocialLinks
-                            case 4:
-                            {
-                                var intent = new Intent(this, typeof(PageSocialLinksActivity));
-                                intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivityForResult(intent, 1250);
-                                break;
-                            }
-                            //OfferAJob
-                            case 5:
-                            {
-                                var intent = new Intent(this, typeof(OfferAJobActivity));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivity(intent);
-                                break;
-                            }
-                            //Offer
-                            case 6:
-                            {
-                                var intent = new Intent(this, typeof(CreateOffersActivity));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivity(intent);
-                                break;
-                            }
-                            //Admin
-                            case 7:
-                            {
-                                var intent = new Intent(this, typeof(PagesAdminActivity));
-                                intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
-                                intent.PutExtra("PageId", PageId);
-                                StartActivity(intent);
-                                break;
-                            }
-                            //DeletePage
-                            case 8:
-                            {
-                                var intent = new Intent(this, typeof(DeleteCommunitiesActivity));
-                                intent.PutExtra("Id", PageId);
-                                intent.PutExtra("Type", "Page");
-                                StartActivityForResult(intent, 2019);
-                                break;
+                                // General
+                                case 1:
+                                {
+                                    var intent = new Intent(this, typeof(PageGeneralActivity));
+                                    intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivityForResult(intent , 1250);
+                                    break;
+                                }
+                                // PageInformation
+                                case 2:
+                                {
+                                    var intent = new Intent(this, typeof(PageInfoActivity));
+                                    intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivityForResult(intent, 1250);
+                                    break;
+                                }
+                                //ActionButtons
+                                case 3:
+                                {
+                                    var intent = new Intent(this, typeof(PageActionButtonsActivity));
+                                    intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivityForResult(intent, 1250);
+                                    break;
+                                }
+                                //SocialLinks
+                                case 4:
+                                {
+                                    var intent = new Intent(this, typeof(PageSocialLinksActivity));
+                                    intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivityForResult(intent, 1250);
+                                    break;
+                                }
+                                //OfferAJob
+                                case 5:
+                                {
+                                    var intent = new Intent(this, typeof(OfferAJobActivity));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                //Offer
+                                case 6:
+                                {
+                                    var intent = new Intent(this, typeof(CreateOffersActivity));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                //Admin
+                                case 7:
+                                {
+                                    var intent = new Intent(this, typeof(PagesAdminActivity));
+                                    intent.PutExtra("PageData", JsonConvert.SerializeObject(PageData));
+                                    intent.PutExtra("PageId", PageId);
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                //DeletePage
+                                case 8:
+                                {
+                                    var intent = new Intent(this, typeof(DeleteCommunitiesActivity));
+                                    intent.PutExtra("Id", PageId);
+                                    intent.PutExtra("Type", "Page");
+                                    StartActivityForResult(intent, 2019);
+                                    break;
+                                }
                             }
                         }
+
+                        break;
                     }
                 }
             }

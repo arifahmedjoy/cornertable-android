@@ -77,19 +77,23 @@ namespace WoWonder.Activities.Comment.Adapters
         {
             try
             {
-                switch (viewType)
+                return viewType switch
                 {
-                    case 0:
-                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
-                    case 1:
-                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment_Image, parent, false), this, PostEventListener);
-                    case 2:
-                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment_Voice, parent, false), this, PostEventListener);
-                    case 666:
-                        return new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_EmptyState, parent, false));
-                    default:
-                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
-                }
+                    0 => new CommentAdapterViewHolder(
+                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
+                        this, PostEventListener),
+                    1 => new CommentAdapterViewHolder(
+                        LayoutInflater.From(parent.Context)
+                            ?.Inflate(Resource.Layout.Style_Comment_Image, parent, false), this, PostEventListener),
+                    2 => new CommentAdapterViewHolder(
+                        LayoutInflater.From(parent.Context)
+                            ?.Inflate(Resource.Layout.Style_Comment_Voice, parent, false), this, PostEventListener),
+                    666 => new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)
+                        ?.Inflate(Resource.Layout.Style_EmptyState, parent, false)),
+                    _ => new CommentAdapterViewHolder(
+                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
+                        this, PostEventListener)
+                };
             }
             catch (Exception exception)
             {
@@ -120,44 +124,66 @@ namespace WoWonder.Activities.Comment.Adapters
                 var textHighLighter = item.Publisher.Name;
                 var textIsPro = string.Empty;
 
-                if (item.Publisher.Verified == "1")
-                    textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
-
-                if (item.Publisher.IsPro == "1")
+                switch (item.Publisher.Verified)
                 {
-                    textIsPro = " " + IonIconsFonts.Flash;
-                    textHighLighter += textIsPro;
+                    case "1":
+                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
+                        break;
+                }
+
+                switch (item.Publisher.IsPro)
+                {
+                    case "1":
+                        textIsPro = " " + IonIconsFonts.Flash;
+                        textHighLighter += textIsPro;
+                        break;
                 }
 
                 var decorator = TextDecorator.Decorate(holder.UserName, textHighLighter).SetTextStyle((int)TypefaceStyle.Bold, 0, item.Publisher.Name.Length);
 
-                if (item.Publisher.Verified == "1")
-                    decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                switch (item.Publisher.Verified)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                        break;
+                }
 
-                if (item.Publisher.IsPro == "1")
-                    decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
+                switch (item.Publisher.IsPro)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
+                        break;
+                }
 
                 decorator.Build();
 
                 //Image
                 if (holder.ItemViewType == 1 || holder.CommentImage != null)
                 {
-                    if (!string.IsNullOrEmpty(item.CFile) && (item.CFile.Contains("file://") || item.CFile.Contains("content://") || item.CFile.Contains("storage") || item.CFile.Contains("/data/user/0/")))
+                    switch (string.IsNullOrEmpty(item.CFile))
                     {
-                        File file2 = new File(item.CFile);
-                        var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                        Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.CommentImage);
+                        case false when item.CFile.Contains("file://") || item.CFile.Contains("content://") || item.CFile.Contains("storage") || item.CFile.Contains("/data/user/0/"):
+                        {
+                            File file2 = new File(item.CFile);
+                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.CommentImage);
 
-                        //GlideImageLoader.LoadImage(ActivityContext,item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                            //GlideImageLoader.LoadImage(ActivityContext,item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                            break;
+                        }
+                        default:
+                        {
+                            item.CFile = item.CFile.Contains(Client.WebsiteUrl) switch
+                            {
+                                false => WoWonderTools.GetTheFinalLink(item.CFile),
+                                _ => item.CFile
+                            };
+
+                            GlideImageLoader.LoadImage(ActivityContext, item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                            item.CFile = WoWonderTools.GetFile("", Methods.Path.FolderDiskImage, item.CFile.Split('/').Last(), item.CFile);
+                            break;
+                        }
                     }
-                    else
-                    {
-                        if (!item.CFile.Contains(Client.WebsiteUrl))
-                            item.CFile = WoWonderTools.GetTheFinalLink(item.CFile);
-
-                        GlideImageLoader.LoadImage(ActivityContext, item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
-                        item.CFile = WoWonderTools.GetFile("", Methods.Path.FolderDiskImage, item.CFile.Split('/').Last(), item.CFile);
-                    } 
                 }
 
                 //Voice
@@ -177,62 +203,72 @@ namespace WoWonder.Activities.Comment.Adapters
                     {
                         item.Reaction ??= new Reaction();
                    
-                        if (item.Reaction.Count > 0)
+                        switch (item.Reaction.Count)
                         {
-                            holder.CountLikeSection.Visibility = ViewStates.Visible;
-                            holder.CountLike.Text = Methods.FunString.FormatPriceValue(item.Reaction.Count);  
-                        }
-                        else
-                        {
-                            holder.CountLikeSection.Visibility = ViewStates.Gone;
+                            case > 0:
+                                holder.CountLikeSection.Visibility = ViewStates.Visible;
+                                holder.CountLike.Text = Methods.FunString.FormatPriceValue(item.Reaction.Count);
+                                break;
+                            default:
+                                holder.CountLikeSection.Visibility = ViewStates.Gone;
+                                break;
                         }
                      
                         if (item.Reaction.IsReacted != null && item.Reaction.IsReacted.Value)
-                        { 
-                            if (!string.IsNullOrEmpty(item.Reaction.Type))
+                        {
+                            switch (string.IsNullOrEmpty(item.Reaction.Type))
                             {
-                                var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == item.Reaction.Type).Value?.Id ?? "";
-                                switch (react)
+                                case false:
                                 {
-                                    case "1":
-                                        ReactionComment.SetReactionPack(holder, ReactConstants.Like);
-                                        holder.LikeTextView.Tag = "Liked"; 
-                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
-                                        break;
-                                    case "2":
-                                        ReactionComment.SetReactionPack(holder, ReactConstants.Love);
-                                        holder.LikeTextView.Tag = "Liked";
-                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_love);
-                                        break;
-                                    case "3":
-                                        ReactionComment.SetReactionPack(holder, ReactConstants.HaHa);
-                                        holder.LikeTextView.Tag = "Liked";
-                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_haha);
-                                        break;
-                                    case "4":
-                                        ReactionComment.SetReactionPack(holder, ReactConstants.Wow);
-                                        holder.LikeTextView.Tag = "Liked";
-                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_wow);
-                                        break;
-                                    case "5":
-                                        ReactionComment.SetReactionPack(holder, ReactConstants.Sad);
-                                        holder.LikeTextView.Tag = "Liked";
-                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_sad);
-                                        break;
-                                    case "6":
-                                        ReactionComment.SetReactionPack(holder, ReactConstants.Angry);
-                                        holder.LikeTextView.Tag = "Liked";
-                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_angry);
-                                        break;
-                                    default:
-                                        holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                        holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                                        holder.LikeTextView.Tag = "Like";
-
-                                        if (item.Reaction.Count > 0)
+                                    var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == item.Reaction.Type).Value?.Id ?? "";
+                                    switch (react)
+                                    {
+                                        case "1":
+                                            ReactionComment.SetReactionPack(holder, ReactConstants.Like);
+                                            holder.LikeTextView.Tag = "Liked"; 
                                             holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                            break;
+                                        case "2":
+                                            ReactionComment.SetReactionPack(holder, ReactConstants.Love);
+                                            holder.LikeTextView.Tag = "Liked";
+                                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_love);
+                                            break;
+                                        case "3":
+                                            ReactionComment.SetReactionPack(holder, ReactConstants.HaHa);
+                                            holder.LikeTextView.Tag = "Liked";
+                                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_haha);
+                                            break;
+                                        case "4":
+                                            ReactionComment.SetReactionPack(holder, ReactConstants.Wow);
+                                            holder.LikeTextView.Tag = "Liked";
+                                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_wow);
+                                            break;
+                                        case "5":
+                                            ReactionComment.SetReactionPack(holder, ReactConstants.Sad);
+                                            holder.LikeTextView.Tag = "Liked";
+                                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_sad);
+                                            break;
+                                        case "6":
+                                            ReactionComment.SetReactionPack(holder, ReactConstants.Angry);
+                                            holder.LikeTextView.Tag = "Liked";
+                                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_angry);
+                                            break;
+                                        default:
+                                            holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
+                                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                            holder.LikeTextView.Tag = "Like";
 
-                                        break;
+                                            switch (item.Reaction.Count)
+                                            {
+                                                case > 0:
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                                    break;
+                                            }
+
+                                            break;
+                                    }
+
+                                    break;
                                 }
                             }
                         }
@@ -241,8 +277,12 @@ namespace WoWonder.Activities.Comment.Adapters
                             holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
                             holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                             holder.LikeTextView.Tag = "Like";
-                            if (item.Reaction.Count > 0)
-                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                            switch (item.Reaction.Count)
+                            {
+                                case > 0:
+                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                    break;
+                            }
                         }
 
                         break;
@@ -253,11 +293,13 @@ namespace WoWonder.Activities.Comment.Adapters
                         if (item.Reaction?.IsReacted != null && !item.Reaction.IsReacted.Value)
                             ReactionComment.SetReactionPack(holder, ReactConstants.Default);
 
-                        if (item.IsCommentLiked)
+                        switch (item.IsCommentLiked)
                         {
-                            holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
-                            holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                            holder.LikeTextView.Tag = "Liked";
+                            case true:
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
+                                holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.LikeTextView.Tag = "Liked";
+                                break;
                         }
 
                         switch (AppSettings.PostButton)
@@ -296,17 +338,18 @@ namespace WoWonder.Activities.Comment.Adapters
                     }
                     default:
                     {
-                        if (item.IsCommentLiked)
+                        switch (item.IsCommentLiked)
                         {
-                            holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
-                            holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                            holder.LikeTextView.Tag = "Liked";
-                        }
-                        else
-                        {
-                            holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                            holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                            holder.LikeTextView.Tag = "Like";
+                            case true:
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Liked);
+                                holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.LikeTextView.Tag = "Liked";
+                                break;
+                            default:
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
+                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                holder.LikeTextView.Tag = "Like";
+                                break;
                         }
 
                         break;
@@ -326,31 +369,38 @@ namespace WoWonder.Activities.Comment.Adapters
         {
             try
             {
-                if (viewHolder.ItemViewType == 666)
+                switch (viewHolder.ItemViewType)
                 {
-                    if (!(viewHolder is AdapterHolders.EmptyStateAdapterViewHolder emptyHolder))
-                        return;
+                    case 666:
+                    {
+                        if (viewHolder is not AdapterHolders.EmptyStateAdapterViewHolder emptyHolder)
+                            return;
 
-                    var itemEmpty = CommentList.FirstOrDefault(a => a.Id == EmptyState);
-                    if (itemEmpty != null && !string.IsNullOrEmpty(itemEmpty.Orginaltext))
-                    {
-                        emptyHolder.EmptyText.Text = itemEmpty.Orginaltext;
+                        var itemEmpty = CommentList.FirstOrDefault(a => a.Id == EmptyState);
+                        if (itemEmpty != null && !string.IsNullOrEmpty(itemEmpty.Orginaltext))
+                        {
+                            emptyHolder.EmptyText.Text = itemEmpty.Orginaltext;
+                        }
+                        else
+                        {
+                            emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoComments);
+                        }
+                        return;
                     }
-                    else
-                    {
-                        emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoComments);
-                    }
-                    return;
                 }
 
-                if (!(viewHolder is CommentAdapterViewHolder holder))
+                if (viewHolder is not CommentAdapterViewHolder holder)
                     return;
 
                 var item = CommentList[position];
-                if (item == null)
-                    return;
-
-                LoadCommentData(item, holder);
+                switch (item)
+                {
+                    case null:
+                        return;
+                    default:
+                        LoadCommentData(item, holder);
+                        break;
+                }
             }
             catch (Exception exception)
             {
@@ -380,13 +430,14 @@ namespace WoWonder.Activities.Comment.Adapters
 
                 soundViewHolder.PlayButton.Visibility = ViewStates.Visible;
 
-                if (item.MediaIsPlaying)
+                switch (item.MediaIsPlaying)
                 {
-                    soundViewHolder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
-                }
-                else
-                {
-                    soundViewHolder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+                    case true:
+                        soundViewHolder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+                        break;
+                    default:
+                        soundViewHolder.PlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+                        break;
                 }
             }
             catch (Exception e)
@@ -425,8 +476,11 @@ namespace WoWonder.Activities.Comment.Adapters
                 if (!string.IsNullOrEmpty(item.CFile) && !string.IsNullOrEmpty(item.Record) || !string.IsNullOrEmpty(item.CFile))
                     return 1;
 
-                if (!string.IsNullOrEmpty(item.Record))
-                    return 2;
+                switch (string.IsNullOrEmpty(item.Record))
+                {
+                    case false:
+                        return 2;
+                }
 
                 if (item.Text == EmptyState)
                     return 666;
@@ -446,22 +500,33 @@ namespace WoWonder.Activities.Comment.Adapters
             {
                 var d = new List<string>();
                 var item = CommentList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (item.Text != EmptyState)
-                    {
-                        if (!string.IsNullOrEmpty(item.CFile))
-                            d.Add(item.CFile);
-
-                        if (!string.IsNullOrEmpty(item.Publisher.Avatar))
-                            d.Add(item.Publisher.Avatar);
-
+                    case null:
                         return d;
-                    }
+                    default:
+                    {
+                        if (item.Text != EmptyState)
+                        {
+                            switch (string.IsNullOrEmpty(item.CFile))
+                            {
+                                case false:
+                                    d.Add(item.CFile);
+                                    break;
+                            }
 
-                    return Collections.SingletonList(p0);
+                            switch (string.IsNullOrEmpty(item.Publisher.Avatar))
+                            {
+                                case false:
+                                    d.Add(item.Publisher.Avatar);
+                                    break;
+                            }
+
+                            return d;
+                        }
+
+                        return Collections.SingletonList(p0);
+                    }
                 }
             }
             catch (Exception e)

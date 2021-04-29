@@ -24,13 +24,23 @@ namespace WoWonder.Helpers.Utils
 
         public CustomNavigationController(Activity activity , MeowBottomNavigation bottomNavigation)
         {
-            MainContext = activity;
-            NavigationTabBar = bottomNavigation;
+            try
+            {
+                MainContext = activity;
+                NavigationTabBar = bottomNavigation;
 
-            if (activity is TabbedMainActivity cont)
-                Context = cont;
-            
-            Initialize();
+                Context = activity switch
+                {
+                    TabbedMainActivity cont => cont,
+                    _ => Context
+                };
+
+                Initialize();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
         }
 
         private void Initialize()
@@ -80,77 +90,82 @@ namespace WoWonder.Helpers.Utils
 
                 PageNumber = item.GetId();
                 
-                if (PageNumber >= 0)
+                switch (PageNumber)
                 {
-                    switch (PageNumber)
-                    {
-                        // News_Feed_Tab
-                        case 0:
+                    case >= 0:
+                        switch (PageNumber)
                         {
-                            if (AppSettings.ShowAddPostOnNewsFeed)
+                            // News_Feed_Tab
+                            case 0:
                             {
-                                Context.FloatingActionButton.Tag = "AddPost";
-                                Context.FloatingActionButton.SetImageResource(Resource.Drawable.ic_add);
-                                Context.FloatingActionButton.Visibility = ViewStates.Visible;
+                                Context.FloatingActionButton.Visibility = AppSettings.ShowAddPostOnNewsFeed switch
+                                {
+                                    true when Context.FloatingActionButton.Visibility == ViewStates.Invisible =>
+                                        ViewStates.Visible,
+                                    _ => Context.FloatingActionButton.Visibility
+                                };
+
+                                AdsGoogle.Ad_AppOpenManager(MainContext);
+                                break;
                             }
-                            else
+                            // Notifications_Tab
+                            case 1:
+                            {
+                                Context.FloatingActionButton.Visibility = Context.FloatingActionButton.Visibility switch
+                                {
+                                    ViewStates.Visible => ViewStates.Gone,
+                                    _ => Context.FloatingActionButton.Visibility
+                                };
+
+                                AdsGoogle.Ad_RewardedVideo(MainContext);
+                                break;
+                            }
+                            // Trending_Tab
+                            case 2 when AppSettings.ShowTrendingPage:
+                            {
+                                Context.FloatingActionButton.Visibility = Context.FloatingActionButton.Visibility switch
+                                {
+                                    ViewStates.Visible => ViewStates.Gone,
+                                    _ => Context.FloatingActionButton.Visibility
+                                };
+
+                                AdsGoogle.Ad_Interstitial(MainContext);
+
+                                switch (AppSettings.ShowLastActivities)
+                                {
+                                    case true:
+                                        Task.Factory.StartNew(() => { Context.TrendingTab.StartApiService(); });
+                                        break;
+                                }
+
+                                Context.InAppReview();
+                                break;
+                            }
+                            // Chat_Tab
+                            case 3:
+                            {
+                                if (Context.FloatingActionButton.Visibility != ViewStates.Visible)
+                                    Context.ChatTab.FloatingActionButtonView_Tag();
+
+                                Context.ToolBar.Visibility = ViewStates.Gone;
+
+                                AdsGoogle.Ad_Interstitial(MainContext);
+                                break;
+                            }
+                            // More_Tab
+                            case 4:
                             {
                                 Context.FloatingActionButton.Visibility = ViewStates.Gone;
+
+                                Context.ToolBar.Visibility = ViewStates.Visible;
+
+                                AdsGoogle.Ad_RewardedVideo(MainContext);
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(MainContext) });
+                                break;
                             }
-
-                            Context.ToolBar.Visibility = ViewStates.Visible;
-
-                            AdsGoogle.Ad_AppOpenManager(MainContext);
-                            break;
                         }
-                        // Notifications_Tab
-                        case 1:
-                        {
-                            Context.FloatingActionButton.Visibility = ViewStates.Gone;
 
-                            Context.ToolBar.Visibility = ViewStates.Visible;
-                            
-                            AdsGoogle.Ad_RewardedVideo(MainContext);
-                            break;
-                        }
-                        // Trending_Tab
-                        case 2 when AppSettings.ShowTrendingPage:
-                        {
-                            Context.FloatingActionButton.Visibility = ViewStates.Gone;
-
-                            Context.ToolBar.Visibility = ViewStates.Visible;
-
-                            AdsGoogle.Ad_Interstitial(MainContext);
-
-                            if (AppSettings.ShowLastActivities)
-                                Task.Factory.StartNew(() => { Context.TrendingTab.StartApiService(); });
-
-                            Context.InAppReview();
-                            break;
-                        } 
-                        // Chat_Tab
-                        case 3:
-                        {
-                            if (Context.FloatingActionButton.Visibility != ViewStates.Visible)
-                                Context.ChatTab.FloatingActionButtonView_Tag();
-
-                            Context.ToolBar.Visibility = ViewStates.Gone;
-
-                            AdsGoogle.Ad_Interstitial(MainContext);
-                            break;
-                        }
-                        // More_Tab
-                        case 4:
-                        {
-                            Context.FloatingActionButton.Visibility = ViewStates.Gone;
-
-                            Context.ToolBar.Visibility = ViewStates.Visible;
-
-                            AdsGoogle.Ad_RewardedVideo(MainContext);
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(MainContext) });
-                            break;
-                        } 
-                    }
+                        break;
                 }
 
                 if (Context.ViewPager.CurrentItem != PageNumber)
@@ -208,7 +223,7 @@ namespace WoWonder.Helpers.Utils
             }
         }
 
-        public void ShowBadge(int id , string count, bool showBadge)
+        public void ShowBadge(int id, string count, bool showBadge)
         {
             try
             {
@@ -271,6 +286,6 @@ namespace WoWonder.Helpers.Utils
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        } 
+        }
     }
 }

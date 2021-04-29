@@ -61,13 +61,17 @@ namespace WoWonder.Activities.UserProfile.Adapters
         {
             try
             {
-               
-                if (viewHolder is UserFriendsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MUserFriendsList[position];
-                    if (item != null)
+                    case UserFriendsAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        var item = MUserFriendsList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -83,9 +87,11 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is UserFriendsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case UserFriendsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -142,14 +148,21 @@ namespace WoWonder.Activities.UserProfile.Adapters
             {
                 var d = new List<string>();
                 var item = MUserFriendsList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

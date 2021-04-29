@@ -204,15 +204,12 @@ namespace WoWonder.Activities.PostData
                             toolbar.Title = GetText(Resource.String.Lbl_PostLikes);
                             break;
                         case "post_wonders":
-                            switch (AppSettings.PostButton)
+                            toolbar.Title = AppSettings.PostButton switch
                             {
-                                case PostButtonSystem.Wonder:
-                                    toolbar.Title = GetText(Resource.String.Lbl_PostWonders);
-                                    break;
-                                case PostButtonSystem.DisLike:
-                                    toolbar.Title = GetText(Resource.String.Lbl_PostDisLike);
-                                    break;
-                            }
+                                PostButtonSystem.Wonder => GetText(Resource.String.Lbl_PostWonders),
+                                PostButtonSystem.DisLike => GetText(Resource.String.Lbl_PostDisLike),
+                                _ => toolbar.Title
+                            };
                             break;
                     }
                        
@@ -259,16 +256,17 @@ namespace WoWonder.Activities.PostData
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -356,36 +354,54 @@ namespace WoWonder.Activities.PostData
                     {
                         var countList = MAdapter.UserList.Count;
                         var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(IdPost, "post_liked_users");
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            if (respond is GetPostDataObject result)
+                            case 200:
                             {
-                                var respondList = result.PostLikedUsers.Count;
-                                if (respondList > 0)
+                                switch (respond)
                                 {
-                                    if (countList > 0)
+                                    case GetPostDataObject result:
                                     {
-                                        foreach (var item in from item in result.PostLikedUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                        var respondList = result.PostLikedUsers.Count;
+                                        switch (respondList)
                                         {
-                                            MAdapter.UserList.Add(item);
+                                            case > 0 when countList > 0:
+                                            {
+                                                foreach (var item in from item in result.PostLikedUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                MAdapter.UserList = new ObservableCollection<UserDataObject>(result.PostLikedUsers);
+                                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (MAdapter.UserList.Count)
+                                                {
+                                                    case > 10 when !MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
                                         }
 
-                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
-                                    }
-                                    else
-                                    {
-                                        MAdapter.UserList = new ObservableCollection<UserDataObject>(result.PostLikedUsers);
-                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); }); 
+                                        break;
                                     }
                                 }
-                                else
-                                {
-                                    if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                                }
+
+                                break;
                             }
+                            default:
+                                Methods.DisplayReportResult(this, respond);
+                                break;
                         }
-                        else Methods.DisplayReportResult(this, respond);
 
                         break;
                     }
@@ -393,36 +409,54 @@ namespace WoWonder.Activities.PostData
                     {
                         var countList = MAdapter.UserList.Count;
                         var (apiStatus, respond) = await RequestsAsync.Global.Get_Post_Data(IdPost, "post_wondered_users");
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            if (respond is GetPostDataObject result)
+                            case 200:
                             {
-                                var respondList = result.PostWonderedUsers.Count;
-                                if (respondList > 0)
+                                switch (respond)
                                 {
-                                    if (countList > 0)
+                                    case GetPostDataObject result:
                                     {
-                                        foreach (var item in from item in result.PostWonderedUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                        var respondList = result.PostWonderedUsers.Count;
+                                        switch (respondList)
                                         {
-                                            MAdapter.UserList.Add(item);
+                                            case > 0 when countList > 0:
+                                            {
+                                                foreach (var item in from item in result.PostWonderedUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                                                {
+                                                    MAdapter.UserList.Add(item);
+                                                }
+
+                                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                                break;
+                                            }
+                                            case > 0:
+                                                MAdapter.UserList = new ObservableCollection<UserDataObject>(result.PostWonderedUsers);
+                                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                                break;
+                                            default:
+                                            {
+                                                switch (MAdapter.UserList.Count)
+                                                {
+                                                    case > 10 when !MRecycler.CanScrollVertically(1):
+                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                        break;
+                                                }
+
+                                                break;
+                                            }
                                         }
 
-                                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
-                                    }
-                                    else
-                                    {
-                                        MAdapter.UserList = new ObservableCollection<UserDataObject>(result.PostWonderedUsers);
-                                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); }); 
+                                        break;
                                     }
                                 }
-                                else
-                                {
-                                    if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                                }
+
+                                break;
                             }
+                            default:
+                                Methods.DisplayReportResult(this, respond);
+                                break;
                         }
-                        else Methods.DisplayReportResult(this, respond);
 
                         break;
                     }
@@ -435,10 +469,12 @@ namespace WoWonder.Activities.PostData
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -451,24 +487,29 @@ namespace WoWonder.Activities.PostData
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsersReaction);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsersReaction);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

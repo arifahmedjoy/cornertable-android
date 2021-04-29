@@ -22,11 +22,11 @@ namespace WoWonder.Library.Anjo.Share
             get
             {
                 var ret = implementation.Value;
-                if (ret == null)
+                return ret switch
                 {
-                    throw NotImplementedInReferenceAssembly();
-                }
-                return ret;
+                    null => throw NotImplementedInReferenceAssembly(),
+                    _ => ret
+                };
             }
         }
 

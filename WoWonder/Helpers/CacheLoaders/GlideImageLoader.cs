@@ -42,18 +42,26 @@ namespace WoWonder.Helpers.CacheLoaders
                  
                 options ??= GetOptions(style, imagePlaceholders);
 
-                if (compress && style != ImageStyle.RoundedCrop)
+                switch (compress)
                 {
-                    if (imageUri.Contains("avatar") || imageUri.Contains("Avatar"))
-                        options.Override(AppSettings.AvatarPostSize);
-                    else if (imageUri.Contains("gif"))
-                        options.Override(AppSettings.ImagePostSize);
-                    else
-                        options.Override(AppSettings.ImagePostSize);
+                    case true when style != ImageStyle.RoundedCrop:
+                    {
+                        if (imageUri.Contains("avatar") || imageUri.Contains("Avatar"))
+                            options.Override(AppSettings.AvatarPostSize);
+                        else if (imageUri.Contains("gif"))
+                            options.Override(AppSettings.ImagePostSize);
+                        else
+                            options.Override(AppSettings.ImagePostSize);
+                        break;
+                    }
                 }
 
-                if (compress)
-                    options.Override(AppSettings.ImagePostSize);
+                switch (compress)
+                {
+                    case true:
+                        options.Override(AppSettings.ImagePostSize);
+                        break;
+                }
 
                 if (imageUri.Contains("no_profile_image") || imageUri.Contains("blackdefault") || imageUri.Contains("no_profile_image_circle")
                     || imageUri.Contains("ImagePlacholder") || imageUri.Contains("ImagePlacholder_circle") || imageUri.Contains("Grey_Offline")
@@ -92,7 +100,7 @@ namespace WoWonder.Helpers.CacheLoaders
                     case false when imageUri.Contains("http"):
                         newImage.Load(imageUri).Apply(options).Into(image);
                         break;
-                    case false when (imageUri.Contains("file://") || imageUri.Contains("content://") || imageUri.Contains("storage") || imageUri.Contains("/data/user/0/")):
+                    case false when imageUri.Contains("file://") || imageUri.Contains("content://") || imageUri.Contains("storage") || imageUri.Contains("/data/user/0/"):
                     {
                         File file2 = new File(imageUri);
                         var photoUri = FileProvider.GetUriForFile(activity, activity.PackageName + ".fileprovider", file2);
@@ -122,13 +130,19 @@ namespace WoWonder.Helpers.CacheLoaders
                  
                 options ??= GetOptions(style, imagePlaceholders);
 
-                if (compress && style != ImageStyle.RoundedCrop)
-                { 
+                switch (compress)
+                {
+                    case true when style != ImageStyle.RoundedCrop:
                         options.Override(AppSettings.ImagePostSize);
+                        break;
                 }
 
-                if (compress)
-                    options.Override(AppSettings.ImagePostSize);
+                switch (compress)
+                {
+                    case true:
+                        options.Override(AppSettings.ImagePostSize);
+                        break;
+                }
 
                 newImage.Load(imageUri).Apply(options).Into(image);
             }
@@ -354,18 +368,21 @@ namespace WoWonder.Helpers.CacheLoaders
         {
             try
             {
-                if (source == null)
+                switch (source)
                 {
-                    return null;
+                    case null:
+                        return null;
                 }
                 int size = (int)(Math.Min(source.Width, source.Height) - MBorderWidth / 2);
                 int x = (source.Width - size) / 2;
                 int y = (source.Height- size) / 2;
                 Bitmap squared = Bitmap.CreateBitmap(source, x, y, size, size);
                 Bitmap result = pool.Get(size, size, Bitmap.Config.Argb8888);
-                if (result == null)
+                switch (result)
                 {
-                    result = Bitmap.CreateBitmap(size, size, Bitmap.Config.Argb8888);
+                    case null:
+                        result = Bitmap.CreateBitmap(size, size, Bitmap.Config.Argb8888);
+                        break;
                 }
                 //Create a brush Canvas Manually draw a border
                 Canvas canvas = new Canvas(result);

@@ -66,21 +66,28 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-                if (viewHolder is SettingsAdapterViewHolder holder)
-                { 
-                    var item = SectionList[position];
-                    if (item != null)
+                switch (viewHolder)
+                {
+                    case SettingsAdapterViewHolder holder:
                     {
-                        if (AppSettings.FlowDirectionRightToLeft)
+                        var item = SectionList[position];
+                        if (item != null)
                         {
-                            holder.LinearLayoutImage.LayoutDirection = LayoutDirection.Rtl;
-                            holder.LinearLayoutMain.LayoutDirection = LayoutDirection.Rtl;
-                            holder.Name.LayoutDirection = LayoutDirection.Rtl;
+                            switch (AppSettings.FlowDirectionRightToLeft)
+                            {
+                                case true:
+                                    holder.LinearLayoutImage.LayoutDirection = LayoutDirection.Rtl;
+                                    holder.LinearLayoutMain.LayoutDirection = LayoutDirection.Rtl;
+                                    holder.Name.LayoutDirection = LayoutDirection.Rtl;
+                                    break;
+                            }
+
+                            FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.Icon, item.Icon);
+                            holder.Icon.SetTextColor(item.IconColor);
+                            holder.Name.Text = item.SectionName;
                         }
 
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.Icon, item.Icon);
-                        holder.Icon.SetTextColor(item.IconColor);
-                        holder.Name.Text = item.SectionName;
+                        break;
                     }
                 }
             }
@@ -164,7 +171,7 @@ namespace WoWonder.Activities.Communities.Adapters
                         SectionName = ActivityContext.GetText(Resource.String.Lbl_PageInformation),
                         BadgeCount = 0,
                         Badgevisibilty = false,
-                        Icon = IonIconsFonts.IosInfiniteOutline,
+                        Icon = IonIconsFonts.InformationCircleOutline,
                         IconColor = Color.ParseColor(AppSettings.MainColor)
                     });
                 }
@@ -195,30 +202,34 @@ namespace WoWonder.Activities.Communities.Adapters
                     });
                 }
 
-                if (AppSettings.ShowJobs)
+                switch (AppSettings.ShowJobs)
                 {
-                    SectionList.Add(new SectionItem
-                    {
-                        Id = 5,
-                        SectionName = ActivityContext.GetText(Resource.String.Lbl_OfferAJob),
-                        BadgeCount = 0,
-                        Badgevisibilty = false,
-                        Icon = IonIconsFonts.Briefcase,
-                        IconColor = Color.ParseColor(AppSettings.MainColor)
-                    });
+                    case true:
+                        SectionList.Add(new SectionItem
+                        {
+                            Id = 5,
+                            SectionName = ActivityContext.GetText(Resource.String.Lbl_OfferAJob),
+                            BadgeCount = 0,
+                            Badgevisibilty = false,
+                            Icon = IonIconsFonts.Briefcase,
+                            IconColor = Color.ParseColor(AppSettings.MainColor)
+                        });
+                        break;
                 }
 
-                if (AppSettings.ShowOffers)
+                switch (AppSettings.ShowOffers)
                 {
-                    SectionList.Add(new SectionItem
-                    {
-                        Id = 6,
-                        SectionName = ActivityContext.GetText(Resource.String.Lbl_Offer),
-                        BadgeCount = 0,
-                        Badgevisibilty = false,
-                        Icon = IonIconsFonts.IosAttach,
-                        IconColor = Color.ParseColor(AppSettings.MainColor)
-                    });
+                    case true:
+                        SectionList.Add(new SectionItem
+                        {
+                            Id = 6,
+                            SectionName = ActivityContext.GetText(Resource.String.Lbl_Offer),
+                            BadgeCount = 0,
+                            Badgevisibilty = false,
+                            Icon = IonIconsFonts.IosAttach,
+                            IconColor = Color.ParseColor(AppSettings.MainColor)
+                        });
+                        break;
                 }
 
                 if (pageData?.AdminInfo?.AdminInfoClass != null && pageData.AdminInfo?.AdminInfoClass.Admins == "1" || pageData?.IsPageOnwer != null && pageData.IsPageOnwer.Value)

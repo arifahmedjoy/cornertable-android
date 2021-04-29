@@ -66,13 +66,17 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-
-                if (viewHolder is MembersAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = UserList[position];
-                    if (item != null)
+                    case MembersAdapterViewHolder holder:
                     {
-                        Initialize(holder, item);
+                        var item = UserList[position];
+                        if (item != null)
+                        {
+                            Initialize(holder, item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -90,8 +94,12 @@ namespace WoWonder.Activities.Communities.Adapters
 
                 holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(users), 25);
 
-                if (users.Verified == "1")
-                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                switch (users.Verified)
+                {
+                    case "1":
+                        holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                        break;
+                }
                    
                 holder.About.Text = users.UserId == UserDetails.UserId ? ActivityContext.GetString(Resource.String.Lbl_Online): ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " +Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), false);
 
@@ -116,10 +124,12 @@ namespace WoWonder.Activities.Communities.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is MembersAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case MembersAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -179,8 +189,11 @@ namespace WoWonder.Activities.Communities.Adapters
             {
                 var d = new List<string>();
                 var item = UserList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Avatar != "")
                 {

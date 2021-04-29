@@ -48,177 +48,186 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var getSharedPostType = PostFunctions.GetAdapterType(PostCollection.SharedInfo.SharedInfoClass);
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    switch (getSharedPostType)
+                    case true:
                     {
-                        case PostModelType.BlogPost:
-                            PostModelResolver.PrepareBlog(collection);
-                            break;
-                        case PostModelType.EventPost:
-                            PostModelResolver.PrepareEvent(collection);
-                            if (long.Parse(collection.EventId) > 0)
+                        var getSharedPostType = PostFunctions.GetAdapterType(PostCollection.SharedInfo.SharedInfoClass);
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+
+                        switch (getSharedPostType)
+                        {
+                            case PostModelType.BlogPost:
+                                PostModelResolver.PrepareBlog(collection);
+                                break;
+                            case PostModelType.EventPost:
+                                PostModelResolver.PrepareEvent(collection);
+                                switch (long.Parse(collection.EventId))
+                                {
+                                    case > 0:
+                                        return;
+                                }
+                                break;
+                            case PostModelType.ColorPost:
+                                PostModelResolver.PrepareColorBox(collection);
+                                break;
+                            case PostModelType.LinkPost:
+                                PostModelResolver.PrepareLink(collection);
+                                break;
+                            case PostModelType.ProductPost:
+                                PostModelResolver.PrepareProduct(collection);
+                                break;
+                            case PostModelType.FundingPost:
+                                PostModelResolver.PrepareFunding(collection);
+                                break;
+                            case PostModelType.PurpleFundPost:
+                                PostModelResolver.PreparePurpleFundPost(collection);
+                                break;
+                            case PostModelType.OfferPost:
+                                PostModelResolver.PrepareOffer(collection);
+                                break;
+                            case PostModelType.MapPost:
+                                PostModelResolver.PrepareMapPost(collection);
+                                break;
+                            case PostModelType.PollPost:
+                            case PostModelType.AdsPost:
+                            case PostModelType.AdMob1:
+                            case PostModelType.AdMob2:
+                            case PostModelType.AdMob3:
+                            case PostModelType.FbAdNative:
                                 return;
-                            break;
-                        case PostModelType.ColorPost:
-                            PostModelResolver.PrepareColorBox(collection);
-                            break;
-                        case PostModelType.LinkPost:
-                            PostModelResolver.PrepareLink(collection);
-                            break;
-                        case PostModelType.ProductPost:
-                            PostModelResolver.PrepareProduct(collection);
-                            break;
-                        case PostModelType.FundingPost:
-                            PostModelResolver.PrepareFunding(collection);
-                            break;
-                        case PostModelType.PurpleFundPost:
-                            PostModelResolver.PreparePurpleFundPost(collection);
-                            break;
-                        case PostModelType.OfferPost:
-                            PostModelResolver.PrepareOffer(collection);
-                            break;
-                        case PostModelType.MapPost:
-                            PostModelResolver.PrepareMapPost(collection);
-                            break;
-                        case PostModelType.PollPost:
-                        case PostModelType.AdsPost:
-                        case PostModelType.AdMob1:
-                        case PostModelType.AdMob2:
-                        case PostModelType.AdMob3:
-                        case PostModelType.FbAdNative:
-                            return;
-                        case PostModelType.VideoPost:
-                            WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(collection.PostFileFull));
-                            break;
-                        case PostModelType.JobPost:
-                            AddJobPost();
-                            return;
-                        case PostModelType.VimeoPost:
-                        {
-                            PostModelResolver.PreparVimeoVideo(collection); 
-                            switch (AppSettings.EmbedVimeoVideoPostType)
+                            case PostModelType.VideoPost:
+                                WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(collection.PostFileFull));
+                                break;
+                            case PostModelType.JobPost:
+                                AddJobPost();
+                                return;
+                            case PostModelType.VimeoPost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    getSharedPostType = PostModelType.VimeoPost;
-                                    break; 
+                                PostModelResolver.PreparVimeoVideo(collection); 
+                                switch (AppSettings.EmbedVimeoVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        getSharedPostType = PostModelType.VimeoPost;
+                                        break; 
                                     case VideoPostTypeSystem.Link:
-                                    getSharedPostType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                            }
-                        } break;
-                        case PostModelType.FacebookPost:
-                        {
-                            PostModelResolver.PrepareFacebookVideo(collection); 
-                            switch (AppSettings.EmbedFacebookVideoPostType)
+                                        getSharedPostType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                }
+                            } break;
+                            case PostModelType.FacebookPost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    getSharedPostType = PostModelType.FacebookPost;
-                                    break; 
+                                PostModelResolver.PrepareFacebookVideo(collection); 
+                                switch (AppSettings.EmbedFacebookVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        getSharedPostType = PostModelType.FacebookPost;
+                                        break; 
                                     case VideoPostTypeSystem.Link:
-                                    getSharedPostType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                            }
-                        } break;
-                        case PostModelType.PlayTubePost:
-                        {
-                            PostModelResolver.PreparePlayTubeVideo(collection);  
-                            switch (AppSettings.EmbedPlayTubeVideoPostType)
+                                        getSharedPostType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                }
+                            } break;
+                            case PostModelType.PlayTubePost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    getSharedPostType = PostModelType.PlayTubePost;
-                                    break; 
+                                PostModelResolver.PreparePlayTubeVideo(collection);  
+                                switch (AppSettings.EmbedPlayTubeVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        getSharedPostType = PostModelType.PlayTubePost;
+                                        break; 
                                     case VideoPostTypeSystem.Link:
-                                    getSharedPostType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                            }
-                        } break; 
-                        case PostModelType.TikTokPost:
-                        {
-                            PostModelResolver.PrepareTikTokVideo(collection); 
-                            switch (AppSettings.EmbedTikTokVideoPostType)
+                                        getSharedPostType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                }
+                            } break; 
+                            case PostModelType.TikTokPost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    getSharedPostType = PostModelType.TikTokPost;
-                                    break; 
+                                PostModelResolver.PrepareTikTokVideo(collection); 
+                                switch (AppSettings.EmbedTikTokVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        getSharedPostType = PostModelType.TikTokPost;
+                                        break; 
                                     case VideoPostTypeSystem.Link:
-                                    getSharedPostType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                            }
-                        } break;
+                                        getSharedPostType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                }
+                            } break;
+                        }
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = getSharedPostType,
+                            Id = long.Parse((int)getSharedPostType + collection.Id),
+                            PostData = collection,
+                            IsDefaultFeedPost = true,
+                        };
+
+                        PostList.Add(item);
+                        break;
                     }
-
-                    var item = new AdapterModelsClass
+                    default:
                     {
-                        TypeView = getSharedPostType,
-                        Id = long.Parse((int)getSharedPostType + collection.Id),
-                        PostData = collection,
-                        IsDefaultFeedPost = true,
-                    };
-
-                    PostList.Add(item);
-                }
-                else
-                {
-                    switch (PostFeedType)
-                    {
-                        case PostModelType.BlogPost:
-                            PostModelResolver.PrepareBlog(PostCollection);
-                            break;
-                        case PostModelType.EventPost:
-                            PostModelResolver.PrepareEvent(PostCollection);
-                            if (long.Parse(PostCollection.EventId) > 0)
+                        switch (PostFeedType)
+                        {
+                            case PostModelType.BlogPost:
+                                PostModelResolver.PrepareBlog(PostCollection);
+                                break;
+                            case PostModelType.EventPost:
+                                PostModelResolver.PrepareEvent(PostCollection);
+                                switch (long.Parse(PostCollection.EventId))
+                                {
+                                    case > 0:
+                                        return;
+                                }
+                                break;
+                            case PostModelType.ColorPost:
+                                PostModelResolver.PrepareColorBox(PostCollection);
+                                break;
+                            case PostModelType.LinkPost:
+                                PostModelResolver.PrepareLink(PostCollection);
+                                break;
+                            case PostModelType.ProductPost:
+                                PostModelResolver.PrepareProduct(PostCollection);
+                                break;
+                            case PostModelType.FundingPost:
+                                PostModelResolver.PrepareFunding(PostCollection);
+                                break;
+                            case PostModelType.PurpleFundPost:
+                                PostModelResolver.PreparePurpleFundPost(PostCollection);
+                                break; 
+                            case PostModelType.OfferPost:
+                                PostModelResolver.PrepareOffer(PostCollection);
+                                break;
+                            case PostModelType.MapPost:
+                                PostModelResolver.PrepareMapPost(PostCollection);
+                                break;
+                            case PostModelType.PollPost:
+                            case PostModelType.AdsPost:
+                            case PostModelType.AdMob1:
+                            case PostModelType.AdMob2:
+                            case PostModelType.AdMob3:
+                            case PostModelType.FbAdNative:
                                 return;
-                            break;
-                        case PostModelType.ColorPost:
-                            PostModelResolver.PrepareColorBox(PostCollection);
-                            break;
-                        case PostModelType.LinkPost:
-                            PostModelResolver.PrepareLink(PostCollection);
-                            break;
-                        case PostModelType.ProductPost:
-                            PostModelResolver.PrepareProduct(PostCollection);
-                            break;
-                        case PostModelType.FundingPost:
-                            PostModelResolver.PrepareFunding(PostCollection);
-                            break;
-                        case PostModelType.PurpleFundPost:
-                            PostModelResolver.PreparePurpleFundPost(PostCollection);
-                            break; 
-                        case PostModelType.OfferPost:
-                            PostModelResolver.PrepareOffer(PostCollection);
-                            break;
-                        case PostModelType.MapPost:
-                            PostModelResolver.PrepareMapPost(PostCollection);
-                            break;
-                        case PostModelType.PollPost:
-                        case PostModelType.AdsPost:
-                        case PostModelType.AdMob1:
-                        case PostModelType.AdMob2:
-                        case PostModelType.AdMob3:
-                        case PostModelType.FbAdNative:
-                            return;
-                        case PostModelType.VideoPost:
-                            WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(PostCollection.PostFileFull));
-                            break;
-                        case PostModelType.JobPost:
-                            AddJobPost();
-                            return;
-                        case PostModelType.SharedPost:
-                            AddSharedPost();
-                            return;
-                        case PostModelType.VimeoPost:
+                            case PostModelType.VideoPost:
+                                WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(PostCollection.PostFileFull));
+                                break;
+                            case PostModelType.JobPost:
+                                AddJobPost();
+                                return;
+                            case PostModelType.SharedPost:
+                                AddSharedPost();
+                                return;
+                            case PostModelType.VimeoPost:
                             {
                                 PostModelResolver.PreparVimeoVideo(PostCollection);
                                 switch (AppSettings.EmbedVimeoVideoPostType)
@@ -235,8 +244,8 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.FacebookPost:
+                                break;
+                            case PostModelType.FacebookPost:
                             {
                                 PostModelResolver.PrepareFacebookVideo(PostCollection);
                                 switch (AppSettings.EmbedFacebookVideoPostType)
@@ -253,8 +262,8 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.PlayTubePost:
+                                break;
+                            case PostModelType.PlayTubePost:
                             {
                                 PostModelResolver.PreparePlayTubeVideo(PostCollection);
 
@@ -272,36 +281,38 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.TikTokPost:
-                        {
-                            PostModelResolver.PrepareTikTokVideo(PostCollection); 
-                            switch (AppSettings.EmbedTikTokVideoPostType)
+                                break;
+                            case PostModelType.TikTokPost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    PostFeedType = PostModelType.TikTokPost;
-                                    break;
-                                case VideoPostTypeSystem.Link:
-                                    PostFeedType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                                default:
-                                    return;
-                            }
+                                PostModelResolver.PrepareTikTokVideo(PostCollection); 
+                                switch (AppSettings.EmbedTikTokVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        PostFeedType = PostModelType.TikTokPost;
+                                        break;
+                                    case VideoPostTypeSystem.Link:
+                                        PostFeedType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                    default:
+                                        return;
+                                }
                             }  break; 
+                        }
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostFeedType,
+                            Id = long.Parse((int)PostFeedType + PostCollection.Id),
+                            PostData = PostCollection,
+                            IsDefaultFeedPost = true,
+                            PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
+                        };
+
+                        PostList.Add(item);
+                        break;
                     }
-
-                    var item = new AdapterModelsClass
-                    {
-                        TypeView = PostFeedType,
-                        Id = long.Parse((int)PostFeedType + PostCollection.Id),
-                        PostData = PostCollection,
-                        IsDefaultFeedPost = true,
-                        PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
-                    };
-
-                    PostList.Add(item);
                 }
             }
             catch (Exception e)
@@ -317,41 +328,56 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 bool isPromoted = false;
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    if (collection.IsPostBoosted == "1" || collection.SharedInfo.SharedInfoClass != null && collection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
-                        isPromoted = true;
-
-                    if (isPromoted)
+                    case true:
                     {
-                        var item = new AdapterModelsClass
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+
+                        if (collection.IsPostBoosted == "1" || collection.SharedInfo.SharedInfoClass != null && collection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
+                            isPromoted = true;
+
+                        switch (isPromoted)
                         {
-                            TypeView = PostModelType.PromotePost,
-                            Id = long.Parse((int)PostModelType.PromotePost + collection.Id),
-                            PostData = collection,
-                            IsDefaultFeedPost = true,
-                        };
-                        PostList.Add(item);
+                            case true:
+                            {
+                                var item = new AdapterModelsClass
+                                {
+                                    TypeView = PostModelType.PromotePost,
+                                    Id = long.Parse((int)PostModelType.PromotePost + collection.Id),
+                                    PostData = collection,
+                                    IsDefaultFeedPost = true,
+                                };
+                                PostList.Add(item);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    if (PostCollection.IsPostBoosted == "1" || PostCollection.SharedInfo.SharedInfoClass != null && PostCollection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
-                        isPromoted = true;
-
-                    if (isPromoted)
+                    default:
                     {
-                        var item = new AdapterModelsClass
-                        {
-                            TypeView = PostModelType.PromotePost,
+                        if (PostCollection.IsPostBoosted == "1" || PostCollection.SharedInfo.SharedInfoClass != null && PostCollection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
+                            isPromoted = true;
 
-                            Id = long.Parse((int)PostModelType.PromotePost + PostCollection.Id),
-                            PostData = PostCollection,
-                            IsDefaultFeedPost = true,
-                        };
-                        PostList.Add(item);
+                        switch (isPromoted)
+                        {
+                            case true:
+                            {
+                                var item = new AdapterModelsClass
+                                {
+                                    TypeView = PostModelType.PromotePost,
+
+                                    Id = long.Parse((int)PostModelType.PromotePost + PostCollection.Id),
+                                    PostData = PostCollection,
+                                    IsDefaultFeedPost = true,
+                                };
+                                PostList.Add(item);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -365,31 +391,36 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-                    PostModelResolver.PrepareHeader(collection);
-                    var item = new AdapterModelsClass
+                    case true:
                     {
-                        TypeView = PostModelType.SharedHeaderPost,
-                        Id = long.Parse((int)PostModelType.SharedHeaderPost + collection.Id),
-                        PostData = collection,
-                        IsDefaultFeedPost = true,
-                    };
-                    PostList.Add(item);
-                }
-                else
-                {
-                    PostModelResolver.PrepareHeader(PostCollection);
-                    var item = new AdapterModelsClass
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+                        PostModelResolver.PrepareHeader(collection);
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.SharedHeaderPost,
+                            Id = long.Parse((int)PostModelType.SharedHeaderPost + collection.Id),
+                            PostData = collection,
+                            IsDefaultFeedPost = true,
+                        };
+                        PostList.Add(item);
+                        break;
+                    }
+                    default:
                     {
-                        TypeView = PostModelType.HeaderPost, 
-                        Id = long.Parse((int)PostModelType.HeaderPost + PostCollection.Id),
-                        PostData = PostCollection,
-                        IsDefaultFeedPost = true,
-                        PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
-                    };
-                    PostList.Add(item);
+                        PostModelResolver.PrepareHeader(PostCollection);
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.HeaderPost, 
+                            Id = long.Parse((int)PostModelType.HeaderPost + PostCollection.Id),
+                            PostData = PostCollection,
+                            IsDefaultFeedPost = true,
+                            PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
+                        };
+                        PostList.Add(item);
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -402,52 +433,63 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    var getSharedPostType = PostFunctions.GetAdapterType(collection);
-                    if (getSharedPostType == PostModelType.ColorPost)
-                        return;
-
-                    if (string.IsNullOrEmpty(collection.Orginaltext))
-                        return;
-
-                    PostModelResolver.PrepareTextSection(collection);
-
-                    Console.WriteLine("TextSectionPostPart Id = " + (int)PostModelType.TextSectionPostPart + collection.Id);
-
-                    var item = new AdapterModelsClass
+                    case true:
                     {
-                        TypeView = PostModelType.TextSectionPostPart,
-                        Id = long.Parse((int)PostModelType.TextSectionPostPart + collection.Id),
-                        PostData = collection,
-                        IsDefaultFeedPost = true
-                    };
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
 
-                    PostList.Add(item);
-                }
-                else
-                {
-                    if (PostFeedType == PostModelType.ColorPost)
-                        return;
+                        var getSharedPostType = PostFunctions.GetAdapterType(collection);
+                        switch (getSharedPostType)
+                        {
+                            case PostModelType.ColorPost:
+                                return;
+                        }
 
-                    if (string.IsNullOrEmpty(PostCollection.Orginaltext))
-                        return;
+                        if (string.IsNullOrEmpty(collection.Orginaltext))
+                            return;
 
-                    PostModelResolver.PrepareTextSection(PostCollection);
+                        PostModelResolver.PrepareTextSection(collection);
 
-                    Console.WriteLine("TextSectionPostPart Id = " + (int)PostModelType.TextSectionPostPart + PostCollection.Id);
+                        Console.WriteLine("TextSectionPostPart Id = " + (int)PostModelType.TextSectionPostPart + collection.Id);
 
-                    var item = new AdapterModelsClass
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.TextSectionPostPart,
+                            Id = long.Parse((int)PostModelType.TextSectionPostPart + collection.Id),
+                            PostData = collection,
+                            IsDefaultFeedPost = true
+                        };
+
+                        PostList.Add(item);
+                        break;
+                    }
+                    default:
                     {
-                        TypeView = PostModelType.TextSectionPostPart,
-                        Id = long.Parse((int)PostModelType.TextSectionPostPart + PostCollection.Id),
-                        PostData = PostCollection,
-                        IsDefaultFeedPost = true
-                    };
+                        switch (PostFeedType)
+                        {
+                            case PostModelType.ColorPost:
+                                return;
+                        }
 
-                    PostList.Add(item);
+                        if (string.IsNullOrEmpty(PostCollection.Orginaltext))
+                            return;
+
+                        PostModelResolver.PrepareTextSection(PostCollection);
+
+                        Console.WriteLine("TextSectionPostPart Id = " + (int)PostModelType.TextSectionPostPart + PostCollection.Id);
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.TextSectionPostPart,
+                            Id = long.Parse((int)PostModelType.TextSectionPostPart + PostCollection.Id),
+                            PostData = PostCollection,
+                            IsDefaultFeedPost = true
+                        };
+
+                        PostList.Add(item);
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -468,14 +510,14 @@ namespace WoWonder.Activities.NativePost.Extra
                     Id = long.Parse((int)PostModelType.PrevBottomPostPart + PostCollection.Id),
 
                     PostData = PostCollection,
-                    IsDefaultFeedPost = true 
+                    IsDefaultFeedPost = true
                 };
 
                 PostList.Add(item);
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -521,13 +563,14 @@ namespace WoWonder.Activities.NativePost.Extra
                     IsDefaultFeedPost = true 
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                }
-                else
-                {
-                    PostList.Insert(index, item);
+                    case -1:
+                        PostList.Add(item);
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        break;
                 }
             }
             catch (Exception e)
@@ -544,8 +587,11 @@ namespace WoWonder.Activities.NativePost.Extra
                     return;
 
                 var check = PostCollection?.GetPostComments?.FirstOrDefault(banjo => string.IsNullOrEmpty(banjo.CFile) && string.IsNullOrEmpty(banjo.Record) && !string.IsNullOrEmpty(banjo.Text));
-                if (check == null)
-                    return;
+                switch (check)
+                {
+                    case null:
+                        return;
+                }
 
                 var item1 = new AdapterModelsClass
                 {
@@ -594,68 +640,85 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    if (collection.Options != null)
+                    case true:
                     {
-                        var count = collection.Options.Count;
-                        if (count > 0)
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+
+                        if (collection.Options != null)
                         {
-                            foreach (var poll in collection.Options)
+                            var count = collection.Options.Count;
+                            switch (count)
                             {
-                                PostModelResolver.PreparePoll(poll);
-
-                                poll.PostId = collection.Id;
-                                poll.RelatedToPollsCount = count;
-
-                                var i = new AdapterModelsClass
+                                case > 0:
                                 {
-                                    TypeView = PostModelType.PollPost,
-                                    Id = long.Parse((int)PostModelType.PollPost + collection.Id),
+                                    foreach (var poll in collection.Options)
+                                    {
+                                        PostModelResolver.PreparePoll(poll);
 
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true,
-                                    PollId = poll.Id,
-                                    PollsOption = poll,
-                                    PollOwnerUserId = collection.Publisher?.UserId
-                                };
-                                PostList.Add(i);
+                                        poll.PostId = collection.Id;
+                                        poll.RelatedToPollsCount = count;
+
+                                        var i = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.PollPost,
+                                            Id = long.Parse((int)PostModelType.PollPost + collection.Id),
+
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true,
+                                            PollId = poll.Id,
+                                            PollsOption = poll,
+                                            PollOwnerUserId = collection.Publisher?.UserId
+                                        };
+                                        PostList.Add(i);
+                                    }
+
+                                    break;
+                                }
                             }
                         }
+
+                        break;
+                    }
+                    default:
+                    {
+                        if (PostCollection.Options != null)
+                        {
+                            var count = PostCollection.Options.Count;
+                            switch (count)
+                            {
+                                case > 0:
+                                {
+                                    foreach (var poll in PostCollection.Options)
+                                    {
+                                        PostModelResolver.PreparePoll(poll);
+
+                                        poll.PostId = PostCollection.Id;
+                                        poll.RelatedToPollsCount = count;
+
+                                        var i = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.PollPost,
+                                            Id = long.Parse((int)PostModelType.PollPost + PostCollection.Id),
+
+                                            PostData = PostCollection,
+                                            IsDefaultFeedPost = true,
+                                            PollId = poll.Id,
+                                            PollsOption = poll,
+                                            PollOwnerUserId = PostCollection.Publisher?.UserId
+                                        };
+                                        PostList.Add(i);
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        break;
                     }
                 }
-                else
-                {
-                    if (PostCollection.Options != null)
-                    {
-                        var count = PostCollection.Options.Count;
-                        if (count > 0)
-                        {
-                            foreach (var poll in PostCollection.Options)
-                            {
-                                PostModelResolver.PreparePoll(poll);
-
-                                poll.PostId = PostCollection.Id;
-                                poll.RelatedToPollsCount = count;
-
-                                var i = new AdapterModelsClass
-                                {
-                                    TypeView = PostModelType.PollPost,
-                                    Id = long.Parse((int)PostModelType.PollPost + PostCollection.Id),
-
-                                    PostData = PostCollection,
-                                    IsDefaultFeedPost = true,
-                                    PollId = poll.Id,
-                                    PollsOption = poll,
-                                    PollOwnerUserId = PostCollection.Publisher?.UserId
-                                };
-                                PostList.Add(i);
-                            }
-                        }
-                    }
-                } 
             }
             catch (Exception e)
             {
@@ -684,37 +747,40 @@ namespace WoWonder.Activities.NativePost.Extra
                         IsDefaultFeedPost = true
                     };
 
-                    if (type == "Add")
+                    switch (type)
                     {
-                        PostList.Add(item);
-                        AddPostDivider();
-                    }
-                    else
-                    {
-                        CountIndex = 0;
-                        var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                        var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                        var model3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                        var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                        var model5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                        if (model5 != null)
-                            CountIndex += PostList.IndexOf(model5) + 1;
-                        else if (model4 != null)
-                            CountIndex += PostList.IndexOf(model4) + 1;
-                        else if (model3 != null)
-                            CountIndex += PostList.IndexOf(model3) + 1;
-                        else if (model2 != null)
-                            CountIndex += PostList.IndexOf(model2) + 1;
-                        else if (model1 != null)
-                            CountIndex += PostList.IndexOf(model1) + 1;
-                        else
+                        case "Add":
+                            PostList.Add(item);
+                            AddPostDivider();
+                            break;
+                        default:
+                        {
                             CountIndex = 0;
+                            var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                            var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                            var model3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                            var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                            var model5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
-                        CountIndex++;
-                        PostList.Insert(CountIndex, item);
+                            if (model5 != null)
+                                CountIndex += PostList.IndexOf(model5) + 1;
+                            else if (model4 != null)
+                                CountIndex += PostList.IndexOf(model4) + 1;
+                            else if (model3 != null)
+                                CountIndex += PostList.IndexOf(model3) + 1;
+                            else if (model2 != null)
+                                CountIndex += PostList.IndexOf(model2) + 1;
+                            else if (model1 != null)
+                                CountIndex += PostList.IndexOf(model1) + 1;
+                            else
+                                CountIndex = 0;
 
-                        InsertOnTopPostDivider();
+                            CountIndex++;
+                            PostList.Insert(CountIndex, item);
+
+                            InsertOnTopPostDivider();
+                            break;
+                        }
                     }
                 }
             }
@@ -759,22 +825,53 @@ namespace WoWonder.Activities.NativePost.Extra
             }
         }
 
-        public void AddStoryPostView()
+        public void AddStoryPostView(string typePost, int index, PostDataObject postData = null)
         {
             try
             {
-                if (AppSettings.ShowStory)
+                switch (AppSettings.ShowStory)
                 {
-                    var story = new AdapterModelsClass
+                    case true:
                     {
-                        TypeView = PostModelType.Story,
-                        StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>(),
-                        Id = 545454545
-                    };
+                        var story = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.Story,
+                            StoryList = new ObservableCollection<GetUserStoriesObject.StoryObject>(),
+                            Id = 545454545
+                        };
 
-                    PostList.Add(story);
-                    AddPostDivider();
+                        PostList.Add(story);
+                        AddPostDivider();
+                        break;
+                    }
                 }
+
+                //if (typePost != "feed") return;
+                //var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                //switch (check)
+                //{
+                //    case null:
+                //    {
+                //        string filter = WRecyclerView.GetInstance()?.GetFilter() ?? "";
+                //        string titleHead = filter switch
+                //        {
+                //            "0" => MainContext.GetString(Resource.String.Lbl_All),
+                //            "1" => MainContext.GetString(Resource.String.Lbl_People_i_Follow),
+                //            _ => MainContext.GetString(Resource.String.Lbl_All)
+                //        };
+
+                //        var modelsClass = new AdapterModelsClass
+                //        {
+                //            TypeView = PostModelType.FilterSection,
+                //            Id = 521,
+                //            AboutModel = new AboutModelClass { TitleHead = titleHead },
+                //        };
+
+                //        PostList.Add(modelsClass);
+                //        AddPostDivider();
+                //        break;
+                //    }
+                //}
             }
             catch (Exception e)
             {
@@ -793,15 +890,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     GroupsModel = modelClass
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -821,15 +919,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     PrivacyModelClass = modelClass
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -849,15 +948,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     PagesModel = modelClass
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -877,15 +977,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     PageInfoModelClass = modelClass
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -905,15 +1006,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     ImagesModel = modelClass
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -933,15 +1035,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     FollowersModel = modelClass
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -961,15 +1064,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     SocialLinksModel = modelClass,
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -989,15 +1093,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     AboutModel = new AboutModelClass { Description = description },
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -1017,15 +1122,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     InfoUserModel = new InfoUserModelClass {UserData = userData}
                 };
 
-                if (index == -1)
+                switch (index)
                 {
-                    PostList.Add(item);
-                    AddPostDivider();
-                }
-                else
-                {
-                    PostList.Insert(index, item);
-                    AddPostDivider(PostList.IndexOf(item) + 1);
+                    case -1:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    default:
+                        PostList.Insert(index, item);
+                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        break;
                 }
             }
             catch (Exception e)
@@ -1039,29 +1145,35 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var checkAddPostBox = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                if (checkAddPostBox == null)
+                switch (checkAddPostBox)
                 {
-                    var item = new AdapterModelsClass
+                    case null:
                     {
-                        TypeView = PostModelType.AddPostBox,
-                        TypePost = typePost,
-                        Id = 959595959,
-                        PostData = postData
-                    };
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.AddPostBox,
+                            TypePost = typePost,
+                            Id = 959595959,
+                            PostData = postData
+                        };
 
-                    if (index == -1)
-                    {
-                        PostList.Add(item);
-                        AddPostDivider();
+                        switch (index)
+                        {
+                            case -1:
+                                PostList.Add(item);
+                                //AddPostDivider();
+                                break;
+                            default:
+                                PostList.Insert(index, item);
+                                AddPostDivider(index);
+                                break;
+                        }
+
+                        break;
                     }
-                    else
-                    {
-                        PostList.Insert(index, item);
-                        AddPostDivider(index);
-                    } 
                 }
 
-                if (typePost != "feed") return;
+                /*if (typePost != "feed") return;
                 var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
                 if (check == null)
                 { 
@@ -1082,7 +1194,7 @@ namespace WoWonder.Activities.NativePost.Extra
                          
                     PostList.Add(modelsClass);
                     AddPostDivider();
-                }
+                }*/
             }
             catch (Exception e)
             {
@@ -1095,19 +1207,23 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-                if (check == null)
+                switch (check)
                 {
-                    var item = new AdapterModelsClass
+                    case null:
                     {
-                        TypeView = PostModelType.SearchForPosts,
-                        TypePost = type,
-                        Id = 2321,
-                        PostData = postData
-                    };
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.SearchForPosts,
+                            TypePost = type,
+                            Id = 2321,
+                            PostData = postData
+                        };
 
-                    PostList.Add(item);
-                    AddPostDivider();
-                } 
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -1148,11 +1264,15 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var item = PostModelResolver.PrepareGreetingAlert();
-                if (item == null)
-                    return;
-
-                PostList.Add(item);
-                AddPostDivider();
+                switch (item)
+                {
+                    case null:
+                        return;
+                    default:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1165,11 +1285,15 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var item = PostModelResolver.SetFindMoreAlert(type);
-                if (item == null)
-                    return;
-
-                PostList.Add(item);
-                AddPostDivider();
+                switch (item)
+                {
+                    case null:
+                        return;
+                    default:
+                        PostList.Add(item);
+                        AddPostDivider();
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1260,21 +1384,22 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (modelType == PostModelType.SuggestedGroupsBox)
+                switch (modelType)
                 {
-                    PostList.Add(new AdapterModelsClass
-                    {
-                        TypeView = PostModelType.SuggestedGroupsBox,
-                        Id = 3216545,
-                    });
-                }
-                else
-                {
-                    PostList.Add(new AdapterModelsClass
-                    {
-                        TypeView = PostModelType.SuggestedUsersBox,
-                        Id = 3228546,
-                    });
+                    case PostModelType.SuggestedGroupsBox:
+                        PostList.Add(new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.SuggestedGroupsBox,
+                            Id = 3216545,
+                        });
+                        break;
+                    default:
+                        PostList.Add(new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.SuggestedUsersBox,
+                            Id = 3228546,
+                        });
+                        break;
                 }
 
                 AddPostDivider();
@@ -1293,58 +1418,62 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-
-                    var getSharedPostType = PostFunctions.GetAdapterType(PostCollection.SharedInfo.SharedInfoClass);
-
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    switch (getSharedPostType)
+                    case true:
                     {
-                        case PostModelType.BlogPost:
-                            PostModelResolver.PrepareBlog(collection);
-                            break;
-                        case PostModelType.EventPost:
-                            PostModelResolver.PrepareEvent(collection);
-                            if (long.Parse(collection.EventId) > 0)
+                        var getSharedPostType = PostFunctions.GetAdapterType(PostCollection.SharedInfo.SharedInfoClass);
+
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+
+                        switch (getSharedPostType)
+                        {
+                            case PostModelType.BlogPost:
+                                PostModelResolver.PrepareBlog(collection);
+                                break;
+                            case PostModelType.EventPost:
+                                PostModelResolver.PrepareEvent(collection);
+                                switch (long.Parse(collection.EventId))
+                                {
+                                    case > 0:
+                                        return;
+                                }
+                                break;
+                            case PostModelType.ColorPost:
+                                PostModelResolver.PrepareColorBox(collection);
+                                break;
+                            case PostModelType.LinkPost:
+                                PostModelResolver.PrepareLink(collection);
+                                break;
+                            case PostModelType.ProductPost:
+                                PostModelResolver.PrepareProduct(collection);
+                                break;
+                            case PostModelType.FundingPost:
+                                PostModelResolver.PrepareFunding(collection);
+                                break;
+                            case PostModelType.PurpleFundPost:
+                                PostModelResolver.PreparePurpleFundPost(collection);
+                                break;
+                            case PostModelType.OfferPost:
+                                PostModelResolver.PrepareOffer(collection);
+                                break;
+                            case PostModelType.MapPost:
+                                PostModelResolver.PrepareMapPost(collection);
+                                break;
+                            case PostModelType.PollPost:
+                            case PostModelType.AdsPost:
+                            case PostModelType.AdMob1:
+                            case PostModelType.AdMob2:
+                            case PostModelType.AdMob3:
+                            case PostModelType.FbAdNative:
                                 return;
-                            break;
-                        case PostModelType.ColorPost:
-                            PostModelResolver.PrepareColorBox(collection);
-                            break;
-                        case PostModelType.LinkPost:
-                            PostModelResolver.PrepareLink(collection);
-                            break;
-                        case PostModelType.ProductPost:
-                            PostModelResolver.PrepareProduct(collection);
-                            break;
-                        case PostModelType.FundingPost:
-                            PostModelResolver.PrepareFunding(collection);
-                            break;
-                        case PostModelType.PurpleFundPost:
-                            PostModelResolver.PreparePurpleFundPost(collection);
-                            break;
-                        case PostModelType.OfferPost:
-                            PostModelResolver.PrepareOffer(collection);
-                            break;
-                        case PostModelType.MapPost:
-                            PostModelResolver.PrepareMapPost(collection);
-                            break;
-                        case PostModelType.PollPost:
-                        case PostModelType.AdsPost:
-                        case PostModelType.AdMob1:
-                        case PostModelType.AdMob2:
-                        case PostModelType.AdMob3:
-                        case PostModelType.FbAdNative:
-                            return;
-                        case PostModelType.VideoPost:
-                            WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(collection.PostFileFull));
-                            break;
-                        case PostModelType.JobPost:
-                            AddJobPost();
-                            return;
-                        case PostModelType.VimeoPost:
+                            case PostModelType.VideoPost:
+                                WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(collection.PostFileFull));
+                                break;
+                            case PostModelType.JobPost:
+                                AddJobPost();
+                                return;
+                            case PostModelType.VimeoPost:
                             {
                                 PostModelResolver.PreparVimeoVideo(collection);
                                 switch (AppSettings.EmbedVimeoVideoPostType)
@@ -1361,8 +1490,8 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.FacebookPost:
+                                break;
+                            case PostModelType.FacebookPost:
                             {
                                 PostModelResolver.PrepareFacebookVideo(collection);
                                 switch (AppSettings.EmbedFacebookVideoPostType)
@@ -1379,8 +1508,8 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.PlayTubePost:
+                                break;
+                            case PostModelType.PlayTubePost:
                             {
                                 PostModelResolver.PreparePlayTubeVideo(collection);
 
@@ -1398,87 +1527,91 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.TikTokPost:
-                        {
-                            PostModelResolver.PrepareTikTokVideo(collection); 
-                            switch (AppSettings.EmbedTikTokVideoPostType)
+                                break;
+                            case PostModelType.TikTokPost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    getSharedPostType = PostModelType.TikTokPost;
-                                    break;
-                                case VideoPostTypeSystem.Link:
-                                    getSharedPostType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                                default:
-                                    return;
-                            }
+                                PostModelResolver.PrepareTikTokVideo(collection); 
+                                switch (AppSettings.EmbedTikTokVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        getSharedPostType = PostModelType.TikTokPost;
+                                        break;
+                                    case VideoPostTypeSystem.Link:
+                                        getSharedPostType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                    default:
+                                        return;
+                                }
                             }  break;
+                        }
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = getSharedPostType,
+                            Id = long.Parse((int)getSharedPostType + collection.Id),
+                            PostData = collection,
+                            IsDefaultFeedPost = true,
+                        };
+
+                        CountIndex++;
+                        PostList.Insert(CountIndex, item);
+                        break;
                     }
-
-                    var item = new AdapterModelsClass
+                    default:
                     {
-                        TypeView = getSharedPostType,
-                        Id = long.Parse((int)getSharedPostType + collection.Id),
-                        PostData = collection,
-                        IsDefaultFeedPost = true,
-                    };
-
-                    CountIndex++;
-                    PostList.Insert(CountIndex, item);
-                }
-                else
-                {
-                    switch (PostFeedType)
-                    {
-                        case PostModelType.BlogPost:
-                            PostModelResolver.PrepareBlog(PostCollection);
-                            break;
-                        case PostModelType.EventPost:
-                            PostModelResolver.PrepareEvent(PostCollection);
-                            if (long.Parse(PostCollection.EventId) > 0)
+                        switch (PostFeedType)
+                        {
+                            case PostModelType.BlogPost:
+                                PostModelResolver.PrepareBlog(PostCollection);
+                                break;
+                            case PostModelType.EventPost:
+                                PostModelResolver.PrepareEvent(PostCollection);
+                                switch (long.Parse(PostCollection.EventId))
+                                {
+                                    case > 0:
+                                        return;
+                                }
+                                break;
+                            case PostModelType.ColorPost:
+                                PostModelResolver.PrepareColorBox(PostCollection);
+                                break;
+                            case PostModelType.LinkPost:
+                                PostModelResolver.PrepareLink(PostCollection);
+                                break;
+                            case PostModelType.ProductPost:
+                                PostModelResolver.PrepareProduct(PostCollection);
+                                break;
+                            case PostModelType.FundingPost:
+                                PostModelResolver.PrepareFunding(PostCollection);
+                                break;
+                            case PostModelType.PurpleFundPost:
+                                PostModelResolver.PreparePurpleFundPost(PostCollection);
+                                break;
+                            case PostModelType.OfferPost:
+                                PostModelResolver.PrepareOffer(PostCollection);
+                                break;
+                            case PostModelType.MapPost:
+                                PostModelResolver.PrepareMapPost(PostCollection);
+                                break;
+                            case PostModelType.PollPost:
+                            case PostModelType.AdsPost:
+                            case PostModelType.AdMob1:
+                            case PostModelType.AdMob2:
+                            case PostModelType.AdMob3:
+                            case PostModelType.FbAdNative:
                                 return;
-                            break;
-                        case PostModelType.ColorPost:
-                            PostModelResolver.PrepareColorBox(PostCollection);
-                            break;
-                        case PostModelType.LinkPost:
-                            PostModelResolver.PrepareLink(PostCollection);
-                            break;
-                        case PostModelType.ProductPost:
-                            PostModelResolver.PrepareProduct(PostCollection);
-                            break;
-                        case PostModelType.FundingPost:
-                            PostModelResolver.PrepareFunding(PostCollection);
-                            break;
-                        case PostModelType.PurpleFundPost:
-                            PostModelResolver.PreparePurpleFundPost(PostCollection);
-                            break;
-                        case PostModelType.OfferPost:
-                            PostModelResolver.PrepareOffer(PostCollection);
-                            break;
-                        case PostModelType.MapPost:
-                            PostModelResolver.PrepareMapPost(PostCollection);
-                            break;
-                        case PostModelType.PollPost:
-                        case PostModelType.AdsPost:
-                        case PostModelType.AdMob1:
-                        case PostModelType.AdMob2:
-                        case PostModelType.AdMob3:
-                        case PostModelType.FbAdNative:
-                            return;
-                        case PostModelType.VideoPost:
-                            WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(PostCollection.PostFileFull));
-                            break;
-                        case PostModelType.JobPost:
-                            AddJobPost();
-                            return;
-                        case PostModelType.SharedPost:
-                            InsertOnTopSharedPost();
-                            return;
-                        case PostModelType.VimeoPost:
+                            case PostModelType.VideoPost:
+                                WRecyclerView.GetInstance()?.CacheVideosFiles(Uri.Parse(PostCollection.PostFileFull));
+                                break;
+                            case PostModelType.JobPost:
+                                AddJobPost();
+                                return;
+                            case PostModelType.SharedPost:
+                                InsertOnTopSharedPost();
+                                return;
+                            case PostModelType.VimeoPost:
                             {
                                 PostModelResolver.PreparVimeoVideo(PostCollection);
                                 switch (AppSettings.EmbedVimeoVideoPostType)
@@ -1495,8 +1628,8 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.FacebookPost:
+                                break;
+                            case PostModelType.FacebookPost:
                             {
                                 PostModelResolver.PrepareFacebookVideo(PostCollection);
                                 switch (AppSettings.EmbedFacebookVideoPostType)
@@ -1513,8 +1646,8 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.PlayTubePost:
+                                break;
+                            case PostModelType.PlayTubePost:
                             {
                                 PostModelResolver.PreparePlayTubeVideo(PostCollection);
 
@@ -1532,38 +1665,40 @@ namespace WoWonder.Activities.NativePost.Extra
                                         return;
                                 }
                             }
-                            break;
-                        case PostModelType.TikTokPost:
-                        {
-                            PostModelResolver.PrepareTikTokVideo(PostCollection);
-
-                            switch (AppSettings.EmbedTikTokVideoPostType)
+                                break;
+                            case PostModelType.TikTokPost:
                             {
-                                case VideoPostTypeSystem.EmbedVideo:
-                                    PostFeedType = PostModelType.TikTokPost;
-                                    break;
-                                case VideoPostTypeSystem.Link:
-                                    PostFeedType = PostModelType.LinkPost;
-                                    break;
-                                case VideoPostTypeSystem.None:
-                                    return;
-                                default:
-                                    return;
-                            }  
-                        }  break; 
+                                PostModelResolver.PrepareTikTokVideo(PostCollection);
+
+                                switch (AppSettings.EmbedTikTokVideoPostType)
+                                {
+                                    case VideoPostTypeSystem.EmbedVideo:
+                                        PostFeedType = PostModelType.TikTokPost;
+                                        break;
+                                    case VideoPostTypeSystem.Link:
+                                        PostFeedType = PostModelType.LinkPost;
+                                        break;
+                                    case VideoPostTypeSystem.None:
+                                        return;
+                                    default:
+                                        return;
+                                }  
+                            }  break; 
+                        }
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostFeedType,
+                            Id = long.Parse((int)PostFeedType + PostCollection.Id),
+                            PostData = PostCollection,
+                            IsDefaultFeedPost = true,
+                            PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
+                        };
+
+                        CountIndex++;
+                        PostList.Insert(CountIndex, item);
+                        break;
                     }
-
-                    var item = new AdapterModelsClass
-                    {
-                        TypeView = PostFeedType,
-                        Id = long.Parse((int)PostFeedType + PostCollection.Id),
-                        PostData = PostCollection,
-                        IsDefaultFeedPost = true,
-                        PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
-                    };
-
-                    CountIndex++;
-                    PostList.Insert(CountIndex, item);
                 }
             }
             catch (Exception e)
@@ -1579,44 +1714,59 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 bool isPromoted = false;
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    if (collection.IsPostBoosted == "1" || collection.SharedInfo.SharedInfoClass != null && collection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
-                        isPromoted = true;
-
-                    if (isPromoted)
+                    case true:
                     {
-                        var item = new AdapterModelsClass
-                        {
-                            TypeView = PostModelType.PromotePost,
-                            Id = long.Parse((int)PostModelType.PromotePost + collection.Id),
-                            PostData = collection,
-                            IsDefaultFeedPost = true,
-                        };
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
 
-                        CountIndex++;
-                        PostList.Insert(CountIndex, item);
+                        if (collection.IsPostBoosted == "1" || collection.SharedInfo.SharedInfoClass != null && collection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
+                            isPromoted = true;
+
+                        switch (isPromoted)
+                        {
+                            case true:
+                            {
+                                var item = new AdapterModelsClass
+                                {
+                                    TypeView = PostModelType.PromotePost,
+                                    Id = long.Parse((int)PostModelType.PromotePost + collection.Id),
+                                    PostData = collection,
+                                    IsDefaultFeedPost = true,
+                                };
+
+                                CountIndex++;
+                                PostList.Insert(CountIndex, item);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    if (PostCollection.IsPostBoosted == "1" || PostCollection.SharedInfo.SharedInfoClass != null && PostCollection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
-                        isPromoted = true;
-
-                    if (isPromoted)
+                    default:
                     {
-                        var item = new AdapterModelsClass
+                        if (PostCollection.IsPostBoosted == "1" || PostCollection.SharedInfo.SharedInfoClass != null && PostCollection.SharedInfo.SharedInfoClass?.IsPostBoosted == "1")
+                            isPromoted = true;
+
+                        switch (isPromoted)
                         {
-                            TypeView = PostModelType.PromotePost,
-                            Id = long.Parse((int)PostModelType.PromotePost + PostCollection.Id),
-                            PostData = PostCollection,
-                            IsDefaultFeedPost = true,
-                            PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
-                        };
-                        CountIndex++;
-                        PostList.Insert(CountIndex, item);
+                            case true:
+                            {
+                                var item = new AdapterModelsClass
+                                {
+                                    TypeView = PostModelType.PromotePost,
+                                    Id = long.Parse((int)PostModelType.PromotePost + PostCollection.Id),
+                                    PostData = PostCollection,
+                                    IsDefaultFeedPost = true,
+                                    PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
+                                };
+                                CountIndex++;
+                                PostList.Insert(CountIndex, item);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1630,34 +1780,39 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-                    PostModelResolver.PrepareHeader(collection);
-                    var item = new AdapterModelsClass
+                    case true:
                     {
-                        TypeView = PostModelType.SharedHeaderPost,
-                        Id = long.Parse((int)PostModelType.SharedHeaderPost + collection.Id),
-                        PostData = collection,
-                        IsDefaultFeedPost = true,
-                    };
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+                        PostModelResolver.PrepareHeader(collection);
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.SharedHeaderPost,
+                            Id = long.Parse((int)PostModelType.SharedHeaderPost + collection.Id),
+                            PostData = collection,
+                            IsDefaultFeedPost = true,
+                        };
 
-                    CountIndex++;
-                    PostList.Insert(CountIndex, item);
-                }
-                else
-                {
-                    PostModelResolver.PrepareHeader(PostCollection);
-                    var item = new AdapterModelsClass
+                        CountIndex++;
+                        PostList.Insert(CountIndex, item);
+                        break;
+                    }
+                    default:
                     {
-                        TypeView = PostModelType.HeaderPost,
-                        Id = long.Parse((int)PostModelType.HeaderPost + PostCollection.Id),
-                        PostData = PostCollection,
-                        IsDefaultFeedPost = true,
-                        PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
-                    };
-                    CountIndex++;
-                    PostList.Insert(CountIndex, item);
+                        PostModelResolver.PrepareHeader(PostCollection);
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.HeaderPost,
+                            Id = long.Parse((int)PostModelType.HeaderPost + PostCollection.Id),
+                            PostData = PostCollection,
+                            IsDefaultFeedPost = true,
+                            PostDataDecoratedContent = TextDecorator.SetupStrings(PostCollection, MainContext),
+                        };
+                        CountIndex++;
+                        PostList.Insert(CountIndex, item);
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -1670,50 +1825,61 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    var getSharedPostType = PostFunctions.GetAdapterType(collection);
-                    if (getSharedPostType == PostModelType.ColorPost)
-                        return;
-
-
-                    if (string.IsNullOrEmpty(collection.Orginaltext))
-                        return;
-
-                    PostModelResolver.PrepareTextSection(collection);
-
-                    var item = new AdapterModelsClass
+                    case true:
                     {
-                        TypeView = PostModelType.TextSectionPostPart,
-                        Id = long.Parse((int)PostModelType.TextSectionPostPart + collection.Id),
-                        PostData = collection,
-                        IsDefaultFeedPost = true,
-                    };
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
 
-                    CountIndex++;
-                    PostList.Insert(CountIndex, item);
-                }
-                else
-                {
-                    if (PostFeedType == PostModelType.ColorPost)
-                        return;
+                        var getSharedPostType = PostFunctions.GetAdapterType(collection);
+                        switch (getSharedPostType)
+                        {
+                            case PostModelType.ColorPost:
+                                return;
+                        }
 
-                    if (string.IsNullOrEmpty(PostCollection.Orginaltext))
-                        return;
 
-                    PostModelResolver.PrepareTextSection(PostCollection);
+                        if (string.IsNullOrEmpty(collection.Orginaltext))
+                            return;
 
-                    var item = new AdapterModelsClass
+                        PostModelResolver.PrepareTextSection(collection);
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.TextSectionPostPart,
+                            Id = long.Parse((int)PostModelType.TextSectionPostPart + collection.Id),
+                            PostData = collection,
+                            IsDefaultFeedPost = true,
+                        };
+
+                        CountIndex++;
+                        PostList.Insert(CountIndex, item);
+                        break;
+                    }
+                    default:
                     {
-                        TypeView = PostModelType.TextSectionPostPart,
-                        Id = long.Parse((int)PostModelType.TextSectionPostPart + PostCollection.Id),
-                        PostData = PostCollection,
-                        IsDefaultFeedPost = true,
-                    };
-                    CountIndex++;
-                    PostList.Insert(CountIndex, item);
+                        switch (PostFeedType)
+                        {
+                            case PostModelType.ColorPost:
+                                return;
+                        }
+
+                        if (string.IsNullOrEmpty(PostCollection.Orginaltext))
+                            return;
+
+                        PostModelResolver.PrepareTextSection(PostCollection);
+
+                        var item = new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.TextSectionPostPart,
+                            Id = long.Parse((int)PostModelType.TextSectionPostPart + PostCollection.Id),
+                            PostData = PostCollection,
+                            IsDefaultFeedPost = true,
+                        };
+                        CountIndex++;
+                        PostList.Insert(CountIndex, item);
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -1726,68 +1892,85 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (isSharing)
+                switch (isSharing)
                 {
-                    var collection = PostCollection.SharedInfo.SharedInfoClass;
-
-                    if (collection.Options != null)
+                    case true:
                     {
-                        var count = collection.Options.Count;
-                        if (count > 0)
+                        var collection = PostCollection.SharedInfo.SharedInfoClass;
+
+                        if (collection.Options != null)
                         {
-                            foreach (var poll in collection.Options)
+                            var count = collection.Options.Count;
+                            switch (count)
                             {
-                                PostModelResolver.PreparePoll(poll);
-
-                                poll.PostId = collection.Id;
-                                poll.RelatedToPollsCount = count;
-
-                                var i = new AdapterModelsClass
+                                case > 0:
                                 {
-                                    TypeView = PostModelType.PollPost,
-                                    Id = long.Parse((int)PostModelType.PollPost + collection.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true,
-                                    PollId = poll.Id,
-                                    PollsOption = poll,
-                                    PollOwnerUserId = collection.Publisher?.UserId,
-                                };
-                                CountIndex++;
-                                PostList.Insert(CountIndex, i);
+                                    foreach (var poll in collection.Options)
+                                    {
+                                        PostModelResolver.PreparePoll(poll);
+
+                                        poll.PostId = collection.Id;
+                                        poll.RelatedToPollsCount = count;
+
+                                        var i = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.PollPost,
+                                            Id = long.Parse((int)PostModelType.PollPost + collection.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true,
+                                            PollId = poll.Id,
+                                            PollsOption = poll,
+                                            PollOwnerUserId = collection.Publisher?.UserId,
+                                        };
+                                        CountIndex++;
+                                        PostList.Insert(CountIndex, i);
+                                    }
+
+                                    break;
+                                }
                             }
                         }
+
+                        break;
+                    }
+                    default:
+                    {
+                        if (PostCollection.Options != null)
+                        {
+                            var count = PostCollection.Options.Count;
+                            switch (count)
+                            {
+                                case > 0:
+                                {
+                                    foreach (var poll in PostCollection.Options)
+                                    {
+                                        PostModelResolver.PreparePoll(poll);
+
+                                        poll.PostId = PostCollection.Id;
+                                        poll.RelatedToPollsCount = count;
+
+                                        var i = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.PollPost,
+                                            Id = long.Parse((int)PostModelType.PollPost + PostCollection.Id),
+                                            PostData = PostCollection,
+                                            IsDefaultFeedPost = true,
+                                            PollId = poll.Id,
+                                            PollsOption = poll,
+                                            PollOwnerUserId = PostCollection.Publisher?.UserId,
+                                        };
+                                        CountIndex++;
+                                        PostList.Insert(CountIndex, i);
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        break;
                     }
                 }
-                else
-                {
-                    if (PostCollection.Options != null)
-                    {
-                        var count = PostCollection.Options.Count;
-                        if (count > 0)
-                        {
-                            foreach (var poll in PostCollection.Options)
-                            {
-                                PostModelResolver.PreparePoll(poll);
-
-                                poll.PostId = PostCollection.Id;
-                                poll.RelatedToPollsCount = count;
-
-                                var i = new AdapterModelsClass
-                                {
-                                    TypeView = PostModelType.PollPost,
-                                    Id = long.Parse((int)PostModelType.PollPost + PostCollection.Id),
-                                    PostData = PostCollection,
-                                    IsDefaultFeedPost = true,
-                                    PollId = poll.Id,
-                                    PollsOption = poll,
-                                    PollOwnerUserId = PostCollection.Publisher?.UserId,
-                                };
-                                CountIndex++;
-                                PostList.Insert(CountIndex, i);
-                            }
-                        }
-                    }
-                } 
             }
             catch (Exception e)
             {
@@ -1814,7 +1997,7 @@ namespace WoWonder.Activities.NativePost.Extra
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -1895,48 +2078,51 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (type == "Add")
+                switch (type)
                 {
-                    AddPostPromote();
-                    AddPostHeader();
-                    AddPostTextSection();
-                    AddAutoSection();
-                    AddPollsPostView();
-                    AddPostPrevBottom();
-                    AddPostFooter();
-                    AddPostCommentAbility();
-                    AddPostDivider();
-                }
-                else
-                {
-                    CountIndex = 0;
-                    var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                    var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                    var model3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                    var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                    var model5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                    if (model5 != null)
-                        CountIndex += PostList.IndexOf(model5) + 1;
-                    else if (model4 != null)
-                        CountIndex += PostList.IndexOf(model4) + 1;
-                    else if (model3 != null)
-                        CountIndex += PostList.IndexOf(model3) + 1;
-                    else if (model2 != null)
-                        CountIndex += PostList.IndexOf(model2) + 1;
-                    else if (model1 != null)
-                        CountIndex += PostList.IndexOf(model1) + 1;
-                    else
+                    case "Add":
+                        AddPostPromote();
+                        AddPostHeader();
+                        AddPostTextSection();
+                        AddAutoSection();
+                        AddPollsPostView();
+                        AddPostPrevBottom();
+                        AddPostFooter();
+                        AddPostCommentAbility();
+                        AddPostDivider();
+                        break;
+                    default:
+                    {
                         CountIndex = 0;
+                        var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                        var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                        var model3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                        var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                        var model5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
-                    InsertOnTopPostPromote();
-                    InsertOnTopPostHeader();
-                    InsertOnTopPostTextSection();
-                    InsertOnTopAutoSection();
-                    InsertOnTopPollsPostView();
-                    InsertOnTopPostPrevBottom();
-                    InsertOnTopPostFooter();
-                    InsertOnTopPostDivider();
+                        if (model5 != null)
+                            CountIndex += PostList.IndexOf(model5) + 1;
+                        else if (model4 != null)
+                            CountIndex += PostList.IndexOf(model4) + 1;
+                        else if (model3 != null)
+                            CountIndex += PostList.IndexOf(model3) + 1;
+                        else if (model2 != null)
+                            CountIndex += PostList.IndexOf(model2) + 1;
+                        else if (model1 != null)
+                            CountIndex += PostList.IndexOf(model1) + 1;
+                        else
+                            CountIndex = 0;
+
+                        InsertOnTopPostPromote();
+                        InsertOnTopPostHeader();
+                        InsertOnTopPostTextSection();
+                        InsertOnTopAutoSection();
+                        InsertOnTopPollsPostView();
+                        InsertOnTopPostPrevBottom();
+                        InsertOnTopPostFooter();
+                        InsertOnTopPostDivider();
+                        break;
+                    }
                 }
             }
             catch (Exception e)

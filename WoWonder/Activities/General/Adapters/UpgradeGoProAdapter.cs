@@ -57,26 +57,37 @@ namespace WoWonder.Activities.General.Adapters
 		        //<item>Per Week</item>
 		        //<item>#4c7737</item>
                  
-                if (ListUtils.SettingsSiteList?.ProPackagesTypes.Count > 0)
+                switch (ListUtils.SettingsSiteList?.ProPackagesTypes?.Count)
                 {
-                    foreach (var type in ListUtils.SettingsSiteList?.ProPackagesTypes)//"1": "star"
+                    case > 0:
                     {
-                       var resourceId = ActivityContext.Resources?.GetIdentifier("ic_plan_" + type.Key, "drawable", ActivityContext.PackageName) ?? 0;
-                       if (resourceId == 0)
-                           continue;
-                        
-                       var proClass = new UpgradeGoProClass
-                       {
-                           Id = type.Key,
-                           HexColor = GetColor(type.Key),
-                           PlanText = type.Value, 
-                           PlanPrice = GetPrice(type.Value),
-                           PlanTime = GetTime(type.Value),
-                           PlanArray = GetPlanArray(type.Value),
-                           ImageResource = resourceId,
-                       };
+                        foreach (var type in ListUtils.SettingsSiteList?.ProPackagesTypes)//"1": "star"
+                        {
+                            var resourceId = ActivityContext.Resources?.GetIdentifier("ic_plan_" + type.Key, "drawable", ActivityContext.PackageName) ?? 0;
+                            switch (resourceId)
+                            {
+                                case 0:
+                                    continue;
+                                default:
+                                {
+                                    var proClass = new UpgradeGoProClass
+                                    {
+                                        Id = type.Key,
+                                        HexColor = GetColor(type.Key),
+                                        PlanText = type.Value, 
+                                        PlanPrice = GetPrice(type.Value),
+                                        PlanTime = GetTime(type.Value),
+                                        PlanArray = GetPlanArray(type.Value),
+                                        ImageResource = resourceId,
+                                    };
 
-                       PlansList.Add(proClass);
+                                    PlansList.Add(proClass);
+                                    break;
+                                }
+                            }
+                        }
+
+                        break;
                     }
                 } 
             }
@@ -110,28 +121,28 @@ namespace WoWonder.Activities.General.Adapters
         {
             try
             {
-                string time = ListUtils.SettingsSiteList?.ProPackages.FirstOrDefault(a => a.Key == value).Value?.Time?.ToString();
-                if (!string.IsNullOrEmpty(time))
+                string time = ListUtils.SettingsSiteList?.ProPackages?.FirstOrDefault(a => a.Key == value).Value?.Time?.ToString();
+                switch (string.IsNullOrEmpty(time))
                 {
-                    return time switch
-                    {
-                        "7" => ActivityContext.GetText(Resource.String.Lbl_per_week),
-                        "30" => ActivityContext.GetText(Resource.String.Lbl_per_month),
-                        "365" => ActivityContext.GetText(Resource.String.Lbl_per_year),
-                        "0" => ActivityContext.GetText(Resource.String.Lbl_LifeTime),
-                        _ => time
-                    }; 
-                }
-                else
-                {
-                    time = value switch
-                    {
-                        "star" => ActivityContext.GetText(Resource.String.Lbl_per_week),
-                        "hot" => ActivityContext.GetText(Resource.String.Lbl_per_month),
-                        "ultima" => ActivityContext.GetText(Resource.String.Lbl_per_year),
-                        "vip" => ActivityContext.GetText(Resource.String.Lbl_LifeTime),
-                        _ => ""
-                    };
+                    case false:
+                        return time switch
+                        {
+                            "7" => ActivityContext.GetText(Resource.String.Lbl_per_week),
+                            "30" => ActivityContext.GetText(Resource.String.Lbl_per_month),
+                            "365" => ActivityContext.GetText(Resource.String.Lbl_per_year),
+                            "0" => ActivityContext.GetText(Resource.String.Lbl_LifeTime),
+                            _ => time
+                        };
+                    default:
+                        time = value switch
+                        {
+                            "star" => ActivityContext.GetText(Resource.String.Lbl_per_week),
+                            "hot" => ActivityContext.GetText(Resource.String.Lbl_per_month),
+                            "ultima" => ActivityContext.GetText(Resource.String.Lbl_per_year),
+                            "vip" => ActivityContext.GetText(Resource.String.Lbl_LifeTime),
+                            _ => ""
+                        };
+                        break;
                 }
 
                 return time; 
@@ -147,21 +158,21 @@ namespace WoWonder.Activities.General.Adapters
         {
             try
             {
-                string price = ListUtils.SettingsSiteList?.ProPackages.FirstOrDefault(a => a.Key == value).Value?.Price;
-                if (!string.IsNullOrEmpty(price))
+                string price = ListUtils.SettingsSiteList?.ProPackages?.FirstOrDefault(a => a.Key == value).Value?.Price;
+                switch (string.IsNullOrEmpty(price))
                 {
-                    return price;
-                }
-                else
-                {
-                    price = value switch
-                    {
-                        "star" => AppSettings.WeeklyPrice,
-                        "hot" => AppSettings.MonthlyPrice,
-                        "ultima" => AppSettings.YearlyPrice,
-                        "vip" => AppSettings.LifetimePrice,
-                        _ => ""
-                    };
+                    case false:
+                        return price;
+                    default:
+                        price = value switch
+                        {
+                            "star" => AppSettings.WeeklyPrice,
+                            "hot" => AppSettings.MonthlyPrice,
+                            "ultima" => AppSettings.YearlyPrice,
+                            "vip" => AppSettings.LifetimePrice,
+                            _ => ""
+                        };
+                        break;
                 }
                 
                 return price;
@@ -192,7 +203,7 @@ namespace WoWonder.Activities.General.Adapters
                 */
 
                 Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                DataProPackages packages = ListUtils.SettingsSiteList?.ProPackages.FirstOrDefault(a => a.Key == value).Value;
+                DataProPackages packages = ListUtils.SettingsSiteList?.ProPackages?.FirstOrDefault(a => a.Key == value).Value;
                 if (packages != null)
                 { 
                     dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_1), packages.FeaturedMember?.ToString() == "1" ? IonIconsFonts.Checkmark : IonIconsFonts.Close);
@@ -200,31 +211,34 @@ namespace WoWonder.Activities.General.Adapters
                     dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_4), packages.LastSeen?.ToString() == "1" ? IonIconsFonts.Checkmark : IonIconsFonts.Close);
                     dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_5), packages.VerifiedBadge?.ToString() == "1" ? IonIconsFonts.Checkmark : IonIconsFonts.Close);
 
-                    if (packages.PostsPromotion?.ToString() == "0")
+                    switch (packages.PostsPromotion?.ToString())
                     {
-                        dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_6), IonIconsFonts.Close);
-                    }
-                    else
-                    {
-                        dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion?.ToString() + " " + ActivityContext.GetText(Resource.String.Lbl_Posts), IonIconsFonts.Checkmark);
+                        case "0":
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_6), IonIconsFonts.Close);
+                            break;
+                        default:
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion?.ToString() + " " + ActivityContext.GetText(Resource.String.Lbl_Posts), IonIconsFonts.Checkmark);
+                            break;
                     }
                   
-                    if (packages.PagesPromotion?.ToString() == "0")
+                    switch (packages.PagesPromotion?.ToString())
                     {
-                        dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_3), IonIconsFonts.Close);
-                    }
-                    else
-                    {
-                        dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion?.ToString() + " " + ActivityContext.GetText(Resource.String.Lbl_Pages), IonIconsFonts.Checkmark);
+                        case "0":
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_3), IonIconsFonts.Close);
+                            break;
+                        default:
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion?.ToString() + " " + ActivityContext.GetText(Resource.String.Lbl_Pages), IonIconsFonts.Checkmark);
+                            break;
                     }
                    
-                    if (packages.Discount?.ToString() == "0")
+                    switch (packages.Discount?.ToString())
                     {
-                        dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Close);
-                    }
-                    else
-                    {
-                        dictionary.Add(packages.Discount?.ToString() + "% " + ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Checkmark);
+                        case "0":
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Close);
+                            break;
+                        default:
+                            dictionary.Add(packages.Discount?.ToString() + "% " + ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Checkmark);
+                            break;
                     } 
                 }
                   
@@ -261,71 +275,83 @@ namespace WoWonder.Activities.General.Adapters
         {
             try
             {
-                if (viewHolder is UpgradePlansViewHolder holder)
+                switch (viewHolder)
                 {
-                    UpgradeGoProClass item = PlansList[position];
-                    if (item != null)
+                    case UpgradePlansViewHolder holder:
                     {
-                        if (AppSettings.SetTabDarkTheme)
+                        UpgradeGoProClass item = PlansList[position];
+                        if (item != null)
                         {
-                            holder.MainLayout.SetBackgroundResource(Resource.Drawable.ShadowLinerLayoutDark);
-                            holder.RelativeLayout.SetBackgroundResource(Resource.Drawable.price_gopro_item_style_dark);
+                            switch (AppSettings.SetTabDarkTheme)
+                            {
+                                case true:
+                                    holder.MainLayout.SetBackgroundResource(Resource.Drawable.ShadowLinerLayoutDark);
+                                    holder.RelativeLayout.SetBackgroundResource(Resource.Drawable.price_gopro_item_style_dark);
+                                    break;
+                            }
+
+                            holder.PlanImg.SetImageResource(item.ImageResource);
+                            holder.PlanImg.SetColorFilter(Color.ParseColor(item.HexColor));
+
+                            var (currency, currencyIcon) = WoWonderTools.GetCurrency(ListUtils.SettingsSiteList?.Currency);
+                            Console.WriteLine(currency);
+                            if (ListUtils.SettingsSiteList != null)
+                                holder.PriceText.Text = item.PlanPrice + currencyIcon;
+                            else
+                                holder.PriceText.Text = item.PlanPrice;
+                         
+                            holder.PlanText.Text = item.PlanText;
+                            holder.PerText.Text = item.PlanTime;
+
+                            holder.PlanText.SetTextColor(Color.ParseColor(item.HexColor));
+                            holder.PriceText.SetTextColor(Color.ParseColor(item.HexColor));
+                            holder.UpgradeButton.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(item.HexColor));
+                         
+                            switch (item.PlanArray?.Count)
+                            {
+                                case > 0:
+                                {
+                                    Typeface font = Typeface.CreateFromAsset(ActivityContext.Resources?.Assets, "ionicons.ttf");
+
+                                    foreach (var options in item.PlanArray)
+                                    {
+                                        var content = options.Value + " " + options.Key.ToUpper();
+
+                                        AppCompatTextView text = new AppCompatTextView(ActivityContext)
+                                        {
+                                            Text = content,
+                                            TextSize = 13
+                                        };
+                                 
+                                        text.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#444444"));
+                                        text.Gravity = GravityFlags.CenterHorizontal;
+                                        text.SetTypeface(font, TypefaceStyle.Normal);
+                                        WoTextDecorator.Content = content;
+                                        WoTextDecorator.DecoratedContent = new Android.Text.SpannableString(content);
+                                        switch (options.Value)
+                                        {
+                                            case IonIconsFonts.Checkmark:
+                                                WoTextDecorator.SetTextColor(IonIconsFonts.Checkmark, "#43a735");
+                                                break;
+                                            case IonIconsFonts.Close:
+                                                WoTextDecorator.SetTextColor(IonIconsFonts.Close, "#e13c4c");
+                                                break;
+                                        }
+                                 
+                                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);//height and width are in pixel
+                                        layoutParams.SetMargins(0, 30, 0, 5);
+
+                                        text.LayoutParameters = layoutParams;
+                                        holder.OptionLinerLayout.AddView(text);
+                                        WoTextDecorator.Build(text, WoTextDecorator.DecoratedContent);
+                                    }
+
+                                    break;
+                                }
+                            } 
                         }
 
-                        holder.PlanImg.SetImageResource(item.ImageResource);
-                        holder.PlanImg.SetColorFilter(Color.ParseColor(item.HexColor));
-
-                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(ListUtils.SettingsSiteList?.Currency);
-                        Console.WriteLine(currency);
-                        if (ListUtils.SettingsSiteList != null)
-                            holder.PriceText.Text = item.PlanPrice + currencyIcon;
-                        else
-                            holder.PriceText.Text = item.PlanPrice;
-                         
-                        holder.PlanText.Text = item.PlanText;
-                        holder.PerText.Text = item.PlanTime;
-
-                        holder.PlanText.SetTextColor(Color.ParseColor(item.HexColor));
-                        holder.PriceText.SetTextColor(Color.ParseColor(item.HexColor));
-                        holder.UpgradeButton.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(item.HexColor));
-                         
-                        if (item.PlanArray?.Count > 0)
-                        {
-                            Typeface font = Typeface.CreateFromAsset(ActivityContext.Resources?.Assets, "ionicons.ttf");
-
-                            foreach (var options in item.PlanArray)
-                            {
-                                var content = options.Value + " " + options.Key.ToUpper();
-
-                                AppCompatTextView text = new AppCompatTextView(ActivityContext)
-                                {
-                                    Text = content,
-                                    TextSize = 13
-                                };
-                                 
-                                text.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#444444"));
-                                text.Gravity = GravityFlags.CenterHorizontal;
-                                text.SetTypeface(font, TypefaceStyle.Normal);
-                                WoTextDecorator.Content = content;
-                                WoTextDecorator.DecoratedContent = new Android.Text.SpannableString(content);
-                                switch (options.Value)
-                                {
-                                    case IonIconsFonts.Checkmark:
-                                        WoTextDecorator.SetTextColor(IonIconsFonts.Checkmark, "#43a735");
-                                        break;
-                                    case IonIconsFonts.Close:
-                                        WoTextDecorator.SetTextColor(IonIconsFonts.Close, "#e13c4c");
-                                        break;
-                                }
-                                 
-                                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);//height and width are in pixel
-                                layoutParams.SetMargins(0, 30, 0, 5);
-
-                                text.LayoutParameters = layoutParams;
-                                holder.OptionLinerLayout.AddView(text);
-                                WoTextDecorator.Build(text, WoTextDecorator.DecoratedContent);
-                            }
-                        } 
+                        break;
                     }
                 }
             }

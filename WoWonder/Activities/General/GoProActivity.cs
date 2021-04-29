@@ -141,23 +141,47 @@ namespace WoWonder.Activities.General
         {
             try
             {
-                if (AppSettings.ShowInAppBilling && Client.IsExtended)
-                    BillingPayment?.DisconnectInAppBilling();
+                switch (AppSettings.ShowInAppBilling)
+                {
+                    case true when Client.IsExtended:
+                        BillingPayment?.DisconnectInAppBilling();
+                        break;
+                }
                
-                if (AppSettings.ShowPaypal)
-                    InitPayPalPayment?.StopPayPalService();
+                switch (AppSettings.ShowPaypal)
+                {
+                    case true:
+                        InitPayPalPayment?.StopPayPalService();
+                        break;
+                }
 
-                if (AppSettings.ShowRazorPay)
-                    InitRazorPay?.StopRazorPay();
+                switch (AppSettings.ShowRazorPay)
+                {
+                    case true:
+                        InitRazorPay?.StopRazorPay();
+                        break;
+                }
 
-                if (AppSettings.ShowPayStack)
-                    PayStackPayment?.StopPayStack();
+                switch (AppSettings.ShowPayStack)
+                {
+                    case true:
+                        PayStackPayment?.StopPayStack();
+                        break;
+                }
 
-                if (AppSettings.ShowCashFree)
-                    CashFreePayment?.StopCashFree();
+                switch (AppSettings.ShowCashFree)
+                {
+                    case true:
+                        CashFreePayment?.StopCashFree();
+                        break;
+                }
 
-                if (AppSettings.ShowPaySera)
-                    PaySeraPayment?.StopPaySera();
+                switch (AppSettings.ShowPaySera)
+                {
+                    case true:
+                        PaySeraPayment?.StopPaySera();
+                        break;
+                }
 
                 DestroyBasic();
                 base.OnDestroy();
@@ -190,24 +214,42 @@ namespace WoWonder.Activities.General
         private void InitBuy()
         {
             try
-            { 
-                if (AppSettings.ShowInAppBilling && Client.IsExtended)
-                    BillingPayment = new InitInAppBillingPayment(this);
+            {
+                BillingPayment = AppSettings.ShowInAppBilling switch
+                {
+                    true when Client.IsExtended => new InitInAppBillingPayment(this),
+                    _ => BillingPayment
+                };
 
-                if (AppSettings.ShowPaypal)
-                    InitPayPalPayment = new InitPayPalPayment(this);
+                InitPayPalPayment = AppSettings.ShowPaypal switch
+                {
+                    true => new InitPayPalPayment(this),
+                    _ => InitPayPalPayment
+                };
 
-                if (AppSettings.ShowRazorPay)
-                    InitRazorPay = new InitRazorPayPayment(this);
+                InitRazorPay = AppSettings.ShowRazorPay switch
+                {
+                    true => new InitRazorPayPayment(this),
+                    _ => InitRazorPay
+                };
 
-                if (AppSettings.ShowPayStack)
-                    PayStackPayment = new InitPayStackPayment(this);
+                PayStackPayment = AppSettings.ShowPayStack switch
+                {
+                    true => new InitPayStackPayment(this),
+                    _ => PayStackPayment
+                };
 
-                if (AppSettings.ShowCashFree)
-                    CashFreePayment = new InitCashFreePayment(this);
+                CashFreePayment = AppSettings.ShowCashFree switch
+                {
+                    true => new InitCashFreePayment(this),
+                    _ => CashFreePayment
+                };
 
-                if (AppSettings.ShowPaySera)
-                    PaySeraPayment = new InitPaySeraPayment(this);
+                PaySeraPayment = AppSettings.ShowPaySera switch
+                {
+                    true => new InitPaySeraPayment(this),
+                    _ => PaySeraPayment
+                };
             }
             catch (Exception e)
             {
@@ -278,16 +320,17 @@ namespace WoWonder.Activities.General
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    PlansAdapter.UpgradeButtonItemClick += PlansAdapterOnItemClick;
-                    IconClose.Click += IconCloseOnClick;
-                }
-                else
-                {
-                    PlansAdapter.UpgradeButtonItemClick -= PlansAdapterOnItemClick;
-                    IconClose.Click -= IconCloseOnClick;
+                    // true +=  // false -=
+                    case true:
+                        PlansAdapter.UpgradeButtonItemClick += PlansAdapterOnItemClick;
+                        IconClose.Click += IconCloseOnClick;
+                        break;
+                    default:
+                        PlansAdapter.UpgradeButtonItemClick -= PlansAdapterOnItemClick;
+                        IconClose.Click -= IconCloseOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -332,43 +375,80 @@ namespace WoWonder.Activities.General
         {
             try
             {
-                if (e.Position > -1)
+                switch (e.Position)
                 {
-                    ItemUpgrade = PlansAdapter.GetItem(e.Position);
-                    if (ItemUpgrade != null)
+                    case > -1:
                     {
-                        var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        ItemUpgrade = PlansAdapter.GetItem(e.Position);
+                        if (ItemUpgrade != null)
+                        {
+                            var arrayAdapter = new List<string>();
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        if (AppSettings.ShowInAppBilling && Client.IsExtended)
-                            arrayAdapter.Add(GetString(Resource.String.Btn_GooglePlay));
+                            switch (AppSettings.ShowInAppBilling)
+                            {
+                                case true when Client.IsExtended:
+                                    arrayAdapter.Add(GetString(Resource.String.Btn_GooglePlay));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowPaypal)
-                            arrayAdapter.Add(GetString(Resource.String.Btn_Paypal));
+                            switch (AppSettings.ShowPaypal)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Btn_Paypal));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowCreditCard)
-                            arrayAdapter.Add(GetString(Resource.String.Lbl_CreditCard));
+                            switch (AppSettings.ShowCreditCard)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Lbl_CreditCard));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowBankTransfer)
-                            arrayAdapter.Add(GetString(Resource.String.Lbl_BankTransfer));
+                            switch (AppSettings.ShowBankTransfer)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Lbl_BankTransfer));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowRazorPay)
-                            arrayAdapter.Add(GetString(Resource.String.Lbl_RazorPay));
+                            switch (AppSettings.ShowRazorPay)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Lbl_RazorPay));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowPayStack)
-                            arrayAdapter.Add(GetString(Resource.String.Lbl_PayStack));
+                            switch (AppSettings.ShowPayStack)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Lbl_PayStack));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowCashFree)
-                            arrayAdapter.Add(GetString(Resource.String.Lbl_CashFree));
+                            switch (AppSettings.ShowCashFree)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Lbl_CashFree));
+                                    break;
+                            }
 
-                        if (AppSettings.ShowPaySera)
-                            arrayAdapter.Add(GetString(Resource.String.Lbl_PaySera));
+                            switch (AppSettings.ShowPaySera)
+                            {
+                                case true:
+                                    arrayAdapter.Add(GetString(Resource.String.Lbl_PaySera));
+                                    break;
+                            }
 
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show(); 
-                    } 
+                            dialogList.Items(arrayAdapter);
+                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                            dialogList.AlwaysCallSingleChoiceCallback();
+                            dialogList.ItemsCallback(this).Build().Show(); 
+                        }
+
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -401,9 +481,13 @@ namespace WoWonder.Activities.General
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (AppSettings.ShowInAppBilling && Client.IsExtended)
-                    BillingPayment?.Handler?.HandleActivityResult(requestCode, resultCode, data);
-                 
+                switch (AppSettings.ShowInAppBilling)
+                {
+                    case true when Client.IsExtended:
+                        BillingPayment?.Handler?.HandleActivityResult(requestCode, resultCode, data);
+                        break;
+                }
+
                 switch (requestCode)
                 {
                     case InitPayPalPayment.PayPalDataRequestCode:
@@ -420,9 +504,11 @@ namespace WoWonder.Activities.General
                                     //string state = configuration.ProofOfPayment.State;
                                     //string transactionId = configuration.ProofOfPayment.TransactionId;
 
-                                    if (PayType == "membership")
+                                    switch (PayType)
                                     {
-                                        await SetProAsync();
+                                        case "membership":
+                                            await SetProAsync();
+                                            break;
                                     }
                                 }
 
@@ -436,7 +522,7 @@ namespace WoWonder.Activities.General
                     case PaymentActivity.ResultExtrasInvalid:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long)?.Show();
                         break;
-                    case BillingProcessor.PurchaseFlowRequestCode when (resultCode == Result.Ok && AppSettings.ShowInAppBilling && Client.IsExtended):
+                    case BillingProcessor.PurchaseFlowRequestCode when resultCode == Result.Ok && AppSettings.ShowInAppBilling && Client.IsExtended:
                         await SetProAsync();
                         break;
                 }
@@ -499,17 +585,23 @@ namespace WoWonder.Activities.General
                     {
                         try
                         {
-                            if (s.Length <= 0) return;
-                            var check = Methods.FunString.IsEmailValid(s.ToString().Replace(" ", ""));
-                            if (!check)
+                            switch (s.Length)
                             {
-                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
-                                return;
+                                case <= 0:
+                                    return;
                             }
+                            var check = Methods.FunString.IsEmailValid(s.ToString().Replace(" ", ""));
+                            switch (check)
+                            {
+                                case false:
+                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
+                                    return;
+                                default:
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
 
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
-
-                            await PayStack(s.ToString());
+                                    await PayStack(s.ToString());
+                                    break;
+                            }
                         }
                         catch (Exception e)
                         {
@@ -609,9 +701,9 @@ namespace WoWonder.Activities.General
             {
                 Console.WriteLine("razorpay : Payment Successful:" + razorpayPaymentId);
 
-                if (!string.IsNullOrEmpty(p1?.PaymentId))
+                switch (string.IsNullOrEmpty(p1?.PaymentId))
                 {
-                    if (Methods.CheckConnectivity())
+                    case false when Methods.CheckConnectivity():
                     {
                         var type = PayId switch
                         {
@@ -627,37 +719,42 @@ namespace WoWonder.Activities.General
                         };
 
                         var (apiStatus, respond) = await RequestsAsync.Global.RazorPay(p1.PaymentId, "upgrade", keyValues).ConfigureAwait(false);
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            RunOnUiThread(() =>
-                            {
-                                try
+                            case 200:
+                                RunOnUiThread(() =>
                                 {
-                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                                    if (dataUser != null)
+                                    try
                                     {
-                                        dataUser.IsPro = "1";
+                                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                        if (dataUser != null)
+                                        {
+                                            dataUser.IsPro = "1";
 
-                                        var sqlEntity = new SqLiteDatabase();
-                                        sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                            var sqlEntity = new SqLiteDatabase();
+                                            sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
                                         
-                                    }
+                                        }
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
-                                    FinishPage();
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e);
-                                }
-                            });
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                        FinishPage();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
+                                });
+                                break;
+                            default:
+                                Methods.DisplayReportResult(this, respond);
+                                break;
                         }
-                        else Methods.DisplayReportResult(this, respond);
+
+                        break;
                     }
-                    else
-                    {
+                    case false:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -687,17 +784,28 @@ namespace WoWonder.Activities.General
                     };
                      
                     var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStack(type, keyValues);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is InitializePaymentObject result)
+                        case 200:
                         {
-                            var priceInt = Convert.ToInt32(Price) * 100;
+                            switch (respond)
+                            {
+                                case InitializePaymentObject result:
+                                {
+                                    var priceInt = Convert.ToInt32(Price) * 100;
 
-                            PayStackPayment ??= new InitPayStackPayment(this);
-                            PayStackPayment.DisplayPayStackPayment(result.Url, "membership", priceInt.ToString(), PayId);
+                                    PayStackPayment ??= new InitPayStackPayment(this);
+                                    PayStackPayment.DisplayPayStackPayment(result.Url, "membership", priceInt.ToString(), PayId);
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
@@ -729,10 +837,11 @@ namespace WoWonder.Activities.General
                             }
 
                             var check = Methods.FunString.IsEmailValid(TxtEmail.Text.Replace(" ", ""));
-                            if (!check)
+                            switch (check)
                             {
-                                Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
-                                return;
+                                case false:
+                                    Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
+                                    return;
                             }
 
                             if (string.IsNullOrEmpty(TxtPhone.Text) || string.IsNullOrWhiteSpace(TxtPhone.Text))
@@ -809,15 +918,24 @@ namespace WoWonder.Activities.General
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFree(type, AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CashFreeObject result)
+                        case 200:
                         {
-                            CashFreePayment ??= new InitCashFreePayment(this);
-                            CashFreePayment.DisplayCashFreePayment(result, "membership", Price, PayId);
+                            switch (respond)
+                            {
+                                case CashFreeObject result:
+                                    CashFreePayment ??= new InitCashFreePayment(this);
+                                    CashFreePayment.DisplayCashFreePayment(result, "membership", Price, PayId);
+                                    break;
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
@@ -846,15 +964,24 @@ namespace WoWonder.Activities.General
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySera(type, new Dictionary<string, string>());
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is InitializePaymentObject result)
+                        case 200:
                         {
-                            PaySeraPayment ??= new InitPaySeraPayment(this);
-                            PaySeraPayment.DisplayPaySeraPayment(result.Url, "membership", Price, PayId);
+                            switch (respond)
+                            {
+                                case InitializePaymentObject result:
+                                    PaySeraPayment ??= new InitPaySeraPayment(this);
+                                    PaySeraPayment.DisplayPaySeraPayment(result.Url, "membership", Price, PayId);
+                                    break;
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
@@ -912,32 +1039,36 @@ namespace WoWonder.Activities.General
                 if (Methods.CheckConnectivity())
                 {
                     var (apiStatus, respond) = await RequestsAsync.Global.SetProAsync(PayId).ConfigureAwait(false);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        RunOnUiThread(() =>
-                        {
-                            try
+                        case 200:
+                            RunOnUiThread(() =>
                             {
-                                var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                                if (dataUser != null)
+                                try
                                 {
-                                    dataUser.IsPro = "1";
+                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                    if (dataUser != null)
+                                    {
+                                        dataUser.IsPro = "1";
 
-                                    var sqlEntity = new SqLiteDatabase();
-                                    sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                        var sqlEntity = new SqLiteDatabase();
+                                        sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
                                     
-                                }
+                                    }
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
-                                FinishPage();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        });
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    FinishPage();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            break;
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {

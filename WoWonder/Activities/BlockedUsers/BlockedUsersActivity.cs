@@ -233,16 +233,17 @@ namespace WoWonder.Activities.BlockedUsers
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.DeleteButtonItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.DeleteButtonItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.DeleteButtonItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.DeleteButtonItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -295,26 +296,33 @@ namespace WoWonder.Activities.BlockedUsers
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MAdapter.GetItem(position);
-                    if (item != null)
+                    case >= 0:
                     {
-                        var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == item.UserId);
-                        if (local != null)
+                        var item = MAdapter.GetItem(position);
+                        if (item != null)
                         {
-                            MAdapter?.UserList.Remove(local);
-                            MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
+                            var local = MAdapter?.UserList?.FirstOrDefault(a => a.UserId == item.UserId);
+                            if (local != null)
+                            {
+                                MAdapter?.UserList.Remove(local);
+                                MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
+                            }
+
+                            switch (MAdapter?.UserList?.Count)
+                            {
+                                case 0:
+                                    ShowEmptyPage();
+                                    break;
+                            }
+
+                            Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_Unblock_successfully), ToastLength.Short)?.Show();
+
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Block_User(item.UserId, false) });//false >> "un-block"
                         }
 
-                        if (MAdapter?.UserList?.Count == 0)
-                        {
-                            ShowEmptyPage();
-                        }
-
-                        Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_Unblock_successfully), ToastLength.Short)?.Show();
-
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.Block_User(item.UserId, false) });//false >> "un-block"
+                        break;
                     }
                 }
             }
@@ -342,25 +350,28 @@ namespace WoWonder.Activities.BlockedUsers
             {
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.Get_Blocked_Users();
-                if (apiStatus != 200 || (respond is not GetBlockedUsersObject result) || result.BlockedUsers == null)
+                if (apiStatus != 200 || respond is not GetBlockedUsersObject result || result.BlockedUsers == null)
                 {
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
-                    if (countList > 0)
+                    switch (countList)
                     {
-                        foreach (var item in from item in result.BlockedUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                        case > 0:
                         {
-                            MAdapter.UserList.Add(item);
-                        }
+                            foreach (var item in from item in result.BlockedUsers let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                            {
+                                MAdapter.UserList.Add(item);
+                            }
 
-                        RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
-                    }
-                    else
-                    {
-                        MAdapter.UserList = new ObservableCollection<UserDataObject>(result.BlockedUsers);
-                        RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                            break;
+                        }
+                        default:
+                            MAdapter.UserList = new ObservableCollection<UserDataObject>(result.BlockedUsers);
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
                     }
                 }
 
@@ -371,10 +382,12 @@ namespace WoWonder.Activities.BlockedUsers
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -387,25 +400,29 @@ namespace WoWonder.Activities.BlockedUsers
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

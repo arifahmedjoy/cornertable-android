@@ -271,28 +271,29 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                    TxtSalaryDate.Touch += TxtSalaryDateOnTouch;
-                    TxtJobType.Touch += TxtJobTypeOnTouch;
-                    TxtCategory.Touch += TxtCategoryOnTouch;
-                    TxtCurrency.Touch += TxtCurrencyOnTouch;
-                    TxtAddImg.Click += TxtAddImgOnClick;
-                    TxtAddQuestion.Touch += TxtAddQuestionOnTouch;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = null!; 
-                    TxtSalaryDate.Touch -= TxtSalaryDateOnTouch;
-                    TxtJobType.Touch -= TxtJobTypeOnTouch;
-                    TxtCategory.Touch -= TxtCategoryOnTouch;
-                    TxtCurrency.Touch -= TxtCurrencyOnTouch;
-                    TxtAddImg.Click -= TxtAddImgOnClick;
-                    TxtAddQuestion.Touch -= TxtAddQuestionOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = this; 
+                        TxtSalaryDate.Touch += TxtSalaryDateOnTouch;
+                        TxtJobType.Touch += TxtJobTypeOnTouch;
+                        TxtCategory.Touch += TxtCategoryOnTouch;
+                        TxtCurrency.Touch += TxtCurrencyOnTouch;
+                        TxtAddImg.Click += TxtAddImgOnClick;
+                        TxtAddQuestion.Touch += TxtAddQuestionOnTouch;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = null!; 
+                        TxtSalaryDate.Touch -= TxtSalaryDateOnTouch;
+                        TxtJobType.Touch -= TxtJobTypeOnTouch;
+                        TxtCategory.Touch -= TxtCategoryOnTouch;
+                        TxtCurrency.Touch -= TxtCurrencyOnTouch;
+                        TxtAddImg.Click -= TxtAddImgOnClick;
+                        TxtAddQuestion.Touch -= TxtAddQuestionOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -352,20 +353,24 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (MAdapter.ItemCount < 4)
-                {  
-                    TypeDialog = "AddQuestion";
+                switch (MAdapter.ItemCount)
+                {
+                    case < 4:
+                    {
+                        TypeDialog = "AddQuestion";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = WoWonderTools.GetAddQuestionList(this).Select(item => item.Value).ToList();
+                        var arrayAdapter = WoWonderTools.GetAddQuestionList(this).Select(item => item.Value).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_TypeQuestion));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                } 
+                        dialogList.Title(GetText(Resource.String.Lbl_TypeQuestion));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -391,23 +396,26 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                if (CategoriesController.ListCategoriesJob.Count > 0)
+                switch (CategoriesController.ListCategoriesJob.Count)
                 {
-                    TypeDialog = "Categories";
+                    case > 0:
+                    {
+                        TypeDialog = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
-                {
-                    Methods.DisplayReportResult(this, "Not have List Categories Job");
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Job");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -474,15 +482,19 @@ namespace WoWonder.Activities.Jobs
                     TypeDialog = "Currency";
                    
                     var arrayAdapter = WoWonderTools.GetCurrencySymbolList();
-                    if (arrayAdapter?.Count > 0)
+                    switch (arrayAdapter?.Count)
                     {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        case > 0:
+                        {
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                            dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
+                            dialogList.Items(arrayAdapter);
+                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                            dialogList.AlwaysCallSingleChoiceCallback();
+                            dialogList.ItemsCallback(this).Build().Show();
+                            break;
+                        }
                     }
                 }
                 else
@@ -500,22 +512,26 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Location when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Location when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -566,61 +582,86 @@ namespace WoWonder.Activities.Jobs
                         {"image_type", "upload"}, 
                     };
 
-                    if (MAdapter.QuestionList.Count > 0)
+                    switch (MAdapter.QuestionList.Count)
                     {
-                        for (int i = 0; i < MAdapter.QuestionList.Count; i++)
+                        case > 0:
                         {
-                            switch (i)
+                            for (int i = 0; i < MAdapter.QuestionList.Count; i++)
                             {
-                                case 0:
+                                switch (i)
                                 {
-                                    var question = MAdapter.QuestionList[i];
-                                    if (question == null) continue;
-                                    dictionary.Add("question_one", question.Question);
-                                    dictionary.Add("question_one_type", question.QuestionType);
-                                    dictionary.Add("question_one_answers", question.QuestionAnswer);
-                                    break;
-                                }
-                                case 1:
-                                {
-                                    var question = MAdapter.QuestionList[i];
-                                    if (question == null) continue;
-                                    dictionary.Add("question_two", question.Question);
-                                    dictionary.Add("question_two_type", question.QuestionType);
-                                    dictionary.Add("question_two_answers", question.QuestionAnswer);
-                                    break;
-                                }
-                                case 2:
-                                {
-                                    var question = MAdapter.QuestionList[i];
-                                    if (question == null) continue;
-                                    dictionary.Add("question_three", question.Question);
-                                    dictionary.Add("question_three_type", question.QuestionType);
-                                    dictionary.Add("question_three_answers", question.QuestionAnswer);
-                                    break;
+                                    case 0:
+                                    {
+                                        var question = MAdapter.QuestionList[i];
+                                        switch (question)
+                                        {
+                                            case null:
+                                                continue;
+                                        }
+                                        dictionary.Add("question_one", question.Question);
+                                        dictionary.Add("question_one_type", question.QuestionType);
+                                        dictionary.Add("question_one_answers", question.QuestionAnswer);
+                                        break;
+                                    }
+                                    case 1:
+                                    {
+                                        var question = MAdapter.QuestionList[i];
+                                        switch (question)
+                                        {
+                                            case null:
+                                                continue;
+                                        }
+                                        dictionary.Add("question_two", question.Question);
+                                        dictionary.Add("question_two_type", question.QuestionType);
+                                        dictionary.Add("question_two_answers", question.QuestionAnswer);
+                                        break;
+                                    }
+                                    case 2:
+                                    {
+                                        var question = MAdapter.QuestionList[i];
+                                        switch (question)
+                                        {
+                                            case null:
+                                                continue;
+                                        }
+                                        dictionary.Add("question_three", question.Question);
+                                        dictionary.Add("question_three_type", question.QuestionType);
+                                        dictionary.Add("question_three_answers", question.QuestionAnswer);
+                                        break;
+                                    }
                                 }
                             }
-                        } 
+
+                            break;
+                        }
                     }
                      
                     var (apiStatus, respond) = await RequestsAsync.Jobs.CreateJob(dictionary, ImagePath);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateJobObject result)
+                        case 200:
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_jobSuccessfullyAdded), ToastLength.Short)?.Show();
+                            switch (respond)
+                            {
+                                case CreateJobObject result:
+                                {
+                                    Toast.MakeText(this, GetString(Resource.String.Lbl_jobSuccessfullyAdded), ToastLength.Short)?.Show();
 
-                            AndHUD.Shared.Dismiss(this);
+                                    AndHUD.Shared.Dismiss(this);
                              
-                            Intent intent = new Intent();
-                            intent.PutExtra("JobsItem", JsonConvert.SerializeObject(result.Data));
-                            SetResult(Result.Ok, intent);
-                            Finish();
+                                    Intent intent = new Intent();
+                                    intent.PutExtra("JobsItem", JsonConvert.SerializeObject(result.Data));
+                                    SetResult(Result.Ok, intent);
+                                    Finish();
+                                    break;
+                                }
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        Methods.DisplayAndHudErrorResult(this, respond);
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
                 }
                 else
@@ -651,22 +692,30 @@ namespace WoWonder.Activities.Jobs
                     case CropImage.CropImageActivityRequestCode when resultCode == Result.Ok:
                     {
                         var result = CropImage.GetActivityResult(data);
-                        if (result.IsSuccessful)
+                        switch (result.IsSuccessful)
                         {
-                            var resultUri = result.Uri;
+                            case true:
+                            {
+                                var resultUri = result.Uri;
 
-                            if (!string.IsNullOrEmpty(resultUri.Path))
-                            {
-                                ImagePath = resultUri.Path;
-                                File file2 = new File(resultUri.Path);
-                                var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(Image);
+                                switch (string.IsNullOrEmpty(resultUri.Path))
+                                {
+                                    case false:
+                                    {
+                                        ImagePath = resultUri.Path;
+                                        File file2 = new File(resultUri.Path);
+                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(Image);
                              
-                                //GlideImageLoader.LoadImage(this, resultUri.Path, Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                            }
-                            else
-                            {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        //GlideImageLoader.LoadImage(this, resultUri.Path, Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        break;
+                                    }
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        break;
+                                }
+
+                                break;
                             }
                         }
 
@@ -831,13 +880,20 @@ namespace WoWonder.Activities.Jobs
             {
                 var placeAddress = data.GetStringExtra("Address") ?? "";
                 var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                if (!string.IsNullOrEmpty(placeAddress))
-                    TxtLocation.Text = placeAddress;
-                if (!string.IsNullOrEmpty(placeLatLng))
+                TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
                 {
-                    var latLng = placeLatLng.Split(",");
-                    Lat = latLng.First();
-                    Lng = latLng.Last(); 
+                    false => placeAddress,
+                    _ => TxtLocation.Text
+                };
+                switch (string.IsNullOrEmpty(placeLatLng))
+                {
+                    case false:
+                    {
+                        var latLng = placeLatLng.Split(",");
+                        Lat = latLng.First();
+                        Lng = latLng.Last();
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -849,26 +905,11 @@ namespace WoWonder.Activities.Jobs
         private void OpenDialogGallery()
         {
             try
-            { 
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+            {
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -881,10 +922,31 @@ namespace WoWonder.Activities.Jobs
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }

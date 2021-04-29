@@ -216,16 +216,17 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtAdd.Click += TxtAddOnClick;
-                    //TxtAmount.Touch += TxtAmountOnTouch;
-                }
-                else
-                {
-                    TxtAdd.Click -= TxtAddOnClick;
-                    //TxtAmount.Touch -= TxtAmountOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtAdd.Click += TxtAddOnClick;
+                        //TxtAmount.Touch += TxtAmountOnTouch;
+                        break;
+                    default:
+                        TxtAdd.Click -= TxtAddOnClick;
+                        //TxtAmount.Touch -= TxtAmountOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -315,57 +316,69 @@ namespace WoWonder.Activities.Fundings
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
                     var (apiStatus, respond) = await RequestsAsync.Funding.EditFunding(DataObject.Id ,TxtTitle.Text, TxtDescription.Text, TxtAmount.Text);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                            AndHUD.Shared.Dismiss(this);
-                            Console.WriteLine(result.Message);
-
-                            var instance = FundingActivity.GetInstance();
-                            var dataFunding = instance?.FundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
-                            if (dataFunding != null)
+                            switch (respond)
                             {
-                                dataFunding.Id = DataObject.Id;
-                                dataFunding.Title = TxtTitle.Text;
-                                dataFunding.Description = TxtDescription.Text;
-                                dataFunding.Amount = TxtAmount.Text;
-
-                                var index = instance.FundingTab.MAdapter.FundingList.IndexOf(dataFunding);
-                                if (index > -1)
+                                case MessageObject result:
                                 {
-                                    instance.FundingTab.MAdapter.FundingList[index] = dataFunding;
-                                    instance.FundingTab.MAdapter.NotifyItemChanged(index);
-                                } 
-                            }
+                                    AndHUD.Shared.Dismiss(this);
+                                    Console.WriteLine(result.Message);
 
-                            var dataMyFunding = instance?.MyFundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
-                            if (dataMyFunding != null)
-                            {
-                                dataMyFunding.Id = DataObject.Id;
-                                dataMyFunding.Title = TxtTitle.Text;
-                                dataMyFunding.Description = TxtDescription.Text;
-                                dataMyFunding.Amount = TxtAmount.Text;
+                                    var instance = FundingActivity.GetInstance();
+                                    var dataFunding = instance?.FundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
+                                    if (dataFunding != null)
+                                    {
+                                        dataFunding.Id = DataObject.Id;
+                                        dataFunding.Title = TxtTitle.Text;
+                                        dataFunding.Description = TxtDescription.Text;
+                                        dataFunding.Amount = TxtAmount.Text;
 
-                                var index = instance.MyFundingTab.MAdapter.FundingList.IndexOf(dataMyFunding);
-                                if (index > -1)
-                                {
-                                    instance.MyFundingTab.MAdapter.FundingList[index] = dataMyFunding;
-                                    instance.MyFundingTab.MAdapter.NotifyItemChanged(index);
+                                        var index = instance.FundingTab.MAdapter.FundingList.IndexOf(dataFunding);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                                instance.FundingTab.MAdapter.FundingList[index] = dataFunding;
+                                                instance.FundingTab.MAdapter.NotifyItemChanged(index);
+                                                break;
+                                        } 
+                                    }
+
+                                    var dataMyFunding = instance?.MyFundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
+                                    if (dataMyFunding != null)
+                                    {
+                                        dataMyFunding.Id = DataObject.Id;
+                                        dataMyFunding.Title = TxtTitle.Text;
+                                        dataMyFunding.Description = TxtDescription.Text;
+                                        dataMyFunding.Amount = TxtAmount.Text;
+
+                                        var index = instance.MyFundingTab.MAdapter.FundingList.IndexOf(dataMyFunding);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                                instance.MyFundingTab.MAdapter.FundingList[index] = dataMyFunding;
+                                                instance.MyFundingTab.MAdapter.NotifyItemChanged(index);
+                                                break;
+                                        }
+
+                                        Intent intent = new Intent();
+                                        intent.PutExtra("itemData", JsonConvert.SerializeObject(dataMyFunding));
+                                        SetResult(Result.Ok, intent); 
+                                    }
+
+                                    break;
                                 }
-
-                                Intent intent = new Intent();
-                                intent.PutExtra("itemData", JsonConvert.SerializeObject(dataMyFunding));
-                                SetResult(Result.Ok, intent); 
-                            } 
-                        }
+                            }
  
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_FundingSuccessfullyEdited), ToastLength.Short)?.Show();
-                        Finish();
-                    } 
-                    else
-                    {
-                       Methods.DisplayAndHudErrorResult(this, respond);
+                            Toast.MakeText(this, GetString(Resource.String.Lbl_FundingSuccessfullyEdited), ToastLength.Short)?.Show();
+                            Finish();
+                            break;
+                        }
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     } 
                 }
             }

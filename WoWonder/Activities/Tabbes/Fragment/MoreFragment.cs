@@ -81,14 +81,18 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
                 AddOrRemoveEvent(true);
 
-                if (!AppSettings.SetTabOnButton)
+                switch (AppSettings.SetTabOnButton)
                 {
-                    var parasms = (LinearLayout.LayoutParams)MoreRecylerView.LayoutParameters;
-                    // Check if we're running on Android 5.0 or higher
-                    parasms.TopMargin = (int)Build.VERSION.SdkInt < 23 ? 130 : 270;
+                    case false:
+                    {
+                        var parasms = (LinearLayout.LayoutParams)MoreRecylerView.LayoutParameters;
+                        // Check if we're running on Android 5.0 or higher
+                        parasms.TopMargin = (int)Build.VERSION.SdkInt < 23 ? 130 : 270;
 
-                    MoreRecylerView.LayoutParameters = parasms;
-                    MoreRecylerView.SetPadding(0, 0, 0, 0);
+                        MoreRecylerView.LayoutParameters = parasms;
+                        MoreRecylerView.SetPadding(0, 0, 0, 0);
+                        break;
+                    }
                 }
 
             }
@@ -124,20 +128,23 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
                 MoreSectionAdapter = new MoreSectionAdapter(Activity);
 
-                if (AppSettings.MoreTheme == MoreTheme.BeautyTheme)
+                switch (AppSettings.MoreTheme)
                 {
-                    var layoutManager = new GridLayoutManager(Activity, 4);
+                    case MoreTheme.BeautyTheme:
+                    {
+                        var layoutManager = new GridLayoutManager(Activity, 4);
                      
-                    var countListFirstRow = MoreSectionAdapter.SectionList.Where(q => q.StyleRow == 0).ToList().Count;
+                        var countListFirstRow = MoreSectionAdapter.SectionList.Where(q => q.StyleRow == 0).ToList().Count;
 
-                    layoutManager.SetSpanSizeLookup(new MySpanSizeLookup2(countListFirstRow, 1, 4));//20, 1, 4
-                    MoreRecylerView.SetLayoutManager(layoutManager);
-                    MoreRecylerView.SetAdapter(MoreSectionAdapter);
-                }
-                else
-                {
-                    MoreRecylerView.SetLayoutManager(new LinearLayoutManager(Activity)); 
-                    MoreRecylerView.SetAdapter(MoreSectionAdapter);
+                        layoutManager.SetSpanSizeLookup(new MySpanSizeLookup2(countListFirstRow, 1, 4));//20, 1, 4
+                        MoreRecylerView.SetLayoutManager(layoutManager);
+                        MoreRecylerView.SetAdapter(MoreSectionAdapter);
+                        break;
+                    }
+                    default:
+                        MoreRecylerView.SetLayoutManager(new LinearLayoutManager(Activity)); 
+                        MoreRecylerView.SetAdapter(MoreSectionAdapter);
+                        break;
                 }
                 //MoreRecylerView.HasFixedSize = true;
                 MoreRecylerView.SetItemViewCacheSize(50);
@@ -156,14 +163,15 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MoreSectionAdapter.ItemClick += MoreSection_OnItemClick;
-                }
-                else
-                {
-                    MoreSectionAdapter.ItemClick -= MoreSection_OnItemClick;
+                    // true +=  // false -=
+                    case true:
+                        MoreSectionAdapter.ItemClick += MoreSection_OnItemClick;
+                        break;
+                    default:
+                        MoreSectionAdapter.ItemClick -= MoreSection_OnItemClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -182,224 +190,229 @@ namespace WoWonder.Activities.Tabbes.Fragment
             try
             {
                 var position = adapterClickEvents.Position;
-                if (position >= 0)
+                switch (position)
                 {
-                    var item = MoreSectionAdapter?.GetItem(position); 
-                    if (item != null)
+                    case >= 0:
                     {
-                        switch (item.Id)
+                        var item = MoreSectionAdapter?.GetItem(position); 
+                        if (item != null)
                         {
-                            // My Profile
-                            case 1:
+                            switch (item.Id)
                             {
-                                var intent = new Intent(Context, typeof(MyProfileActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Messages
-                            case 2: 
-                               // Methods.App.OpenAppByPackageName(Context, AppSettings.MessengerPackageName, "OpenChatApp");
-                                break;
-                            // Contacts
-                            case 3:
-                            {
-                                var intent = new Intent(Context, typeof(MyContactsActivity));
-                                intent.PutExtra("ContactsType", "Following");
-                                intent.PutExtra("UserId", UserDetails.UserId);
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Pokes
-                            case 4:
-                            {
-                                var intent = new Intent(Context, typeof(PokesActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Album
-                            case 5:
-                            {
-                                var intent = new Intent(Context, typeof(MyAlbumActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // MyImages
-                            case 6:
-                            {
-                                var intent = new Intent(Context, typeof(MyPhotosActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // MyVideos
-                            case 7:
-                            {
-                                var intent = new Intent(Context, typeof(MyVideoActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Saved Posts
-                            case 8:
-                            {
-                                var intent = new Intent(Context, typeof(SavedPostsActivity)); 
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Groups
-                            case 9:
-                            {
-                                var intent = new Intent(Context, typeof(GroupsActivity)); 
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Pages
-                            case 10:
-                            {
-                                var intent = new Intent(Context, typeof(PagesActivity)); 
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Blogs
-                            case 11:
-                                StartActivity(new Intent(Context, typeof(ArticlesActivity)));
-                                break;
-                            // Market
-                            case 12:
-                                StartActivity(new Intent(Context, typeof(TabbedMarketActivity)));
-                                break;
-                            // Popular Posts
-                            case 13:
-                            {
-                                var intent = new Intent(Context, typeof(PopularPostsActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Events
-                            case 14:
-                            {
-                                var intent = new Intent(Context, typeof(EventMainActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Find Friends
-                            case 15:
-                            {
-                                var intent = new Intent(Context, typeof(PeopleNearByActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Movies
-                            case 16:
-                            {
-                                var intent = new Intent(Context, typeof(MoviesActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // jobs
-                            case 17:
-                            {
-                                var intent = new Intent(Context, typeof(JobsActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // common things
-                            case 18:
-                            {
-                                var intent = new Intent(Context, typeof(CommonThingsActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Fundings
-                            case 19:
-                            {
-                                var intent = new Intent(Context, typeof(FundingActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Games
-                            case 20:
-                            {
-                                var intent = new Intent(Context, typeof(GamesActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Help & Support
-                            case 80:
-                            {
-                                var intent = new Intent(Context, typeof(MemoriesActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Help & Support
-                            //Settings Page
-                            case 82:
-                            {
-                                var intent = new Intent(Context, typeof(OffersActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // General Account
-                            case 21:
-                            {
-                                var intent = new Intent(Context, typeof(GeneralAccountActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Privacy
-                            case 22:
-                            {
-                                var intent = new Intent(Context, typeof(PrivacyActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Notification
-                            case 23:
-                            {
-                                var intent = new Intent(Context, typeof(MessegeNotificationActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // InvitationLinks
-                            case 24:
-                            {
-                                var intent = new Intent(Context, typeof(InvitationLinksActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // MyInformation
-                            case 25:
-                            {
-                                var intent = new Intent(Context, typeof(MyInformationActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Tell Friends
-                            case 26:
-                            {
-                                var intent = new Intent(Context, typeof(TellFriendActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Help & Support
-                            case 27:
-                            {
-                                var intent = new Intent(Context, typeof(SupportActivity));
-                                StartActivity(intent);
-                                break;
-                            }
-                            // Logout
-                            case 28:
-                            {
-                                var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
+                                // My Profile
+                                case 1:
+                                {
+                                    var intent = new Intent(Context, typeof(MyProfileActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                //// Messages
+                                //case 2: 
+                                //    Methods.App.OpenAppByPackageName(Context, AppSettings.MessengerPackageName, "OpenChatApp");
+                                //    break;
+                                // Contacts
+                                case 3:
+                                {
+                                    var intent = new Intent(Context, typeof(MyContactsActivity));
+                                    intent.PutExtra("ContactsType", "Following");
+                                    intent.PutExtra("UserId", UserDetails.UserId);
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Pokes
+                                case 4:
+                                {
+                                    var intent = new Intent(Context, typeof(PokesActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Album
+                                case 5:
+                                {
+                                    var intent = new Intent(Context, typeof(MyAlbumActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // MyImages
+                                case 6:
+                                {
+                                    var intent = new Intent(Context, typeof(MyPhotosActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // MyVideos
+                                case 7:
+                                {
+                                    var intent = new Intent(Context, typeof(MyVideoActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Saved Posts
+                                case 8:
+                                {
+                                    var intent = new Intent(Context, typeof(SavedPostsActivity)); 
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Groups
+                                case 9:
+                                {
+                                    var intent = new Intent(Context, typeof(GroupsActivity)); 
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Pages
+                                case 10:
+                                {
+                                    var intent = new Intent(Context, typeof(PagesActivity)); 
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Blogs
+                                case 11:
+                                    StartActivity(new Intent(Context, typeof(ArticlesActivity)));
+                                    break;
+                                // Market
+                                case 12:
+                                    StartActivity(new Intent(Context, typeof(TabbedMarketActivity)));
+                                    break;
+                                // Popular Posts
+                                case 13:
+                                {
+                                    var intent = new Intent(Context, typeof(PopularPostsActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Events
+                                case 14:
+                                {
+                                    var intent = new Intent(Context, typeof(EventMainActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Find Friends
+                                case 15:
+                                {
+                                    var intent = new Intent(Context, typeof(PeopleNearByActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Movies
+                                case 16:
+                                {
+                                    var intent = new Intent(Context, typeof(MoviesActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // jobs
+                                case 17:
+                                {
+                                    var intent = new Intent(Context, typeof(JobsActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // common things
+                                case 18:
+                                {
+                                    var intent = new Intent(Context, typeof(CommonThingsActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Fundings
+                                case 19:
+                                {
+                                    var intent = new Intent(Context, typeof(FundingActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Games
+                                case 20:
+                                {
+                                    var intent = new Intent(Context, typeof(GamesActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Help & Support
+                                case 80:
+                                {
+                                    var intent = new Intent(Context, typeof(MemoriesActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Help & Support
+                                //Settings Page
+                                case 82:
+                                {
+                                    var intent = new Intent(Context, typeof(OffersActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // General Account
+                                case 21:
+                                {
+                                    var intent = new Intent(Context, typeof(GeneralAccountActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Privacy
+                                case 22:
+                                {
+                                    var intent = new Intent(Context, typeof(PrivacyActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Notification
+                                case 23:
+                                {
+                                    var intent = new Intent(Context, typeof(MessegeNotificationActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // InvitationLinks
+                                case 24:
+                                {
+                                    var intent = new Intent(Context, typeof(InvitationLinksActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // MyInformation
+                                case 25:
+                                {
+                                    var intent = new Intent(Context, typeof(MyInformationActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Tell Friends
+                                case 26:
+                                {
+                                    var intent = new Intent(Context, typeof(TellFriendActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Help & Support
+                                case 27:
+                                {
+                                    var intent = new Intent(Context, typeof(SupportActivity));
+                                    StartActivity(intent);
+                                    break;
+                                }
+                                // Logout
+                                case 28:
+                                {
+                                    var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
 
-                                dialog.Title(Resource.String.Lbl_Warning);
-                                dialog.Content(Context.GetText(Resource.String.Lbl_Are_you_logout));
-                                dialog.PositiveText(Context.GetText(Resource.String.Lbl_Ok)).OnPositive(this);
-                                dialog.NegativeText(Context.GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                                dialog.AlwaysCallSingleChoiceCallback();
-                                dialog.Build().Show();
-                                break;
-                            } 
+                                    dialog.Title(Resource.String.Lbl_Warning);
+                                    dialog.Content(Context.GetText(Resource.String.Lbl_Are_you_logout));
+                                    dialog.PositiveText(Context.GetText(Resource.String.Lbl_Ok)).OnPositive(this);
+                                    dialog.NegativeText(Context.GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                                    dialog.AlwaysCallSingleChoiceCallback();
+                                    dialog.Build().Show();
+                                    break;
+                                } 
+                            }
                         }
+
+                        break;
                     }
                 }
             }
@@ -420,13 +433,15 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 100)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    case 100 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         ApiRequest.Logout(Activity);
-                    else
+                        break;
+                    case 100:
                         Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_Permission_is_denied),
                             ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -446,21 +461,25 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 if (p1 == DialogAction.Positive)
                 {
-                    // Check if we're running on Android 5.0 or higher
-                    if ((int)Build.VERSION.SdkInt < 23)
+                    switch ((int)Build.VERSION.SdkInt)
                     {
-                        Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_You_will_be_logged), ToastLength.Long)?.Show();
-                        ApiRequest.Logout(Activity);
-                    }
-                    else
-                    {
-                        if (Activity.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && Activity.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                        {
+                        // Check if we're running on Android 5.0 or higher
+                        case < 23:
                             Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_You_will_be_logged), ToastLength.Long)?.Show();
                             ApiRequest.Logout(Activity);
+                            break;
+                        default:
+                        {
+                            if (Activity.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && Activity.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                            {
+                                Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_You_will_be_logged), ToastLength.Long)?.Show();
+                                ApiRequest.Logout(Activity);
+                            }
+                            else
+                                new PermissionsController(Activity).RequestPermission(100);
+
+                            break;
                         }
-                        else
-                           new PermissionsController(Activity).RequestPermission(100); 
                     }
                 }
                 else if (p1 == DialogAction.Negative)

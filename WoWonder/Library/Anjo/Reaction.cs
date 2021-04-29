@@ -61,16 +61,19 @@ namespace WoWonder.Library.Anjo
         {
             try
             {
-                //Assert that obj type is Reaction
-                if (obj is Reaction reaction)
+                switch (obj)
                 {
-                    //Cast Object to Reaction
-                    Reaction react = reaction;
-                    //if react type equal current Reaction type
-                    return react.GetReactType().Equals(ReactType);
+                    //Assert that obj type is Reaction
+                    case Reaction reaction:
+                    {
+                        //Cast Object to Reaction
+                        Reaction react = reaction;
+                        //if react type equal current Reaction type
+                        return react.GetReactType().Equals(ReactType);
+                    }
+                    default:
+                        return false;
                 }
-
-                return false;
             }
             catch (Exception e)
             {

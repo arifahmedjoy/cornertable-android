@@ -84,12 +84,14 @@ namespace WoWonder.Payment
                     HybridView.Settings.BuiltInZoomControls = false;
                     HybridView.Settings.DisplayZoomControls = false;
 
-                    if (!string.IsNullOrEmpty(CashFreeObject.JsonForm))
+                    switch (string.IsNullOrEmpty(CashFreeObject.JsonForm))
                     {
-                        //Load url to be rendered on WebView
-                        HybridView.LoadUrl(CashFreeObject.JsonForm);
+                        case false:
+                            //Load url to be rendered on WebView
+                            HybridView.LoadUrl(CashFreeObject.JsonForm);
 
-                        CashFreeWindow.Show();
+                            CashFreeWindow.Show();
+                            break;
                     }
                 } 
             }
@@ -162,37 +164,41 @@ namespace WoWonder.Payment
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Global.CashFree(request, keyValues);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        AndHUD.Shared.Dismiss(ActivityContext);
+                        case 200:
+                            AndHUD.Shared.Dismiss(ActivityContext);
 
-                        switch (request)
-                        {
-                            case "fund":
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
-                                FundingViewActivity.GetInstance()?.StartApiService();
-                                break;
-                            case "upgrade":
-                                var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                                if (dataUser != null)
-                                {
-                                    dataUser.IsPro = "1";
+                            switch (request)
+                            {
+                                case "fund":
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
+                                    FundingViewActivity.GetInstance()?.StartApiService();
+                                    break;
+                                case "upgrade":
+                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                    if (dataUser != null)
+                                    {
+                                        dataUser.IsPro = "1";
 
-                                    var sqlEntity = new SqLiteDatabase();
-                                    sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                        var sqlEntity = new SqLiteDatabase();
+                                        sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
                                     
-                                }
+                                    }
 
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
-                                break;
-                            case "wallet":
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
-                                break;
-                        }
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    break;
+                                case "wallet":
+                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
+                                    break;
+                            }
                          
-                        StopCashFree();
+                            StopCashFree();
+                            break;
+                        default:
+                            Methods.DisplayAndHudErrorResult(ActivityContext, respond);
+                            break;
                     }
-                    else Methods.DisplayAndHudErrorResult(ActivityContext, respond);
                 }
                 else
                 {
@@ -224,25 +230,35 @@ namespace WoWonder.Payment
                         AndHUD.Shared.Show(MActivity.ActivityContext, MActivity.ActivityContext.GetText(Resource.String.Lbl_Processing));
 
                         var (apiStatus, respond) = await RequestsAsync.Global.CashFreeGetStatus(MActivity.CashFreeObject.AppId, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", MActivity.CashFreeObject.OrderId, ListUtils.SettingsSiteList?.CashfreeMode);
-                        if (apiStatus == 200)
+                        switch (apiStatus)
                         {
-                            if (respond is CashFreeGetStatusObject result)
+                            case 200:
                             {
-                                switch (MActivity.PayType)
+                                switch (respond)
                                 {
-                                    case "Funding":
-                                        await MActivity.CashFree(result, "fund");
+                                    case CashFreeGetStatusObject result:
+                                        switch (MActivity.PayType)
+                                        {
+                                            case "Funding":
+                                                await MActivity.CashFree(result, "fund");
+                                                break;
+                                            case "membership":
+                                                await MActivity.CashFree(result, "upgrade");
+                                                break;
+                                            case "AddFunds":
+                                                await MActivity.CashFree(result, "wallet");
+                                                break;
+                                        }
+
                                         break;
-                                    case "membership":
-                                        await MActivity.CashFree(result, "upgrade");
-                                        break;
-                                    case "AddFunds":
-                                        await MActivity.CashFree(result, "wallet");
-                                        break;
-                                } 
-                            } 
-                        }
-                        else Methods.DisplayReportResult(MActivity.ActivityContext, respond); 
+                                }
+
+                                break;
+                            }
+                            default:
+                                Methods.DisplayReportResult(MActivity.ActivityContext, respond);
+                                break;
+                        } 
                     }
                     else
                     {

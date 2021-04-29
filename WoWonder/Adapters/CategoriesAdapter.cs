@@ -55,15 +55,20 @@ namespace WoWonder.Adapters
         {
             try
             {
-                if (viewHolder is CategoriesAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MCategoriesList[position];
-                    if (item != null)
+                    case CategoriesAdapterViewHolder holder:
                     {
-                        holder.Button.Text = item.CategoriesName;
+                        var item = MCategoriesList[position];
+                        if (item != null)
+                        {
+                            holder.Button.Text = item.CategoriesName;
 
-                        holder.Button.SetBackgroundResource(item.CategoriesColor == AppSettings.MainColor ? Resource.Drawable.follow_button_profile_friends : Resource.Drawable.Categories_button);
-                        holder.Button.SetTextColor(Color.ParseColor(item.CategoriesColor)); 
+                            holder.Button.SetBackgroundResource(item.CategoriesColor == AppSettings.MainColor ? Resource.Drawable.follow_button_profile_friends : Resource.Drawable.Categories_button);
+                            holder.Button.SetTextColor(Color.ParseColor(item.CategoriesColor)); 
+                        }
+
+                        break;
                     }
                 }
             }

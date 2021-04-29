@@ -64,36 +64,37 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
                     Type = "groups",
                 });
 
-                if (AppSettings.ConnectivitySystem == 1)
-                { 
-                    MyInfoList.Add(new Classes.MyInformation
-                    {
-                        Id = 5,
-                        Name = ActivityContext.GetText(Resource.String.Lbl_Following),
-                        Color = Color.ParseColor("#4CAF50"),
-                        Icon = IonIconsFonts.PersonAdd,
-                        Type = "following",
-                    });
-
-                    MyInfoList.Add(new Classes.MyInformation
-                    {
-                        Id = 6,
-                        Name = ActivityContext.GetText(Resource.String.Lbl_Followers),
-                        Color = Color.ParseColor("#FF9800"),
-                        Icon = IonIconsFonts.IosPeople,
-                        Type = "followers",
-                    }); 
-                }
-                else
+                switch (AppSettings.ConnectivitySystem)
                 {
-                    MyInfoList.Add(new Classes.MyInformation
-                    {
-                        Id = 5,
-                        Name = ActivityContext.GetText(Resource.String.Lbl_Friends),
-                        Color = Color.ParseColor("#FF9800"),
-                        Icon = IonIconsFonts.IosPeople,
-                        Type = "friends",
-                    });
+                    case 1:
+                        MyInfoList.Add(new Classes.MyInformation
+                        {
+                            Id = 5,
+                            Name = ActivityContext.GetText(Resource.String.Lbl_Following),
+                            Color = Color.ParseColor("#4CAF50"),
+                            Icon = IonIconsFonts.PersonAdd,
+                            Type = "following",
+                        });
+
+                        MyInfoList.Add(new Classes.MyInformation
+                        {
+                            Id = 6,
+                            Name = ActivityContext.GetText(Resource.String.Lbl_Followers),
+                            Color = Color.ParseColor("#FF9800"),
+                            Icon = IonIconsFonts.IosPeople,
+                            Type = "followers",
+                        });
+                        break;
+                    default:
+                        MyInfoList.Add(new Classes.MyInformation
+                        {
+                            Id = 5,
+                            Name = ActivityContext.GetText(Resource.String.Lbl_Friends),
+                            Color = Color.ParseColor("#FF9800"),
+                            Icon = IonIconsFonts.IosPeople,
+                            Type = "friends",
+                        });
+                        break;
                 }
             }
             catch (Exception e)
@@ -126,16 +127,21 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
         {
             try
             {
-                if (viewHolder is MyInformationAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MyInfoList[position];
-                    if (item != null)
+                    case MyInformationAdapterViewHolder holder:
                     {
-                         holder.CardView.SetCardBackgroundColor(item.Color);
-                         holder.TextInfo.Text = item.Name;
+                        var item = MyInfoList[position];
+                        if (item != null)
+                        {
+                            holder.CardView.SetCardBackgroundColor(item.Color);
+                            holder.TextInfo.Text = item.Name;
 
-                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconInfo, item.Icon);
-                         holder.IconInfo.SetTextColor(item.Color);
+                            FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconInfo, item.Icon);
+                            holder.IconInfo.SetTextColor(item.Color);
+                        }
+
+                        break;
                     }
                 }
             }

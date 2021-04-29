@@ -228,18 +228,19 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click +=  TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = this; 
-                    TxtRelationship.Touch += TxtRelationshipOnTouch;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtLocation.OnFocusChangeListener = null!;
-                    TxtRelationship.Touch -= TxtRelationshipOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click +=  TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = this; 
+                        TxtRelationship.Touch += TxtRelationshipOnTouch;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtLocation.OnFocusChangeListener = null!;
+                        TxtRelationship.Touch -= TxtRelationshipOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -304,36 +305,47 @@ namespace WoWonder.Activities.MyProfile
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Global.Update_User_Data(dictionary);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is MessageObject result)
+                        case 200:
                         {
-                            var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                            if (dataUser != null)
+                            switch (respond)
                             {
-                                dataUser.FirstName = TxtFirstName.Text;
-                                dataUser.LastName = TxtLastName.Text;
-                                dataUser.Address = TxtLocation.Text;
-                                dataUser.PhoneNumber = TxtMobile.Text;
-                                dataUser.Website = TxtWebsite.Text;
-                                dataUser.Working = TxtWork.Text;
-                                dataUser.School = TxtSchool.Text;
-                                dataUser.RelationshipId = IdRelationShip;
+                                case MessageObject result:
+                                {
+                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                    if (dataUser != null)
+                                    {
+                                        dataUser.FirstName = TxtFirstName.Text;
+                                        dataUser.LastName = TxtLastName.Text;
+                                        dataUser.Address = TxtLocation.Text;
+                                        dataUser.PhoneNumber = TxtMobile.Text;
+                                        dataUser.Website = TxtWebsite.Text;
+                                        dataUser.Working = TxtWork.Text;
+                                        dataUser.School = TxtSchool.Text;
+                                        dataUser.RelationshipId = IdRelationShip;
 
-                                var sqLiteDatabase = new SqLiteDatabase();
-                                sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+                                        var sqLiteDatabase = new SqLiteDatabase();
+                                        sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                                 
+                                    }
+
+                                    Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
+                                    AndHUD.Shared.Dismiss(this);
+
+                                    Intent  intent = new Intent();
+                                    SetResult(Result.Ok , intent);
+                                    Finish();
+                                    break;
+                                }
                             }
 
-                            Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
-                            AndHUD.Shared.Dismiss(this);
-
-                            Intent  intent = new Intent();
-                            SetResult(Result.Ok , intent);
-                            Finish();
+                            break;
                         }
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayAndHudErrorResult(this, respond);
                 }
                 else
                 {
@@ -349,23 +361,27 @@ namespace WoWonder.Activities.MyProfile
         private void TxtLocationOnClick()
         {
             try
-            { 
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+            {
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    //Open intent Camera when the request code of result is 502
-                    new IntentController(this).OpenIntentLocation();
-                }
-                else
-                {
-                    if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
-                    {
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                         //Open intent Camera when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
+                        break;
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(105);
+                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                        {
+                            //Open intent Camera when the request code of result is 502
+                            new IntentController(this).OpenIntentLocation();
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(105);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -412,8 +428,12 @@ namespace WoWonder.Activities.MyProfile
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == 502 && resultCode == Result.Ok) 
-                    GetPlaceFromPicker(data);
+                switch (requestCode)
+                {
+                    case 502 when resultCode == Result.Ok:
+                        GetPlaceFromPicker(data);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -428,17 +448,15 @@ namespace WoWonder.Activities.MyProfile
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 105)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open intent Camera when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                    }
-                    else
-                    {
+                        break;
+                    case 105:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -454,9 +472,12 @@ namespace WoWonder.Activities.MyProfile
             try
             {
                 var placeAddress = data.GetStringExtra("Address") ?? "";
-                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                if (!string.IsNullOrEmpty(placeAddress))
-                    TxtLocation.Text = placeAddress;
+                TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
+                {
+                    //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                    false => placeAddress,
+                    _ => TxtLocation.Text
+                };
             }
             catch (Exception e)
             {
@@ -499,11 +520,13 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                if (TypeDialog == "RelationShip")
+                switch (TypeDialog)
                 {
-                    IdRelationShip = itemId.ToString();
-                    TxtRelationship.Text = itemString.ToString();
-                } 
+                    case "RelationShip":
+                        IdRelationShip = itemId.ToString();
+                        TxtRelationship.Text = itemString.ToString();
+                        break;
+                }
             }
             catch (Exception e)
             {

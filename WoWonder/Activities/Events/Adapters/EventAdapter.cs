@@ -64,11 +64,15 @@ namespace WoWonder.Activities.Events.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is EventAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = EventList[position];
-                    if (item != null) Initialize(holder, item);
+                    case EventAdapterViewHolder holder:
+                    {
+                        var item = EventList[position];
+                        if (item != null) Initialize(holder, item);
+                        break;
+                    }
                 }
             }
             catch (Exception exception)
@@ -102,9 +106,11 @@ namespace WoWonder.Activities.Events.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is EventAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case EventAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -160,11 +166,18 @@ namespace WoWonder.Activities.Events.Adapters
             {
                 var d = new List<string>();
                 var item = EventList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
-                if (!string.IsNullOrEmpty(item.Cover))
-                    d.Add(item.Cover);
+                switch (string.IsNullOrEmpty(item.Cover))
+                {
+                    case false:
+                        d.Add(item.Cover);
+                        break;
+                }
                 return d;
             }
             catch (Exception e)

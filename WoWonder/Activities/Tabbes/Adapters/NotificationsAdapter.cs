@@ -66,13 +66,17 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-               
-                if (viewHolder is NotificationsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = NotificationsList[position];
-                    if (item != null)
-                    { 
-                        Initialize(holder, item); 
+                    case NotificationsAdapterViewHolder holder:
+                    {
+                        var item = NotificationsList[position];
+                        if (item != null)
+                        { 
+                            Initialize(holder, item); 
+                        }
+
+                        break;
                     }
                 }
             }
@@ -86,31 +90,35 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-                if (notify.Type == "memory")
+                switch (notify.Type)
                 {
-                    Glide.With(ActivityContext).Load(Resource.Mipmap.icon).Apply(new RequestOptions().CircleCrop()).Into(holder.ImageUser);
-                    holder.UserNameNotfy.Text = AppSettings.ApplicationName;
-                }
-                else
-                {
-                    GlideImageLoader.LoadImage(ActivityContext, notify.Notifier?.Avatar, holder.ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    case "memory":
+                        Glide.With(ActivityContext).Load(Resource.Mipmap.icon).Apply(new RequestOptions().CircleCrop()).Into(holder.ImageUser);
+                        holder.UserNameNotfy.Text = AppSettings.ApplicationName;
+                        break;
+                    default:
+                    {
+                        GlideImageLoader.LoadImage(ActivityContext, notify.Notifier?.Avatar, holder.ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                      
-                    var name = WoWonderTools.GetNameFinal(notify.Notifier);
+                        var name = WoWonderTools.GetNameFinal(notify.Notifier);
 
-                    string tempString  = notify.Type == "share_post" || notify.Type == "shared_your_post"
-                        ? name + " " + ActivityContext.GetText(Resource.String.Lbl_sharedYourPost)
-                        : name + " " + notify.TypeText; 
-                    try
-                    {
-                        SpannableString spanString = new SpannableString(tempString);
-                        spanString.SetSpan(new StyleSpan(TypefaceStyle.Bold), 0, name.Length, 0);
+                        string tempString  = notify.Type == "share_post" || notify.Type == "shared_your_post"
+                            ? name + " " + ActivityContext.GetText(Resource.String.Lbl_sharedYourPost)
+                            : name + " " + notify.TypeText; 
+                        try
+                        {
+                            SpannableString spanString = new SpannableString(tempString);
+                            spanString.SetSpan(new StyleSpan(TypefaceStyle.Bold), 0, name.Length, 0);
 
-                        holder.UserNameNotfy.SetText(spanString , TextView.BufferType.Spannable);
+                            holder.UserNameNotfy.SetText(spanString , TextView.BufferType.Spannable);
+                        }
+                        catch 
+                        {
+                            holder.UserNameNotfy.Text = tempString;
+                        }
+
+                        break;
                     }
-                    catch 
-                    {
-                        holder.UserNameNotfy.Text = tempString;
-                    } 
                 }
 
                 holder.TextNotfy.Text = Methods.Time.TimeAgo(Convert.ToInt32(notify.Time), false);
@@ -360,9 +368,11 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is NotificationsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.ImageUser);
+                    case NotificationsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.ImageUser);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -419,14 +429,21 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 var d = new List<string>();
                 var item = NotificationsList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Notifier.Avatar))
-                        d.Add(item.Notifier.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Notifier.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Notifier.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

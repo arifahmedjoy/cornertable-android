@@ -46,7 +46,6 @@ namespace WoWonder.Helpers.Utils
         public static ObservableCollection<TrendingHashtag> HashTagList = new ObservableCollection<TrendingHashtag>();
         public static ObservableCollection<Classes.ShortCuts> ShortCutsList = new ObservableCollection<Classes.ShortCuts>();
 
-
         public static ObservableCollection<ChatObject> UserList = new ObservableCollection<ChatObject>();
         public static ObservableCollection<GetUsersListObject.User> UserChatList = new ObservableCollection<GetUsersListObject.User>();
         public static ObservableCollection<Classes.SharedFile> ListSharedFiles = new ObservableCollection<Classes.SharedFile>();
@@ -56,7 +55,7 @@ namespace WoWonder.Helpers.Utils
         public static ObservableCollection<Classes.OptionLastChat> PinList = new ObservableCollection<Classes.OptionLastChat>();
         public static ObservableCollection<Classes.LastChatArchive> ArchiveList = new ObservableCollection<Classes.LastChatArchive>();
         public static ObservableCollection<DataTables.StickersTb> StickersList = new ObservableCollection<DataTables.StickersTb>();
-         
+
         public static void ClearAllList()
         {
             try
@@ -84,7 +83,6 @@ namespace WoWonder.Helpers.Utils
                 HashTagList.Clear();
                 ShortCutsList.Clear();
 
-
                 UserList.Clear();
                 UserChatList.Clear();
                 ListSharedFiles.Clear();
@@ -93,7 +91,7 @@ namespace WoWonder.Helpers.Utils
                 MuteList.Clear();
                 PinList.Clear();
                 ArchiveList.Clear();
-                StickersList.Clear(); 
+                StickersList.Clear();
             }
             catch (Exception e)
             {

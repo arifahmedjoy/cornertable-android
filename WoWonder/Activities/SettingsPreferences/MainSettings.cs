@@ -2,13 +2,13 @@ using System;
 using Android.App;
 using Android.Content;
 using Android.Content.Res;
-using Android.OS; 
+using Android.OS;
 using AndroidX.AppCompat.App;
 using AndroidX.Preference;
 using WoWonder.Activities.AddPost.Service;
 using WoWonder.Activities.Chat.Floating;
 using WoWonder.Helpers.Model;
-using WoWonder.Helpers.Utils; 
+using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Activities.SettingsPreferences
 {
@@ -40,8 +40,8 @@ namespace WoWonder.Activities.SettingsPreferences
 
                 PostService.ActionPost = Application.Context.PackageName + ".action.ACTION_POST";
                 PostService.ActionStory = Application.Context.PackageName + ".action.ACTION_STORY";
-                
-                UserDetails.SoundControl = SharedData.GetBoolean("checkBox_PlaySound_key", true); 
+
+                UserDetails.SoundControl = SharedData.GetBoolean("checkBox_PlaySound_key", true);
                 UserDetails.OnlineUsers = SharedData?.GetBoolean("notifications_key", true) ?? true;
             }
             catch (Exception e)

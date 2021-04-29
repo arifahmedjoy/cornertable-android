@@ -438,7 +438,7 @@ namespace WoWonder.Helpers.Model
             public string Size { get; set; }
         }
 
-        public class wStill
+        public class WStill
         {
 
             [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
@@ -541,7 +541,7 @@ namespace WoWonder.Helpers.Model
             public PreviewGif PreviewGif { get; set; }
 
             [JsonProperty("480w_still", NullValueHandling = NullValueHandling.Ignore)]
-            public wStill wStill { get; set; }
+            public WStill WStill { get; set; }
 
             [JsonProperty("hd", NullValueHandling = NullValueHandling.Ignore)]
             public Hd Hd { get; set; }

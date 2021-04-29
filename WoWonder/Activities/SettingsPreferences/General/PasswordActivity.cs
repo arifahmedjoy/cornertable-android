@@ -197,16 +197,17 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtLinkForget.Click += TxtLinkForget_OnClick;
-                    TxtSave.Click += SaveData_OnClick;
-                }
-                else
-                {
-                    TxtLinkForget.Click -= TxtLinkForget_OnClick;
-                    TxtSave.Click -= SaveData_OnClick;
+                    // true +=  // false -=
+                    case true:
+                        TxtLinkForget.Click += TxtLinkForget_OnClick;
+                        TxtSave.Click += SaveData_OnClick;
+                        break;
+                    default:
+                        TxtLinkForget.Click -= TxtLinkForget_OnClick;
+                        TxtSave.Click -= SaveData_OnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -281,27 +282,29 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 };
 
                 var (apiStatus, respond) = await RequestsAsync.Global.Update_User_Data(dataPrivacy);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is MessageObject result)
+                    case 200:
                     {
-                        if (result.Message.Contains("updated"))
+                        switch (respond)
                         {
-                            UserDetails.Password = TxtNewPassword.Text;
+                            case MessageObject result when result.Message.Contains("updated"):
+                                UserDetails.Password = TxtNewPassword.Text;
 
-                            Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
-                            AndHUD.Shared.Dismiss(this);
+                                Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
+                                AndHUD.Shared.Dismiss(this);
+                                break;
+                            case MessageObject result:
+                                //Show a Error image with a message
+                                AndHUD.Shared.ShowError(this, result.Message, MaskType.Clear, TimeSpan.FromSeconds(1));
+                                break;
                         }
-                        else
-                        {
-                            //Show a Error image with a message
-                            AndHUD.Shared.ShowError(this, result.Message, MaskType.Clear, TimeSpan.FromSeconds(1));
-                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    Methods.DisplayAndHudErrorResult(this, respond);
+                    default:
+                        Methods.DisplayAndHudErrorResult(this, respond);
+                        break;
                 } 
             }
             catch (Exception e)

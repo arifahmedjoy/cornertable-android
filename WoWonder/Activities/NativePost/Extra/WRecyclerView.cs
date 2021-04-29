@@ -102,8 +102,11 @@ namespace WoWonder.Activities.NativePost.Extra
 
                 Instance = this;
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    LayoutDirection = LayoutDirection.Rtl;
+                LayoutDirection = AppSettings.FlowDirectionRightToLeft switch
+                {
+                    true => LayoutDirection.Rtl,
+                    _ => LayoutDirection
+                };
 
                 HasFixedSize = true;
                 SetItemViewCacheSize(50);
@@ -273,16 +276,25 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 Console.WriteLine(isEndOfList);
-                if (VideoSurfaceView == null)
-                    return;
+                switch (VideoSurfaceView)
+                {
+                    case null:
+                        return;
+                }
                  
-                if (IsVideoViewAdded && ViewHolderParent != null)
-                    return;
+                switch (IsVideoViewAdded)
+                {
+                    case true when ViewHolderParent != null:
+                        return;
+                }
 
                 int currentPosition = ((LinearLayoutManager)Objects.RequireNonNull(GetLayoutManager())).FindFirstCompletelyVisibleItemPosition() + 3;
                 var typePost = NativeFeedAdapter.GetItem(currentPosition);
-                if (typePost == null) 
-                    return;
+                switch (typePost)
+                {
+                    case null:
+                        return;
+                }
 
                 var postFeedType = PostFunctions.GetAdapterType(typePost.PostData);
                 if (postFeedType != PostModelType.VideoPost) 
@@ -293,8 +305,11 @@ namespace WoWonder.Activities.NativePost.Extra
 
                 var child = ((LinearLayoutManager)GetLayoutManager()).FindViewByPosition(indexPost); 
                 var holder = (AdapterHolders.PostVideoSectionViewHolder) child?.Tag;
-                if (holder == null)
-                    return;
+                switch (holder)
+                {
+                    case null:
+                        return;
+                }
 
                 ResetMediaPlayer();
 
@@ -302,16 +317,24 @@ namespace WoWonder.Activities.NativePost.Extra
                 VideoSurfaceView.Visibility = ViewStates.Invisible;
                 RemoveVideoView(VideoSurfaceView);
 
-                if (VideoPlayer == null)
-                    SetPlayer();
+                switch (VideoPlayer)
+                {
+                    case null:
+                        SetPlayer();
+                        break;
+                }
 
                 MediaContainerLayout = holder.MediaContainer;
                 Thumbnail = holder.VideoImage;
                 ViewHolderParent = holder.ItemView;
                 PlayControl = holder.PlayControl;
 
-                if (!IsVideoViewAdded)
-                    AddVideoView();
+                switch (IsVideoViewAdded)
+                {
+                    case false:
+                        AddVideoView();
+                        break;
+                }
 
                 VideoSurfaceView.Player = VideoPlayer;
 
@@ -336,8 +359,12 @@ namespace WoWonder.Activities.NativePost.Extra
 
                 var dataSpec = new DataSpec(VideoUrl); //0, 1000 * 1024, null
 
-                if (Cache == null)
-                    CacheVideosFiles(VideoUrl);
+                switch (Cache)
+                {
+                    case null:
+                        CacheVideosFiles(VideoUrl);
+                        break;
+                }
 
                 CacheDataSourceFactory ??= new CacheDataSourceFactory(Cache, DefaultDataSourceFac);
 
@@ -363,11 +390,18 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 Console.WriteLine(isEndOfList);
-                if (VideoPlayer == null)
-                    SetPlayer();
+                switch (VideoPlayer)
+                {
+                    case null:
+                        SetPlayer();
+                        break;
+                }
 
-                if (VideoSurfaceView == null)
-                    return;
+                switch (VideoSurfaceView)
+                {
+                    case null:
+                        return;
+                }
 
                 ResetMediaPlayer();
 
@@ -379,8 +413,12 @@ namespace WoWonder.Activities.NativePost.Extra
                 ViewHolderParent = holder.ItemView;
                 PlayControl = holder.PlayControl;
 
-                if (!IsVideoViewAdded)
-                    AddVideoView();
+                switch (IsVideoViewAdded)
+                {
+                    case false:
+                        AddVideoView();
+                        break;
+                }
 
                 VideoSurfaceView.Player = VideoPlayer;
 
@@ -404,8 +442,12 @@ namespace WoWonder.Activities.NativePost.Extra
 
                 var dataSpec = new DataSpec(VideoUrl); //0, 1000 * 1024, null
 
-                if (Cache == null)
-                    CacheVideosFiles(VideoUrl);
+                switch (Cache)
+                {
+                    case null:
+                        CacheVideosFiles(VideoUrl);
+                        break;
+                }
 
                 CacheDataSourceFactory ??= new CacheDataSourceFactory(Cache, DefaultDataSourceFac);
 
@@ -463,13 +505,20 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                if (NativeFeedAdapter.NativePostType == NativeFeedType.Memories || NativeFeedAdapter.NativePostType == NativeFeedType.Share)
-                    return;
+                switch (NativeFeedAdapter.NativePostType)
+                {
+                    case NativeFeedType.Memories:
+                    case NativeFeedType.Share:
+                        return;
+                }
 
                 var diff = NativeFeedAdapter.ListDiffer;
                 var list = new List<AdapterModelsClass>(diff);
-                if (list.Count <= 20 && !MainScrollEvent.IsLoading)
-                    return;
+                switch (list.Count)
+                {
+                    case <= 20 when !MainScrollEvent.IsLoading:
+                        return;
+                }
 
                 NativeFeedAdapter.SetLoading();
 
@@ -487,15 +536,26 @@ namespace WoWonder.Activities.NativePost.Extra
 
                 string offset;
 
-                if (item.TypeView == PostModelType.Divider || item.TypeView == PostModelType.ViewProgress || item.TypeView == PostModelType.AdMob1 || item.TypeView == PostModelType.AdMob2 || item.TypeView == PostModelType.AdMob3 || item.TypeView == PostModelType.FbAdNative || item.TypeView == PostModelType.AdsPost || item.TypeView == PostModelType.SuggestedGroupsBox || item.TypeView == PostModelType.SuggestedUsersBox || item.TypeView == PostModelType.CommentSection || item.TypeView == PostModelType.AddCommentSection)
+                switch (item.TypeView)
                 {
-                    item = list.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
-                    offset = item?.PostData?.PostId ?? "0";
-                    Console.WriteLine(offset);
-                }
-                else
-                {
-                    offset = item.PostData?.PostId ?? "0";
+                    case PostModelType.Divider:
+                    case PostModelType.ViewProgress:
+                    case PostModelType.AdMob1:
+                    case PostModelType.AdMob2:
+                    case PostModelType.AdMob3:
+                    case PostModelType.FbAdNative:
+                    case PostModelType.AdsPost:
+                    case PostModelType.SuggestedGroupsBox:
+                    case PostModelType.SuggestedUsersBox:
+                    case PostModelType.CommentSection:
+                    case PostModelType.AddCommentSection:
+                        item = list.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
+                        offset = item?.PostData?.PostId ?? "0";
+                        Console.WriteLine(offset);
+                        break;
+                    default:
+                        offset = item.PostData?.PostId ?? "0";
+                        break;
                 }
 
                 Console.WriteLine(offset);
@@ -537,8 +597,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 else
                     countIndex = 0;
 
-                if (!string.IsNullOrEmpty(index))
-                    countIndex = Convert.ToInt32(index);
+                countIndex = string.IsNullOrEmpty(index) switch
+                {
+                    false => Convert.ToInt32(index),
+                    _ => countIndex
+                };
 
                 diffList.Insert(countIndex, item);
 
@@ -563,11 +626,15 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 var diff = NativeFeedAdapter.ListDiffer;
                 var index = diff.IndexOf(item);
-                if (index <= 0)
-                    return;
-
-                diff.RemoveAt(index);
-                NativeFeedAdapter.NotifyItemRemoved(index);
+                switch (index)
+                {
+                    case <= 0:
+                        return;
+                    default:
+                        diff.RemoveAt(index);
+                        NativeFeedAdapter.NotifyItemRemoved(index);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -634,11 +701,13 @@ namespace WoWonder.Activities.NativePost.Extra
                             break;
                         case (int) Android.Widget.ScrollState.Idle:
                         {
-                            // There's a special case when the end of the list has been reached.
-                            // Need to handle that with this bit of logic
-                            if (AppSettings.AutoPlayVideo)
+                            switch (AppSettings.AutoPlayVideo)
                             {
-                                XRecyclerView.PlayVideo(!recyclerView.CanScrollVertically(1));
+                                // There's a special case when the end of the list has been reached.
+                                // Need to handle that with this bit of logic
+                                case true:
+                                    XRecyclerView.PlayVideo(!recyclerView.CanScrollVertically(1));
+                                    break;
                             }
                               
                             XRecyclerView?.ApiPostAsync?.FetchLoadMoreNewsFeedApiPosts().ConfigureAwait(false);
@@ -673,11 +742,16 @@ namespace WoWonder.Activities.NativePost.Extra
                     if (visibleItemCount + pastVisibleItems + 30 < totalItemCount)
                         return;
 
-                    if (IsLoading) //&& !recyclerView.CanScrollVertically(1)
-                        return;
-
-                    //IsLoading = true;
-                    LoadMoreEvent?.Invoke(this, null);
+                    switch (IsLoading)
+                    {
+                        //&& !recyclerView.CanScrollVertically(1)
+                        case true:
+                            return;
+                        default:
+                            //IsLoading = true;
+                            LoadMoreEvent?.Invoke(this, null);
+                            break;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -703,8 +777,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 { 
                     if (XRecyclerView.ViewHolderParent != null && XRecyclerView.ViewHolderParent.Equals(view))
                     {
-                        if (!XRecyclerView.IsVideoViewAdded)
-                            return;
+                        switch (XRecyclerView.IsVideoViewAdded)
+                        {
+                            case false:
+                                return;
+                        }
 
                         XRecyclerView.RemoveVideoView(XRecyclerView.VideoSurfaceView);
                         XRecyclerView.VideoSurfaceView.Visibility = ViewStates.Invisible;
@@ -714,8 +791,12 @@ namespace WoWonder.Activities.NativePost.Extra
                         if (XRecyclerView.Thumbnail != null)
                         {
                             XRecyclerView.Thumbnail.Visibility = ViewStates.Visible;
-                            if (!string.IsNullOrEmpty(XRecyclerView.VideoUrl.Path))
-                                XRecyclerView.NativeFeedAdapter.FullGlideRequestBuilder.Load(XRecyclerView.VideoUrl).Into(XRecyclerView.Thumbnail);
+                            switch (string.IsNullOrEmpty(XRecyclerView.VideoUrl.Path))
+                            {
+                                case false:
+                                    XRecyclerView.NativeFeedAdapter.FullGlideRequestBuilder.Load(XRecyclerView.VideoUrl).Into(XRecyclerView.Thumbnail);
+                                    break;
+                            }
                         }
 
                         if (XRecyclerView.PlayControl != null) XRecyclerView.PlayControl.Visibility = ViewStates.Visible;
@@ -730,10 +811,14 @@ namespace WoWonder.Activities.NativePost.Extra
                     }
                     else if (XRecyclerView.ViewHolderVoicePlayer != null && XRecyclerView.ViewHolderVoicePlayer.Equals(view))
                     {
-                        if (!XRecyclerView.IsVoicePlayed)
-                            return;
-
-                        XRecyclerView.ResetMediaPlayer();
+                        switch (XRecyclerView.IsVoicePlayed)
+                        {
+                            case false:
+                                return;
+                            default:
+                                XRecyclerView.ResetMediaPlayer();
+                                break;
+                        }
                     }
                 }
                 catch (Exception e)
@@ -748,8 +833,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     if (XRecyclerView.ViewHolderParent != null && XRecyclerView.ViewHolderParent.Equals(view))
                     {
-                        if (!XRecyclerView.IsVideoViewAdded)
-                            return;
+                        switch (XRecyclerView.IsVideoViewAdded)
+                        {
+                            case false:
+                                return;
+                        }
 
                         XRecyclerView.RemoveVideoView(XRecyclerView.VideoSurfaceView);
                         XRecyclerView.VideoSurfaceView.Visibility = ViewStates.Invisible;
@@ -759,8 +847,12 @@ namespace WoWonder.Activities.NativePost.Extra
                         if (XRecyclerView.Thumbnail != null)
                         {
                             XRecyclerView.Thumbnail.Visibility = ViewStates.Visible;
-                            if (!string.IsNullOrEmpty(XRecyclerView.VideoUrl.Path))
-                                XRecyclerView.NativeFeedAdapter.FullGlideRequestBuilder.Load(XRecyclerView.VideoUrl).Into(XRecyclerView.Thumbnail);
+                            switch (string.IsNullOrEmpty(XRecyclerView.VideoUrl.Path))
+                            {
+                                case false:
+                                    XRecyclerView.NativeFeedAdapter.FullGlideRequestBuilder.Load(XRecyclerView.VideoUrl).Into(XRecyclerView.Thumbnail);
+                                    break;
+                            }
                         }
 
                         if (XRecyclerView.PlayControl != null) XRecyclerView.PlayControl.Visibility = ViewStates.Visible;
@@ -775,8 +867,11 @@ namespace WoWonder.Activities.NativePost.Extra
                     }
                     else if (XRecyclerView.ViewHolderVoicePlayer != null && XRecyclerView.ViewHolderVoicePlayer.Equals(view))
                     {
-                        if (!XRecyclerView.IsVoicePlayed)
-                            return;
+                        switch (XRecyclerView.IsVoicePlayed)
+                        {
+                            case false:
+                                return;
+                        }
 
                         XRecyclerView.ResetMediaPlayer();
 
@@ -788,10 +883,16 @@ namespace WoWonder.Activities.NativePost.Extra
                             holder.PlayButton.SetImageResource(Resource.Drawable.icon_player_play);
                             holder.PlayButton.Tag = "Play";
 
-                            if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                                holder.SeekBar.SetProgress(0, true);
-                            else // For API < 24 
-                                holder.SeekBar.Progress = 0;
+                            switch (Build.VERSION.SdkInt)
+                            {
+                                case >= BuildVersionCodes.N:
+                                    holder.SeekBar.SetProgress(0, true);
+                                    break;
+                                // For API < 24 
+                                default:
+                                    holder.SeekBar.Progress = 0;
+                                    break;
+                            }
                         } 
                     }
                 }
@@ -802,20 +903,27 @@ namespace WoWonder.Activities.NativePost.Extra
             }
         }
 
-        private class ExoPlayerRecyclerEvent : Object, IPlayerEventListener, PlayerControlView.IVisibilityListener
+        private class ExoPlayerRecyclerEvent : Object, IPlayerEventListener, PlayerControlView.IVisibilityListener, PlayerControlView.IProgressUpdateListener
         {
             private readonly ProgressBar LoadingProgressBar;
             private readonly ImageButton VideoPlayButton, VideoResumeButton;
             private readonly ImageView VolumeControl;
             public readonly FrameLayout MFullScreenButton;
             private readonly WRecyclerView XRecyclerView;
+            private readonly TextView TvCurrentPosition, TvNegativePosition;
+            private readonly SimpleExoPlayer Player;
             public ExoPlayerRecyclerEvent(PlayerControlView controlView, WRecyclerView recyclerView, AdapterHolders.PostVideoSectionViewHolder holder)
             {
                 try
                 {
                     XRecyclerView = recyclerView;
-                    if (controlView == null)
-                        return;
+                    switch (controlView)
+                    {
+                        case null:
+                            return;
+                    }
+                    Player = XRecyclerView.VideoPlayer;
+                    //player.AddListener(this);
 
                     var mFullScreenIcon = controlView.FindViewById<ImageView>(Resource.Id.exo_fullscreen_icon);
                     MFullScreenButton = controlView.FindViewById<FrameLayout>(Resource.Id.exo_fullscreen_button);
@@ -824,31 +932,41 @@ namespace WoWonder.Activities.NativePost.Extra
                     VideoResumeButton = controlView.FindViewById<ImageButton>(Resource.Id.exo_pause);
                     VolumeControl = controlView.FindViewById<ImageView>(Resource.Id.exo_volume_icon);
 
-                    if (!AppSettings.ShowFullScreenVideoPost)
+                    TvCurrentPosition = controlView.FindViewById<TextView>(Resource.Id.current_position);
+                    TvNegativePosition = controlView.FindViewById<TextView>(Resource.Id.negative_position);
+
+                    switch (AppSettings.ShowFullScreenVideoPost)
                     {
-                        mFullScreenIcon.Visibility = ViewStates.Gone;
-                        MFullScreenButton.Visibility = ViewStates.Gone;
+                        case false:
+                            mFullScreenIcon.Visibility = ViewStates.Gone;
+                            MFullScreenButton.Visibility = ViewStates.Gone;
+                            break;
                     }
 
                     if (holder != null) LoadingProgressBar = holder.VideoProgressBar;
 
                     SetVolumeControl(XRecyclerView.VolumeStateProvider == VolumeState.On ? VolumeState.On : VolumeState.Off);
 
-                    if (!VolumeControl.HasOnClickListeners)
+                    switch (VolumeControl.HasOnClickListeners)
                     {
-                        VolumeControl.Click += (sender, args) =>
-                        {
-                            ToggleVolume();
-                        };
+                        case false:
+                            VolumeControl.Click += (sender, args) =>
+                            {
+                                ToggleVolume();
+                            };
+                            break;
                     }
 
-                    if (!MFullScreenButton.HasOnClickListeners)
+                    switch (MFullScreenButton.HasOnClickListeners)
                     {
-                        MFullScreenButton.Click += (sender, args) =>
-                        {
-                            new PostClickListener((Activity)recyclerView.Context, recyclerView.NativeFeedAdapter.NativePostType).InitFullscreenDialog(Uri.Parse(holder?.VideoUrl), null);
-                        };
+                        case false:
+                            MFullScreenButton.Click += (sender, args) =>
+                            {
+                                new PostClickListener((Activity)recyclerView.Context, recyclerView.NativeFeedAdapter.NativePostType).InitFullscreenDialog(Uri.Parse(holder?.VideoUrl), null);
+                            };
+                            break;
                     }
+
                 }
                 catch (Exception e)
                 {
@@ -860,19 +978,24 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 try
                 {
-                    if (XRecyclerView.VideoPlayer == null)
-                        return;
-
-                    switch (XRecyclerView.VolumeStateProvider)
+                    switch (XRecyclerView.VideoPlayer)
                     {
-                        case VolumeState.Off:
-                            SetVolumeControl(VolumeState.On);
-                            break;
-                        case VolumeState.On:
-                            SetVolumeControl(VolumeState.Off);
-                            break;
+                        case null:
+                            return;
                         default:
-                            SetVolumeControl(VolumeState.Off);
+                            switch (XRecyclerView.VolumeStateProvider)
+                            {
+                                case VolumeState.Off:
+                                    SetVolumeControl(VolumeState.On);
+                                    break;
+                                case VolumeState.On:
+                                    SetVolumeControl(VolumeState.Off);
+                                    break;
+                                default:
+                                    SetVolumeControl(VolumeState.Off);
+                                    break;
+                            }
+
                             break;
                     }
                 }
@@ -915,28 +1038,46 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 try
                 {
-                    if (VolumeControl == null)
-                        return;
-
-                    VolumeControl.BringToFront();
-                    switch (XRecyclerView.VolumeStateProvider)
+                    switch (VolumeControl)
                     {
-                        case VolumeState.Off:
-                            VolumeControl.SetImageResource(Resource.Drawable.ic_volume_off_grey_24dp);
-
-                            break;
-                        case VolumeState.On:
-                            VolumeControl.SetImageResource(Resource.Drawable.ic_volume_up_grey_24dp);
-                            break;
+                        case null:
+                            return;
                         default:
-                            VolumeControl.SetImageResource(Resource.Drawable.ic_volume_off_grey_24dp);
+                            VolumeControl.BringToFront();
+                            switch (XRecyclerView.VolumeStateProvider)
+                            {
+                                case VolumeState.Off:
+                                    VolumeControl.SetImageResource(Resource.Drawable.ic_volume_off_grey_24dp);
+
+                                    break;
+                                case VolumeState.On:
+                                    VolumeControl.SetImageResource(Resource.Drawable.ic_volume_up_grey_24dp);
+                                    break;
+                                default:
+                                    VolumeControl.SetImageResource(Resource.Drawable.ic_volume_off_grey_24dp);
+                                    break;
+                            }
+                            //VolumeControl.Animate().Cancel();
+
+                            //VolumeControl.Alpha = (1f);
+
+                            //VolumeControl.Animate().Alpha(0f).SetDuration(600).SetStartDelay(1000);
                             break;
                     }
-                    //VolumeControl.Animate().Cancel();
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
 
-                    //VolumeControl.Alpha = (1f);
-
-                    //VolumeControl.Animate().Alpha(0f).SetDuration(600).SetStartDelay(1000);
+            private void UpdateVideoPosition()
+            {
+                try
+                {
+                    var curPosition = Player.CurrentPosition;
+                    var negativePosition = Player.Duration;
+                    //var kkk = 0;
                 }
                 catch (Exception e)
                 {
@@ -962,17 +1103,21 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     //if (VideoResumeButton == null || VideoPlayButton == null || LoadingProgressBar == null)
                     //    return;
+                    UpdateVideoPosition();
 
                     switch (playbackState)
                     {
                         case IPlayer.StateEnded:
                         {
-                            if (playWhenReady == false)
-                                VideoResumeButton.Visibility = ViewStates.Visible;
-                            else
+                            switch (playWhenReady)
                             {
-                                VideoResumeButton.Visibility = ViewStates.Gone;
-                                VideoPlayButton.Visibility = ViewStates.Visible;
+                                case false:
+                                    VideoResumeButton.Visibility = ViewStates.Visible;
+                                    break;
+                                default:
+                                    VideoResumeButton.Visibility = ViewStates.Gone;
+                                    VideoPlayButton.Visibility = ViewStates.Visible;
+                                    break;
                             }
 
                             LoadingProgressBar.Visibility = ViewStates.Invisible;
@@ -983,23 +1128,32 @@ namespace WoWonder.Activities.NativePost.Extra
                         }
                         case IPlayer.StateReady:
                         {
-                            if (playWhenReady == false)
+                            switch (playWhenReady)
                             {
-                                VideoResumeButton.Visibility = ViewStates.Gone;
-                                VideoPlayButton.Visibility = ViewStates.Visible;
-                            }
-                            else
-                            {
-                                VideoResumeButton.Visibility = ViewStates.Visible;
+                                case false:
+                                    VideoResumeButton.Visibility = ViewStates.Gone;
+                                    VideoPlayButton.Visibility = ViewStates.Visible;
+                                    break;
+                                default:
+                                    VideoResumeButton.Visibility = ViewStates.Visible;
+                                    break;
                             }
 
                             LoadingProgressBar.Visibility = ViewStates.Invisible;
 
-                            if (!XRecyclerView.IsVideoViewAdded)
-                                XRecyclerView.AddVideoView();
+                            switch (XRecyclerView.IsVideoViewAdded)
+                            {
+                                case false:
+                                    XRecyclerView.AddVideoView();
+                                    break;
+                            }
 
-                            if (XRecyclerView.IsVoicePlayed)
-                                XRecyclerView.ResetMediaPlayer();
+                            switch (XRecyclerView.IsVoicePlayed)
+                            {
+                                case true:
+                                    XRecyclerView.ResetMediaPlayer();
+                                    break;
+                            }
 
                             TabbedMainActivity.GetInstance()?.SetOnWakeLock();
                             break;
@@ -1015,6 +1169,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     Methods.DisplayReportResultTrack(exception);
                 }
+            }
+
+            public void OnIsPlayingChanged(bool p0)
+            {
+
             }
 
             public void OnPositionDiscontinuity(int p0)
@@ -1042,6 +1201,10 @@ namespace WoWonder.Activities.NativePost.Extra
             }
 
             public void OnVisibilityChange(int p0)
+            {
+            }
+
+            public void OnProgressUpdate(long position, long bufferedPosition)
             {
             }
         }
@@ -1163,20 +1326,18 @@ namespace WoWonder.Activities.NativePost.Extra
                 var at = playPosition - ((LinearLayoutManager)Objects.RequireNonNull(GetLayoutManager())).FindFirstVisibleItemPosition();
 
                 var child = GetChildAt(at);
-                if (child == null)
+                switch (child)
                 {
-                    return 0;
+                    case null:
+                        return 0;
                 }
                 int[] location = new int[2];
                 child.GetLocationInWindow(location);
-                if (location[1] < 0)
+                return location[1] switch
                 {
-                    return location[1] + VideoSurfaceDefaultHeight;
-                }
-                else
-                {
-                    return ScreenDefaultHeight - location[1];
-                }
+                    < 0 => location[1] + VideoSurfaceDefaultHeight,
+                    _ => ScreenDefaultHeight - location[1]
+                };
             }
             catch (Exception e)
             {
@@ -1213,15 +1374,22 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var parent = (ViewGroup)videoView.Parent;
-                if (parent == null)
-                    return;
+                switch (parent)
+                {
+                    case null:
+                        return;
+                }
 
                 var index = parent.IndexOfChild(videoView);
-                if (index < 0)
-                    return;
-
-                parent.RemoveViewAt(index);
-                IsVideoViewAdded = false;
+                switch (index)
+                {
+                    case < 0:
+                        return;
+                    default:
+                        parent.RemoveViewAt(index);
+                        IsVideoViewAdded = false;
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1235,12 +1403,18 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 ResetMediaPlayer();
 
-                if (VideoSurfaceView.Player == null) return;
-                if (VideoSurfaceView.Player.PlaybackState == IPlayer.StateReady)
+                switch (VideoSurfaceView.Player)
                 {
-                    VideoSurfaceView.Player.PlayWhenReady = false;
+                    case null:
+                        return;
+                }
+                switch (VideoSurfaceView.Player.PlaybackState)
+                {
+                    case IPlayer.StateReady:
+                        VideoSurfaceView.Player.PlayWhenReady = false;
 
-                    TabbedMainActivity.GetInstance()?.SetOffWakeLock();
+                        TabbedMainActivity.GetInstance()?.SetOffWakeLock();
+                        break;
                 }
 
                 //GC Collect
@@ -1280,40 +1454,45 @@ namespace WoWonder.Activities.NativePost.Extra
             try
             {
                 var list = NativeFeedAdapter.ListDiffer.Where(a => a.TypeView == PostModelType.VoicePost && a.VoicePlayer != null).ToList();
-                if (list.Count > 0)
+                switch (list.Count)
                 {
-                    ViewHolderVoicePlayer = null;
-                    IsVoicePlayed = false;
-
-                    foreach (var item in list)
+                    case > 0:
                     {
-                        if (item.VoicePlayer != null)
-                        {
-                            item.VoicePlayer.Completion += null!;
-                            item.VoicePlayer.Prepared += null!;
+                        ViewHolderVoicePlayer = null;
+                        IsVoicePlayed = false;
 
-                            item.VoicePlayer.Stop();
+                        foreach (var item in list)
+                        {
+                            if (item.VoicePlayer != null)
+                            {
+                                item.VoicePlayer.Completion += null!;
+                                item.VoicePlayer.Prepared += null!;
+
+                                item.VoicePlayer.Stop();
+                            }
+
+                            item.VoicePlayer?.Release();
+                            item.VoicePlayer = null;
+
+                            if (item.Timer != null)
+                            {
+                                item.Timer.Enabled = false;
+                                item.Timer.Stop();
+                            }
+                            item.Timer = null;
+
+                            try
+                            {
+                                NativeFeedAdapter.NotifyItemChanged(NativeFeedAdapter.ListDiffer.IndexOf(item), "WithoutBlobAudio");
+                            }
+                            catch (Exception e)
+                            {
+                                Methods.DisplayReportResultTrack(e);
+                            }
                         }
 
-                        item.VoicePlayer?.Release();
-                        item.VoicePlayer = null;
-
-                        if (item.Timer != null)
-                        {
-                            item.Timer.Enabled = false;
-                            item.Timer.Stop();
-                        }
-                        item.Timer = null;
-
-                        try
-                        {
-                            NativeFeedAdapter.NotifyItemChanged(NativeFeedAdapter.ListDiffer.IndexOf(item), "WithoutBlobAudio");
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    } 
+                        break;
+                    }
                 }
             }
             catch (Exception e)

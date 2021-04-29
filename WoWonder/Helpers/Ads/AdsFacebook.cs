@@ -23,23 +23,27 @@ namespace WoWonder.Helpers.Ads
         {
             try
             {
-                if (AppSettings.ShowFbBannerAds)
+                switch (AppSettings.ShowFbBannerAds)
                 {
-                    InitializeFacebook.Initialize(activity);
+                    case true:
+                    {
+                        InitializeFacebook.Initialize(activity);
 
-                    AdView adView = new AdView(activity, AppSettings.AdsFbBannerKey, AdSize.BannerHeight50);
-                    // Add the ad view to your activity layout
-                    adContainer.AddView(adView);
+                        AdView adView = new AdView(activity, AppSettings.AdsFbBannerKey, AdSize.BannerHeight50);
+                        // Add the ad view to your activity layout
+                        adContainer.AddView(adView);
 
 #pragma warning disable 618
-                    adView.SetAdListener(new BannerAdListener());
+                        adView.SetAdListener(new BannerAdListener());
 #pragma warning restore 618
-                    // Request an ad
-                    adView.LoadAd();
+                        // Request an ad
+                        adView.LoadAd();
 
-                    return adView;
+                        return adView;
+                    }
+                    default:
+                        return null!;
                 }
-                return null!;
             }
             catch (Exception e)
             {
@@ -105,9 +109,9 @@ namespace WoWonder.Helpers.Ads
         {
             try
             {
-                if (AppSettings.ShowFbInterstitialAds)
+                switch (AppSettings.ShowFbInterstitialAds)
                 {
-                    if (CountInterstitial == AppSettings.ShowAdMobInterstitialCount)
+                    case true when CountInterstitial == AppSettings.ShowAdMobInterstitialCount:
                     {
                         InitializeFacebook.Initialize(activity);
 
@@ -122,9 +126,11 @@ namespace WoWonder.Helpers.Ads
 
                         return interstitialAd;
                     }
-
-                    CountInterstitial++;
+                    case true:
+                        CountInterstitial++;
+                        break;
                 }
+
                 return null!;
             }
             catch (Exception e)
@@ -225,9 +231,9 @@ namespace WoWonder.Helpers.Ads
         {
             try
             {
-                if (AppSettings.ShowFbRewardVideoAds)
+                switch (AppSettings.ShowFbRewardVideoAds)
                 {
-                    if (CountRewarded == AppSettings.ShowAdMobRewardedVideoCount)
+                    case true when CountRewarded == AppSettings.ShowAdMobRewardedVideoCount:
                     {
                         InitializeFacebook.Initialize(activity);
 
@@ -243,9 +249,11 @@ namespace WoWonder.Helpers.Ads
 
                         return rewardVideoAd;
                     }
-
-                    CountRewarded++;
+                    case true:
+                        CountRewarded++;
+                        break;
                 }
+
                 return null!;
             }
             catch (Exception e)
@@ -360,24 +368,34 @@ namespace WoWonder.Helpers.Ads
         {
             try
             {
-                if (AppSettings.ShowFbNativeAds)
+                switch (AppSettings.ShowFbNativeAds)
                 {
-                    InitializeFacebook.Initialize(activity);
-
-                    if (ad == null)
+                    case true:
                     {
-                        var nativeAd = new NativeAd(activity, AppSettings.AdsFbNativeKey);
+                        InitializeFacebook.Initialize(activity);
+
+                        switch (ad)
+                        {
+                            case null:
+                            {
+                                var nativeAd = new NativeAd(activity, AppSettings.AdsFbNativeKey);
 #pragma warning disable 618
-                        nativeAd.SetAdListener(new NativeAdListener(activity, nativeAd, nativeAdLayout));
+                                nativeAd.SetAdListener(new NativeAdListener(activity, nativeAd, nativeAdLayout));
 #pragma warning restore 618
 
-                        // Initiate a request to load an ad.
-                        nativeAd.LoadAd();
-                    }
-                    else
-                    {
-                        var holder = new AdHolder(nativeAdLayout);
-                        LoadAd(activity, holder, ad, nativeAdLayout);
+                                // Initiate a request to load an ad.
+                                nativeAd.LoadAd();
+                                break;
+                            }
+                            default:
+                            {
+                                var holder = new AdHolder(nativeAdLayout);
+                                LoadAd(activity, holder, ad, nativeAdLayout);
+                                break;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -422,34 +440,36 @@ namespace WoWonder.Helpers.Ads
                         return;
                     }
 
-                    if (NativeAdLayout == null)
+                    switch (NativeAdLayout)
                     {
-                        return;
+                        case null:
+                            return;
+                        default:
+                            Activity?.RunOnUiThread(() =>
+                            {
+                                try
+                                {
+                                    NativeAdLayout.Visibility = ViewStates.Visible;
+
+                                    // Unregister last ad
+                                    NativeAd.UnregisterView();
+
+                                    //if (NativeAdChoicesContainer != null)
+                                    //{
+                                    //    //var adOptionsView = new NativeAdView(Activity, NativeAd, NativeAdLayout);
+                                    //    NativeAdChoicesContainer.RemoveAllViews();
+                                    //    NativeAdChoicesContainer.AddView(NativeAdLayout, 0);
+                                    //}
+
+                                    InflateAd(NativeAd, NativeAdLayout);
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
+                            break;
                     }
-
-                    Activity?.RunOnUiThread(() =>
-                    {
-                        try
-                        {
-                            NativeAdLayout.Visibility = ViewStates.Visible;
-
-                            // Unregister last ad
-                            NativeAd.UnregisterView();
-
-                            //if (NativeAdChoicesContainer != null)
-                            //{
-                            //    //var adOptionsView = new NativeAdView(Activity, NativeAd, NativeAdLayout);
-                            //    NativeAdChoicesContainer.RemoveAllViews();
-                            //    NativeAdChoicesContainer.AddView(NativeAdLayout, 0);
-                            //}
-
-                            InflateAd(NativeAd, NativeAdLayout);
-                        }
-                        catch (Exception e)
-                        {
-                            Methods.DisplayReportResultTrack(e);
-                        }
-                    });
                 }
                 catch (Exception e)
                 {

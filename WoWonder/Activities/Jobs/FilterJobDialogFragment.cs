@@ -128,10 +128,16 @@ namespace WoWonder.Activities.Jobs
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, JobTypeMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, CategoriesMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
 
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-                    DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.FilterJobLocation) ? 300 : Convert.ToInt32(UserDetails.FilterJobLocation), true);
-                else  // For API < 24 
-                    DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.FilterJobLocation) ? 300 : Convert.ToInt32(UserDetails.FilterJobLocation);
+                switch (Build.VERSION.SdkInt)
+                {
+                    case >= BuildVersionCodes.N:
+                        DistanceBar.SetProgress(string.IsNullOrEmpty(UserDetails.FilterJobLocation) ? 300 : Convert.ToInt32(UserDetails.FilterJobLocation), true);
+                        break;
+                    // For API < 24 
+                    default:
+                        DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.FilterJobLocation) ? 300 : Convert.ToInt32(UserDetails.FilterJobLocation);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -183,25 +189,28 @@ namespace WoWonder.Activities.Jobs
         private void LayoutCategoriesOnClick(object sender, EventArgs e)
         {
             try
-            { 
-                if (CategoriesController.ListCategoriesJob.Count > 0)
+            {
+                switch (CategoriesController.ListCategoriesJob.Count)
                 {
-                    TypeDialog = "Categories";
+                    case > 0:
+                    {
+                        TypeDialog = "Categories";
 
-                    var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                    var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
+                        var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
 
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(Activity, "Not have List Categories Job");
+                        break;
                 }
-                else
-                {
-                    Methods.DisplayReportResult(Activity, "Not have List Categories Job");
-                } 
             }
             catch (Exception exception)
             {

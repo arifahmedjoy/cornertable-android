@@ -50,28 +50,43 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                Intent intent;
-                if ((int) Build.VERSION.SdkInt <= 25)
-                    intent = new Intent(Intent.ActionPick, MediaStore.Images.Media.ExternalContentUri);
-                else
-                    intent = Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment.MediaMounted) ? new Intent(Intent.ActionPick, MediaStore.Images.Media.ExternalContentUri) : new Intent(Intent.ActionPick, MediaStore.Images.Media.InternalContentUri);
+                Intent intent = (int) Build.VERSION.SdkInt switch
+                {
+                    <= 25 => new Intent(Intent.ActionPick, MediaStore.Images.Media.ExternalContentUri),
+                    _ => Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment
+                        .MediaMounted)
+                        ? new Intent(Intent.ActionPick, MediaStore.Images.Media.ExternalContentUri)
+                        : new Intent(Intent.ActionPick, MediaStore.Images.Media.InternalContentUri)
+                };
 
                 intent.SetType("image/*");
                 intent.PutExtra("return-data", true); //added snippet
 
-                if (Build.VERSION.SdkInt > BuildVersionCodes.Q)
-                    intent.SetAction(Intent.ActionGetContent); 
-
-                if (AppSettings.ImageCropping)
+                switch (Build.VERSION.SdkInt)
                 {
-                    intent.PutExtra("crop", "true");
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDcimImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    intent.PutExtra(MediaStore.ExtraOutput, myUri);
-                    //intent.PutExtra("outputFormat", Bitmap.CompressFormat.Jpeg.ToString());
+                    case > BuildVersionCodes.Q:
+                        intent.SetAction(Intent.ActionGetContent);
+                        break;
                 }
 
-                if (allowMultiple)
-                    intent.PutExtra(Intent.ExtraAllowMultiple, true);
+                switch (AppSettings.ImageCropping)
+                {
+                    case true:
+                    {
+                        intent.PutExtra("crop", "true");
+                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDcimImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                        intent.PutExtra(MediaStore.ExtraOutput, myUri);
+                        //intent.PutExtra("outputFormat", Bitmap.CompressFormat.Jpeg.ToString());
+                        break;
+                    }
+                }
+
+                switch (allowMultiple)
+                {
+                    case true:
+                        intent.PutExtra(Intent.ExtraAllowMultiple, true);
+                        break;
+                }
 
                 Context.StartActivityForResult(Intent.CreateChooser(intent, title), 500);
             }
@@ -94,18 +109,25 @@ namespace WoWonder.Helpers.Controller
                 //intent.PutExtra("return-data", true); //added snippet
                 //Context.StartActivityForResult(Intent.CreateChooser(intent, title), 501);
 
-                Intent intent;
-                if ((int)Build.VERSION.SdkInt <= 25)
-                    intent = new Intent(Intent.ActionPick, MediaStore.Video.Media.ExternalContentUri);
-                else
-                    intent = Android.OS.Environment.GetExternalStorageState(null).Equals(Android.OS.Environment.MediaMounted) ? new Intent(Intent.ActionPick, MediaStore.Video.Media.ExternalContentUri) : new Intent(Intent.ActionPick, MediaStore.Video.Media.InternalContentUri);
+                Intent intent = (int) Build.VERSION.SdkInt switch
+                {
+                    <= 25 => new Intent(Intent.ActionPick, MediaStore.Video.Media.ExternalContentUri),
+                    _ => Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment
+                        .MediaMounted)
+                        ? new Intent(Intent.ActionPick, MediaStore.Video.Media.ExternalContentUri)
+                        : new Intent(Intent.ActionPick, MediaStore.Video.Media.InternalContentUri)
+                };
 
                 //  In this example we will set the type to video
                 intent.SetType("video/*");
                 intent.PutExtra("return-data", true); //added snippet
 
-                if (Build.VERSION.SdkInt > BuildVersionCodes.Q)
-                    intent.SetAction(Intent.ActionGetContent);
+                switch (Build.VERSION.SdkInt)
+                {
+                    case > BuildVersionCodes.Q:
+                        intent.SetAction(Intent.ActionGetContent);
+                        break;
+                }
 
                 intent.AddFlags(ActivityFlags.GrantReadUriPermission);
                 Context.StartActivityForResult(Intent.CreateChooser(intent, title), 501);
@@ -294,27 +316,30 @@ namespace WoWonder.Helpers.Controller
             try
             {
                 Intent intent;
-                if (Build.Manufacturer!.ToLower().Equals("samsung"))
+                switch (Build.Manufacturer!.ToLower())
                 {
-                    intent = new Intent("com.sec.android.app.myfiles.PICK_DATA");
-                    intent.PutExtra("CONTENT_TYPE", "*/*");
-                    intent.AddCategory(Intent.CategoryDefault);
-                }
-                else
-                {
-                    string[] mimeTypes =
-                    {"application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .doc & .docx
-                        "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .ppt & .pptx
-                        "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xls & .xlsx
-                        "text/plain",
-                        "application/pdf",
-                        "application/zip", "application/vnd.android.package-archive"};
+                    case "samsung":
+                        intent = new Intent("com.sec.android.app.myfiles.PICK_DATA");
+                        intent.PutExtra("CONTENT_TYPE", "*/*");
+                        intent.AddCategory(Intent.CategoryDefault);
+                        break;
+                    default:
+                    {
+                        string[] mimeTypes =
+                        {"application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .doc & .docx
+                            "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .ppt & .pptx
+                            "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xls & .xlsx
+                            "text/plain",
+                            "application/pdf",
+                            "application/zip", "application/vnd.android.package-archive"};
 
-                    intent = new Intent(Intent.ActionGetContent); // or ACTION_OPEN_DOCUMENT
-                    intent.SetType("*/*");
-                    intent.PutExtra(Intent.ExtraMimeTypes, mimeTypes);
-                    intent.AddCategory(Intent.CategoryOpenable);
-                    intent.PutExtra(Intent.ExtraLocalOnly, true);
+                        intent = new Intent(Intent.ActionGetContent); // or ACTION_OPEN_DOCUMENT
+                        intent.SetType("*/*");
+                        intent.PutExtra(Intent.ExtraMimeTypes, mimeTypes);
+                        intent.AddCategory(Intent.CategoryOpenable);
+                        intent.PutExtra(Intent.ExtraLocalOnly, true);
+                        break;
+                    }
                 }
                 Context.StartActivityForResult(Intent.CreateChooser(intent, title), 504);
             }
@@ -336,11 +361,14 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                Intent intent;
-                if ((int)Build.VERSION.SdkInt <= 25)
-                    intent = new Intent(Intent.ActionPick, MediaStore.Audio.Media.ExternalContentUri);
-                else
-                    intent = Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment.MediaMounted) ? new Intent(Intent.ActionPick, MediaStore.Audio.Media.ExternalContentUri) : new Intent(Intent.ActionPick, MediaStore.Audio.Media.InternalContentUri);
+                Intent intent = (int) Build.VERSION.SdkInt switch
+                {
+                    <= 25 => new Intent(Intent.ActionPick, MediaStore.Audio.Media.ExternalContentUri),
+                    _ => Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment
+                        .MediaMounted)
+                        ? new Intent(Intent.ActionPick, MediaStore.Audio.Media.ExternalContentUri)
+                        : new Intent(Intent.ActionPick, MediaStore.Audio.Media.InternalContentUri)
+                };
                 //intent.SetType("audio/*");
                 Context.StartActivityForResult(intent, 505);
             }
@@ -396,18 +424,21 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                if (openIntent)
+                switch (openIntent)
                 {
-                    var smsUri = Uri.Parse("smsto:" + phoneNumber);
-                    var intent = new Intent(Intent.ActionSendto, smsUri);
-                    intent.PutExtra("sms_body", textMessages);
-                    intent.AddFlags(ActivityFlags.NewTask);
-                    Context.StartActivity(intent);
-                }
-                else
-                {
-                    //Or use this code
-                    SmsManager.Default?.SendTextMessage(phoneNumber, null, textMessages, null, null);
+                    case true:
+                    {
+                        var smsUri = Uri.Parse("smsto:" + phoneNumber);
+                        var intent = new Intent(Intent.ActionSendto, smsUri);
+                        intent.PutExtra("sms_body", textMessages);
+                        intent.AddFlags(ActivityFlags.NewTask);
+                        Context.StartActivity(intent);
+                        break;
+                    }
+                    default:
+                        //Or use this code
+                        SmsManager.Default?.SendTextMessage(phoneNumber, null, textMessages, null, null);
+                        break;
                 }
             }
             catch (Exception e)
@@ -427,21 +458,26 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                if (detailedInformation)
+                switch (detailedInformation)
                 {
-                    Intent intent = new Intent(ContactsContract.Intents.Insert.Action);
-                    intent.SetType(ContactsContract.RawContacts.ContentType);
-                    intent.PutExtra(ContactsContract.Intents.Insert.Phone, phoneNumber);
-                    intent.PutExtra(ContactsContract.Intents.Insert.Name, name);
-                    intent.PutExtra(ContactsContract.Intents.Insert.Email, email);
-                    Context.StartActivity(intent);
-                }
-                else
-                {
-                    var contactUri = Uri.Parse("tel:" + phoneNumber);
-                    Intent intent = new Intent(ContactsContract.Intents.ShowOrCreateContact, contactUri);
-                    intent.PutExtra(ContactsContract.Intents.ExtraRecipientContactName, true);
-                    Context.StartActivity(intent);
+                    case true:
+                    {
+                        Intent intent = new Intent(ContactsContract.Intents.Insert.Action);
+                        intent.SetType(ContactsContract.RawContacts.ContentType);
+                        intent.PutExtra(ContactsContract.Intents.Insert.Phone, phoneNumber);
+                        intent.PutExtra(ContactsContract.Intents.Insert.Name, name);
+                        intent.PutExtra(ContactsContract.Intents.Insert.Email, email);
+                        Context.StartActivity(intent);
+                        break;
+                    }
+                    default:
+                    {
+                        var contactUri = Uri.Parse("tel:" + phoneNumber);
+                        Intent intent = new Intent(ContactsContract.Intents.ShowOrCreateContact, contactUri);
+                        intent.PutExtra(ContactsContract.Intents.ExtraRecipientContactName, true);
+                        Context.StartActivity(intent);
+                        break;
+                    }
                 }
             }
             catch (Exception e)

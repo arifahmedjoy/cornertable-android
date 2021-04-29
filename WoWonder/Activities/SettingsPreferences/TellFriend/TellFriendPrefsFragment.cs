@@ -142,25 +142,49 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 //Delete Preference
                 var mCategoryEarnings = (PreferenceCategory)FindPreference("SectionEarnings_key");
                  
-                if (!AppSettings.ShowSettingsMyAffiliates)
-                    mCategoryEarnings.RemovePreference(MyAffiliatesPref);
+                switch (AppSettings.ShowSettingsMyAffiliates)
+                {
+                    case false:
+                        mCategoryEarnings.RemovePreference(MyAffiliatesPref);
+                        break;
+                }
                  
-                if (!AppSettings.ShowUserPoint)
-                    mCategoryEarnings.RemovePreference(MyPointsPref);
+                switch (AppSettings.ShowUserPoint)
+                {
+                    case false:
+                        mCategoryEarnings.RemovePreference(MyPointsPref);
+                        break;
+                }
                  
-                if (!AppSettings.ShowWallet)
-                    mCategoryEarnings.RemovePreference(MyBalancePref);
+                switch (AppSettings.ShowWallet)
+                {
+                    case false:
+                        mCategoryEarnings.RemovePreference(MyBalancePref);
+                        break;
+                }
 
-                if (!AppSettings.ShowWithdrawals)
-                    mCategoryEarnings.RemovePreference(WithdrawalsPref);
+                switch (AppSettings.ShowWithdrawals)
+                {
+                    case false:
+                        mCategoryEarnings.RemovePreference(WithdrawalsPref);
+                        break;
+                }
 
 
                 var mCategoryInvite = (PreferenceCategory)FindPreference("SectionInvite_key"); 
-                if (!AppSettings.ShowSettingsShare)
-                    mCategoryInvite.RemovePreference(SharePref);
+                switch (AppSettings.ShowSettingsShare)
+                {
+                    case false:
+                        mCategoryInvite.RemovePreference(SharePref);
+                        break;
+                }
 
-                if (!AppSettings.InvitationSystem)
-                    mCategoryInvite.RemovePreference(InviteFriendsPref);
+                switch (AppSettings.InvitationSystem)
+                {
+                    case false:
+                        mCategoryInvite.RemovePreference(InviteFriendsPref);
+                        break;
+                }
 
                 InviteSmsText = GetText(Resource.String.Lbl_InviteSMSText_1) + " " + AppSettings.ApplicationName + " " +
                                 GetText(Resource.String.Lbl_InviteSMSText_2); 
@@ -175,24 +199,25 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SharePref.PreferenceClick += SharePref_OnPreferenceClick;
-                    MyAffiliatesPref.PreferenceClick += MyAffiliatesPref_OnPreferenceClick;
-                    InviteFriendsPref.PreferenceClick += InviteFriendsPrefOnPreferenceClick;
-                    MyPointsPref.PreferenceClick += MyPointsPrefOnPreferenceClick;
-                    MyBalancePref.PreferenceClick += MyBalancePrefOnPreferenceClick;
-                    WithdrawalsPref.PreferenceClick += WithdrawalsPrefOnPreferenceClick;
-                }
-                else
-                {
-                    SharePref.PreferenceClick -= SharePref_OnPreferenceClick;
-                    MyAffiliatesPref.PreferenceClick -= MyAffiliatesPref_OnPreferenceClick;
-                    InviteFriendsPref.PreferenceClick -= InviteFriendsPrefOnPreferenceClick;
-                    MyPointsPref.PreferenceClick -= MyPointsPrefOnPreferenceClick;
-                    MyBalancePref.PreferenceClick -= MyBalancePrefOnPreferenceClick;
-                    WithdrawalsPref.PreferenceClick -= WithdrawalsPrefOnPreferenceClick;
+                    // true +=  // false -=
+                    case true:
+                        SharePref.PreferenceClick += SharePref_OnPreferenceClick;
+                        MyAffiliatesPref.PreferenceClick += MyAffiliatesPref_OnPreferenceClick;
+                        InviteFriendsPref.PreferenceClick += InviteFriendsPrefOnPreferenceClick;
+                        MyPointsPref.PreferenceClick += MyPointsPrefOnPreferenceClick;
+                        MyBalancePref.PreferenceClick += MyBalancePrefOnPreferenceClick;
+                        WithdrawalsPref.PreferenceClick += WithdrawalsPrefOnPreferenceClick;
+                        break;
+                    default:
+                        SharePref.PreferenceClick -= SharePref_OnPreferenceClick;
+                        MyAffiliatesPref.PreferenceClick -= MyAffiliatesPref_OnPreferenceClick;
+                        InviteFriendsPref.PreferenceClick -= InviteFriendsPrefOnPreferenceClick;
+                        MyPointsPref.PreferenceClick -= MyPointsPrefOnPreferenceClick;
+                        MyBalancePref.PreferenceClick -= MyBalancePrefOnPreferenceClick;
+                        WithdrawalsPref.PreferenceClick -= WithdrawalsPrefOnPreferenceClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -253,15 +278,20 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                //Share Plugin same as flame
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = AppSettings.ApplicationName,
-                    Text = InviteSmsText,
-                    Url = "http://play.google.com/store/apps/details?id=" + ActivityContext.PackageName
-                });
+                    //Share Plugin same as flame
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = AppSettings.ApplicationName,
+                            Text = InviteSmsText,
+                            Url = "http://play.google.com/store/apps/details?id=" + ActivityContext.PackageName
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -287,22 +317,28 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    var intent = new Intent(ActivityContext, typeof(InviteFriendsActivity));
-                    ActivityContext.StartActivity(intent);
-                }
-                else
-                {
-                    //Check to see if any permission in our group is available, if one, then all are
-                    if (ActivityContext.CheckSelfPermission(Manifest.Permission.ReadContacts) == Permission.Granted)
+                    case < 23:
                     {
                         var intent = new Intent(ActivityContext, typeof(InviteFriendsActivity));
                         ActivityContext.StartActivity(intent);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(ActivityContext).RequestPermission(101);
+                        //Check to see if any permission in our group is available, if one, then all are
+                        if (ActivityContext.CheckSelfPermission(Manifest.Permission.ReadContacts) == Permission.Granted)
+                        {
+                            var intent = new Intent(ActivityContext, typeof(InviteFriendsActivity));
+                            ActivityContext.StartActivity(intent);
+                        }
+                        else
+                        {
+                            new PermissionsController(ActivityContext).RequestPermission(101);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -320,17 +356,17 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 101)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                     {
                         var intent = new Intent(ActivityContext, typeof(InviteFriendsActivity));
                         ActivityContext.StartActivity(intent);
+                        break;
                     }
-                    else
-                    {
+                    case 101:
                         Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)

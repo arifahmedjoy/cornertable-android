@@ -140,8 +140,11 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                if (MAdapter.ArticlesList.Count > 0)
-                    ListUtils.ListCachedDataArticle = MAdapter.ArticlesList;
+                ListUtils.ListCachedDataArticle = MAdapter.ArticlesList.Count switch
+                {
+                    > 0 => MAdapter.ArticlesList,
+                    _ => ListUtils.ListCachedDataArticle
+                };
 
                 DestroyBasic();
 
@@ -262,22 +265,23 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    MAdapter.UserItemClick += MAdapterOnUserItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    BtnFilter.Click += BtnFilterOnClick;
-                    TxtCreate.Click += TxtCreateOnClick;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    MAdapter.UserItemClick -= MAdapterOnUserItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    BtnFilter.Click -= BtnFilterOnClick;
-                    TxtCreate.Click -= TxtCreateOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        MAdapter.UserItemClick += MAdapterOnUserItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        BtnFilter.Click += BtnFilterOnClick;
+                        TxtCreate.Click += TxtCreateOnClick;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        MAdapter.UserItemClick -= MAdapterOnUserItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        BtnFilter.Click -= BtnFilterOnClick;
+                        TxtCreate.Click -= TxtCreateOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -413,25 +417,28 @@ namespace WoWonder.Activities.Articles
         {
             try
             {
-                if (CategoriesController.ListCategoriesBlog.Count > 0)
-                { 
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                    var arrayAdapter = CategoriesController.ListCategoriesBlog.Select(item => item.CategoriesName).ToList();
-
-                    arrayAdapter.Insert(0,GetString(Resource.String.Lbl_Default));
-                    arrayAdapter.Insert(1,GetString(Resource.String.Lbl_MyArticle));
-
-                    dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
-                    dialogList.Content(GetText(Resource.String.Lbl_GetArticlesByCategories));
-                    dialogList.Items(arrayAdapter);
-                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                    dialogList.AlwaysCallSingleChoiceCallback();
-                    dialogList.ItemsCallback(this).Build().Show();
-                }
-                else
+                switch (CategoriesController.ListCategoriesBlog.Count)
                 {
-                    Methods.DisplayReportResult(this, "Not have List Categories Blog");
+                    case > 0:
+                    {
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+
+                        var arrayAdapter = CategoriesController.ListCategoriesBlog.Select(item => item.CategoriesName).ToList();
+
+                        arrayAdapter.Insert(0,GetString(Resource.String.Lbl_Default));
+                        arrayAdapter.Insert(1,GetString(Resource.String.Lbl_MyArticle));
+
+                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories));
+                        dialogList.Content(GetText(Resource.String.Lbl_GetArticlesByCategories));
+                        dialogList.Items(arrayAdapter);
+                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                        dialogList.AlwaysCallSingleChoiceCallback();
+                        dialogList.ItemsCallback(this).Build().Show();
+                        break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, "Not have List Categories Blog");
+                        break;
                 }
             }
             catch (Exception exception)
@@ -451,14 +458,16 @@ namespace WoWonder.Activities.Articles
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == 2684 && resultCode == Result.Ok)
+                switch (requestCode)
                 {
-                    MAdapter.ArticlesList.Clear();
-                    MAdapter.NotifyDataSetChanged();
+                    case 2684 when resultCode == Result.Ok:
+                        MAdapter.ArticlesList.Clear();
+                        MAdapter.NotifyDataSetChanged();
 
-                    MainScrollEvent.IsLoading = false;
+                        MainScrollEvent.IsLoading = false;
 
-                    StartApiService();
+                        StartApiService();
+                        break;
                 }
             }
             catch (Exception e)
@@ -496,8 +505,11 @@ namespace WoWonder.Activities.Articles
 
         private async Task LoadArticlesAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
@@ -505,7 +517,7 @@ namespace WoWonder.Activities.Articles
 
                 var countList = MAdapter.ArticlesList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Article.Get_Articles("10", offset, CategoryId, UserId);
-                if (apiStatus != 200 || (respond is not GetUsersArticlesObject result) || result.Articles == null)
+                if (apiStatus != 200 || respond is not GetUsersArticlesObject result || result.Articles == null)
                 {
                     MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
@@ -513,9 +525,9 @@ namespace WoWonder.Activities.Articles
                 else
                 {
                     var respondList = result.Articles.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Articles let check = MAdapter.ArticlesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
@@ -523,17 +535,23 @@ namespace WoWonder.Activities.Articles
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.ArticlesList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.ArticlesList = new ObservableCollection<ArticleDataObject>(result.Articles);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.ArticlesList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreArticles), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.ArticlesList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreArticles), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -544,10 +562,12 @@ namespace WoWonder.Activities.Articles
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -562,24 +582,29 @@ namespace WoWonder.Activities.Articles
                 MainScrollEvent.IsLoading = false; 
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.ArticlesList.Count > 0)
+                switch (MAdapter.ArticlesList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone; 
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoArticle);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoArticle);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

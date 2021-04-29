@@ -63,35 +63,47 @@ namespace WoWonder.Activities.NearBy.Adapters
         {
             try
             {
-                if (viewHolder is NearByAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var users = UserList[position];
-                    if (users == null)
-                        return;
-
-                    GlideImageLoader.LoadImage(ActivityContext, users.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Color);
-
-                    var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(users.LastseenUnixTime), users.LastseenStatus);
-
-                    //Online Or offline
-                    if (online)
+                    case NearByAdapterViewHolder holder:
                     {
-                        //Online
-                        holder.ImageOnline.SetImageResource(Resource.Drawable.Green_Color);
-                        holder.LastTimeOnline.Text = ActivityContext.GetString(Resource.String.Lbl_Online);
+                        var users = UserList[position];
+                        switch (users)
+                        {
+                            case null:
+                                return;
+                        }
+
+                        GlideImageLoader.LoadImage(ActivityContext, users.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Color);
+
+                        var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(users.LastseenUnixTime), users.LastseenStatus);
+
+                        switch (online)
+                        {
+                            //Online Or offline
+                            case true:
+                                //Online
+                                holder.ImageOnline.SetImageResource(Resource.Drawable.Green_Color);
+                                holder.LastTimeOnline.Text = ActivityContext.GetString(Resource.String.Lbl_Online);
+                                break;
+                            default:
+                                holder.ImageOnline.SetImageResource(Resource.Drawable.Grey_Offline);
+                                holder.LastTimeOnline.Text = Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), false);
+                                break;
+                        }
+
+                        holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(users), 14);
+
+                        switch (users.Verified)
+                        {
+                            case "1":
+                                holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                                break;
+                        }
+
+                        WoWonderTools.SetAddFriendCondition(users.IsFollowing, holder.Button);
+                        break;
                     }
-                    else
-                    {
-                        holder.ImageOnline.SetImageResource(Resource.Drawable.Grey_Offline);
-                        holder.LastTimeOnline.Text = Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), false);
-                    }
-
-                    holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(users), 14);
-
-                    if (users.Verified == "1")
-                        holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
-
-                    WoWonderTools.SetAddFriendCondition(users.IsFollowing, holder.Button);
                 }
             }
             catch (Exception exception)
@@ -106,10 +118,12 @@ namespace WoWonder.Activities.NearBy.Adapters
                  if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                 if (holder is NearByAdapterViewHolder viewHolder)
-                {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
-                }
+                 switch (holder)
+                 {
+                     case NearByAdapterViewHolder viewHolder:
+                         Glide.With(ActivityContext).Clear(viewHolder.Image);
+                         break;
+                 }
                 base.OnViewRecycled(holder);
             }
             catch (Exception e)
@@ -158,14 +172,21 @@ namespace WoWonder.Activities.NearBy.Adapters
             {
                 var d = new List<string>();
                 var item = UserList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

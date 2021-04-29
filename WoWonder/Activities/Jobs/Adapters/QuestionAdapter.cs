@@ -65,104 +65,113 @@ namespace WoWonder.Activities.Jobs.Adapters
         {
             try
             {
-                if (viewHolder is QuestionAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = QuestionList[position];
-                    if (item != null)
+                    case QuestionAdapterViewHolder holder:
                     {
-                        holder.TxtQuestion.Text = ActivityContext.GetText(Resource.String.Lbl_Question);
+                        var item = QuestionList[position];
+                        if (item != null)
+                        {
+                            holder.TxtQuestion.Text = ActivityContext.GetText(Resource.String.Lbl_Question);
                           
-                        switch (item.QuestionType)
-                        {
-                            case "free_text_question":
+                            switch (item.QuestionType)
                             {
-                                holder.EdtQuestionType.Text = ActivityContext.GetString(Resource.String.Lbl_FreeTextQuestion);
-                                holder.EdtQuestionAnswer.Visibility = ViewStates.Gone;
-                                holder.DescriptionOfAnswer.Visibility = ViewStates.Gone;
-                                item.QuestionAnswer = "";
-                                break;
-                            }
-                            case "yes_no_question":
-                            {
-                               holder.EdtQuestionType.Text = ActivityContext.GetString(Resource.String.Lbl_YesNoQuestion);
-                               holder.EdtQuestionAnswer.Visibility = ViewStates.Gone;
-                               holder.DescriptionOfAnswer.Visibility = ViewStates.Gone;
-                               item.QuestionAnswer = "";
-                               break;
-                            }
-                            case "multiple_choice_question":
-                            {
-                               holder.EdtQuestionType.Text = ActivityContext.GetString(Resource.String.Lbl_MultipleChoiceQuestion);
-                               holder.EdtQuestionAnswer.Visibility = ViewStates.Visible;
-                               holder.DescriptionOfAnswer.Visibility = ViewStates.Visible;
-                                break;
-                            }
-                        }
-                         
-                        if (holder.CloseQuestion.HasOnClickListeners) return;
-                        holder.CloseQuestion.Click += (sender, args) =>
-                        {
-                            try
-                            {
-                                //QuestionOneLayout.Visibility = ViewStates.Gone;
-                                //CountQuestion++;
-                                //InflatedQuestionOne = null!;
-                                item.Question = "";
-                                item.QuestionType = "";
-                                item.QuestionAnswer = "";
-
-                                var index = QuestionList.IndexOf(QuestionList.FirstOrDefault(a => a.Id == item.Id));
-                                if (index != -1)
+                                case "free_text_question":
                                 {
-                                    QuestionList.Remove(item);
-                                    NotifyItemRemoved(index);
+                                    holder.EdtQuestionType.Text = ActivityContext.GetString(Resource.String.Lbl_FreeTextQuestion);
+                                    holder.EdtQuestionAnswer.Visibility = ViewStates.Gone;
+                                    holder.DescriptionOfAnswer.Visibility = ViewStates.Gone;
+                                    item.QuestionAnswer = "";
+                                    break;
                                 }
+                                case "yes_no_question":
+                                {
+                                    holder.EdtQuestionType.Text = ActivityContext.GetString(Resource.String.Lbl_YesNoQuestion);
+                                    holder.EdtQuestionAnswer.Visibility = ViewStates.Gone;
+                                    holder.DescriptionOfAnswer.Visibility = ViewStates.Gone;
+                                    item.QuestionAnswer = "";
+                                    break;
+                                }
+                                case "multiple_choice_question":
+                                {
+                                    holder.EdtQuestionType.Text = ActivityContext.GetString(Resource.String.Lbl_MultipleChoiceQuestion);
+                                    holder.EdtQuestionAnswer.Visibility = ViewStates.Visible;
+                                    holder.DescriptionOfAnswer.Visibility = ViewStates.Visible;
+                                    break;
+                                }
+                            }
+                         
+                            switch (holder.CloseQuestion.HasOnClickListeners)
+                            {
+                                case true:
+                                    return;
+                            }
+                            holder.CloseQuestion.Click += (sender, args) =>
+                            {
+                                try
+                                {
+                                    //QuestionOneLayout.Visibility = ViewStates.Gone;
+                                    //CountQuestion++;
+                                    //InflatedQuestionOne = null!;
+                                    item.Question = "";
+                                    item.QuestionType = "";
+                                    item.QuestionAnswer = "";
 
-                                ActivityContext.TxtAddQuestion.Text = ActivityContext.GetText(Resource.String.Lbl_AddQuestion) + "(" + ItemCount + ")";
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                    var index = QuestionList.IndexOf(QuestionList.FirstOrDefault(a => a.Id == item.Id));
+                                    if (index != -1)
+                                    {
+                                        QuestionList.Remove(item);
+                                        NotifyItemRemoved(index);
+                                    }
 
-                        holder.EdtQuestionType.Touch += (sender, args) =>
-                        {
-                            try
-                            {
-                                if (args.Event.Action != MotionEventActions.Down) return;
+                                    ActivityContext.TxtAddQuestion.Text = ActivityContext.GetText(Resource.String.Lbl_AddQuestion) + "(" + ItemCount + ")";
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
 
-                                ActivityContext.OpenDialogSetQuestion(item);
-                            }
-                            catch (Exception e)
+                            holder.EdtQuestionType.Touch += (sender, args) =>
                             {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                try
+                                {
+                                    if (args.Event.Action != MotionEventActions.Down) return;
 
-                        holder.EdtQuestion.TextChanged += (sender, args) =>
-                        {
-                            try
-                            {
-                                item.Question  = args.Text.ToString();
-                            }
-                            catch (Exception e)
-                            {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        };
+                                    ActivityContext.OpenDialogSetQuestion(item);
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
 
-                        holder.EdtQuestionAnswer.TextChanged += (sender, args) =>
-                        {
-                            try
+                            holder.EdtQuestion.TextChanged += (sender, args) =>
                             {
-                                item.QuestionAnswer = args.Text.ToString();
-                            }
-                            catch (Exception e)
+                                try
+                                {
+                                    item.Question  = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
+
+                            holder.EdtQuestionAnswer.TextChanged += (sender, args) =>
                             {
-                                Methods.DisplayReportResultTrack(e);
-                            }
-                        }; 
+                                try
+                                {
+                                    item.QuestionAnswer = args.Text.ToString();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            }; 
+                        }
+
+                        break;
                     }
                 }
             }

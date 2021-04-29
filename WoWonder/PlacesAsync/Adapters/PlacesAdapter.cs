@@ -83,17 +83,22 @@ namespace WoWonder.PlacesAsync.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is PlacesAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = PlacesList[position];
-                    if (item != null)
+                    case PlacesAdapterViewHolder holder:
                     {
-                        var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(35).EndConfig().BuildRound(item.Name.Substring(0, 1), Color.ParseColor(AppSettings.MainColor));
-                        holder.Image.SetImageDrawable(drawable);
+                        var item = PlacesList[position];
+                        if (item != null)
+                        {
+                            var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(35).EndConfig().BuildRound(item.Name.Substring(0, 1), Color.ParseColor(AppSettings.MainColor));
+                            holder.Image.SetImageDrawable(drawable);
                          
-                        holder.Title.Text = item.Name;  
-                        holder.Description.Text = item.Address; 
+                            holder.Title.Text = item.Name;  
+                            holder.Description.Text = item.Address; 
+                        }
+
+                        break;
                     }
                 }
             }

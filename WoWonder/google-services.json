@@ -1,40 +1,46 @@
 {
   "project_info": {
-    "project_number": "596917612075",
-    "firebase_url": "https://wowonder-timeline-chat.firebaseio.com",
-    "project_id": "wowonder-timeline-chat",
-    "storage_bucket": "wowonder-timeline-chat.appspot.com"
+    "project_number": "811145915786",
+    "project_id": "cornertable-timeline-chat",
+    "storage_bucket": "cornertable-timeline-chat.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:596917612075:android:38f831a41257fdc923846e",
+        "mobilesdk_app_id": "1:811145915786:android:56c86117fbf706976bec73",
         "android_client_info": {
-          "package_name": "com.wowondertimeline.chat"
+          "package_name": "com.cornertable.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "596917612075-2jpif1blfg9afl06415onm091k2r78bu.apps.googleusercontent.com",
+          "client_id": "811145915786-rk39na17udnern3tvvrs09h4nn4mipb9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cornertable.app",
+            "certificate_hash": "6d6411275e13af59f6a7448ebb0075e05fabb1d4"
+          }
+        },
+        {
+          "client_id": "811145915786-15adgve43m7ot6vkcord4qd19iugnled.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBexlPAd9OrViIa0d-xak807tjYRFfxpE0"
+          "current_key": "AIzaSyAlzOOQIYMlcfBxzN2jGcCMPgwRirt-ivI"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "596917612075-2jpif1blfg9afl06415onm091k2r78bu.apps.googleusercontent.com",
+              "client_id": "811145915786-15adgve43m7ot6vkcord4qd19iugnled.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
         }
-      },
-      "admob_app_id": "ca-app-pub-5135691635931982~1552760489"
+      }
     }
   ],
   "configuration_version": "1"

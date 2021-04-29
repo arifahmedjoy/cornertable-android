@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AFollestad.MaterialDialogs;
 using Android.App;
-using Android.App.Usage;
 using Android.Content;
 using Android.Content.PM;
 using Android.Database;
@@ -70,26 +69,33 @@ namespace WoWonder.Helpers.Utils
             try
             {
                 ConnectivityManager cm = (ConnectivityManager)Application.Context.GetSystemService(Context.ConnectivityService);
-                if ((int)Build.VERSION.SdkInt <= 25)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-#pragma warning disable 618
-                    var activeNetwork = cm?.ActiveNetworkInfo;
-#pragma warning restore 618
-                    if (activeNetwork != null)
+                    case <= 25:
                     {
 #pragma warning disable 618
-                        bool isOnline = activeNetwork.IsConnected;
+                        var activeNetwork = cm?.ActiveNetworkInfo;
 #pragma warning restore 618
-                        return isOnline;
+                        if (activeNetwork != null)
+                        {
+#pragma warning disable 618
+                            bool isOnline = activeNetwork.IsConnected;
+#pragma warning restore 618
+                            return isOnline;
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    NetworkCapabilities capabilities = cm.GetNetworkCapabilities(cm.ActiveNetwork);
-                    if (capabilities != null)
+                    default:
                     {
-                        if (capabilities.HasTransport(TransportType.Cellular) || capabilities.HasTransport(TransportType.Wifi) || capabilities.HasTransport(TransportType.Ethernet) || capabilities.HasTransport(TransportType.Vpn))
-                            return true;
+                        NetworkCapabilities capabilities = cm.GetNetworkCapabilities(cm.ActiveNetwork);
+                        if (capabilities != null)
+                        {
+                            if (capabilities.HasTransport(TransportType.Cellular) || capabilities.HasTransport(TransportType.Wifi) || capabilities.HasTransport(TransportType.Ethernet) || capabilities.HasTransport(TransportType.Vpn))
+                                return true;
+                        }
+
+                        break;
                     }
                 }
 
@@ -106,12 +112,20 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (v == null) return;
+                switch (v)
+                {
+                    case null:
+                        return;
+                }
                 v.Focusable = true;
                 v.FocusableInTouchMode = true;
                 v.ClearFocus();
-                if ((int)Build.VERSION.SdkInt >= 23)
-                    v.SetFocusable(ViewFocusability.NotFocusable);
+                switch ((int)Build.VERSION.SdkInt)
+                {
+                    case >= 23:
+                        v.SetFocusable(ViewFocusability.NotFocusable);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -123,9 +137,15 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (v == null) return;
-                v.SetTextColor(color);
-                v.SetHintTextColor(Color.ParseColor("#444444"));
+                switch (v)
+                {
+                    case null:
+                        return;
+                    default:
+                        v.SetTextColor(color);
+                        v.SetHintTextColor(Color.ParseColor("#444444"));
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -145,20 +165,27 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (v == null) return;
-                switch (v.LayoutParameters)
+                switch (v)
                 {
-                    case RecyclerView.LayoutParams parameter2:
-                        parameter2.SetMargins(left, top, right, bottom); // left, top, right, bottom
-                        v.LayoutParameters = parameter2;
-                        break;
-                    case RelativeLayout.LayoutParams parameter:
-                        parameter.SetMargins(left, top, right, bottom); // left, top, right, bottom
-                        v.LayoutParameters = parameter;
-                        break;
-                    case LinearLayout.LayoutParams parameter3:
-                        parameter3.SetMargins(left, top, right, bottom); // left, top, right, bottom
-                        v.LayoutParameters = parameter3;
+                    case null:
+                        return;
+                    default:
+                        switch (v.LayoutParameters)
+                        {
+                            case RecyclerView.LayoutParams parameter2:
+                                parameter2.SetMargins(left, top, right, bottom); // left, top, right, bottom
+                                v.LayoutParameters = parameter2;
+                                break;
+                            case RelativeLayout.LayoutParams parameter:
+                                parameter.SetMargins(left, top, right, bottom); // left, top, right, bottom
+                                v.LayoutParameters = parameter;
+                                break;
+                            case LinearLayout.LayoutParams parameter3:
+                                parameter3.SetMargins(left, top, right, bottom); // left, top, right, bottom
+                                v.LayoutParameters = parameter3;
+                                break;
+                        }
+
                         break;
                 }
             }
@@ -315,16 +342,19 @@ namespace WoWonder.Helpers.Utils
         public static void DisplayReportResult(Activity activityContext, dynamic respond, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
             string errorText;
-            if (respond is ErrorObject error)
+            switch (respond)
             {
-                errorText = error.Error.ErrorText;
+                case ErrorObject error:
+                {
+                    errorText = error.Error.ErrorText;
 
-                if (errorText.Contains("Invalid or expired access_token") || errorText.Contains("No session sent") || errorText.Contains("Not authorized"))
-                    ApiRequest.Logout(activityContext);
-            }
-            else
-            {
-                errorText = respond.ToString();
+                    if (errorText.Contains("Invalid or expired access_token") || errorText.Contains("No session sent") || errorText.Contains("Not authorized"))
+                        ApiRequest.Logout(activityContext);
+                    break;
+                }
+                default:
+                    errorText = respond.ToString();
+                    break;
             }
 
             System.Diagnostics.Trace.WriteLine("ReportMode >> message: " + errorText);
@@ -332,9 +362,11 @@ namespace WoWonder.Helpers.Utils
             System.Diagnostics.Trace.WriteLine("ReportMode >> source file path: " + sourceFilePath);
             System.Diagnostics.Trace.WriteLine("ReportMode >> source line number: " + sourceLineNumber);
 
-            if (AppSettings.SetApisReportMode && !errorText.Contains("com.android.okhttp"))
+            switch (AppSettings.SetApisReportMode)
             {
-                DialogPopup.InvokeAndShowDialog(activityContext, "ReportMode", errorText, "Close");
+                case true when !errorText.Contains("com.android.okhttp"):
+                    DialogPopup.InvokeAndShowDialog(activityContext, "ReportMode", errorText, "Close");
+                    break;
             }
             //Crashes.TrackError(new Exception(errorText));
             //Analytics.TrackEvent(errorText);
@@ -347,16 +379,19 @@ namespace WoWonder.Helpers.Utils
             string errorText = respond.ToString();
             try
             {
-                if (respond is ErrorObject error)
+                switch (respond)
                 {
-                    errorText = error.Error.ErrorText;
+                    case ErrorObject error:
+                    {
+                        errorText = error.Error.ErrorText;
 
-                    if (errorText.Contains("Invalid or expired access_token") || errorText.Contains("No session sent") || errorText.Contains("Not authorized"))
-                        ApiRequest.Logout(activityContext);
-                }
-                else
-                {
-                    errorText = respond.ToString();
+                        if (errorText.Contains("Invalid or expired access_token") || errorText.Contains("No session sent") || errorText.Contains("Not authorized"))
+                            ApiRequest.Logout(activityContext);
+                        break;
+                    }
+                    default:
+                        errorText = respond.ToString();
+                        break;
                 }
                 //Show a Error 
                 AndHUD.Shared.ShowError(activityContext, errorText, MaskType.Clear, TimeSpan.FromSeconds(1));
@@ -374,10 +409,12 @@ namespace WoWonder.Helpers.Utils
                 AndHUD.Shared.Dismiss(activityContext);
             }
 
-            if (AppSettings.SetApisReportMode)
+            switch (AppSettings.SetApisReportMode)
             {
-                DialogPopup.InvokeAndShowDialog(activityContext, "ReportMode", errorText, "Close");
-                //throw new Exception(errorText);
+                case true:
+                    DialogPopup.InvokeAndShowDialog(activityContext, "ReportMode", errorText, "Close");
+                    //throw new Exception(errorText);
+                    break;
             }
         }
 
@@ -395,9 +432,11 @@ namespace WoWonder.Helpers.Utils
                 text += "\n \n ReportMode >> source file path: " + sourceFilePath;
                 text += "\n \n ReportMode >> source line number: " + sourceLineNumber;
 
-                if (AppSettings.SetApisReportMode && !exception.Message.Contains("com.android.okhttp"))
+                switch (AppSettings.SetApisReportMode)
                 {
-                    DialogPopup.InvokeAndShowDialog(MainApplication.GetInstance().Activity, "ReportMode", text, "Close");
+                    case true when !exception.Message.Contains("com.android.okhttp"):
+                        DialogPopup.InvokeAndShowDialog(MainApplication.GetInstance().Activity, "ReportMode", text, "Close");
+                        break;
                 }
                 //Crashes.TrackError(exception);
                 //Analytics.TrackEvent(text);
@@ -651,10 +690,12 @@ namespace WoWonder.Helpers.Utils
                     PlayerStatic = InitializeMediaPlayer();
                     var fd = Application.Context?.Assets?.OpenFd(fileName);
                     PlayerStatic.Prepared += (s, e) => { PlayerStatic.Start(); };
-                    if (typeVolume == "left")
+                    switch (typeVolume)
                     {
-                        PlayerStatic.SetAudioAttributes(new AudioAttributes.Builder()?.SetUsage(AudioUsageKind.VoiceCommunication)?.SetContentType(AudioContentType.Music)?.Build());
-                        PlayerStatic.Looping = true;
+                        case "left":
+                            PlayerStatic.SetAudioAttributes(new AudioAttributes.Builder()?.SetUsage(AudioUsageKind.VoiceCommunication)?.SetContentType(AudioContentType.Music)?.Build());
+                            PlayerStatic.Looping = true;
+                            break;
                     }
 
                     PlayerStatic.SetDataSource(fd.FileDescriptor, fd.StartOffset, fd.Length);
@@ -670,9 +711,11 @@ namespace WoWonder.Helpers.Utils
             {
                 try
                 {
-                    if (PlayerStatic.IsPlaying)
+                    switch (PlayerStatic.IsPlaying)
                     {
-                        PlayerStatic.Stop();
+                        case true:
+                            PlayerStatic.Stop();
+                            break;
                     }
                 }
                 catch (Exception exception)
@@ -700,17 +743,21 @@ namespace WoWonder.Helpers.Utils
 
             public void StopAudioPlay()
             {
-                if (Player.IsPlaying)
+                switch (Player.IsPlaying)
                 {
-                    Player.Stop();
+                    case true:
+                        Player.Stop();
+                        break;
                 }
             }
 
             public void PauseAudioPlay()
             {
-                if (Player.IsPlaying)
+                switch (Player.IsPlaying)
                 {
-                    Player.Pause();
+                    case true:
+                        Player.Pause();
+                        break;
                 }
             }
 
@@ -727,30 +774,25 @@ namespace WoWonder.Helpers.Utils
                     int minutes = (int)(millis % (1000 * 60 * 60) / (1000 * 60));
                     int seconds = (int)(millis % (1000 * 60 * 60) % (1000 * 60) / 1000);
 
-                    // Add hours if there
-                    if (hours > 0)
+                    finalTimerString = hours switch
                     {
-                        finalTimerString = hours + ":";
-                    }
+                        // Add hours if there
+                        > 0 => hours + ":",
+                        _ => finalTimerString
+                    };
 
-                    // Prepending 0 to seconds if it is one digit
-                    if (seconds < 10)
+                    secondsString = seconds switch
                     {
-                        secondsString = "0" + seconds;
-                    }
-                    else
-                    {
-                        secondsString = "" + seconds;
-                    }
+                        // Prepending 0 to seconds if it is one digit
+                        < 10 => "0" + seconds,
+                        _ => "" + seconds
+                    };
 
-                    if (minutes < 10)
+                    minutsString = minutes switch
                     {
-                        minutsString = "0" + minutes;
-                    }
-                    else
-                    {
-                        minutsString = "" + minutes;
-                    }
+                        < 10 => "0" + minutes,
+                        _ => "" + minutes
+                    };
 
                     finalTimerString = finalTimerString + minutsString + ":" + secondsString;
 
@@ -918,48 +960,54 @@ namespace WoWonder.Helpers.Utils
                 string newFolderPath = System.IO.Path.Combine(toFolderName);
                 string copyFileFullPath = newFolderPath + "/" + fileName;
 
-                if (saveOnPersonalFolder)
+                switch (saveOnPersonalFolder)
                 {
-                    if (!Directory.Exists(newFolderPath))
-                        Directory.CreateDirectory(newFolderPath);
-
-                    if (System.IO.File.Exists(pathOfFile))
+                    case true:
                     {
-                        System.IO.File.Copy(pathOfFile, copyFileFullPath);
-                        return copyFileFullPath;
-                    }
+                        if (!Directory.Exists(newFolderPath))
+                            Directory.CreateDirectory(newFolderPath);
 
-                    return "Path File Dont exits";
+                        if (System.IO.File.Exists(pathOfFile))
+                        {
+                            System.IO.File.Copy(pathOfFile, copyFileFullPath);
+                            return copyFileFullPath;
+                        }
+
+                        return "Path File Dont exits";
+                    }
                 }
 
-                if (saveOnGallaryFolder)
+                switch (saveOnGallaryFolder)
                 {
-                    newFolderPath = System.IO.Path.Combine(toFolderName);
-                    copyFileFullPath = newFolderPath + "/" + fileName;
-
-                    if (!Directory.Exists(newFolderPath))
-                        Directory.CreateDirectory(newFolderPath);
-
-                    if (System.IO.File.Exists(pathOfFile))
+                    case true:
                     {
-                        System.IO.File.Copy(pathOfFile, copyFileFullPath);
-                        //var mediaScanIntent = new Intent(Intent?.ActionMediaScannerScanFile);
-                        //mediaScanIntent?.SetData(Uri.FromFile(new File(copyFileFullPath)));
-                        //Application.Context.SendBroadcast(mediaScanIntent);
+                        newFolderPath = System.IO.Path.Combine(toFolderName);
+                        copyFileFullPath = newFolderPath + "/" + fileName;
 
-                        // Tell the media scanner about the new file so that it is
-                        // immediately available to the user.
-                        MediaScannerConnection.ScanFile(Application.Context, new[] { pathOfFile }, null, null);
+                        if (!Directory.Exists(newFolderPath))
+                            Directory.CreateDirectory(newFolderPath);
+
+                        if (System.IO.File.Exists(pathOfFile))
+                        {
+                            System.IO.File.Copy(pathOfFile, copyFileFullPath);
+                            //var mediaScanIntent = new Intent(Intent?.ActionMediaScannerScanFile);
+                            //mediaScanIntent?.SetData(Uri.FromFile(new File(copyFileFullPath)));
+                            //Application.Context.SendBroadcast(mediaScanIntent);
+
+                            // Tell the media scanner about the new file so that it is
+                            // immediately available to the user.
+                            MediaScannerConnection.ScanFile(Application.Context, new[] { pathOfFile }, null, null);
 
 
-                        return copyFileFullPath;
+                            return copyFileFullPath;
+                        }
+
+                        //File.Copy(pathOfFile, CopyFileFullPath);
+                        return "Path File Dont exits";
                     }
-
-                    //File.Copy(pathOfFile, CopyFileFullPath);
-                    return "Path File Dont exits";
+                    default:
+                        return "Path File Dont exits";
                 }
-
-                return "Path File Dont exits";
             }
 
             public static void DownloadMediaTo_DiskAsync(string savedfoldername, string url)
@@ -1055,47 +1103,53 @@ namespace WoWonder.Helpers.Utils
 
             public static Bitmap Retrieve_VideoFrame_AsBitmap(Context context, string mediaFile, ThumbnailKind thumbnailKind = ThumbnailKind.MiniKind)
             {
-                if (mediaFile == null) return null!;
-                try
+                switch (mediaFile)
                 {
-                    Bitmap bitmap;
-                    if ((int)Build.VERSION.SdkInt >= 29)
-                    {
-                        if (mediaFile.Contains("http://") || mediaFile.Contains("https://"))
+                    case null:
+                        return null!;
+                    default:
+                        try
                         {
-                            //bitmap = context.ContentResolver?.LoadThumbnail(Uri.Parse(mediaFile), new Size(200, 200), null);
+                            Bitmap bitmap;
+                            switch ((int)Build.VERSION.SdkInt)
+                            {
+                                case >= 29 when mediaFile.Contains("http://") || mediaFile.Contains("https://"):
+                                    //bitmap = context.ContentResolver?.LoadThumbnail(Uri.Parse(mediaFile), new Size(200, 200), null);
 #pragma warning disable 618
-                            bitmap = ThumbnailUtils.CreateVideoThumbnail(mediaFile, thumbnailKind);
-#pragma warning restore 618 
-                        }
-                        else
-                        {
-                            File file2 = new File(mediaFile);
-                            bitmap = ThumbnailUtils.CreateVideoThumbnail(file2, new Size(200, 200), null);
-                        }
-                    }
-                    else
-                    {
-                        var filepath = AttachmentFiles.GetActualPathFromFile(context, Uri.Parse(mediaFile));
-                        if (filepath != null)
-                        {
-#pragma warning disable 618
-                            bitmap = ThumbnailUtils.CreateVideoThumbnail(filepath, thumbnailKind);
+                                    bitmap = ThumbnailUtils.CreateVideoThumbnail(mediaFile, thumbnailKind);
 #pragma warning restore 618
+                                    break;
+                                case >= 29:
+                                {
+                                    File file2 = new File(mediaFile);
+                                    bitmap = ThumbnailUtils.CreateVideoThumbnail(file2, new Size(200, 200), null);
+                                    break;
+                                }
+                                default:
+                                {
+                                    var filepath = AttachmentFiles.GetActualPathFromFile(context, Uri.Parse(mediaFile));
+                                    if (filepath != null)
+                                    {
+#pragma warning disable 618
+                                        bitmap = ThumbnailUtils.CreateVideoThumbnail(filepath, thumbnailKind);
+#pragma warning restore 618
+                                        return bitmap;
+                                    }
+
+#pragma warning disable 618
+                                    bitmap = ThumbnailUtils.CreateVideoThumbnail(mediaFile, thumbnailKind);
+#pragma warning restore 618
+                                    break;
+                                }
+                            }
+
                             return bitmap;
                         }
-
-#pragma warning disable 618
-                        bitmap = ThumbnailUtils.CreateVideoThumbnail(mediaFile, thumbnailKind);
-#pragma warning restore 618
-                    }
-
-                    return bitmap;
-                }
-                catch (Exception exception)
-                {
-                    DisplayReportResultTrack(exception);
-                    return null!;
+                        catch (Exception exception)
+                        {
+                            DisplayReportResultTrack(exception);
+                            return null!;
+                        } 
                 }
             }
 
@@ -1211,9 +1265,11 @@ namespace WoWonder.Helpers.Utils
                             };
 
                             var check = phoneContactsList.FirstOrDefault(a => a.PhoneNumber == contact.PhoneNumber);
-                            if (check == null)
+                            switch (check)
                             {
-                                phoneContactsList.Add(contact);
+                                case null:
+                                    phoneContactsList.Add(contact);
+                                    break;
                             }
                         }
                         catch (Exception exception)
@@ -1258,13 +1314,11 @@ namespace WoWonder.Helpers.Utils
                         //    Console.WriteLine("Allen >> index = {0}, value = {1}", index, value);
                         //}
 
-                        if (!string.IsNullOrEmpty(mobileNumber))
+                        return string.IsNullOrEmpty(mobileNumber) switch
                         {
-                            return userContact;
-                        }
-
-
-                        return null!;
+                            false => userContact,
+                            _ => null!
+                        };
                     }
                     else
                     {
@@ -1374,42 +1428,21 @@ namespace WoWonder.Helpers.Utils
                 string color = "";
                 int b;
                 b = Random.Next(1, 11);
-                switch (b)
+                color = b switch
                 {
-                    case 1:
-                        color = "#c62828";
-                        break;
-                    case 2:
-                        color = "#AD1457";
-                        break;
-                    case 3:
-                        color = "#6A1B9A";
-                        break;
-                    case 4:
-                        color = "#4527A0";
-                        break;
-                    case 5:
-                        color = "#283593";
-                        break;
-                    case 6:
-                        color = "#1565C0";
-                        break;
-                    case 7:
-                        color = "#00838F";
-                        break;
-                    case 8:
-                        color = "#2E7D32";
-                        break;
-                    case 9:
-                        color = "#9E9D24";
-                        break;
-                    case 10:
-                        color = "#FF8F00";
-                        break;
-                    case 11:
-                        color = "#D84315";
-                        break;
-                }
+                    1 => "#c62828",
+                    2 => "#AD1457",
+                    3 => "#6A1B9A",
+                    4 => "#4527A0",
+                    5 => "#283593",
+                    6 => "#1565C0",
+                    7 => "#00838F",
+                    8 => "#2E7D32",
+                    9 => "#9E9D24",
+                    10 => "#FF8F00",
+                    11 => "#D84315",
+                    _ => color
+                };
 
                 return color;
             }
@@ -1495,31 +1528,43 @@ namespace WoWonder.Helpers.Utils
                         return str;
                     }
 
-                    if (str.Length > 35)
+                    switch (str.Length)
                     {
-                        var remove = str.Remove(0, 10);
-                        return remove;
+                        case > 35:
+                        {
+                            var remove = str.Remove(0, 10);
+                            return remove;
+                        }
                     }
 
-                    if (str.Length > 65)
+                    switch (str.Length)
                     {
-                        var remove = str.Remove(0, 30);
-                        return remove;
+                        case > 65:
+                        {
+                            var remove = str.Remove(0, 30);
+                            return remove;
+                        }
                     }
 
-                    if (str.Length > 85)
+                    switch (str.Length)
                     {
-                        var remove = str.Remove(0, 50);
-                        return remove;
+                        case > 85:
+                        {
+                            var remove = str.Remove(0, 50);
+                            return remove;
+                        }
                     }
 
-                    if (str.Length > 105)
+                    switch (str.Length)
                     {
-                        var remove = str.Remove(0, 70);
-                        return remove;
+                        case > 105:
+                        {
+                            var remove = str.Remove(0, 70);
+                            return remove;
+                        }
+                        default:
+                            return str.Substring(maxLength - 17, maxLength);
                     }
-
-                    return str.Substring(maxLength - 17, maxLength);
                 }
                 catch (Exception exception)
                 {
@@ -1808,23 +1853,17 @@ namespace WoWonder.Helpers.Utils
             {
                 try
                 {
-                    switch (num)
+                    return num switch
                     {
-                        case >= 100000000:
-                            return ((num >= 10050000 ? num - 500000 : num) / 1000000D).ToString("#M");
-                        case >= 10000000:
-                            return ((num >= 10500000 ? num - 50000 : num) / 1000000D).ToString("0.#M");
-                        case >= 1000000:
-                            return ((num >= 1005000 ? num - 5000 : num) / 1000000D).ToString("0.##M");
-                        case >= 100000:
-                            return ((num >= 100500 ? num - 500 : num) / 1000D).ToString("0.k");
-                        case >= 10000:
-                            return ((num >= 10550 ? num - 50 : num) / 1000D).ToString("0.#k");
-                        default:
-                            return num >= 1000
-                                ? ((num >= 1005 ? num - 5 : num) / 1000D).ToString("0.##k")
-                                : num.ToString("#,0");
-                    }
+                        >= 100000000 => ((num >= 10050000 ? num - 500000 : num) / 1000000D).ToString("#M"),
+                        >= 10000000 => ((num >= 10500000 ? num - 50000 : num) / 1000000D).ToString("0.#M"),
+                        >= 1000000 => ((num >= 1005000 ? num - 5000 : num) / 1000000D).ToString("0.##M"),
+                        >= 100000 => ((num >= 100500 ? num - 500 : num) / 1000D).ToString("0.k"),
+                        >= 10000 => ((num >= 10550 ? num - 50 : num) / 1000D).ToString("0.#k"),
+                        _ => num >= 1000
+                            ? ((num >= 1005 ? num - 5 : num) / 1000D).ToString("0.##k")
+                            : num.ToString("#,0")
+                    };
                 }
                 catch (Exception exception)
                 {
@@ -2058,18 +2097,18 @@ namespace WoWonder.Helpers.Utils
                 try
                 {
                     string[] durationsplit = duration.Split(':');
-                    if (durationsplit.Length == 3)
+                    switch (durationsplit.Length)
                     {
-                        if (durationsplit[0] == "00")
+                        case 3 when durationsplit[0] == "00":
                         {
                             string newDuration = durationsplit[1] + ":" + durationsplit[2];
                             return newDuration;
                         }
-
-                        return duration;
+                        case 3:
+                            return duration;
+                        default:
+                            return duration;
                     }
-
-                    return duration;
                 }
                 catch (Exception exception)
                 {
@@ -2568,35 +2607,38 @@ namespace WoWonder.Helpers.Utils
                 var display = context?.GetSystemService(Context.WindowService).JavaCast<IWindowManager>();
                 try
                 {
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        WindowMetrics metrics = display?.CurrentWindowMetrics;
+                        case >= BuildVersionCodes.R:
+                        {
+                            WindowMetrics metrics = display?.CurrentWindowMetrics;
 
-                        // Gets all excluding insets
-                        WindowInsets windowInsets = metrics?.WindowInsets;
+                            // Gets all excluding insets
+                            WindowInsets windowInsets = metrics?.WindowInsets;
 
-                        Insets insets = windowInsets?.GetInsetsIgnoringVisibility(WindowInsets.Type.NavigationBars() | WindowInsets.Type.DisplayCutout());
+                            Insets insets = windowInsets?.GetInsetsIgnoringVisibility(WindowInsets.Type.NavigationBars() | WindowInsets.Type.DisplayCutout());
 
-                        int insetsWidth = insets.Right + insets.Left;
-                        int insetsHeight = insets.Top + insets.Bottom;
+                            int insetsWidth = insets.Right + insets.Left;
+                            int insetsHeight = insets.Top + insets.Bottom;
 
-                        // Legacy size that Display#getSize reports
-                        Rect bounds = metrics.Bounds;
-                        Size legacySize = new Size(bounds.Width() - insetsWidth, bounds.Height() - insetsHeight);
+                            // Legacy size that Display#getSize reports
+                            Rect bounds = metrics.Bounds;
+                            Size legacySize = new Size(bounds.Width() - insetsWidth, bounds.Height() - insetsHeight);
 
-                        int width = legacySize.Width;
-                        int height = legacySize.Height;
+                            int width = legacySize.Width;
+                            int height = legacySize.Height;
 
-                        Point size = new Point(width, height);
-                        return size;
-                    }
-                    else
-                    {
-                        var point = new Point();
+                            Point size = new Point(width, height);
+                            return size;
+                        }
+                        default:
+                        {
+                            var point = new Point();
 #pragma warning disable 618
-                        display?.DefaultDisplay?.GetSize(point);
+                            display?.DefaultDisplay?.GetSize(point);
 #pragma warning restore 618
-                        return point;
+                            return point;
+                        }
                     }
                 }
                 catch (NoSuchMethodException ex)
@@ -2626,13 +2668,11 @@ namespace WoWonder.Helpers.Utils
                             {
                                 launchIntent?.PutExtra("UserID", userChat.UserId);
 
-                                if (userChat.LastMessage.LastMessageClass == null)
+                                userChat.LastMessage = userChat.LastMessage.LastMessageClass switch
                                 {
-                                    userChat.LastMessage = new LastMessageUnion
-                                    {
-                                        LastMessageClass = new MessageData()
-                                    };
-                                }
+                                    null => new LastMessageUnion {LastMessageClass = new MessageData()},
+                                    _ => userChat.LastMessage
+                                };
 
                                 launchIntent.PutExtra("itemObject", JsonConvert.SerializeObject(userChat));
                             }
@@ -2670,14 +2710,16 @@ namespace WoWonder.Helpers.Utils
                     WebView wv = new WebView(context);
                     // wv.ClearCache(true);
 
-                    if (AppSettings.RenderPriorityFastPostLoad)
+                    switch (AppSettings.RenderPriorityFastPostLoad)
                     {
-                        wv.Settings.SetRenderPriority(WebSettings.RenderPriority.High);
-                        wv.Settings.SetAppCacheEnabled(true);
-                        wv.Settings.EnableSmoothTransition();
-                        wv.Settings.SetLayoutAlgorithm(WebSettings.LayoutAlgorithm.TextAutosizing);
+                        case true:
+                            wv.Settings.SetRenderPriority(WebSettings.RenderPriority.High);
+                            wv.Settings.SetAppCacheEnabled(true);
+                            wv.Settings.EnableSmoothTransition();
+                            wv.Settings.SetLayoutAlgorithm(WebSettings.LayoutAlgorithm.TextAutosizing);
 
-                        wv.SetLayerType(Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat ? LayerType.Hardware : LayerType.Software, null);
+                            wv.SetLayerType(Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat ? LayerType.Hardware : LayerType.Software, null);
+                            break;
                     }
                 }
                 catch (Exception exception)
@@ -2709,21 +2751,26 @@ namespace WoWonder.Helpers.Utils
             {
                 try
                 {
-                    if (type == "1")
+                    switch (type)
                     {
-                        Intent intent = new Intent(ContactsContract.Intents.Insert.Action);
-                        intent.SetType(ContactsContract.RawContacts.ContentType);
-                        intent.PutExtra(ContactsContract.Intents.Insert.Phone, phonenumber);
-                        intent.PutExtra(ContactsContract.Intents.Insert.Name, name);
-                        intent.PutExtra(ContactsContract.Intents.Insert.Email, "wael@test.com");
-                        context.StartActivity(intent);
-                    }
-                    else
-                    {
-                        var contactUri = Uri.Parse("tel:" + phonenumber);
-                        Intent intent = new Intent(ContactsContract.Intents.ShowOrCreateContact, contactUri);
-                        intent.PutExtra(ContactsContract.Intents.ExtraRecipientContactName, true);
-                        context.StartActivity(intent);
+                        case "1":
+                        {
+                            Intent intent = new Intent(ContactsContract.Intents.Insert.Action);
+                            intent.SetType(ContactsContract.RawContacts.ContentType);
+                            intent.PutExtra(ContactsContract.Intents.Insert.Phone, phonenumber);
+                            intent.PutExtra(ContactsContract.Intents.Insert.Name, name);
+                            intent.PutExtra(ContactsContract.Intents.Insert.Email, "wael@test.com");
+                            context.StartActivity(intent);
+                            break;
+                        }
+                        default:
+                        {
+                            var contactUri = Uri.Parse("tel:" + phonenumber);
+                            Intent intent = new Intent(ContactsContract.Intents.ShowOrCreateContact, contactUri);
+                            intent.PutExtra(ContactsContract.Intents.ExtraRecipientContactName, true);
+                            context.StartActivity(intent);
+                            break;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -2870,28 +2917,32 @@ namespace WoWonder.Helpers.Utils
             {
                 try
                 {
-                    if (AppSettings.ShowNotification)
+                    switch (AppSettings.ShowNotification)
                     {
-                        // Instantiate the builder and set notification elements:
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(Application.Context, notificationId)
+                        case true:
+                        {
+                            // Instantiate the builder and set notification elements:
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(Application.Context, notificationId)
                                 .SetContentTitle(title) //Sample Notification
                                 .SetContentText(contentText) //Hello World! This is my first notification!
                                 .SetStyle(new NotificationCompat.BigTextStyle().BigText(contentText))
                                 .SetSmallIcon(Resource.Mipmap.icon);
 
-                        // builder.SetDefaults(NotificationDefaults.Sound | NotificationDefaults.Vibrate);
+                            // builder.SetDefaults(NotificationDefaults.Sound | NotificationDefaults.Vibrate);
 
-                        // Build the notification:
-                        Notification notification = builder.Build();
+                            // Build the notification:
+                            Notification notification = builder.Build();
 
-                        // Get the notification manager:
-                        NotificationManager notificationManager =
-                            Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
+                            // Get the notification manager:
+                            NotificationManager notificationManager =
+                                Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
 
-                        // Publish the notification:
-                        var id = Convert.ToInt32(notificationId);
+                            // Publish the notification:
+                            var id = Convert.ToInt32(notificationId);
 
-                        notificationManager?.Notify(id, notification);
+                            notificationManager?.Notify(id, notification);
+                            break;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -2904,93 +2955,102 @@ namespace WoWonder.Helpers.Utils
             {
                 try
                 {
-                    if (AppSettings.ShowNotification)
+                    switch (AppSettings.ShowNotification)
                     {
-                        NotificationManagerCompat notificationManager = NotificationManagerCompat.From(Application.Context);
-                        var id = Convert.ToInt32(notificationId);
-
-                        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                        case true:
                         {
-                            // Create the NotificationChannel, but only on API 26+ because
-                            // the NotificationChannel class is new and not in the support library
-                            var channel = new NotificationChannel(ChannelId, "Video_Notifciation_Channel_1",
-                                NotificationImportance.High)
-                            { Description = "" };
-                            channel.EnableVibration(true);
-                            channel.LockscreenVisibility = NotificationVisibility.Public;
-                            if (notificationManager != null)
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.From(Application.Context);
+                            var id = Convert.ToInt32(notificationId);
+
+                            switch (Build.VERSION.SdkInt)
                             {
-                                //notificationManager.CreateNotificationChannel(channel);
+                                case >= BuildVersionCodes.O:
+                                {
+                                    // Create the NotificationChannel, but only on API 26+ because
+                                    // the NotificationChannel class is new and not in the support library
+                                    var channel = new NotificationChannel(ChannelId, "Video_Notifciation_Channel_1",
+                                            NotificationImportance.High)
+                                        { Description = "" };
+                                    channel.EnableVibration(true);
+                                    channel.LockscreenVisibility = NotificationVisibility.Public;
+                                    if (notificationManager != null)
+                                    {
+                                        //notificationManager.CreateNotificationChannel(channel);
+                                    }
+
+                                    break;
+                                }
                             }
-                        }
 
-                        var notificationBroadcasterAction = new Intent(Application.Context, typeof(NotificationBroadcasterCloser));
-                        notificationBroadcasterAction.PutExtra(NotificationId, notificationId);
-                        notificationBroadcasterAction.PutExtra("type", "dismiss");
-                        //PendingIntent cancelIntent = PendingIntent?.GetBroadcast(Application.Context, id, notificationBroadcasterAction, 0);
+                            var notificationBroadcasterAction = new Intent(Application.Context, typeof(NotificationBroadcasterCloser));
+                            notificationBroadcasterAction.PutExtra(NotificationId, notificationId);
+                            notificationBroadcasterAction.PutExtra("type", "dismiss");
+                            //PendingIntent cancelIntent = PendingIntent?.GetBroadcast(Application.Context, id, notificationBroadcasterAction, 0);
 
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(Application.Context, notificationId).SetContentTitle(notificationTitle).SetOngoing(true).SetProgress(100, 0, false).SetSmallIcon(Resource.Mipmap.icon);
-                        builder.SetPriority(NotificationCompat.PriorityMax);
-                        //.AddAction(Resource.Drawable.icon, "Dismiss", cancelIntent)
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(Application.Context, notificationId).SetContentTitle(notificationTitle).SetOngoing(true).SetProgress(100, 0, false).SetSmallIcon(Resource.Mipmap.icon);
+                            builder.SetPriority(NotificationCompat.PriorityMax);
+                            //.AddAction(Resource.Drawable.icon, "Dismiss", cancelIntent)
 
-                        Notification notification = builder.Build();
+                            Notification notification = builder.Build();
 
-                        try
-                        {
-                            string url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
-                            string filename = url.Split('/').Last();
-                            string filePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "mmSavedVideos");
-                            string mediaFile = filePath + "/" + filename;
-
-                            if (!System.IO.File.Exists(mediaFile))
+                            try
                             {
-                                WebClient = new WebClient();
+                                string url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+                                string filename = url.Split('/').Last();
+                                string filePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "mmSavedVideos");
+                                string mediaFile = filePath + "/" + filename;
 
-                                if (!Directory.Exists(filePath))
-                                    Directory.CreateDirectory(filePath);
-
-                                WebClient.DownloadFileAsync(new System.Uri(url), mediaFile);
-
-                                WebClient.DownloadProgressChanged += (sender, ep) =>
+                                if (!System.IO.File.Exists(mediaFile))
                                 {
-                                    double bytesIn = double.Parse(ep.BytesReceived.ToString());
-                                    double totalBytes = double.Parse(ep.TotalBytesToReceive.ToString());
-                                    double percentage = bytesIn / totalBytes * 100;
-                                    var presint = Convert.ToInt32(percentage);
+                                    WebClient = new WebClient();
 
-                                    new Thread(() =>
+                                    if (!Directory.Exists(filePath))
+                                        Directory.CreateDirectory(filePath);
+
+                                    WebClient.DownloadFileAsync(new System.Uri(url), mediaFile);
+
+                                    WebClient.DownloadProgressChanged += (sender, ep) =>
                                     {
-                                        builder.SetProgress(100, presint, false);
-                                        notificationManager?.Notify(Convert.ToInt32(id), builder.Build());
-                                    }).Start();
-                                };
-                                WebClient.DownloadDataCompleted += (s, e) =>
-                                {
-                                    try
-                                    {
-                                        builder.SetContentText("Download complete")
-                                            .SetProgress(0, 0, false);
-                                        if (notificationManager != null)
+                                        double bytesIn = double.Parse(ep.BytesReceived.ToString());
+                                        double totalBytes = double.Parse(ep.TotalBytesToReceive.ToString());
+                                        double percentage = bytesIn / totalBytes * 100;
+                                        var presint = Convert.ToInt32(percentage);
+
+                                        new Thread(() =>
                                         {
-                                            notificationManager.Notify(id, builder.Build());
-                                            notificationManager.Cancel(id);
-                                        }
-
-                                        System.IO.File.WriteAllBytes(mediaFile, e.Result);
-                                    }
-                                    catch (Exception exception)
+                                            builder.SetProgress(100, presint, false);
+                                            notificationManager?.Notify(Convert.ToInt32(id), builder.Build());
+                                        }).Start();
+                                    };
+                                    WebClient.DownloadDataCompleted += (s, e) =>
                                     {
-                                        DisplayReportResultTrack(exception);
-                                    }
-                                };
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            DisplayReportResultTrack(exception);
-                        }
+                                        try
+                                        {
+                                            builder.SetContentText("Download complete")
+                                                .SetProgress(0, 0, false);
+                                            if (notificationManager != null)
+                                            {
+                                                notificationManager.Notify(id, builder.Build());
+                                                notificationManager.Cancel(id);
+                                            }
 
-                        notificationManager?.Notify(id, notification);
+                                            System.IO.File.WriteAllBytes(mediaFile, e.Result);
+                                        }
+                                        catch (Exception exception)
+                                        {
+                                            DisplayReportResultTrack(exception);
+                                        }
+                                    };
+                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                DisplayReportResultTrack(exception);
+                            }
+
+                            notificationManager?.Notify(id, notification);
+                            break;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -3072,20 +3132,27 @@ namespace WoWonder.Helpers.Utils
                                     }
                                     else
                                     {
-                                        if ((int)Build.VERSION.SdkInt > 20)
+                                        switch ((int)Build.VERSION.SdkInt)
                                         {
-                                            //getExternalMediaDirs() added in API 21
-                                            var extenal = context.GetExternalMediaDirs();
-                                            if (extenal?.Length > 1)
+                                            case > 20:
                                             {
-                                                filePath = extenal[1].AbsolutePath;
-                                                filePath = filePath.Substring(0, filePath.IndexOf("Android")) + split[1];
+                                                //getExternalMediaDirs() added in API 21
+                                                var extenal = context.GetExternalMediaDirs();
+                                                switch (extenal?.Length)
+                                                {
+                                                    case > 1:
+                                                        filePath = extenal[1].AbsolutePath;
+                                                        filePath = filePath.Substring(0, filePath.IndexOf("Android")) + split[1];
+                                                        break;
+                                                }
+
+                                                break;
                                             }
+                                            default:
+                                                filePath = "/storage/" + type + "/" + split[1];
+                                                break;
                                         }
-                                        else
-                                        {
-                                            filePath = "/storage/" + type + "/" + split[1];
-                                        }
+
                                         return filePath;
                                     }
                                 }
@@ -3117,19 +3184,13 @@ namespace WoWonder.Helpers.Utils
                                     string[] split = docId.Split(":");
                                     string type = split[0];
 
-                                    Uri contentUri = null;
-                                    if ("image".Equals(type))
+                                    Uri contentUri = type switch
                                     {
-                                        contentUri = MediaStore.Images.Media.ExternalContentUri;
-                                    }
-                                    else if ("video".Equals(type))
-                                    {
-                                        contentUri = MediaStore.Video.Media.ExternalContentUri;
-                                    }
-                                    else if ("audio".Equals(type))
-                                    {
-                                        contentUri = MediaStore.Audio.Media.ExternalContentUri;
-                                    }
+                                        "image" => MediaStore.Images.Media.ExternalContentUri,
+                                        "video" => MediaStore.Video.Media.ExternalContentUri,
+                                        "audio" => MediaStore.Audio.Media.ExternalContentUri,
+                                        _ => null
+                                    };
 
                                     string selection = "_id=?";
                                     string[] selectionArgs = new string[]
@@ -3362,13 +3423,17 @@ namespace WoWonder.Helpers.Utils
                     ICursor cursor = resolver.Query(uri, null, null, null, null);
                     cursor?.MoveToFirst();
                     int nameIndex = cursor.GetColumnIndex(MediaStore.IMediaColumns.DisplayName);
-                    if (nameIndex >= 0)
+                    switch (nameIndex)
                     {
-                        string name = cursor.GetString(nameIndex);
-                        cursor.Close();
-                        return name;
+                        case >= 0:
+                        {
+                            string name = cursor.GetString(nameIndex);
+                            cursor.Close();
+                            return name;
+                        }
+                        default:
+                            return null;
                     }
-                    return null;
                 }
                 catch (Exception e)
                 {
@@ -3417,24 +3482,31 @@ namespace WoWonder.Helpers.Utils
             {
                 try
                 {
-                    if (Build.VERSION.SdkInt > BuildVersionCodes.Q)
+                    switch (Build.VERSION.SdkInt)
                     {
-                        //Creates DCIM folder in the main app path in android devices
-                        var directories = Application.Context.GetExternalFilesDirs(Android.OS.Environment.DirectoryDcim);
-                        if (directories!.Any())
-                            return directories[0].AbsolutePath;
-                    }
-                    else
-                    {
-                        var directories1 = Application.Context.GetExternalFilesDir(""); //storage/emulated/0/Android/data/com.wowondermessenger.app/files
-                        if (directories1 != null)
+                        case > BuildVersionCodes.Q:
                         {
-                            var pathDefault = directories1.AbsolutePath.Split("/Android/")?.FirstOrDefault();
-                            if (!string.IsNullOrEmpty(pathDefault))
+                            //Creates DCIM folder in the main app path in android devices
+                            var directories = Application.Context.GetExternalFilesDirs(Android.OS.Environment.DirectoryDcim);
+                            if (directories!.Any())
+                                return directories[0].AbsolutePath;
+                            break;
+                        }
+                        default:
+                        {
+                            var directories1 = Application.Context.GetExternalFilesDir(""); //storage/emulated/0/Android/data/com.wowondermessenger.app/files
+                            if (directories1 != null)
                             {
-                                return pathDefault;
+                                var pathDefault = directories1.AbsolutePath.Split("/Android/")?.FirstOrDefault();
+                                switch (string.IsNullOrEmpty(pathDefault))
+                                {
+                                    case false:
+                                        return pathDefault;
+                                }
                             }
-                        } 
+
+                            break;
+                        }
                     }
 
                     var a1 = Application.Context.CacheDir?.AbsoluteFile;
@@ -3450,7 +3522,7 @@ namespace WoWonder.Helpers.Utils
             public static void Chack_MyFolder(string id = "")
             {
                 try
-                {  
+                {
                     if (!Directory.Exists(FolderDcimMyApp))
                         Directory.CreateDirectory(FolderDcimMyApp);
 

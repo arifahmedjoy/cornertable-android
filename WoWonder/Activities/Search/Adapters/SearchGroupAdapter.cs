@@ -63,13 +63,18 @@ namespace WoWonder.Activities.Search.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
             try
-            { 
-                if (viewHolder is SearchGroupAdapterViewHolder holder)
+            {
+                switch (viewHolder)
                 {
-                    var item = GroupList[position];
-                    if (item != null)
+                    case SearchGroupAdapterViewHolder holder:
                     {
-                        Initialize(holder, item);
+                        var item = GroupList[position];
+                        if (item != null)
+                        {
+                            Initialize(holder, item);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -135,9 +140,11 @@ namespace WoWonder.Activities.Search.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is SearchGroupAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case SearchGroupAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -200,14 +207,21 @@ namespace WoWonder.Activities.Search.Adapters
             {
                 var d = new List<string>();
                 var item = GroupList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.Avatar))
-                        d.Add(item.Avatar);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.Avatar))
+                        {
+                            case false:
+                                d.Add(item.Avatar);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)
@@ -227,7 +241,7 @@ namespace WoWonder.Activities.Search.Adapters
 
     public class SearchGroupAdapterViewHolder : RecyclerView.ViewHolder
     {
-        public SearchGroupAdapterViewHolder(View itemView, Action<SearchGroupAdapterClickEventArgs> JoinButtonClickListener, Action<SearchGroupAdapterClickEventArgs> clickListener,Action<SearchGroupAdapterClickEventArgs> longClickListener) : base(itemView)
+        public SearchGroupAdapterViewHolder(View itemView, Action<SearchGroupAdapterClickEventArgs> joinButtonClickListener, Action<SearchGroupAdapterClickEventArgs> clickListener,Action<SearchGroupAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
@@ -244,7 +258,7 @@ namespace WoWonder.Activities.Search.Adapters
                 IconGroup.SetImageResource(Resource.Drawable.icon_social_group_vector);
                 //Event 
 
-                Button.Click += (sender, e) => JoinButtonClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition , Button = Button });
+                Button.Click += (sender, e) => joinButtonClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition , Button = Button });
                 itemView.Click += (sender, e) => clickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
                 itemView.LongClick += (sender, e) => longClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
 

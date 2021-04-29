@@ -74,15 +74,23 @@ namespace WoWonder.Activities.Contacts.Adapters
         {
             try
             {
-                if (viewHolder is ContactsAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = UserList[position];
-                    if (item != null)
+                    case ContactsAdapterViewHolder holder:
                     {
-                        Initialize(holder, item);
+                        var item = UserList[position];
+                        if (item != null)
+                        {
+                            Initialize(holder, item);
 
-                        if (!ShowButton)
-                            holder.Button.Visibility = ViewStates.Gone;
+                            holder.Button.Visibility = ShowButton switch
+                            {
+                                false => ViewStates.Gone,
+                                _ => holder.Button.Visibility
+                            };
+                        }
+
+                        break;
                     }
                 }
             }
@@ -100,25 +108,35 @@ namespace WoWonder.Activities.Contacts.Adapters
 
                 holder.Name.Text = Methods.FunString.SubStringCutOf(WoWonderTools.GetNameFinal(users), 20);
 
-                if (users.Verified == "1")
-                    holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
-
-                if (Type == TypeTextSecondary.None)
+                switch (users.Verified)
                 {
-                    holder.About.Visibility = ViewStates.Gone;
+                    case "1":
+                        holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                        break;
                 }
-                else
+
+                switch (Type)
                 {
-                    holder.About.Text = Type == TypeTextSecondary.About ? Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(users), 25) : ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), true);
+                    case TypeTextSecondary.None:
+                        holder.About.Visibility = ViewStates.Gone;
+                        break;
+                    default:
+                        holder.About.Text = Type == TypeTextSecondary.About ? Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(users), 25) : ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), true);
+                        break;
                 }
 
                 //Online Or offline
                 var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(users.LastseenUnixTime), users.LastseenStatus);
                 holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
 
-                if (!ShowButton) return;
-
-                WoWonderTools.SetAddFriendCondition(users.IsFollowing, holder.Button); 
+                switch (ShowButton)
+                {
+                    case false:
+                        return;
+                    default:
+                        WoWonderTools.SetAddFriendCondition(users.IsFollowing, holder.Button);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -133,9 +151,11 @@ namespace WoWonder.Activities.Contacts.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                     return;
 
-                if (holder is ContactsAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case ContactsAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -186,8 +206,11 @@ namespace WoWonder.Activities.Contacts.Adapters
             {
                 var d = new List<string>();
                 var item = UserList[p0];
-                if (item == null)
-                    return Collections.SingletonList(p0);
+                switch (item)
+                {
+                    case null:
+                        return Collections.SingletonList(p0);
+                }
 
                 if (item.Avatar != "")
                 {
@@ -221,12 +244,17 @@ namespace WoWonder.Activities.Contacts.Adapters
                 }
                 else
                 {
-                    if (e.Position > -1)
+                    switch (e.Position)
                     {
-                        UserDataObject item = GetItem(e.Position);
-                        if (item != null)
+                        case > -1:
                         {
-                            WoWonderTools.SetAddFriend(ActivityContext , item , e.BtnAddUser);
+                            UserDataObject item = GetItem(e.Position);
+                            if (item != null)
+                            {
+                                WoWonderTools.SetAddFriend(ActivityContext , item , e.BtnAddUser);
+                            }
+
+                            break;
                         }
                     }
                 }

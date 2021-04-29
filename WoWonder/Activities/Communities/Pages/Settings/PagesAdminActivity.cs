@@ -252,18 +252,19 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.MoreItemClick += MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    InviteFriendsButton.Click += InviteFriendsButtonOnClick;
-                }
-                else
-                {
-                    MAdapter.MoreItemClick -= MAdapterOnItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    InviteFriendsButton.Click -= InviteFriendsButtonOnClick;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.MoreItemClick += MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        InviteFriendsButton.Click += InviteFriendsButtonOnClick;
+                        break;
+                    default:
+                        MAdapter.MoreItemClick -= MAdapterOnItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        InviteFriendsButton.Click -= InviteFriendsButtonOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -397,16 +398,16 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Page.GetNotInPageMembers(PageId);
-                if (apiStatus != 200 || (respond is not GetPageMembersObject result) || result.Users == null)
+                if (apiStatus != 200 || respond is not GetPageMembersObject result || result.Users == null)
                 {
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Users.Count;
-                    if (respondList > 0)
+                    switch (respondList)
                     {
-                        if (countList > 0)
+                        case > 0 when countList > 0:
                         {
                             foreach (var item in from item in result.Users let check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
                             {
@@ -414,17 +415,23 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                             }
 
                             RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                            break;
                         }
-                        else
-                        {
+                        case > 0:
                             MAdapter.UserList = new ObservableCollection<UserDataObject>(result.Users);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                            break;
+                        default:
+                        {
+                            switch (MAdapter.UserList.Count)
+                            {
+                                case > 10 when !MRecycler.CanScrollVertically(1):
+                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    break;
+                            }
+
+                            break;
                         }
-                    }
-                    else
-                    {
-                        if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
                     }
                 }
 
@@ -435,10 +442,12 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
@@ -451,24 +460,29 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone;
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)
@@ -543,8 +557,12 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     WoWonderTools.OpenProfile(this, ItemUser.UserId, ItemUser);
                 }
 
-                if (MAdapter?.UserList?.Count == 0)
-                    ShowEmptyPage();
+                switch (MAdapter?.UserList?.Count)
+                {
+                    case 0:
+                        ShowEmptyPage();
+                        break;
+                }
             }
             catch (Exception e)
             {

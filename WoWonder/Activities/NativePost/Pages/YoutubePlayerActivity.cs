@@ -284,19 +284,21 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    UserAvatar?.SetOnClickListener(this);
-                    Username?.SetOnClickListener(this);
-                    CommentLinearLayout?.SetOnClickListener(this);
-                    CommentCount?.SetOnClickListener(this);
-                    ShareLinearLayout?.SetOnClickListener(this);
-                    LikeButton?.SetOnClickListener(this);
-                    LikeButton?.SetOnLongClickListener(this);
-                    MoreIcon?.SetOnClickListener(this);
-                    LikeCount?.SetOnClickListener(this);
-                    SecondReactionButton?.SetOnClickListener(this);  
+                    // true +=  // false -=
+                    case true:
+                        UserAvatar?.SetOnClickListener(this);
+                        Username?.SetOnClickListener(this);
+                        CommentLinearLayout?.SetOnClickListener(this);
+                        CommentCount?.SetOnClickListener(this);
+                        ShareLinearLayout?.SetOnClickListener(this);
+                        LikeButton?.SetOnClickListener(this);
+                        LikeButton?.SetOnLongClickListener(this);
+                        MoreIcon?.SetOnClickListener(this);
+                        LikeCount?.SetOnClickListener(this);
+                        SecondReactionButton?.SetOnClickListener(this);
+                        break;
                 }
             }
             catch (Exception e)
@@ -357,17 +359,20 @@ namespace WoWonder.Activities.NativePost.Pages
                     var publisher = PostObject.Publisher ?? PostObject.UserData;
                     if (publisher != null)
                     {
-                        if (PostObject.PostPrivacy == "4")
+                        switch (PostObject.PostPrivacy)
                         {
-                            Username.Text = GetText(Resource.String.Lbl_Anonymous);
-                            GlideImageLoader.LoadImage(this, "user_anonymous", UserAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                        }
-                        else
-                        { 
-                            GlideImageLoader.LoadImage(this, publisher.Avatar, UserAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            case "4":
+                                Username.Text = GetText(Resource.String.Lbl_Anonymous);
+                                GlideImageLoader.LoadImage(this, "user_anonymous", UserAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                break;
+                            default:
+                            {
+                                GlideImageLoader.LoadImage(this, publisher.Avatar, UserAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                            var postDataDecoratedContent = new WoTextDecorator().SetupStrings(PostObject, this);
-                            Username.SetText(postDataDecoratedContent, TextView.BufferType.Spannable);
+                                var postDataDecoratedContent = new WoTextDecorator().SetupStrings(PostObject, this);
+                                Username.SetText(postDataDecoratedContent, TextView.BufferType.Spannable);
+                                break;
+                            }
                         }
                          
                         if (PostExtrasLayout != null)
@@ -385,10 +390,15 @@ namespace WoWonder.Activities.NativePost.Pages
 
                             if (!Description.Text.Contains(GetText(Resource.String.Lbl_ReadMore)) && !Description.Text.Contains(GetText(Resource.String.Lbl_ReadLess)))
                             {
-                                if (PostObject.RegexFilterList != null & PostObject.RegexFilterList?.Count > 0)
-                                    Description.SetAutoLinkOnClickListener(this, PostObject.RegexFilterList);
-                                else
-                                    Description.SetAutoLinkOnClickListener(this, new Dictionary<string, string>());
+                                switch (PostObject.RegexFilterList != null & PostObject.RegexFilterList?.Count > 0)
+                                {
+                                    case true:
+                                        Description.SetAutoLinkOnClickListener(this, PostObject.RegexFilterList);
+                                        break;
+                                    default:
+                                        Description.SetAutoLinkOnClickListener(this, new Dictionary<string, string>());
+                                        break;
+                                }
 
                                 readMoreOption.AddReadMoreTo(Description, new String(PostObject.Orginaltext));
                             }
@@ -407,25 +417,36 @@ namespace WoWonder.Activities.NativePost.Pages
 
                         if (PrivacyPostIcon != null && !string.IsNullOrEmpty(PostObject.PostPrivacy) && publisher.UserId == UserDetails.UserId)
                         {
-                            if (PostObject.PostPrivacy == "0") //Everyone
+                            switch (PostObject.PostPrivacy)
                             {
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.Globe);
-                            }
-                            else if (PostObject.PostPrivacy.Contains("ifollow") || PostObject.PostPrivacy == "2") //People_i_Follow
-                            {
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.User);
-                            }
-                            else if (PostObject.PostPrivacy.Contains("me") || PostObject.PostPrivacy == "1") //People_Follow_Me
-                            {
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.UserFriends);
-                            }
-                            else if (PostObject.PostPrivacy == "4") //Anonymous
-                            {
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, PrivacyPostIcon, FontAwesomeIcon.UserSecret);
-                            }
-                            else //No_body) 
-                            {
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.Lock);
+                                //Everyone
+                                case "0":
+                                    FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.Globe);
+                                    break;
+                                default:
+                                {
+                                    if (PostObject.PostPrivacy.Contains("ifollow") || PostObject.PostPrivacy == "2") //People_i_Follow
+                                    {
+                                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.User);
+                                    }
+                                    else if (PostObject.PostPrivacy.Contains("me") || PostObject.PostPrivacy == "1") //People_Follow_Me
+                                    {
+                                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.UserFriends);
+                                    }
+                                    else switch (PostObject.PostPrivacy)
+                                    {
+                                        //Anonymous
+                                        case "4":
+                                            FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, PrivacyPostIcon, FontAwesomeIcon.UserSecret);
+                                            break;
+                                        //No_body) 
+                                        default:
+                                            FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, PrivacyPostIcon, FontAwesomeIcon.Lock);
+                                            break;
+                                    }
+
+                                    break;
+                                }
                             }
 
                             PrivacyPostIcon.Visibility = ViewStates.Visible;
@@ -435,71 +456,82 @@ namespace WoWonder.Activities.NativePost.Pages
                             CommentCount.Text = PostObject.PostComments; 
                     }
 
-                    if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+                    switch (AppSettings.PostButton)
                     {
-                        PostObject.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
-
-                        if (LikeCount != null)
-                            LikeCount.Text = PostObject?.Reaction?.Count + " " + GetString(Resource.String.Btn_Likes);
-
-                        if (PostObject.Reaction.IsReacted != null && PostObject.Reaction.IsReacted.Value)
+                        case PostButtonSystem.ReactionDefault:
+                        case PostButtonSystem.ReactionSubShine:
                         {
-                            if (!string.IsNullOrEmpty(PostObject.Reaction.Type))
+                            PostObject.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
+
+                            if (LikeCount != null)
+                                LikeCount.Text = PostObject?.Reaction?.Count + " " + GetString(Resource.String.Btn_Likes);
+
+                            if (PostObject.Reaction.IsReacted != null && PostObject.Reaction.IsReacted.Value)
                             {
-                                var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == PostObject.Reaction.Type).Value?.Id ?? "";
-                                switch (react)
+                                switch (string.IsNullOrEmpty(PostObject.Reaction.Type))
                                 {
-                                    case "1":
-                                        LikeButton.SetReactionPack(ReactConstants.Like);
+                                    case false:
+                                    {
+                                        var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == PostObject.Reaction.Type).Value?.Id ?? "";
+                                        switch (react)
+                                        {
+                                            case "1":
+                                                LikeButton.SetReactionPack(ReactConstants.Like);
+                                                break;
+                                            case "2":
+                                                LikeButton.SetReactionPack(ReactConstants.Love);
+                                                break;
+                                            case "3":
+                                                LikeButton.SetReactionPack(ReactConstants.HaHa);
+                                                break;
+                                            case "4":
+                                                LikeButton.SetReactionPack(ReactConstants.Wow);
+                                                break;
+                                            case "5":
+                                                LikeButton.SetReactionPack(ReactConstants.Sad);
+                                                break;
+                                            case "6":
+                                                LikeButton.SetReactionPack(ReactConstants.Angry);
+                                                break;
+                                            default:
+                                                LikeButton.SetReactionPack(ReactConstants.Default);
+                                                break;
+                                        }
+
                                         break;
-                                    case "2":
-                                        LikeButton.SetReactionPack(ReactConstants.Love);
-                                        break;
-                                    case "3":
-                                        LikeButton.SetReactionPack(ReactConstants.HaHa);
-                                        break;
-                                    case "4":
-                                        LikeButton.SetReactionPack(ReactConstants.Wow);
-                                        break;
-                                    case "5":
-                                        LikeButton.SetReactionPack(ReactConstants.Sad);
-                                        break;
-                                    case "6":
-                                        LikeButton.SetReactionPack(ReactConstants.Angry);
-                                        break;
-                                    default:
-                                        LikeButton.SetReactionPack(ReactConstants.Default);
-                                        break;
+                                    }
                                 }
                             }
+                            else
+                                LikeButton.SetReactionPack(ReactConstants.Default);
+
+                            break;
                         }
-                        else
-                            LikeButton.SetReactionPack(ReactConstants.Default); 
-                    }
-                    else
-                    {
-                        if (PostObject.IsLiked != null && PostObject.IsLiked.Value)
-                            LikeButton.SetReactionPack(ReactConstants.Like);
-
-                        if (LikeCount != null)
-                            LikeCount.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostObject.PostLikes)) + " " + GetString(Resource.String.Btn_Likes);
-
-                        if (SecondReactionButton != null)
+                        default:
                         {
-                            switch (AppSettings.PostButton)
+                            if (PostObject.IsLiked != null && PostObject.IsLiked.Value)
+                                LikeButton.SetReactionPack(ReactConstants.Like);
+
+                            if (LikeCount != null)
+                                LikeCount.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostObject.PostLikes)) + " " + GetString(Resource.String.Btn_Likes);
+
+                            if (SecondReactionButton != null)
                             {
-                                case PostButtonSystem.Wonder when PostObject.IsWondered != null && PostObject.IsWondered.Value:
+                                switch (AppSettings.PostButton)
+                                {
+                                    case PostButtonSystem.Wonder when PostObject.IsWondered != null && PostObject.IsWondered.Value:
                                     {
                                         Drawable unwrappedDrawable = AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_wowonder);
                                         Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
-                                        if (Build.VERSION.SdkInt <= BuildVersionCodes.Lollipop)
+                                        switch (Build.VERSION.SdkInt)
                                         {
-                                            DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
-                                        }
-                                        else
-                                        {
-                                            wrappedDrawable = wrappedDrawable.Mutate();
-                                            wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"), PorterDuff.Mode.SrcAtop));
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"), PorterDuff.Mode.SrcAtop));
+                                                break;
                                         }
 
                                         SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
@@ -508,18 +540,19 @@ namespace WoWonder.Activities.NativePost.Pages
                                         SecondReactionButton.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                         break;
                                     }
-                                case PostButtonSystem.Wonder:
+                                    case PostButtonSystem.Wonder:
                                     {
                                         Drawable unwrappedDrawable = AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_wowonder);
                                         Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
-                                        if (Build.VERSION.SdkInt <= BuildVersionCodes.Lollipop)
+                                        switch (Build.VERSION.SdkInt)
                                         {
-                                            DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
-                                        }
-                                        else
-                                        {
-                                            wrappedDrawable = wrappedDrawable.Mutate();
-                                            wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#666666"), PorterDuff.Mode.SrcAtop));
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#666666"), PorterDuff.Mode.SrcAtop));
+                                                break;
                                         }
                                         SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
 
@@ -527,19 +560,20 @@ namespace WoWonder.Activities.NativePost.Pages
                                         SecondReactionButton.SetTextColor(Color.ParseColor("#444444"));
                                         break;
                                     }
-                                case PostButtonSystem.DisLike when PostObject.IsWondered != null && PostObject.IsWondered.Value:
+                                    case PostButtonSystem.DisLike when PostObject.IsWondered != null && PostObject.IsWondered.Value:
                                     {
                                         Drawable unwrappedDrawable = AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_dislike);
                                         Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
 
-                                        if (Build.VERSION.SdkInt <= BuildVersionCodes.Lollipop)
+                                        switch (Build.VERSION.SdkInt)
                                         {
-                                            DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
-                                        }
-                                        else
-                                        {
-                                            wrappedDrawable = wrappedDrawable.Mutate();
-                                            wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"), PorterDuff.Mode.SrcAtop));
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"), PorterDuff.Mode.SrcAtop));
+                                                break;
                                         }
 
                                         SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
@@ -548,18 +582,19 @@ namespace WoWonder.Activities.NativePost.Pages
                                         SecondReactionButton.SetTextColor(Color.ParseColor("#f89823"));
                                         break;
                                     }
-                                case PostButtonSystem.DisLike:
+                                    case PostButtonSystem.DisLike:
                                     {
                                         Drawable unwrappedDrawable = AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_dislike);
                                         Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
-                                        if (Build.VERSION.SdkInt <= BuildVersionCodes.Lollipop)
+                                        switch (Build.VERSION.SdkInt)
                                         {
-                                            DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
-                                        }
-                                        else
-                                        {
-                                            wrappedDrawable = wrappedDrawable.Mutate();
-                                            wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#666666"), PorterDuff.Mode.SrcAtop));
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#666666"), PorterDuff.Mode.SrcAtop));
+                                                break;
                                         }
 
                                         SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
@@ -568,18 +603,24 @@ namespace WoWonder.Activities.NativePost.Pages
                                         SecondReactionButton.SetTextColor(Color.ParseColor("#444444"));
                                         break;
                                     }
+                                }
                             }
+
+                            break;
                         }
                     }
                      
-                    if (PostObject?.GetPostComments?.Count > 0)
+                    switch (PostObject?.GetPostComments?.Count)
                     {
-                        var db = ClassMapper.Mapper?.Map<List<CommentObjectExtra>>(PostObject.GetPostComments);
-                        MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(db);
-                    }
-                    else
-                    {
-                        MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>();
+                        case > 0:
+                        {
+                            var db = ClassMapper.Mapper?.Map<List<CommentObjectExtra>>(PostObject.GetPostComments);
+                            MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(db);
+                            break;
+                        }
+                        default:
+                            MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>();
+                            break;
                     }
 
                     MAdapter.NotifyDataSetChanged();
@@ -595,24 +636,34 @@ namespace WoWonder.Activities.NativePost.Pages
          
         public void OnInitializationFailure(IYouTubePlayerProvider p0, YouTubeInitializationResult errorReason)
         {
-            if (errorReason.IsUserRecoverableError)
-                errorReason.GetErrorDialog(this, 1).Show();
-            else
-                Toast.MakeText(this, errorReason.ToString(), ToastLength.Short)?.Show();
+            switch (errorReason.IsUserRecoverableError)
+            {
+                case true:
+                    errorReason.GetErrorDialog(this, 1).Show();
+                    break;
+                default:
+                    Toast.MakeText(this, errorReason.ToString(), ToastLength.Short)?.Show();
+                    break;
+            }
         }
 
         public void OnInitializationSuccess(IYouTubePlayerProvider p0, IYouTubePlayer player, bool wasRestored)
         {
             try
             {
-                if (YoutubePlayer == null)
-                    YoutubePlayer = player;
-
-                if (!wasRestored)
+                YoutubePlayer = YoutubePlayer switch
                 {
-                    YoutubePlayer.LoadVideo(PostObject.PostYoutube);
-                    //YoutubePlayer.AddFullscreenControlFlag(YouTubePlayer.FullscreenFlagControlOrientation  | YouTubePlayer.FullscreenFlagControlSystemUi  | YouTubePlayer.FullscreenFlagCustomLayout); 
-                } 
+                    null => player,
+                    _ => YoutubePlayer
+                };
+
+                switch (wasRestored)
+                {
+                    case false:
+                        YoutubePlayer.LoadVideo(PostObject.PostYoutube);
+                        //YoutubePlayer.AddFullscreenControlFlag(YouTubePlayer.FullscreenFlagControlOrientation  | YouTubePlayer.FullscreenFlagControlSystemUi  | YouTubePlayer.FullscreenFlagCustomLayout); 
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -655,11 +706,16 @@ namespace WoWonder.Activities.NativePost.Pages
 
         public bool OnLongClick(View v)
         {
-            //add event if System = ReactButton 
-            if (AppSettings.PostButton == PostButtonSystem.ReactionDefault || AppSettings.PostButton == PostButtonSystem.ReactionSubShine)
+            switch (AppSettings.PostButton)
             {
-                if (LikeButton.Id == v.Id)
-                    LikeButton.LongClickDialog(new GlobalClickEventArgs { NewsFeedClass = PostObject, View = MainView }, null);
+                //add event if System = ReactButton 
+                case PostButtonSystem.ReactionDefault:
+                case PostButtonSystem.ReactionSubShine:
+                {
+                    if (LikeButton.Id == v.Id)
+                        LikeButton.LongClickDialog(new GlobalClickEventArgs { NewsFeedClass = PostObject, View = MainView }, null);
+                    break;
+                }
             }
 
             return true;
@@ -677,11 +733,11 @@ namespace WoWonder.Activities.NativePost.Pages
                         break;
                     case "Website":
                     {
-                        string url = p1.Replace(" ", "");
-                        if (!p1.Contains("http"))
+                        string url = p1.Contains("http") switch
                         {
-                            url = "http://" + p1.Replace(" ", "");
-                        }
+                            false => "http://" + p1.Replace(" ", ""),
+                            _ => p1.Replace(" ", "")
+                        };
 
                         //var intent = new Intent(this, typeof(LocalWebViewActivity));
                         //intent.PutExtra("URL", url.Replace(" ", ""));
@@ -711,37 +767,60 @@ namespace WoWonder.Activities.NativePost.Pages
                         {
                             WoWonderTools.OpenProfile(this, user.UserId, user);
                         }
-                        else if (userData?.Count > 0)
+                        else switch (userData?.Count)
                         {
-                            var data = userData.FirstOrDefault(a => a.Value == name);
-                            if (data.Key != null && data.Key == UserDetails.UserId)
+                            case > 0:
                             {
-                                if (PostClickListener.OpenMyProfile) return;
-                                var intent = new Intent(this, typeof(MyProfileActivity));
-                                StartActivity(intent);
+                                var data = userData.FirstOrDefault(a => a.Value == name);
+                                if (data.Key != null && data.Key == UserDetails.UserId)
+                                {
+                                    switch (PostClickListener.OpenMyProfile)
+                                    {
+                                        case true:
+                                            return;
+                                        default:
+                                        {
+                                            var intent = new Intent(this, typeof(MyProfileActivity));
+                                            StartActivity(intent);
+                                            break;
+                                        }
+                                    }
+                                }
+                                else if (data.Key != null)
+                                {
+                                    var intent = new Intent(this, typeof(UserProfileActivity));
+                                    //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
+                                    intent.PutExtra("UserId", data.Key);
+                                    StartActivity(intent);
+                                }
+
+                                break;
                             }
-                            else if (data.Key != null)
+                            default:
                             {
-                                var intent = new Intent(this, typeof(UserProfileActivity));
-                                //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
-                                intent.PutExtra("UserId", data.Key);
-                                StartActivity(intent);
-                            }
-                        }
-                        else
-                        {
-                            if (name == dataUSer?.Name || name == dataUSer?.Username)
-                            {
-                                if (PostClickListener.OpenMyProfile) return;
-                                var intent = new Intent(this, typeof(MyProfileActivity));
-                                StartActivity(intent);
-                            }
-                            else
-                            {
-                                var intent = new Intent(this, typeof(UserProfileActivity));
-                                //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
-                                intent.PutExtra("name", name);
-                                StartActivity(intent);
+                                if (name == dataUSer?.Name || name == dataUSer?.Username)
+                                {
+                                    switch (PostClickListener.OpenMyProfile)
+                                    {
+                                        case true:
+                                            return;
+                                        default:
+                                        {
+                                            var intent = new Intent(this, typeof(MyProfileActivity));
+                                            StartActivity(intent);
+                                            break;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var intent = new Intent(this, typeof(UserProfileActivity));
+                                    //intent.PutExtra("UserObject", JsonConvert.SerializeObject(item));
+                                    intent.PutExtra("name", name);
+                                    StartActivity(intent);
+                                }
+
+                                break;
                             }
                         }
 

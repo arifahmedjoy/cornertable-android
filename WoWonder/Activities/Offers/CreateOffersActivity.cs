@@ -259,20 +259,21 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    TxtSave.Click += TxtSaveOnClick;
-                    TxtCurrency.Touch += TxtCurrencyOnTouch;
-                    TxtAddImg.Click += TxtAddImgOnClick;
-                    TxtDiscountType.Touch += TxtDiscountTypeOnTouch;
-                }
-                else
-                {
-                    TxtSave.Click -= TxtSaveOnClick;
-                    TxtCurrency.Touch -= TxtCurrencyOnTouch;
-                    TxtAddImg.Click -= TxtAddImgOnClick;
-                    TxtDiscountType.Touch -= TxtDiscountTypeOnTouch;
+                    // true +=  // false -=
+                    case true:
+                        TxtSave.Click += TxtSaveOnClick;
+                        TxtCurrency.Touch += TxtCurrencyOnTouch;
+                        TxtAddImg.Click += TxtAddImgOnClick;
+                        TxtDiscountType.Touch += TxtDiscountTypeOnTouch;
+                        break;
+                    default:
+                        TxtSave.Click -= TxtSaveOnClick;
+                        TxtCurrency.Touch -= TxtCurrencyOnTouch;
+                        TxtAddImg.Click -= TxtAddImgOnClick;
+                        TxtDiscountType.Touch -= TxtDiscountTypeOnTouch;
+                        break;
                 }
             }
             catch (Exception e)
@@ -335,15 +336,19 @@ namespace WoWonder.Activities.Offers
                     TypeDialog = "Currency";
 
                     var arrayAdapter = WoWonderTools.GetCurrencySymbolList();
-                    if (arrayAdapter?.Count > 0)
+                    switch (arrayAdapter?.Count)
                     {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        case > 0:
+                        {
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                            dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency));
+                            dialogList.Items(arrayAdapter);
+                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                            dialogList.AlwaysCallSingleChoiceCallback();
+                            dialogList.ItemsCallback(this).Build().Show();
+                            break;
+                        }
                     }
                 }
                 else
@@ -412,47 +417,68 @@ namespace WoWonder.Activities.Offers
                         {"discounted_items", TxtDiscountItems.Text},
                     };
 
-                    if (MAdapter.DiscountList.Count > 0)
+                    switch (MAdapter.DiscountList.Count)
                     {
-                        foreach (var discount in MAdapter.DiscountList)
+                        case > 0:
                         {
-                            if (discount == null) continue;
-                            switch (discount.DiscountType)
+                            foreach (var discount in MAdapter.DiscountList)
                             {
-                                case "discount_percent":
-                                    dictionary.Add("discount_percent", discount.DiscountFirst);
-                                    break;
-                                case "discount_amount":
-                                    dictionary.Add("discount_amount", discount.DiscountFirst);
-                                    break;
-                                case "buy_get_discount":
-                                    dictionary.Add("discount_percent", discount.DiscountFirst);
-                                    dictionary.Add("buy", discount.DiscountSec);
-                                    dictionary.Add("get", discount.DiscountThr);
-                                    break;
-                                case "spend_get_off":
-                                    dictionary.Add("spend", discount.DiscountSec);
-                                    dictionary.Add("amount_off", discount.DiscountThr);
-                                    break;
-                                case "free_shipping": //Not have tag
-                                    break;
+                                switch (discount)
+                                {
+                                    case null:
+                                        continue;
+                                    default:
+                                        switch (discount.DiscountType)
+                                        {
+                                            case "discount_percent":
+                                                dictionary.Add("discount_percent", discount.DiscountFirst);
+                                                break;
+                                            case "discount_amount":
+                                                dictionary.Add("discount_amount", discount.DiscountFirst);
+                                                break;
+                                            case "buy_get_discount":
+                                                dictionary.Add("discount_percent", discount.DiscountFirst);
+                                                dictionary.Add("buy", discount.DiscountSec);
+                                                dictionary.Add("get", discount.DiscountThr);
+                                                break;
+                                            case "spend_get_off":
+                                                dictionary.Add("spend", discount.DiscountSec);
+                                                dictionary.Add("amount_off", discount.DiscountThr);
+                                                break;
+                                            case "free_shipping": //Not have tag
+                                                break;
+                                        }
+
+                                        break;
+                                }
                             }
+
+                            break;
                         }
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Offers.CreateOffer(dictionary, ImagePath);
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        if (respond is CreateOfferObject result)
+                        case 200:
                         {
-                            Console.WriteLine(result.Data);
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short)?.Show();
+                            switch (respond)
+                            {
+                                case CreateOfferObject result:
+                                    Console.WriteLine(result.Data);
+                                    Toast.MakeText(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short)?.Show();
 
-                            AndHUD.Shared.Dismiss(this);
-                            Finish();
+                                    AndHUD.Shared.Dismiss(this);
+                                    Finish();
+                                    break;
+                            }
+
+                            break;
                         }
+                        default:
+                            Methods.DisplayAndHudErrorResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayAndHudErrorResult(this, respond);
                 }
                 else
                 {
@@ -478,26 +504,39 @@ namespace WoWonder.Activities.Offers
             {
                 base.OnActivityResult(requestCode, resultCode, data);
 
-                if (requestCode == CropImage.CropImageActivityRequestCode && resultCode == Result.Ok)
+                switch (requestCode)
                 {
-                    var result = CropImage.GetActivityResult(data);
-                    if (result.IsSuccessful)
+                    case CropImage.CropImageActivityRequestCode when resultCode == Result.Ok:
                     {
-                        var resultUri = result.Uri;
-
-                        if (!string.IsNullOrEmpty(resultUri.Path))
+                        var result = CropImage.GetActivityResult(data);
+                        switch (result.IsSuccessful)
                         {
-                            ImagePath = resultUri.Path;
-                            File file2 = new File(resultUri.Path);
-                            var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                            Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(Image);
+                            case true:
+                            {
+                                var resultUri = result.Uri;
 
-                            //GlideImageLoader.LoadImage(this, resultUri.Path, Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                switch (string.IsNullOrEmpty(resultUri.Path))
+                                {
+                                    case false:
+                                    {
+                                        ImagePath = resultUri.Path;
+                                        File file2 = new File(resultUri.Path);
+                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(Image);
+
+                                        //GlideImageLoader.LoadImage(this, resultUri.Path, Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        break;
+                                    }
+                                    default:
+                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        break;
+                                }
+
+                                break;
+                            }
                         }
-                        else
-                        {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                        }
+
+                        break;
                     }
                 }
             }
@@ -514,16 +553,14 @@ namespace WoWonder.Activities.Offers
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                if (requestCode == 108)
+                switch (requestCode)
                 {
-                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-                    {
+                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         OpenDialogGallery();
-                    }
-                    else
-                    {
+                        break;
+                    case 108:
                         Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -574,25 +611,26 @@ namespace WoWonder.Activities.Offers
 
                         TxtDiscountType.Text = itemString.ToString();
 
-                        if (AddDiscountId == "free_shipping")
+                        switch (AddDiscountId)
                         {
-                            MRecycler.Visibility = ViewStates.Gone;
-                            MAdapter.DiscountList.Clear();
-                            MAdapter.NotifyDataSetChanged();
-                        }
-                        else
-                        {
-                            MRecycler.Visibility = ViewStates.Visible;
-                            MAdapter.DiscountList.Clear();
+                            case "free_shipping":
+                                MRecycler.Visibility = ViewStates.Gone;
+                                MAdapter.DiscountList.Clear();
+                                MAdapter.NotifyDataSetChanged();
+                                break;
+                            default:
+                                MRecycler.Visibility = ViewStates.Visible;
+                                MAdapter.DiscountList.Clear();
 
-                            MAdapter.DiscountList.Add(new DiscountOffers
-                            {
-                                DiscountType = AddDiscountId,
-                                DiscountFirst = "",
-                                DiscountSec = "",
-                                DiscountThr = "",
-                            });
-                            MAdapter.NotifyDataSetChanged(); 
+                                MAdapter.DiscountList.Add(new DiscountOffers
+                                {
+                                    DiscountType = AddDiscountId,
+                                    DiscountFirst = "",
+                                    DiscountSec = "",
+                                    DiscountThr = "",
+                                });
+                                MAdapter.NotifyDataSetChanged();
+                                break;
                         }
 
                         break;
@@ -611,25 +649,10 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                // Check if we're running on Android 5.0 or higher
-                if ((int)Build.VERSION.SdkInt < 23)
+                switch ((int)Build.VERSION.SdkInt)
                 {
-                    Methods.Path.Chack_MyFolder();
-
-                    //Open Image 
-                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                    CropImage.Activity()
-                        .SetInitialCropWindowPaddingRatio(0)
-                        .SetAutoZoomEnabled(true)
-                        .SetMaxZoom(4)
-                        .SetGuidelines(CropImageView.Guidelines.On)
-                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                        .SetOutputUri(myUri).Start(this);
-                }
-                else
-                {
-                    if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                    // Check if we're running on Android 5.0 or higher
+                    case < 23:
                     {
                         Methods.Path.Chack_MyFolder();
 
@@ -642,10 +665,31 @@ namespace WoWonder.Activities.Offers
                             .SetGuidelines(CropImageView.Guidelines.On)
                             .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                             .SetOutputUri(myUri).Start(this);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        new PermissionsController(this).RequestPermission(108);
+                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                        {
+                            Methods.Path.Chack_MyFolder();
+
+                            //Open Image 
+                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                            CropImage.Activity()
+                                .SetInitialCropWindowPaddingRatio(0)
+                                .SetAutoZoomEnabled(true)
+                                .SetMaxZoom(4)
+                                .SetGuidelines(CropImageView.Guidelines.On)
+                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                .SetOutputUri(myUri).Start(this);
+                        }
+                        else
+                        {
+                            new PermissionsController(this).RequestPermission(108);
+                        }
+
+                        break;
                     }
                 }
             }

@@ -60,12 +60,17 @@ namespace WoWonder.Activities.MyVideo.Adapters
         {
             try
             {
-                if (viewHolder is MyVideoAdapterViewHolder holder)
+                switch (viewHolder)
                 {
-                    var item = MyVideoList[position];
-                    if (item != null)
+                    case MyVideoAdapterViewHolder holder:
                     {
-                        GlideImageLoader.LoadImage(ActivityContext, item.PostFileFull, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                        var item = MyVideoList[position];
+                        if (item != null)
+                        {
+                            GlideImageLoader.LoadImage(ActivityContext, item.PostFileFull, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                        }
+
+                        break;
                     }
                 }
             }
@@ -81,9 +86,11 @@ namespace WoWonder.Activities.MyVideo.Adapters
                 if (ActivityContext?.IsDestroyed != false)
                         return;
 
-                if (holder is MyVideoAdapterViewHolder viewHolder)
+                switch (holder)
                 {
-                    Glide.With(ActivityContext).Clear(viewHolder.Image);
+                    case MyVideoAdapterViewHolder viewHolder:
+                        Glide.With(ActivityContext).Clear(viewHolder.Image);
+                        break;
                 }
                 base.OnViewRecycled(holder);
             }
@@ -140,14 +147,21 @@ namespace WoWonder.Activities.MyVideo.Adapters
             {
                 var d = new List<string>();
                 var item = MyVideoList[p0];
-                if (item == null)
-                    return d;
-                else
+                switch (item)
                 {
-                    if (!string.IsNullOrEmpty(item.PostFileFull))
-                        d.Add(item.PostFileFull);
+                    case null:
+                        return d;
+                    default:
+                    {
+                        switch (string.IsNullOrEmpty(item.PostFileFull))
+                        {
+                            case false:
+                                d.Add(item.PostFileFull);
+                                break;
+                        }
 
-                    return d;
+                        return d;
+                    }
                 }
             }
             catch (Exception e)

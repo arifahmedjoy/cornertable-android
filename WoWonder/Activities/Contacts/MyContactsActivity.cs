@@ -144,15 +144,17 @@ namespace WoWonder.Activities.Contacts
                 {
                     try
                     {
-                        if (TypeContacts == "Following")
+                        switch (TypeContacts)
                         {
-                            var sqlEntity = new SqLiteDatabase();
-                            sqlEntity.Insert_Or_Replace_MyContactTable(MAdapter.UserList);
-                            
-                        }
-                        else
-                        {
-                            ListUtils.MyFollowersList = new ObservableCollection<UserDataObject>(MAdapter.UserList);
+                            case "Following":
+                            {
+                                var sqlEntity = new SqLiteDatabase();
+                                sqlEntity.Insert_Or_Replace_MyContactTable(MAdapter.UserList);
+                                break;
+                            }
+                            default:
+                                ListUtils.MyFollowersList = new ObservableCollection<UserDataObject>(MAdapter.UserList);
+                                break;
                         }
                     }
                     catch (Exception e)
@@ -269,18 +271,19 @@ namespace WoWonder.Activities.Contacts
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    MAdapter.ItemClick += MAdapterOnItemClick;
-                    MAdapter.FollowButtonItemClick += MAdapter.OnFollowButtonItemClick;
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                }
-                else
-                {
-                    MAdapter.ItemClick -= MAdapterOnItemClick;
-                    MAdapter.FollowButtonItemClick -= MAdapter.OnFollowButtonItemClick;
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                    // true +=  // false -=
+                    case true:
+                        MAdapter.ItemClick += MAdapterOnItemClick;
+                        MAdapter.FollowButtonItemClick += MAdapter.OnFollowButtonItemClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        break;
+                    default:
+                        MAdapter.ItemClick -= MAdapterOnItemClick;
+                        MAdapter.FollowButtonItemClick -= MAdapter.OnFollowButtonItemClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        break;
                 }
             }
             catch (Exception e)
@@ -403,100 +406,124 @@ namespace WoWonder.Activities.Contacts
 
         private async Task LoadContactsAsync(string offset = "0")
         {
-            if (MainScrollEvent.IsLoading)
-                return;
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
 
             if (Methods.CheckConnectivity())
             {
                 MainScrollEvent.IsLoading = true;
-                if (TypeContacts == "Following")
-                { 
-                    var countList = MAdapter.UserList.Count;
-                    var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserId, "following", "10", offset);
-                    if (apiStatus != 200 || (respond is not GetFriendsObject result) || result.DataFriends == null)
-                    {
-                        MainScrollEvent.IsLoading = false;
-                        Methods.DisplayReportResult(this, respond);
-                    }
-                    else
-                    {
-                        var respondList = result.DataFriends.Following.Count;
-                        if (respondList > 0)
-                        {
-                            if (countList > 0)
-                            {
-                                foreach (var item in result.DataFriends.Following)
-                                {
-                                    var check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId);
-                                    if (check == null)
-                                    {
-                                        MAdapter.UserList.Add(item);
-                                    }
-                                    else
-                                    {
-                                        check = item;
-                                        check.Name = item.Name; 
-                                    } 
-                                }
-                                 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.UserList = new ObservableCollection<UserDataObject>(result.DataFriends.Following);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                            }
-                        }
-                        else
-                        {
-                            if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
-                        }
-                    }
-                }
-                else
+                switch (TypeContacts)
                 {
-                    var countList = MAdapter.UserList.Count;
-                    var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserId, "followers", "10", "", offset);
-                    if (apiStatus != 200 || (respond is not GetFriendsObject result) || result.DataFriends == null)
+                    case "Following":
                     {
-                        MainScrollEvent.IsLoading = false;
-                        Methods.DisplayReportResult(this, respond);
-                    }
-                    else
-                    {
-                        var respondList = result.DataFriends.Followers.Count;
-                        if (respondList > 0)
+                        var countList = MAdapter.UserList.Count;
+                        var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserId, "following", "10", offset);
+                        if (apiStatus != 200 || respond is not GetFriendsObject result || result.DataFriends == null)
                         {
-                            if (countList > 0)
-                            {
-                                foreach (var item in result.DataFriends.Followers)
-                                {
-                                    var check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId);
-                                    if (check == null)
-                                    {
-                                        MAdapter.UserList.Add(item);
-                                    }
-                                    else
-                                    {
-                                        check = item;
-                                        check.Name = item.Name;
-                                    }
-                                }
-                                 
-                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
-                            }
-                            else
-                            {
-                                MAdapter.UserList = new ObservableCollection<UserDataObject>(result.DataFriends.Followers);
-                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                            }
+                            MainScrollEvent.IsLoading = false;
+                            Methods.DisplayReportResult(this, respond);
                         }
                         else
                         {
-                            if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                            var respondList = result.DataFriends.Following.Count;
+                            switch (respondList)
+                            {
+                                case > 0 when countList > 0:
+                                {
+                                    foreach (var item in result.DataFriends.Following)
+                                    {
+                                        var check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId);
+                                        switch (check)
+                                        {
+                                            case null:
+                                                MAdapter.UserList.Add(item);
+                                                break;
+                                            default:
+                                                check = item;
+                                                check.Name = item.Name;
+                                                break;
+                                        }
+                                    }
+                                 
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                    break;
+                                }
+                                case > 0:
+                                    MAdapter.UserList = new ObservableCollection<UserDataObject>(result.DataFriends.Following);
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                                default:
+                                {
+                                    switch (MAdapter.UserList.Count)
+                                    {
+                                        case > 10 when !MRecycler.CanScrollVertically(1):
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                            break;
+                                    }
+
+                                    break;
+                                }
+                            }
                         }
+
+                        break;
+                    }
+                    default:
+                    {
+                        var countList = MAdapter.UserList.Count;
+                        var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserId, "followers", "10", "", offset);
+                        if (apiStatus != 200 || respond is not GetFriendsObject result || result.DataFriends == null)
+                        {
+                            MainScrollEvent.IsLoading = false;
+                            Methods.DisplayReportResult(this, respond);
+                        }
+                        else
+                        {
+                            var respondList = result.DataFriends.Followers.Count;
+                            switch (respondList)
+                            {
+                                case > 0 when countList > 0:
+                                {
+                                    foreach (var item in result.DataFriends.Followers)
+                                    {
+                                        var check = MAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId);
+                                        switch (check)
+                                        {
+                                            case null:
+                                                MAdapter.UserList.Add(item);
+                                                break;
+                                            default:
+                                                check = item;
+                                                check.Name = item.Name;
+                                                break;
+                                        }
+                                    }
+                                 
+                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.UserList.Count - countList); });
+                                    break;
+                                }
+                                case > 0:
+                                    MAdapter.UserList = new ObservableCollection<UserDataObject>(result.DataFriends.Followers);
+                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                    break;
+                                default:
+                                {
+                                    switch (MAdapter.UserList.Count)
+                                    {
+                                        case > 10 when !MRecycler.CanScrollVertically(1):
+                                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                            break;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        break;
                     }
                 }
 
@@ -507,15 +534,17 @@ namespace WoWonder.Activities.Contacts
                 Inflated = EmptyStateLayout.Inflate();
                 EmptyStateInflater x = new EmptyStateInflater();
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                if (!x.EmptyStateButton.HasOnClickListeners)
+                switch (x.EmptyStateButton.HasOnClickListeners)
                 {
-                     x.EmptyStateButton.Click += null!;
-                    x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
                 }
 
                 Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
                 MainScrollEvent.IsLoading = false;
-            } 
+            }
         }
 
         private void ShowEmptyPage()
@@ -525,24 +554,29 @@ namespace WoWonder.Activities.Contacts
                 MainScrollEvent.IsLoading = false; 
                 SwipeRefreshLayout.Refreshing = false;
 
-                if (MAdapter.UserList.Count > 0)
+                switch (MAdapter.UserList.Count)
                 {
-                    MRecycler.Visibility = ViewStates.Visible;
-                    EmptyStateLayout.Visibility = ViewStates.Gone; 
-                }
-                else
-                {
-                    MRecycler.Visibility = ViewStates.Gone;
-
-                    Inflated ??= EmptyStateLayout.Inflate();
-
-                    EmptyStateInflater x = new EmptyStateInflater();
-                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
-                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    case > 0:
+                        MRecycler.Visibility = ViewStates.Visible;
+                        EmptyStateLayout.Visibility = ViewStates.Gone;
+                        break;
+                    default:
                     {
-                         x.EmptyStateButton.Click += null!;
+                        MRecycler.Visibility = ViewStates.Gone;
+
+                        Inflated ??= EmptyStateLayout.Inflate();
+
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                break;
+                        }
+                        EmptyStateLayout.Visibility = ViewStates.Visible;
+                        break;
                     }
-                    EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)

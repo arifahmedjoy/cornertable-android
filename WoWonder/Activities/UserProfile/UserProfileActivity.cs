@@ -28,6 +28,7 @@ using WoWonder.Activities.Base;
 using WoWonder.Activities.Chat.ChatWindow;
 using WoWonder.Activities.Contacts;
 using WoWonder.Activities.Gift;
+using WoWonder.Activities.Live.Utils;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.UsersPages;
@@ -39,6 +40,7 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Global;
+using WoWonderClient.Classes.Message;
 using WoWonderClient.Classes.Posts;
 using WoWonderClient.Classes.Product;
 using WoWonderClient.Classes.User;
@@ -95,24 +97,30 @@ namespace WoWonder.Activities.UserProfile
                 GifLink = Intent?.GetStringExtra("GifLink") ?? string.Empty;
 
                 var userObject = Intent?.GetStringExtra("UserObject");
-                if (!string.IsNullOrEmpty(userObject))
-                    UserData = JsonConvert.DeserializeObject<UserDataObject>(userObject);
+                UserData = string.IsNullOrEmpty(userObject) switch
+                {
+                    false => JsonConvert.DeserializeObject<UserDataObject>(userObject),
+                    _ => UserData
+                };
 
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
                 SetRecyclerViewAdapters();
 
-                if (!string.IsNullOrEmpty(SUserName))
+                switch (string.IsNullOrEmpty(SUserName))
                 {
-                    GetDataUserByName();
-                }
-                else
-                {
-                    if (UserData != null)
-                        LoadPassedDate(UserData);
+                    case false:
+                        GetDataUserByName();
+                        break;
+                    default:
+                    {
+                        if (UserData != null)
+                            LoadPassedDate(UserData);
 
-                    StartApiService();
+                        StartApiService();
+                        break;
+                    }
                 }
                 GetGiftsLists();
 
@@ -272,30 +280,39 @@ namespace WoWonder.Activities.UserProfile
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
 
 
-                if (AppSettings.FlowDirectionRightToLeft)
-                    IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-
-                if (AppSettings.ConnectivitySystem == 1) // Following
+                switch (AppSettings.FlowDirectionRightToLeft)
                 {
-                    TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
-                    TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
+                    case true:
+                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
+                        break;
                 }
-                else // Friend
+
+                switch (AppSettings.ConnectivitySystem)
                 {
-                    TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
-                    TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+                    // Following
+                    case 1:
+                        TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
+                        TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
+                        break;
+                    // Friend
+                    default:
+                        TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
+                        TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+                        break;
                 }
 
                 BtnAddUser.Visibility = ViewStates.Invisible;
                 BtnMore.Visibility = ViewStates.Visible;
                 BtnMessage.Visibility = ViewStates.Invisible;
 
-                if (!AppSettings.ShowUserPoint)
+                switch (AppSettings.ShowUserPoint)
                 {
-                    ViewPoints.Visibility = ViewStates.Gone;
-                    CountPointsLayout.Visibility = ViewStates.Gone;
+                    case false:
+                        ViewPoints.Visibility = ViewStates.Gone;
+                        CountPointsLayout.Visibility = ViewStates.Gone;
 
-                    HeaderSection.WeightSum = 3;
+                        HeaderSection.WeightSum = 3;
+                        break;
                 }
 
                 OnlineView.Visibility = ViewStates.Gone;
@@ -349,32 +366,33 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                // true +=  // false -=
-                if (addEvent)
+                switch (addEvent)
                 {
-                    SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                    BtnAddUser.Click += BtnAddUserOnClick;
-                    BtnMessage.Click += BtnMessageOnClick;
-                    BtnMore.Click += BtnMoreOnClick;
-                    IconBack.Click += IconBackOnClick;
-                    LayoutCountFollowers.Click += LayoutCountFollowersOnClick;
-                    LayoutCountFollowing.Click += LayoutCountFollowingOnClick;
-                    LayoutCountLikes.Click += LayoutCountLikesOnClick;
-                    UserProfileImage.Click += UserProfileImageOnClick;
-                    CoverImage.Click += CoverImageOnClick; 
-                }
-                else
-                {
-                    SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                    BtnAddUser.Click -= BtnAddUserOnClick;
-                    BtnMessage.Click -= BtnMessageOnClick;
-                    BtnMore.Click -= BtnMoreOnClick;
-                    IconBack.Click -= IconBackOnClick;
-                    LayoutCountFollowers.Click -= LayoutCountFollowersOnClick;
-                    LayoutCountFollowing.Click -= LayoutCountFollowingOnClick;
-                    LayoutCountLikes.Click -= LayoutCountLikesOnClick;
-                    UserProfileImage.Click -= UserProfileImageOnClick;
-                    CoverImage.Click -= CoverImageOnClick;
+                    // true +=  // false -=
+                    case true:
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
+                        BtnAddUser.Click += BtnAddUserOnClick;
+                        BtnMessage.Click += BtnMessageOnClick;
+                        BtnMore.Click += BtnMoreOnClick;
+                        IconBack.Click += IconBackOnClick;
+                        LayoutCountFollowers.Click += LayoutCountFollowersOnClick;
+                        LayoutCountFollowing.Click += LayoutCountFollowingOnClick;
+                        LayoutCountLikes.Click += LayoutCountLikesOnClick;
+                        UserProfileImage.Click += UserProfileImageOnClick;
+                        CoverImage.Click += CoverImageOnClick;
+                        break;
+                    default:
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
+                        BtnAddUser.Click -= BtnAddUserOnClick;
+                        BtnMessage.Click -= BtnMessageOnClick;
+                        BtnMore.Click -= BtnMoreOnClick;
+                        IconBack.Click -= IconBackOnClick;
+                        LayoutCountFollowers.Click -= LayoutCountFollowersOnClick;
+                        LayoutCountFollowing.Click -= LayoutCountFollowingOnClick;
+                        LayoutCountLikes.Click -= LayoutCountLikesOnClick;
+                        UserProfileImage.Click -= UserProfileImageOnClick;
+                        CoverImage.Click -= CoverImageOnClick;
+                        break;
                 }
             }
             catch (Exception e)
@@ -446,7 +464,7 @@ namespace WoWonder.Activities.UserProfile
         private async Task GetProfileApi()
         {
             var (apiStatus, respond) = await RequestsAsync.Global.Get_User_Data(SUserId); 
-            if (apiStatus != 200 || (respond is not GetUserDataObject result) || result.UserData == null)
+            if (apiStatus != 200 || respond is not GetUserDataObject result || result.UserData == null)
             {
                 Methods.DisplayReportResult(this, respond);
             }
@@ -454,22 +472,28 @@ namespace WoWonder.Activities.UserProfile
             { 
                 LoadPassedDate(result.UserData);
 
-                if (result.Family.Count > 0)
+                switch (result.Family.Count)
                 {
-                    var data = result.Family.FirstOrDefault(o => o.UserData.UserId == UserDetails.UserId);
-                    IsFamily = data != null!;
-                }
-                else
-                {
-                    IsFamily = false;
+                    case > 0:
+                    {
+                        var data = result.Family.FirstOrDefault(o => o.UserData.UserId == UserDetails.UserId);
+                        IsFamily = data != null!;
+                        break;
+                    }
+                    default:
+                        IsFamily = false;
+                        break;
                 }
 
                 if (result.UserData.UserId != UserDetails.UserId)
                 {
                     SCanFollow = result.UserData.CanFollow;
 
-                    if (SCanFollow == "0" && result.UserData.IsFollowing == "0")
-                        BtnAddUser.Visibility = ViewStates.Gone;
+                    BtnAddUser.Visibility = SCanFollow switch
+                    {
+                        "0" when result.UserData.IsFollowing == "0" => ViewStates.Gone,
+                        _ => BtnAddUser.Visibility
+                    };
 
                     SetProfilePrivacy(result.UserData);
                 }
@@ -478,37 +502,39 @@ namespace WoWonder.Activities.UserProfile
                     BtnAddUser.Visibility = ViewStates.Gone;
                 }
 
-                if (result.Followers.Count > 0)
+                switch (result.Followers.Count)
                 {
-                    //var ListDataUserFollowers = new ObservableCollection<UserDataObject>(result.Followers);
+                    case > 0:
+                        //var ListDataUserFollowers = new ObservableCollection<UserDataObject>(result.Followers);
+                        break;
                 }
 
-                if (result.LikedPages.Count > 0)
-                    RunOnUiThread(() => { LoadPagesLayout(result.LikedPages); });
-
-                if (result.JoinedGroups.Count > 0)
+                switch (result.LikedPages.Count)
                 {
-                    if (result.UserData.Details.DetailsClass != null)
-                    {
+                    case > 0:
+                        RunOnUiThread(() => { LoadPagesLayout(result.LikedPages); });
+                        break;
+                }
+
+                switch (result.JoinedGroups.Count)
+                {
+                    case > 0 when result.UserData.Details.DetailsClass != null:
                         RunOnUiThread(() => { LoadGroupsLayout(result.JoinedGroups, Methods.FunString.FormatPriceValue(Convert.ToInt32(result.UserData.Details.DetailsClass.GroupsCount))); });
-                    }
-                    else
-                    {
+                        break;
+                    case > 0:
                         RunOnUiThread(() => { LoadGroupsLayout(result.JoinedGroups, Methods.FunString.FormatPriceValue(result.JoinedGroups.Count)); });
-                    } 
+                        break;
                 }
 
                 if (SPrivacyFriend == "0" || result.UserData?.IsFollowing == "1" && SPrivacyFriend == "1" || SPrivacyFriend == "2")
-                    if (result.Following.Count > 0 )
+                    switch (result.Following.Count)
                     {
-                        if (result.UserData.Details.DetailsClass != null)
-                        {
+                        case > 0 when result.UserData.Details.DetailsClass != null:
                             RunOnUiThread(() => { LoadFriendsLayout(result.Following, Methods.FunString.FormatPriceValue(Convert.ToInt32(result.UserData.Details.DetailsClass.FollowingCount))); });
-                        }
-                        else
-                        {
+                            break;
+                        case > 0:
                             RunOnUiThread(() => { LoadFriendsLayout(result.Following, Methods.FunString.FormatPriceValue(result.Following.Count)); });
-                        } 
+                            break;
                     }
 
                 string postPrivacy;
@@ -529,55 +555,64 @@ namespace WoWonder.Activities.UserProfile
                     postPrivacy = "0";
                 }
 
-                if (postPrivacy == "1")
+                switch (postPrivacy)
                 {
-                    //##Set the AddBox place on Main RecyclerView
-                    //------------------------------------------------------------------------
-                    var check7 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SocialLinks);
-                    var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.PagesBox);
-                    var check2 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.GroupsBox);
-                    var check3 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
-                    var check4 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.ImagesBox);
-                    var check5 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AboutBox);
-                    var check6 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoUserBox);
-                    var check8 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                    case "1":
+                    {
+                        //##Set the AddBox place on Main RecyclerView
+                        //------------------------------------------------------------------------
+                        var check7 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SocialLinks);
+                        var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.PagesBox);
+                        var check2 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.GroupsBox);
+                        var check3 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
+                        var check4 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.ImagesBox);
+                        var check5 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AboutBox);
+                        var check6 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoUserBox);
+                        var check8 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
 
-                    if (check7 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check7) + 1);
+                        if (check7 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check7) + 1);
+                        }
+                        else if (check != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
+                        }
+                        else if (check2 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check2) + 1);
+                        }
+                        else if (check3 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check3) + 1);
+                        }
+                        else if (check4 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check4) + 1);
+                        }
+                        else if (check5 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check5) + 1);
+                        }
+                        else if (check6 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check6) + 1);
+                        } 
+                        else if (check8 != null)
+                        {
+                            Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check8) + 1);
+                        }
+
+                        break;
                     }
-                    else if (check != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
-                    }
-                    else if (check2 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check2) + 1);
-                    }
-                    else if (check3 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check3) + 1);
-                    }
-                    else if (check4 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check4) + 1);
-                    }
-                    else if (check5 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check5) + 1);
-                    }
-                    else if (check6 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check6) + 1);
-                    } 
-                    else if (check8 != null)
-                    {
-                        Combiner.AddPostBoxPostView("user", PostFeedAdapter.ListDiffer.IndexOf(check8) + 1);
-                    } 
                 }
                    
-                if (AppSettings.ShowSearchForPosts)
-                    Combiner.SearchForPostsView("user");
+                switch (AppSettings.ShowSearchForPosts)
+                {
+                    case true:
+                        Combiner.SearchForPostsView("user");
+                        break;
+                }
 
                 RunOnUiThread(() =>
                 {
@@ -600,28 +635,33 @@ namespace WoWonder.Activities.UserProfile
         private async Task GetAlbumUserApi()
         {
             var (apiStatus, respond) = await RequestsAsync.Album.GetPostByType(SUserId , "photos");
-            if (apiStatus != 200 || (respond is not PostObject result))
+            if (apiStatus != 200 || respond is not PostObject result)
             {
                 Methods.DisplayReportResult(this, respond);
             }
             else
             {
-                if (result.Data.Count > 0)
+                switch (result.Data.Count)
                 {
-                    result.Data.RemoveAll(w => string.IsNullOrEmpty(w.PostFileFull));
-                     
-                    var count = result.Data.Count;
-                    switch (count)
+                    case > 0:
                     {
-                        case > 10:
-                            RunOnUiThread(() => { LoadImagesLayout(result.Data.Take(9).ToList(), Methods.FunString.FormatPriceValue(Convert.ToInt32(count.ToString()))); });
-                            break;
-                        case > 5:
-                            RunOnUiThread(() => { LoadImagesLayout(result.Data.Take(6).ToList(), Methods.FunString.FormatPriceValue(Convert.ToInt32(count.ToString()))); });
-                            break;
-                        case > 0:
-                            RunOnUiThread(() => { LoadImagesLayout(result.Data.ToList(), Methods.FunString.FormatPriceValue(Convert.ToInt32(count.ToString()))); });
-                            break;
+                        result.Data.RemoveAll(w => string.IsNullOrEmpty(w.PostFileFull));
+                     
+                        var count = result.Data.Count;
+                        switch (count)
+                        {
+                            case > 10:
+                                RunOnUiThread(() => { LoadImagesLayout(result.Data.Take(9).ToList(), Methods.FunString.FormatPriceValue(Convert.ToInt32(count.ToString()))); });
+                                break;
+                            case > 5:
+                                RunOnUiThread(() => { LoadImagesLayout(result.Data.Take(6).ToList(), Methods.FunString.FormatPriceValue(Convert.ToInt32(count.ToString()))); });
+                                break;
+                            case > 0:
+                                RunOnUiThread(() => { LoadImagesLayout(result.Data.ToList(), Methods.FunString.FormatPriceValue(Convert.ToInt32(count.ToString()))); });
+                                break;
+                        }
+
+                        break;
                     }
                 }
             }
@@ -638,51 +678,56 @@ namespace WoWonder.Activities.UserProfile
                 Glide.With(this).Load(result.Cover).Apply(new RequestOptions().Placeholder(Resource.Drawable.Cover_image).Error(Resource.Drawable.Cover_image)).Into(CoverImage);
                  
                 var checkAboutBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AboutBox);
-                if (checkAboutBox == null)
+                switch (checkAboutBox)
                 {
-                    Combiner.AboutBoxPostView(WoWonderTools.GetAboutFinal(result), 0);
-                }
-                else
-                {
-                    checkAboutBox.AboutModel.Description = WoWonderTools.GetAboutFinal(result);
-                    //PostFeedAdapter.NotifyItemChanged(0);
+                    case null:
+                        Combiner.AboutBoxPostView(WoWonderTools.GetAboutFinal(result), 0);
+                        break;
+                    default:
+                        checkAboutBox.AboutModel.Description = WoWonderTools.GetAboutFinal(result);
+                        //PostFeedAdapter.NotifyItemChanged(0);
+                        break;
                 }
 
                 var checkInfoUserBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoUserBox);
-                if (checkInfoUserBox == null)
+                switch (checkInfoUserBox)
                 {
-                    Combiner.InfoUserBoxPostView(result, 2);
-                }
-                else
-                {
-                    checkInfoUserBox.InfoUserModel.UserData = result;
-                    //PostFeedAdapter.NotifyItemChanged(0);
+                    case null:
+                        Combiner.InfoUserBoxPostView(result, 2);
+                        break;
+                    default:
+                        checkInfoUserBox.InfoUserModel.UserData = result;
+                        //PostFeedAdapter.NotifyItemChanged(0);
+                        break;
                 }
                  
                 var checkSocialBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SocialLinks);
-                if (checkSocialBox == null)
+                switch (checkSocialBox)
                 {
-                    var socialLinksModel = new SocialLinksModelClass
+                    case null:
                     {
-                        Facebook = result.Facebook,
-                        Instegram = result.Instagram,
-                        Twitter = result.Twitter,
-                        Google = result.Google,
-                        Vk = result.Vk,
-                        Youtube = result.Youtube,
-                    };
+                        var socialLinksModel = new SocialLinksModelClass
+                        {
+                            Facebook = result.Facebook,
+                            Instegram = result.Instagram,
+                            Twitter = result.Twitter,
+                            Google = result.Google,
+                            Vk = result.Vk,
+                            Youtube = result.Youtube,
+                        };
 
-                    Combiner.SocialLinksBoxPostView(socialLinksModel, -1);
-                    //PostFeedAdapter.NotifyItemInserted(0);
-                }
-                else
-                {
-                    checkSocialBox.SocialLinksModel.Facebook = result.Facebook;
-                    checkSocialBox.SocialLinksModel.Instegram = result.Instagram;
-                    checkSocialBox.SocialLinksModel.Twitter = result.Twitter;
-                    checkSocialBox.SocialLinksModel.Google = result.Google;
-                    checkSocialBox.SocialLinksModel.Vk = result.Vk;
-                    checkSocialBox.SocialLinksModel.Youtube = result.Youtube;
+                        Combiner.SocialLinksBoxPostView(socialLinksModel, -1);
+                        //PostFeedAdapter.NotifyItemInserted(0);
+                        break;
+                    }
+                    default:
+                        checkSocialBox.SocialLinksModel.Facebook = result.Facebook;
+                        checkSocialBox.SocialLinksModel.Instegram = result.Instagram;
+                        checkSocialBox.SocialLinksModel.Twitter = result.Twitter;
+                        checkSocialBox.SocialLinksModel.Google = result.Google;
+                        checkSocialBox.SocialLinksModel.Vk = result.Vk;
+                        checkSocialBox.SocialLinksModel.Youtube = result.Youtube;
+                        break;
                 }
                  
                 //TxtUsername.Text = result.Name;
@@ -694,27 +739,40 @@ namespace WoWonder.Activities.UserProfile
                 var textHighLighter = result.Name;
                 var textIsPro = string.Empty;
                  
-                if (result.Verified == "1")
-                    textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
-
-                if (result.IsPro == "1")
+                switch (result.Verified)
                 {
-                    textIsPro = " " + IonIconsFonts.Flash;
-                    textHighLighter += textIsPro;
+                    case "1":
+                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
+                        break;
+                }
+
+                switch (result.IsPro)
+                {
+                    case "1":
+                        textIsPro = " " + IonIconsFonts.Flash;
+                        textHighLighter += textIsPro;
+                        break;
                 }
 
                 var decorator = TextDecorator.Decorate(TxtUsername, textHighLighter);
 
-                if (result.Verified == "1")
-                    decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                switch (result.Verified)
+                {
+                    case "1":
+                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                        break;
+                }
                  
                 decorator.SetTextColor(Resource.Color.gnt_white, textIsPro);
 
                 decorator.Build();
 
                 var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(result.LastseenUnixTime), result.LastseenStatus);
-                if (online)
-                    OnlineView.Visibility = ViewStates.Visible;
+                OnlineView.Visibility = online switch
+                {
+                    true => ViewStates.Visible,
+                    _ => OnlineView.Visibility
+                };
 
                 if (result.UserId == UserDetails.UserId)
                     BtnAddUser.Visibility = ViewStates.Gone;
@@ -729,29 +787,34 @@ namespace WoWonder.Activities.UserProfile
 
                 SetProfilePrivacy(result);
 
-                if (AppSettings.ShowUserPoint)
-                    TxtCountPoints.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Points));
-
-                // Following
-                if (AppSettings.ConnectivitySystem == 1)
+                TxtCountPoints.Text = AppSettings.ShowUserPoint switch
                 {
-                    TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
-                    TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
+                    true => Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Points)),
+                    _ => TxtCountPoints.Text
+                };
 
-                    TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
-                    TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowingCount));
-
-                    LayoutCountFollowing.Tag = "Following";
-                }
-                else // Friend
+                switch (AppSettings.ConnectivitySystem)
                 {
-                    TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
-                    TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+                    // Following
+                    case 1:
+                        TxtFollowers.Text = GetText(Resource.String.Lbl_Followers);
+                        TxtFollowing.Text = GetText(Resource.String.Lbl_Following);
 
-                    TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
-                    TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.PostCount));
+                        TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
+                        TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowingCount));
 
-                    LayoutCountFollowing.Tag = "Post";
+                        LayoutCountFollowing.Tag = "Following";
+                        break;
+                    // Friend
+                    default:
+                        TxtFollowers.Text = GetText(Resource.String.Lbl_Friends);
+                        TxtFollowing.Text = GetText(Resource.String.Lbl_Post);
+
+                        TxtCountFollowers.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.FollowersCount));
+                        TxtCountFollowing.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(result.Details.DetailsClass.PostCount));
+
+                        LayoutCountFollowing.Tag = "Post";
+                        break;
                 }
 
                 WoWonderTools.GetFile("", Methods.Path.FolderDiskImage, result.Cover.Split('/').Last(), result.Cover);
@@ -852,50 +915,35 @@ namespace WoWonder.Activities.UserProfile
 
                 SetAddFriendCondition();
 
-                switch (SPrivacyFollow)
+                BtnAddUser.Visibility = SPrivacyFollow switch
                 {
                     // Everyone
-                    case "0":
-                        BtnAddUser.Visibility = ViewStates.Visible;
-                        break;
+                    "0" => ViewStates.Visible,
                     // People i Follow
-                    case "1":
-                        if (result.IsFollowingMe == "0" && result.IsFollowing == "0")
-                            BtnAddUser.Visibility = ViewStates.Gone;
-                        else
-                            BtnAddUser.Visibility = result.IsFollowingMe == "0" ? ViewStates.Visible : ViewStates.Gone;
-                        break;
-                    //Nobody
-                    default:
-                        BtnAddUser.Visibility = ViewStates.Gone;
-                        break;
-                }
+                    "1" => result.IsFollowingMe switch
+                    {
+                        "0" when result.IsFollowing == "0" => ViewStates.Gone,
+                        _ => result.IsFollowingMe == "0" ? ViewStates.Visible : ViewStates.Gone
+                    },
+                    _ => ViewStates.Gone
+                };
 
-                if (AppSettings.MessengerIntegration)
+                BtnMessage.Visibility = AppSettings.MessengerIntegration switch
                 {
-                    switch (SPrivacyMessage)
+                    true => SPrivacyMessage switch
                     {
                         // Everyone
-                        case "0":
-                            BtnMessage.Visibility = ViewStates.Visible;
-                            break;
+                        "0" => ViewStates.Visible,
                         // People i Follow
-                        case "1":
-                            if (result.IsFollowingMe == "0" && result.IsFollowing == "0")
-                                BtnMessage.Visibility = ViewStates.Gone;
-                            else
-                                BtnMessage.Visibility = result.IsFollowingMe == "0" ? ViewStates.Visible : ViewStates.Gone;
-                            break;
-                        //Nobody
-                        default:
-                            BtnMessage.Visibility = ViewStates.Gone;
-                            break;
-                    }
-                }
-                else
-                {
-                    BtnMessage.Visibility = ViewStates.Gone;
-                }
+                        "1" => result.IsFollowingMe switch
+                        {
+                            "0" when result.IsFollowing == "0" => ViewStates.Gone,
+                            _ => result.IsFollowingMe == "0" ? ViewStates.Visible : ViewStates.Gone
+                        },
+                        _ => ViewStates.Gone
+                    },
+                    _ => ViewStates.Gone
+                };
             }
             catch (Exception e)
             {
@@ -907,23 +955,27 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                var followersClass = new FollowersModelClass
+                if (followers?.Count > 0)
                 {
-                    TitleHead = GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Following : Resource.String.Lbl_Friends), FollowersList = new List<UserDataObject>(followers.Take(12)),
-                    More = friendsCounter
-                };
-                 
-                var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
-                if (check != null)
-                {
-                    check.FollowersModel = followersClass;
-                    //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
-                }
-                else
-                {
-                    Combiner.FollowersBoxPostView(followersClass, 4);
-                    //PostFeedAdapter.NotifyItemInserted(1);
-                }
+                    var followersClass = new FollowersModelClass
+                    {
+                        TitleHead = GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Following : Resource.String.Lbl_Friends),
+                        FollowersList = new List<UserDataObject>(followers.Take(12)),
+                        More = friendsCounter
+                    };
+
+                    var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
+                    if (check != null)
+                    {
+                        check.FollowersModel = followersClass;
+                        //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
+                    }
+                    else
+                    {
+                        Combiner.FollowersBoxPostView(followersClass, 4);
+                        //PostFeedAdapter.NotifyItemInserted(1);
+                    }
+                }  
             }
             catch (Exception e)
             {
@@ -935,28 +987,31 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                var imagesClass = new ImagesModelClass
+                if (images?.Count > 0)
                 {
-                    TitleHead = GetText(Resource.String.Lbl_Profile_Picture),
-                    ImagesList = images,
-                    More = images.Count.ToString()
-                };
-                
-                var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.ImagesBox);
-                if (check != null)
-                {
-                    check.ImagesModel = imagesClass;
-                    //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
-                }
-                else
-                {
-                    Combiner.ImagesBoxPostView(imagesClass, 4); 
-                    //PostFeedAdapter.NotifyItemInserted(1);
-                }
+                    var imagesClass = new ImagesModelClass
+                    {
+                        TitleHead = GetText(Resource.String.Lbl_Profile_Picture),
+                        ImagesList = images,
+                        More = images.Count.ToString()
+                    };
 
-                RunOnUiThread(() => { PostFeedAdapter.NotifyDataSetChanged(); });
-                //------------------------------------------------------------------------ 
-                Console.WriteLine(imagesCounter);
+                    var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.ImagesBox);
+                    if (check != null)
+                    {
+                        check.ImagesModel = imagesClass;
+                        //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
+                    }
+                    else
+                    {
+                        Combiner.ImagesBoxPostView(imagesClass, 4);
+                        //PostFeedAdapter.NotifyItemInserted(1);
+                    }
+
+                    RunOnUiThread(() => { PostFeedAdapter.NotifyDataSetChanged(); });
+                    //------------------------------------------------------------------------ 
+                    Console.WriteLine(imagesCounter);
+                } 
             }
             catch (Exception e)
             {
@@ -968,24 +1023,33 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                var checkNull = pages.Where(a =>  string.IsNullOrEmpty(a.PageId)).ToList();
-                if (checkNull.Count > 0)
-                    foreach (var item in checkNull)
-                        pages.Remove(item);
+                if (pages?.Count > 0)
+                {
+                    var checkNull = pages.Where(a => string.IsNullOrEmpty(a.PageId)).ToList();
+                    switch (checkNull.Count)
+                    {
+                        case > 0:
+                        {
+                            foreach (var item in checkNull)
+                                pages.Remove(item);
+                            break;
+                        }
+                    }
 
-                var pagesClass = new PagesModelClass { PagesList = new List<PageClass>(pages) };
-                 
-                var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.PagesBox);
-                if (check != null)
-                {
-                    check.PagesModel = pagesClass;
-                    //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
-                }
-                else
-                {
-                    Combiner.PagesBoxPostView(pagesClass, 4);
-                    //PostFeedAdapter.NotifyItemInserted(1);
-                }
+                    var pagesClass = new PagesModelClass { PagesList = new List<PageClass>(pages) };
+
+                    var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.PagesBox);
+                    if (check != null)
+                    {
+                        check.PagesModel = pagesClass;
+                        //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
+                    }
+                    else
+                    {
+                        Combiner.PagesBoxPostView(pagesClass, 4);
+                        //PostFeedAdapter.NotifyItemInserted(1);
+                    }
+                } 
             }
             catch (Exception e)
             {
@@ -997,28 +1061,28 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                if (groups != null && groups?.Count == 0)
-                    return;
+                if (groups?.Count > 0)
+                {
+                    var groupsClass = new GroupsModelClass
+                    {
+                        TitleHead = GetText(Resource.String.Lbl_Groups),
+                        GroupsList = new List<GroupClass>(groups.Take(12)),
+                        More = groupsCounter,
+                        UserProfileId = SUserId
+                    };
 
-                var groupsClass = new GroupsModelClass
-                {
-                    TitleHead = GetText(Resource.String.Lbl_Groups),
-                    GroupsList = new List<GroupClass>(groups.Take(12)),
-                    More = groupsCounter,
-                    UserProfileId = SUserId
-                };
-                 
-                var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.GroupsBox);
-                if (check != null)
-                {
-                    check.GroupsModel = groupsClass;
-                    //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
-                }
-                else
-                {
-                    Combiner.GroupsBoxPostView(groupsClass, 4);
-                    //PostFeedAdapter.NotifyItemInserted(1);
-                }
+                    var check = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.GroupsBox);
+                    if (check != null)
+                    {
+                        check.GroupsModel = groupsClass;
+                        //PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.IndexOf(check) + 1);
+                    }
+                    else
+                    {
+                        Combiner.GroupsBoxPostView(groupsClass, 4);
+                        //PostFeedAdapter.NotifyItemInserted(1);
+                    } 
+                } 
             }
             catch (Exception e)
             {
@@ -1126,14 +1190,26 @@ namespace WoWonder.Activities.UserProfile
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Share));
                 //arrayAdapter.Add(GetText(Resource.String.Lbl_ReportThisUser)); //wael add in new version
 
-                if (AppSettings.ShowPokes)
-                    arrayAdapter.Add(IsPoked ? GetText(Resource.String.Lbl_Poked) : GetText(Resource.String.Lbl_Poke));
+                switch (AppSettings.ShowPokes)
+                {
+                    case true:
+                        arrayAdapter.Add(IsPoked ? GetText(Resource.String.Lbl_Poked) : GetText(Resource.String.Lbl_Poke));
+                        break;
+                }
 
-                if (!IsFamily && AppSettings.ShowAddToFamily)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_AddToFamily));
+                switch (IsFamily)
+                {
+                    case false when AppSettings.ShowAddToFamily:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_AddToFamily));
+                        break;
+                }
                  
-                if (AppSettings.ShowGift && ListUtils.GiftsList.Count > 0)
-                    arrayAdapter.Add(GetText(Resource.String.Lbl_SentGift));
+                switch (AppSettings.ShowGift)
+                {
+                    case true when ListUtils.GiftsList.Count > 0:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_SentGift));
+                        break;
+                }
 
                 dialogList.Title(Resource.String.Lbl_More);
                 dialogList.Items(arrayAdapter);
@@ -1152,9 +1228,9 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                if (AppSettings.MessengerIntegration)
+                switch (AppSettings.MessengerIntegration)
                 {
-                    if (AppSettings.ShowDialogAskOpenMessenger)
+                    case true when AppSettings.ShowDialogAskOpenMessenger:
                     {
                         var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
@@ -1178,15 +1254,15 @@ namespace WoWonder.Activities.UserProfile
                         dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
                         dialog.AlwaysCallSingleChoiceCallback();
                         dialog.Build().Show();
+                        break;
                     }
-                    else
-                    {
+                    case true:
                         Intent intent = new Intent(this, typeof(ChatWindowActivity));
                         intent.PutExtra("UserID", UserData.UserId);
                         intent.PutExtra("TypeChat", "User");
                         intent.PutExtra("UserItem", JsonConvert.SerializeObject(UserData));
                         StartActivity(intent);
-                    }
+                        break;
                 }
             }
             catch (Exception e)
@@ -1233,7 +1309,7 @@ namespace WoWonder.Activities.UserProfile
                     SetAddFriendCondition();
                      
                     var (apiStatus, respond) = await RequestsAsync.Global.Follow_User(SUserId).ConfigureAwait(false); 
-                    if (apiStatus != 200 || (respond is not FollowUserObject result) || result.FollowStatus == null)
+                    if (apiStatus != 200 || respond is not FollowUserObject result || result.FollowStatus == null)
                     {
                         Methods.DisplayReportResult(this, respond);
                     }
@@ -1305,12 +1381,16 @@ namespace WoWonder.Activities.UserProfile
             {
                 if (SPrivacyFriend == "0" || UserData?.IsFollowing == "1" && SPrivacyFriend == "1" || SPrivacyFriend == "2")
                 {
-                    if (LayoutCountFollowing?.Tag?.ToString() == "Following")
+                    switch (LayoutCountFollowing?.Tag?.ToString())
                     {
-                        var intent = new Intent(this, typeof(MyContactsActivity));
-                        intent.PutExtra("ContactsType", "Following");
-                        intent.PutExtra("UserId", SUserId);
-                        StartActivity(intent);
+                        case "Following":
+                        {
+                            var intent = new Intent(this, typeof(MyContactsActivity));
+                            intent.PutExtra("ContactsType", "Following");
+                            intent.PutExtra("UserId", SUserId);
+                            StartActivity(intent);
+                            break;
+                        }
                     }
                 } 
             }
@@ -1363,17 +1443,21 @@ namespace WoWonder.Activities.UserProfile
                 }
                 else if (text == GetText(Resource.String.Lbl_AddToFamily))
                 {
-                    if (ListUtils.FamilyList.Count > 0)
+                    switch (ListUtils.FamilyList.Count)
                     {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        case > 0:
+                        {
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
 
-                        var arrayAdapter = ListUtils.FamilyList.Select(item => item.FamilyName.Replace("_", " ")).ToList();
+                            var arrayAdapter = ListUtils.FamilyList.Select(item => item.FamilyName.Replace("_", " ")).ToList();
 
-                        dialogList.Title(GetText(Resource.String.Lbl_AddToFamily));
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                            dialogList.Title(GetText(Resource.String.Lbl_AddToFamily));
+                            dialogList.Items(arrayAdapter);
+                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
+                            dialogList.AlwaysCallSingleChoiceCallback();
+                            dialogList.ItemsCallback(this).Build().Show();
+                            break;
+                        }
                     }
                 }
                 else if (text == GetText(Resource.String.Lbl_SentGift))
@@ -1383,11 +1467,13 @@ namespace WoWonder.Activities.UserProfile
                 else
                 {
                     var familyId = ListUtils.FamilyList.FirstOrDefault(a => a.FamilyName == itemString.ToString())?.FamilyId;
-                    if (!string.IsNullOrEmpty(familyId))
+                    switch (string.IsNullOrEmpty(familyId))
                     {
-                        IsFamily = true;
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Short)?.Show();
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.AddToFamilyAsync(SUserId, familyId) });
+                        case false:
+                            IsFamily = true;
+                            Toast.MakeText(this, GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Short)?.Show();
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.AddToFamilyAsync(SUserId, familyId) });
+                            break;
                     }
                 }
             }
@@ -1427,18 +1513,24 @@ namespace WoWonder.Activities.UserProfile
                 else
                 {
                     var (apiStatus, respond) = await RequestsAsync.Global.Block_User(SUserId, true); //true >> "block"
-                    if (apiStatus == 200)
+                    switch (apiStatus)
                     {
-                        var dbDatabase = new SqLiteDatabase();
-                        dbDatabase.Insert_Or_Replace_OR_Delete_UsersContact(UserData, "Delete");
+                        case 200:
+                        {
+                            var dbDatabase = new SqLiteDatabase();
+                            dbDatabase.Insert_Or_Replace_OR_Delete_UsersContact(UserData, "Delete");
                         
 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_Blocked_successfully), ToastLength.Short)?.Show();
+                            Toast.MakeText(this, GetString(Resource.String.Lbl_Blocked_successfully), ToastLength.Short)?.Show();
 
-                        OverridePendingTransition(Resource.Animation.slide_out_left, Resource.Animation.slide_out_left);
-                        Finish();
+                            OverridePendingTransition(Resource.Animation.slide_out_left, Resource.Animation.slide_out_left);
+                            Finish();
+                            break;
+                        }
+                        default:
+                            Methods.DisplayReportResult(this, respond);
+                            break;
                     }
-                    else Methods.DisplayReportResult(this, respond);
                 }
             }
             catch (Exception e)
@@ -1465,15 +1557,20 @@ namespace WoWonder.Activities.UserProfile
         {
             try
             {
-                //Share Plugin same as video
-                if (!CrossShare.IsSupported) return;
-
-                await CrossShare.Current.Share(new ShareMessage
+                switch (CrossShare.IsSupported)
                 {
-                    Title = UserDetails.Username,
-                    Text = "",
-                    Url = SUrlUser
-                });
+                    //Share Plugin same as video
+                    case false:
+                        return;
+                    default:
+                        await CrossShare.Current.Share(new ShareMessage
+                        {
+                            Title = UserDetails.Username,
+                            Text = "",
+                            Url = SUrlUser
+                        });
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -1498,7 +1595,11 @@ namespace WoWonder.Activities.UserProfile
                 {
                     try
                     {
-                        if (s.Length <= 0) return;
+                        switch (s.Length)
+                        {
+                            case <= 0:
+                                return;
+                        }
                         var text = s.ToString();
                         //wael add remove with report_status
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.ReportUser(SUserId, text) });
@@ -1561,7 +1662,7 @@ namespace WoWonder.Activities.UserProfile
 
         #endregion
 
-        #region Result
+        #region Permissions && Result
 
         //Result
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -1619,36 +1720,50 @@ namespace WoWonder.Activities.UserProfile
                         var postText = data.GetStringExtra("PostText") ?? "";
                         var diff = PostFeedAdapter.ListDiffer;
                         List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
-                        if (dataGlobal.Count > 0)
+                        switch (dataGlobal.Count)
                         {
-                            foreach (var postData in dataGlobal)
+                            case > 0:
                             {
-                                postData.PostData.Orginaltext = postText;
-                                var index = diff.IndexOf(postData);
-                                if (index > -1)
+                                foreach (var postData in dataGlobal)
                                 {
-                                    PostFeedAdapter.NotifyItemChanged(index);
+                                    postData.PostData.Orginaltext = postText;
+                                    var index = diff.IndexOf(postData);
+                                    switch (index)
+                                    {
+                                        case > -1:
+                                            PostFeedAdapter.NotifyItemChanged(index);
+                                            break;
+                                    }
                                 }
-                            }
 
-                            var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
-                            if (checkTextSection == null)
-                            {
-                                var collection = dataGlobal.FirstOrDefault()?.PostData;
-                                var item = new AdapterModelsClass
+                                var checkTextSection = dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.TextSectionPostPart);
+                                switch (checkTextSection)
                                 {
-                                    TypeView = PostModelType.TextSectionPostPart,
-                                    Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
-                                    PostData = collection,
-                                    IsDefaultFeedPost = true
-                                };
+                                    case null:
+                                    {
+                                        var collection = dataGlobal.FirstOrDefault()?.PostData;
+                                        var item = new AdapterModelsClass
+                                        {
+                                            TypeView = PostModelType.TextSectionPostPart,
+                                            Id = Convert.ToInt32((int)PostModelType.TextSectionPostPart + collection?.Id),
+                                            PostData = collection,
+                                            IsDefaultFeedPost = true
+                                        };
 
-                                var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
-                                if (headerPostIndex > -1)
-                                {
-                                    diff.Insert(headerPostIndex + 1, item);
-                                    PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                        var headerPostIndex = diff.IndexOf(dataGlobal.FirstOrDefault(w => w.TypeView == PostModelType.HeaderPost));
+                                        switch (headerPostIndex)
+                                        {
+                                            case > -1:
+                                                diff.Insert(headerPostIndex + 1, item);
+                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                break;
+                                        }
+
+                                        break;
+                                    }
                                 }
+
+                                break;
                             }
                         }
 
@@ -1663,26 +1778,58 @@ namespace WoWonder.Activities.UserProfile
                         {
                             var diff = PostFeedAdapter.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
-                            if (dataGlobal.Count > 0)
+                            switch (dataGlobal.Count)
                             {
-                                foreach (var postData in dataGlobal)
+                                case > 0:
                                 {
-                                    var index = diff.IndexOf(postData);
-                                    if (index > -1)
+                                    foreach (var postData in dataGlobal)
                                     {
-                                        var productUnion = postData.PostData.Product?.ProductClass;
-                                        if (productUnion != null) productUnion.Id = item.Id;
-                                        productUnion = item;
-                                        Console.WriteLine(productUnion);
+                                        var index = diff.IndexOf(postData);
+                                        switch (index)
+                                        {
+                                            case > -1:
+                                            {
+                                                var productUnion = postData.PostData.Product?.ProductClass;
+                                                if (productUnion != null) productUnion.Id = item.Id;
+                                                productUnion = item;
+                                                Console.WriteLine(productUnion);
 
-                                        PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    break;
                                 }
                             }
                         }
 
                         break;
                     }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        //Permissions
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+        {
+            try
+            {
+                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+                switch (requestCode)
+                { 
+                    case 235 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        new LiveUtil(this).OpenDialogLive();
+                        break;
+                    case 235:
+                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        break;
                 }
             }
             catch (Exception e)
@@ -1706,16 +1853,21 @@ namespace WoWonder.Activities.UserProfile
                 var sqlEntity = new SqLiteDatabase(); 
                 var listGifts = sqlEntity.GetGiftsList();
 
-                if (ListUtils.GiftsList.Count > 0 && listGifts?.Count > 0)
-                    ListUtils.GiftsList = listGifts;
-                 
+                ListUtils.GiftsList = ListUtils.GiftsList.Count switch
+                {
+                    > 0 when listGifts?.Count > 0 => listGifts,
+                    _ => ListUtils.GiftsList
+                };
+
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiRequest.GetGifts });
 
                 
                  
-                if (!string.IsNullOrEmpty(GifLink))
+                switch (string.IsNullOrEmpty(GifLink))
                 {
-                    OpenGifLink(GifLink);
+                    case false:
+                        OpenGifLink(GifLink);
+                        break;
                 } 
             }
             catch (Exception e)
@@ -1734,8 +1886,8 @@ namespace WoWonder.Activities.UserProfile
                 .NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog())
                 .Build();
                  
-                var Image = dialog.CustomView.FindViewById<ImageView>(Resource.Id.Image); 
-                GlideImageLoader.LoadImage(this, imageGifLink, Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                var image = dialog.CustomView.FindViewById<ImageView>(Resource.Id.Image); 
+                GlideImageLoader.LoadImage(this, imageGifLink, image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
                   
                 dialog.Show();
             }
@@ -1748,34 +1900,39 @@ namespace WoWonder.Activities.UserProfile
         private async void GetDataUserByName()
         {
             try
-            { 
+            {
                 var (apiStatus, respond) = await RequestsAsync.Global.GetUserDataByUsername(SUserName);
-                if (apiStatus == 200)
+                switch (apiStatus)
                 {
-                    if (respond is GetUserDataByUsernameObject result)
+                    case 200:
                     {
-                        if (result.UserData != null)
+                        switch (respond)
                         {
-                            UserData = result.UserData;
+                            case GetUserDataByUsernameObject {UserData: { }} result:
+                                UserData = result.UserData;
 
-                            SUserId = UserData.UserId;
+                                SUserId = UserData.UserId;
 
-                            SetRecyclerViewAdapters();
+                                SetRecyclerViewAdapters();
 
-                            LoadPassedDate(UserData);
+                                LoadPassedDate(UserData);
 
-                            StartApiService();
+                                StartApiService();
+                                break;
+                            case GetUserDataByUsernameObject result:
+                                Toast.MakeText(this, GetText(Resource.String.Lbl_NotHaveThisUser), ToastLength.Short)?.Show();
+
+                                OverridePendingTransition(Resource.Animation.slide_out_left, Resource.Animation.slide_out_left);
+                                Finish();
+                                break;
                         }
-                        else
-                        {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_NotHaveThisUser), ToastLength.Short)?.Show();
 
-                            OverridePendingTransition(Resource.Animation.slide_out_left, Resource.Animation.slide_out_left);
-                            Finish();
-                        }
+                        break;
                     }
+                    default:
+                        Methods.DisplayReportResult(this, respond);
+                        break;
                 }
-                else Methods.DisplayReportResult(this, respond);
             }
             catch (Exception e)
             {
