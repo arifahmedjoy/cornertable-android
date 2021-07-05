@@ -56,7 +56,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                 GroupId = Intent?.GetStringExtra("GroupId");
 
                 if (!string.IsNullOrEmpty(Intent?.GetStringExtra("itemObject")))
-                    GroupDataClass = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("itemObject"));
+                    GroupDataClass = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("itemObject") ?? "");
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -338,14 +338,13 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                     //If its from Camera or Gallery
                     case 2019 when resultCode == Result.Ok:
                     {
-                        var manged = GroupsActivity.GetInstance().MAdapter.SocialList.FirstOrDefault(a => a.TypeView == SocialModelType.MangedGroups);
-                        var dataListGroup = manged?.MangedGroupsModel.GroupsList?.FirstOrDefault(a => a.GroupId == GroupId);
-                        if (dataListGroup != null)
+                        var manged = GroupsActivity.GetInstance()?.MAdapter?.SocialList?.FirstOrDefault(a => a.Group?.GroupId == GroupId && a.TypeView == SocialModelType.MangedGroups);
+                        if (manged?.Group != null)
                         {
-                            manged.MangedGroupsModel.GroupsList.Remove(dataListGroup);
+                            GroupsActivity.GetInstance().MAdapter.SocialList.Remove(manged);
                             GroupsActivity.GetInstance().MAdapter.NotifyDataSetChanged();
 
-                            ListUtils.MyGroupList.Remove(dataListGroup); 
+                            ListUtils.MyGroupList.Remove(manged?.Group); 
                         }
                         Intent returnIntent = new Intent();
                         SetResult(Result.Ok, returnIntent);
@@ -357,7 +356,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                         var groupItem = data.GetStringExtra("groupItem") ?? "";
                         if (string.IsNullOrEmpty(groupItem))
                         {
-                            GroupDataClass = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("groupItem"));
+                            GroupDataClass = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("groupItem") ?? "");
                             GroupProfileActivity.GroupDataClass = GroupDataClass;
                         }
 

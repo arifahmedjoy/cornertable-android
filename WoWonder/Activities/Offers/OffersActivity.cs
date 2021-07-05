@@ -72,7 +72,10 @@ namespace WoWonder.Activities.Offers
 
                 StartApiService();
 
-                RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                if (AppSettings.ShowFbRewardVideoAds)
+                    RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                else
+                    AdsColony.Ad_Rewarded(this);
             }
             catch (Exception e)
             {
@@ -224,6 +227,7 @@ namespace WoWonder.Activities.Offers
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
+                //MRecycler.AddItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.Vertical));
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<OffersDataObject>(this, MAdapter, sizeProvider, 10);
@@ -346,7 +350,7 @@ namespace WoWonder.Activities.Offers
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadOffers(offset) });
         }
@@ -394,7 +398,7 @@ namespace WoWonder.Activities.Offers
                                         switch (MAdapter.OffersList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreOffers), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreOffers), ToastLength.Short);
                                                 break;
                                         }
 
@@ -429,7 +433,7 @@ namespace WoWonder.Activities.Offers
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -15,7 +15,6 @@ using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Adapters;
@@ -374,7 +373,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     {
                         DialogType = "SubCategories";
 
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         var arrayAdapter = new List<string>();
 
@@ -415,7 +414,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     {
                         DialogType = "Categories";
 
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
 
@@ -443,24 +442,24 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtTitle.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short);
                         return;
                     }
                     if (string.IsNullOrEmpty(TxtUrl.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtCategories.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_category), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_category), ToastLength.Short);
                         return;
                     }
 
@@ -509,7 +508,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
                                     PageProfileActivity.PageData = PageData;
                           
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short);
                               
                                     Intent returnIntent = new Intent();
                                     returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
@@ -538,7 +537,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
@@ -546,7 +545,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 {
                     case "Categories":
                     {
-                        var category = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString());
+                        var category = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesName == itemString);
                         if (category != null)
                         {
                             CategoryId = category.CategoriesId;
@@ -564,17 +563,17 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                                     break;
                             }
                         }
-                        TxtCategories.Text = itemString.ToString();
+                        TxtCategories.Text = itemString;
                         break;
                     }
                     case "SubCategories":
                     {
-                        var category = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.LangKey == itemString.ToString());
+                        var category = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.LangKey == itemString);
                         if (category != null)
                         {
                             SubCategoryId = category.CategoryId;
                         }
-                        TxtSubCategories.Text = itemString.ToString();
+                        TxtSubCategories.Text = itemString;
                         break;
                     }
                 }
@@ -610,7 +609,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData"));
+                PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData") ?? "");
                 if (PageData != null)
                 {
                     TxtTitle.Text = PageData.PageTitle;
@@ -654,7 +653,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     switch (ListUtils.SettingsSiteList?.PageCustomFields?.Count)
                     {
                         case > 0:
-                            MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList.PageCustomFields);
+                            MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList?.PageCustomFields);
                             MAdapter.NotifyDataSetChanged();
 
                             MRecycler.Visibility = ViewStates.Visible;

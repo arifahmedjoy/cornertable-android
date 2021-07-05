@@ -68,6 +68,16 @@
             android:layout_gravity="center"
             android:layout_alignParentBottom="true"
             android:layout_marginTop="10dp" />
+         
+        <WoWonder.Library.Anjo.Call.CallAnswerDeclineButton
+          android:id="@+id/answer_decline_button"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_alignParentBottom="true"
+          android:layout_gravity="bottom|center"
+          android:layout_margin="16dp"
+          android:gravity="center" />
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -75,7 +85,7 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:gravity="fill_horizontal">
-       
+        
         <at.markushi.ui.CircleButton
             android:id="@+id/end_call_button"
             android:layout_width="75dp"
@@ -117,4 +127,5 @@
             app:cb_pressedRingWidth="6dp"
             android:layout_weight="2" />
     </LinearLayout>
+ 
 </RelativeLayout>

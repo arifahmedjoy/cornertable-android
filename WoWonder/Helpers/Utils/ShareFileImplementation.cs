@@ -26,7 +26,7 @@ namespace WoWonder.Helpers.Utils
         /// <param name="textImage"></param>
         /// <param name="title">Title of popup on share (not included in message)</param>
         /// <returns>awaitable Task</returns>
-        public static void ShareLocalFile(Uri localFilePath, string textImage , string title)
+        public static void ShareLocalFile(string postUrl, Uri localFilePath, string textImage , string title)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace WoWonder.Helpers.Utils
                 intent.SetAction(Intent.ActionSend);
                 intent.SetType("*/*");
                 intent.PutExtra(Intent.ExtraStream, localFilePath);
-                intent.PutExtra(Intent.ExtraText, textImage);
+                intent.PutExtra(Intent.ExtraText, postUrl);
                 intent.AddFlags(ActivityFlags.GrantReadUriPermission);
 
                 var chooserIntent = Intent.CreateChooser(intent, title);
@@ -101,11 +101,11 @@ namespace WoWonder.Helpers.Utils
         /// <param name="fileName">name of the file</param>
         /// <param name="title">Title of popup on share (not included in message)</param>
         /// <returns>awaitable bool</returns>
-        public static async Task ShareRemoteFile(string fileUri, string fileName, string title = "")
+        public static async Task ShareRemoteFile(string postUrl, string fileUri, string fileName, string title)
         {
             try
             {
-                Download(fileUri, fileName, title);
+                Download(postUrl,fileUri, fileName, title);
                 await Task.Delay(0);
             }
             catch (Exception ex)
@@ -114,7 +114,7 @@ namespace WoWonder.Helpers.Utils
             }
         }
 
-        public static void Download(string imageUrl, string fileName, string title = "")
+        public static void Download(string postUrl, string imageUrl, string fileName, string title)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace WoWonder.Helpers.Utils
                         {
                             Java.IO.File file2 = new Java.IO.File(getImage);
                             photoUri = FileProvider.GetUriForFile(Activity, Activity.PackageName + ".fileprovider", file2);
-                            ShareLocalFile(photoUri, imageUrl, title);
+                            ShareLocalFile(postUrl,photoUri, imageUrl, title);
                         }
                         else
                         { 
@@ -159,7 +159,7 @@ namespace WoWonder.Helpers.Utils
                                             Java.IO.File file2 = new Java.IO.File(getImagePath);
 
                                             photoUri = FileProvider.GetUriForFile(Activity, Activity.PackageName + ".fileprovider", file2);
-                                            ShareLocalFile(photoUri, imageUrl, title);
+                                            ShareLocalFile(postUrl, photoUri, imageUrl, title);
                                         }
                                     }
                                     catch (Exception exception)

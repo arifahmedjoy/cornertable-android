@@ -220,9 +220,9 @@ namespace WoWonder.Activities.Communities.Adapters
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, ButtonMore, FontAwesomeIcon.UserPlus);
                 
                 //Event
-                ButtonMore.Click += (sender, e) => moreClickListener(new InviteMembersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new InviteMembersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new InviteMembersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                ButtonMore.Click += (sender, e) => moreClickListener(new InviteMembersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new InviteMembersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new InviteMembersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

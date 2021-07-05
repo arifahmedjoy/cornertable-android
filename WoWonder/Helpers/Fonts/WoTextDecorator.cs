@@ -135,7 +135,7 @@ namespace WoWonder.Helpers.Fonts
 
         //        if (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName != null && item.SharedInfo.SharedInfoClass == null)
         //        {
-        //            textAlbumName = " " + mainContext.GetText(Resource.String.Lbl_addedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName);
+        //            textAlbumName = " " + mainContext.GetText(Resource.String.Lbl_AddedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName);
         //            textHighLighter += textAlbumName;
         //        }
 
@@ -292,34 +292,20 @@ namespace WoWonder.Helpers.Fonts
 
                 UserDataObject publisher = item.Publisher ?? item.UserData;
 
-                var username = Methods.FunString.DecodeString(WoWonderTools.GetNameFinal(publisher));
+                var username = WoWonderTools.GetNameFinal(publisher);
                 var textHighLighter = username;
-                string textEvent;
-                string textImageChange = string.Empty, textShare = string.Empty;
 
-                switch (publisher.Verified)
-                {
-                    case "1":
-                        textHighLighter += " " + "[img src=icon_checkmark_small_vector/]";
-                        break;
-                } 
+                if (publisher.Verified == "1") 
+                    textHighLighter += "  " + "[img src=icon_checkmark_small_vector/]";
 
-                switch (publisher.IsPro)
-                {
-                    case "1":
-                    {
-                        var textIsPro = " " + "[img src=post_icon_flash/]";
-                        textHighLighter += textIsPro;
-                        break;
-                    }
-                }
+                if (publisher.IsPro == "1")
+                    textHighLighter += "  " + "[img src=post_icon_flash/]";
 
                 switch (string.IsNullOrEmpty(item.PostFeeling))
                 {
                     case false when item.SharedInfo.SharedInfoClass == null:
                     {
-                        var textFeelings = " " + mainContext.GetString(Resource.String.Lbl_IsFeeling) + " " + PostFunctions.GetFeelingTypeIcon(item.PostFeeling) + " " + PostFunctions.GetFeelingTypeTextString(item.PostFeeling, mainContext);
-                        textHighLighter += textFeelings;
+                        textHighLighter += " " + mainContext.GetString(Resource.String.Lbl_IsFeeling) + " " + PostFunctions.GetFeelingTypeIcon(item.PostFeeling) + " " + PostFunctions.GetFeelingTypeTextString(item.PostFeeling, mainContext);
                         break;
                     }
                 }
@@ -328,8 +314,7 @@ namespace WoWonder.Helpers.Fonts
                 {
                     case false:
                     {
-                        var textTraveling = "  " + "[img src=post_icon_airplane/]" + " " + mainContext.GetText(Resource.String.Lbl_IsTravelingTo) + " " + item.PostTraveling;
-                        textHighLighter += textTraveling;
+                        textHighLighter += "  " + "[img src=post_icon_airplane/]" + " " + mainContext.GetText(Resource.String.Lbl_IsTravelingTo) + " " + item.PostTraveling;
                         break;
                     }
                 }
@@ -338,8 +323,7 @@ namespace WoWonder.Helpers.Fonts
                 {
                     case false:
                     {
-                        var textWatching = "  " + "[img src=post_icon_eye/]" + " " + mainContext.GetText(Resource.String.Lbl_IsWatching) + " " + item.PostWatching;
-                        textHighLighter += textWatching;
+                        textHighLighter += "  " + "[img src=post_icon_eye/]" + " " + mainContext.GetText(Resource.String.Lbl_IsWatching) + " " + item.PostWatching;
                         break;
                     }
                 }
@@ -348,8 +332,7 @@ namespace WoWonder.Helpers.Fonts
                 {
                     case false:
                     {
-                        var textPlaying = "  " + "[img src=post_icon_game_controller_b/]" + " " + mainContext.GetText(Resource.String.Lbl_IsPlaying) + " " + item.PostPlaying;
-                        textHighLighter += textPlaying;
+                        textHighLighter += "  " + "[img src=post_icon_game_controller_b/]" + " " + mainContext.GetText(Resource.String.Lbl_IsPlaying) + " " + item.PostPlaying;
                         break;
                     }
                 }
@@ -358,8 +341,7 @@ namespace WoWonder.Helpers.Fonts
                 {
                     case false:
                     {
-                        var textListening = "  " + "[img src=post_icon_musical_notes/]" + " " + mainContext.GetText(Resource.String.Lbl_IsListeningTo) + " " + item.PostListening;
-                        textHighLighter += textListening;
+                        textHighLighter += "  " + "[img src=post_icon_musical_notes/]" + " " + mainContext.GetText(Resource.String.Lbl_IsListeningTo) + " " + item.PostListening;
                         break;
                     }
                 }
@@ -368,8 +350,7 @@ namespace WoWonder.Helpers.Fonts
                 {
                     case false:
                     {
-                        var textLocation = "  " + "[img src=post_icon_pin/]" + " " + item.PostMap.Replace("/", "");
-                        textHighLighter += textLocation;
+                        textHighLighter += "  " + "[img src=post_icon_pin/]" + " " + item.PostMap.Replace("/", "");
                         break;
                     }
                 }
@@ -377,12 +358,10 @@ namespace WoWonder.Helpers.Fonts
                 switch (item.PostType)
                 {
                     case "profile_cover_picture" when item.SharedInfo.SharedInfoClass == null:
-                        textImageChange += " " + mainContext.GetText(Resource.String.Lbl_ChangedProfileCover) + " ";
-                        textHighLighter += textImageChange;
+                        textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_ChangedProfileCover);
                         break;
                     case "profile_picture" when item.SharedInfo.SharedInfoClass == null:
-                        textImageChange += " " + mainContext.GetText(Resource.String.Lbl_ChangedProfilePicture) + " ";
-                        textHighLighter += textImageChange;
+                        textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_ChangedProfilePicture);
                         break;
                 }
 
@@ -390,107 +369,93 @@ namespace WoWonder.Helpers.Fonts
                 {
                     if (ListUtils.SettingsSiteList?.AgoraLiveVideo is 1 && !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId))
                     {
-                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
+                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && item.IsStillLive != null && item.IsStillLive.Value && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
                         {
-                            textImageChange += " " + mainContext.GetText(Resource.String.Lbl_IsLiveNow) + " ";
+                            textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_IsLiveNow);
                         }
                         else if (item?.LiveTime != null && item?.LiveTime.Value > 0 && !string.IsNullOrEmpty(item?.AgoraResourceId) && !string.IsNullOrEmpty(item?.PostFile)) //Saved
                         {
-                            textImageChange += " " + mainContext.GetText(Resource.String.Lbl_WasLive) + " ";
+                            textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_WasLive);
                         }
                         else //End
                         {
-                            textImageChange += " " + mainContext.GetText(Resource.String.Lbl_WasLive) + " ";
+                            textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_WasLive);
                         }
-                        textHighLighter += textImageChange;
                     }
                 }
 
                 if (item.Product != null && item.SharedInfo.SharedInfoClass == null)
                 {
-                    var textProduct = " " + mainContext.GetText(Resource.String.Lbl_AddedNewProductForSell) + " ";
-                    textHighLighter += textProduct;
+                    textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_AddedNewProductForSell);
                 }
 
                 if (item.Blog != null && item.SharedInfo.SharedInfoClass == null)
                 {
-                    var textArticle = " " + mainContext.GetText(Resource.String.Lbl_CreatedNewArticle) + " ";
-                    textHighLighter += textArticle;
+                    textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_CreatedNewArticle);
                 }
 
                 if (item.Event?.EventClass != null && item.SharedInfo.SharedInfoClass == null && Convert.ToInt32(item.PageEventId) > 0)
                 {
-                    textEvent = " " + "[img src=post_icon_arrow_forward/]" + " " + mainContext.GetText(Resource.String.Lbl_CreatedNewEvent) + " "; //IonIconsFonts.ArrowRightC
-                    textHighLighter += textEvent;
+                    textHighLighter += " " + "[img src=post_icon_arrow_forward/]" + " " + mainContext.GetText(Resource.String.Lbl_CreatedNewEvent); //IonIconsFonts.ArrowRightC
                 }
                  
                 if (item.Event?.EventClass != null && item.SharedInfo.SharedInfoClass == null && Convert.ToInt32(item.EventId) > 0)
                 {
-                    textEvent = " " + "[img src=post_icon_arrow_forward/]" + " " + Methods.FunString.DecodeString(item.Event?.EventClass.Name); //IonIconsFonts.ArrowRightC
-                    textHighLighter += textEvent;
+                    textHighLighter += " " + "[img src=post_icon_arrow_forward/]" + " " + Methods.FunString.DecodeString(item.Event?.EventClass.Name); //IonIconsFonts.ArrowRightC
                 }
 
                 switch (string.IsNullOrEmpty(item.AlbumName))
                 {
                     case false when item.AlbumName != null && item.SharedInfo.SharedInfoClass == null:
                     {
-                        var textAlbumName = " " + mainContext.GetText(Resource.String.Lbl_addedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName);
-                        textHighLighter += textAlbumName;
+                        textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_AddedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName) + " " + mainContext.GetText(Resource.String.Lbl_Album);
                         break;
                     }
                 }
 
                 if (item.FundData?.FundDataClass != null && item.SharedInfo.SharedInfoClass == null)
                 {
-                    var textFundData = " " + mainContext.GetText(Resource.String.Lbl_CreatedNewFund) + " ";
-                    textHighLighter += textFundData;
+                    textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_CreatedNewFund);
                 }
 
                 if (item.Fund?.PurpleFund != null && item.SharedInfo.SharedInfoClass == null)
                 {
-                    var textPurpleFund = " " + mainContext.GetText(Resource.String.Lbl_DonatedRequestFund) + " ";
-                    textHighLighter += textPurpleFund;
+                    textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_DonatedRequestFund);
                 }
 
                 if (item.Offer != null && item.PostType == "offer")
                 {
-                    var textOffer = " " + mainContext.GetText(Resource.String.Lbl_OfferPostAdded) + " ";
-                    textHighLighter += textOffer;
+                    textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_OfferPostAdded);
                 }
 
                 if (item.ParentId != "0")
                 {
                     if (item.GroupRecipientExists != null && item.GroupRecipientExists.Value && !string.IsNullOrEmpty(item.GroupRecipient.Name))
                     {
-                        textShare += " " + "[img src=post_icon_arrow_forward/]" + " " + Methods.FunString.DecodeString(item.GroupRecipient.Name); //IonIconsFonts.ArrowRightC
-                        textHighLighter += textShare;
+                        textHighLighter += " " + "[img src=post_icon_arrow_forward/]" + " " + Methods.FunString.DecodeString(item.GroupRecipient.Name); //IonIconsFonts.ArrowRightC
                     }
                     else if (item.RecipientExists != null && item.RecipientExists.Value && item.Recipient.RecipientClass != null)
                     {
-                        textShare += " " + "[img src=post_icon_arrow_forward/]" + " " + WoWonderTools.GetNameFinal(item.Recipient.RecipientClass); //IonIconsFonts.ArrowRightC
-                        textHighLighter += textShare;
+                        textHighLighter += " " + "[img src=post_icon_arrow_forward/]" + " " + WoWonderTools.GetNameFinal(item.Recipient.RecipientClass); //IonIconsFonts.ArrowRightC
                     }
                     else
                     {
-                        textShare += " " + mainContext.GetText(Resource.String.Lbl_SharedPost) + " ";
+                        textHighLighter += " " + mainContext.GetText(Resource.String.Lbl_SharedPost);
 
                         //if (item.SharedInfo.SharedInfoClass?.Publisher != null)
                         //    textShare += WoWonderTools.GetNameFinal(item.SharedInfo.SharedInfoClass.Publisher);
 
-                        textHighLighter += textShare; 
                     } 
                 }
                 else
                 {
                     if (item.GroupRecipientExists != null && item.GroupRecipientExists.Value && !string.IsNullOrEmpty(item.GroupRecipient.Name))
                     {
-                        textShare += " " + "[img src=post_icon_arrow_forward/]" + " " + Methods.FunString.DecodeString(item.GroupRecipient.Name); //IonIconsFonts.ArrowRightC
-                        textHighLighter += textShare;
+                        textHighLighter += " " + "[img src=post_icon_arrow_forward/]" + " " + Methods.FunString.DecodeString(item.GroupRecipient.Name); //IonIconsFonts.ArrowRightC
                     }
                     else if (item.RecipientExists != null && item.RecipientExists.Value && item.Recipient.RecipientClass != null)
                     {
-                        textShare += " " + "[img src=post_icon_arrow_forward/]" + " " + WoWonderTools.GetNameFinal(item.Recipient.RecipientClass); //IonIconsFonts.ArrowRightC
-                        textHighLighter += textShare;
+                        textHighLighter += " " + "[img src=post_icon_arrow_forward/]" + " " + WoWonderTools.GetNameFinal(item.Recipient.RecipientClass); //IonIconsFonts.ArrowRightC
                     }
                 }
                  

@@ -8,19 +8,16 @@ using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
-using Bumptech.Glide.Util; 
+using Bumptech.Glide.Util;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Adapters;
-using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.Search;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
@@ -44,10 +41,10 @@ namespace WoWonder.Activities.Communities.Pages
         private LinearLayoutManager LayoutManager;
         private ViewStub EmptyStateLayout;
         private View Inflated;
-        private TextView TxtCreate;  
+        private TextView TxtCreate;
         private AdView MAdView;
-        private static PagesActivity Instance; 
-        private RecyclerViewOnScrollListener MainScrollEvent;
+        private static PagesActivity Instance;
+       // private RecyclerViewOnScrollListener MainScrollEvent;
 
         #endregion
 
@@ -64,7 +61,7 @@ namespace WoWonder.Activities.Communities.Pages
 
                 // Create your application here
                 SetContentView(Resource.Layout.RecyclerDefaultLayout);
-                 
+
                 Instance = this;
 
                 //Get Value And Set Toolbar
@@ -192,7 +189,7 @@ namespace WoWonder.Activities.Communities.Pages
                     TxtCreate.Text = GetString(Resource.String.Lbl_Create);
                     TxtCreate.Visibility = ViewStates.Visible;
                 }
-                 
+
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, MRecycler);
             }
@@ -209,12 +206,12 @@ namespace WoWonder.Activities.Communities.Pages
                 var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolBar != null)
                 {
-                    toolBar.Title = GetText(Resource.String.Lbl_ExplorePage);
+                    toolBar.Title = GetText(Resource.String.Lbl_Pages);
                     toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
-                    SupportActionBar.SetHomeButtonEnabled(true); 
+                    SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
@@ -230,7 +227,8 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                MAdapter = new SocialAdapter(this, SocialModelType.Pages);
+                MAdapter = new SocialAdapter(this);
+                MAdapter.ItemClick += MAdapterOnItemClick;
                 LayoutManager = new LinearLayoutManager(this);
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.SetAdapter(MAdapter);
@@ -241,18 +239,18 @@ namespace WoWonder.Activities.Communities.Pages
                 var preLoader = new RecyclerViewPreloader<SocialModelsClass>(this, MAdapter, sizeProvider, 8);
                 MRecycler.AddOnScrollListener(preLoader);
 
-                RecyclerViewOnScrollListener xamarinRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(LayoutManager);
-                MainScrollEvent = xamarinRecyclerViewOnScrollListener;
-                MainScrollEvent.LoadMoreEvent += MainScrollEventOnLoadMoreEvent;
-                MRecycler.AddOnScrollListener(xamarinRecyclerViewOnScrollListener);
-                MainScrollEvent.IsLoading = false;
+                //RecyclerViewOnScrollListener xamarinRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(LayoutManager);
+                //MainScrollEvent = xamarinRecyclerViewOnScrollListener;
+                //MainScrollEvent.LoadMoreEvent += MainScrollEventOnLoadMoreEvent;
+                //MRecycler.AddOnScrollListener(xamarinRecyclerViewOnScrollListener);
+                //MainScrollEvent.IsLoading = false;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -262,12 +260,10 @@ namespace WoWonder.Activities.Communities.Pages
                     // true +=  // false -=
                     case true:
                         TxtCreate.Click += TxtCreateOnClick;
-                        MAdapter.PageItemClick += MAdapterOnItemClick;
                         SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
                         break;
                     default:
                         TxtCreate.Click -= TxtCreateOnClick;
-                        MAdapter.PageItemClick -= MAdapterOnItemClick;
                         SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
                         break;
                 }
@@ -301,7 +297,7 @@ namespace WoWonder.Activities.Communities.Pages
                 MRecycler = null!;
                 EmptyStateLayout = null!;
                 Inflated = null!;
-                TxtCreate = null!; 
+                TxtCreate = null!;
                 Instance = null!;
                 MAdView = null!;
             }
@@ -313,16 +309,35 @@ namespace WoWonder.Activities.Communities.Pages
         #endregion
 
         #region Events
-         
+
         //Scroll
-        private void MainScrollEventOnLoadMoreEvent(object sender, EventArgs e)
+        //private void MainScrollEventOnLoadMoreEvent(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        //Code get last id where LoadMore >>
+        //        var item = MAdapter.SocialList.LastOrDefault();
+        //        if (item != null && !string.IsNullOrEmpty(item?.PageData?.PageId) && !MainScrollEvent.IsLoading)
+        //            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetLikedPages(item?.PageData?.PageId) });
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Methods.DisplayReportResultTrack(exception);
+        //    }
+        //}
+
+        private void MAdapterOnItemClick(object sender, SocialAdapterClickEventArgs e)
         {
             try
             {
-                //Code get last id where LoadMore >>
-                var item = MAdapter.SocialList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item?.PageData?.PageId) && !MainScrollEvent.IsLoading)
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetLikedPages(item?.PageData?.PageId) });
+                if (e.Position > -1)
+                {
+                    var item = MAdapter.GetItem(e.Position);
+                    if (item?.TypeView == SocialModelType.MangedPages || item?.TypeView == SocialModelType.LikedPages)
+                    {
+                        MainApplication.GetInstance()?.NavigateTo(this, typeof(PageProfileActivity), item.Page);
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -338,7 +353,7 @@ namespace WoWonder.Activities.Communities.Pages
                 MAdapter.SocialList.Clear();
                 MAdapter.NotifyDataSetChanged();
 
-                MainScrollEvent.IsLoading = false;
+                //MainScrollEvent.IsLoading = false;
 
                 StartApiService();
             }
@@ -347,23 +362,7 @@ namespace WoWonder.Activities.Communities.Pages
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
-        private void MAdapterOnItemClick(object sender, PageAdapterClickEventArgs e)
-        {
-            try
-            {
-                var item = MAdapter.GetItem(e.Position);
-                if (item != null)
-                { 
-                    MainApplication.GetInstance()?.NavigateTo(this, typeof(PageProfileActivity), item.PageData);
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+        
         //Event Create New Page
         private void TxtCreateOnClick(object sender, EventArgs e)
         {
@@ -391,11 +390,9 @@ namespace WoWonder.Activities.Communities.Pages
                 switch (requestCode)
                 {
                     case 200 when resultCode == Result.Ok:
-                    {
-                        string result = data?.GetStringExtra("pageItem") ?? "";
-                        switch (string.IsNullOrEmpty(result))
                         {
-                            case false:
+                            string result = data?.GetStringExtra("pageItem") ?? "";
+                            if (string.IsNullOrEmpty(result) == false)
                             {
                                 var item = JsonConvert.DeserializeObject<PageClass>(result);
                                 switch (item)
@@ -404,62 +401,67 @@ namespace WoWonder.Activities.Communities.Pages
                                         return;
                                 }
 
-                                switch (MAdapter.SocialList.Count)
+                                if (MAdapter.SocialList.Count > 0)
                                 {
-                                    case > 0:
+                                    var check = MAdapter.SocialList.FirstOrDefault(a => a.TypeView == SocialModelType.MangedPages);
+                                    if (check != null)
                                     {
-                                        var check = MAdapter.SocialList.FirstOrDefault(a => a.TypeView == SocialModelType.MangedPages);
-                                        if (check != null)
+                                        MAdapter.SocialList?.Insert(1, new SocialModelsClass
                                         {
-                                            MAdapter.PagesAdapter?.PageList?.Insert(0, item);
-                                            MAdapter?.PagesAdapter?.NotifyDataSetChanged();
-                                            MAdapter.NotifyDataSetChanged();
-                                        }
-                                        else
-                                        {
-                                            var socialSection = new SocialModelsClass
-                                            {
-                                                PagesModelClass = new PagesModelClass
-                                                {
-                                                    PagesList = new List<PageClass> { item },
-                                                    More = "",
-                                                    TitleHead = GetString(Resource.String.Lbl_Manage_Pages)
-                                                },
-                                                Id = 11111111,
-                                                TypeView = SocialModelType.MangedPages
-                                            };
-                                            MAdapter.SocialList.Insert(0, socialSection);
-                                            MAdapter.NotifyDataSetChanged();
-                                        }
-
-                                        break;
-                                    }
-                                    default:
-                                    {
-                                        var socialSection = new SocialModelsClass
-                                        {
-                                            PagesModelClass = new PagesModelClass
-                                            {
-                                                PagesList = new List<PageClass> { item },
-                                                More = "",
-                                                TitleHead = GetString(Resource.String.Lbl_Manage_Pages)
-                                            },
-                                            Id = 11111111,
+                                            Id = Convert.ToInt32(item.PageId),
+                                            Page = item,
                                             TypeView = SocialModelType.MangedPages
-                                        };
-                                        MAdapter.SocialList.Insert(0, socialSection);
-                                        MAdapter.NotifyDataSetChanged();
-                                        break;
+                                        });
+                                        MAdapter?.NotifyDataSetChanged();
+                                    }
+                                    else
+                                    {
+                                        MAdapter.SocialList?.Insert(0, new SocialModelsClass
+                                        {
+                                            Id = 0001111111,
+                                            TitleHead = GetString(Resource.String.Lbl_Your_Pages),
+                                            TypeView = SocialModelType.Section
+                                        });
+
+                                        MAdapter.SocialList?.Insert(1, new SocialModelsClass
+                                        {
+                                            Id = Convert.ToInt32(item.PageId),
+                                            Page = item,
+                                            TypeView = SocialModelType.MangedPages
+                                        });
+
+                                        MAdapter.SocialList?.Insert(2, new SocialModelsClass
+                                        {
+                                            TypeView = SocialModelType.Divider
+                                        });
                                     }
                                 }
+                                else
+                                {
+                                    MAdapter.SocialList?.Add(new SocialModelsClass
+                                    {
+                                        Id = 0001111111,
+                                        TitleHead = GetString(Resource.String.Lbl_Your_Pages),
+                                        TypeView = SocialModelType.Section
+                                    });
 
-                                break;
+                                    MAdapter.SocialList?.Add(new SocialModelsClass
+                                    {
+                                        Id = Convert.ToInt32(item.PageId),
+                                        Page = item,
+                                        TypeView = SocialModelType.MangedPages
+                                    });
+
+                                    MAdapter.SocialList?.Add(new SocialModelsClass
+                                    {
+                                        TypeView = SocialModelType.Divider
+                                    });
+                                }
                             }
-                        }
 
-                        ShowEmptyPage();
-                        break;
-                    }
+                            ShowEmptyPage();
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -475,9 +477,9 @@ namespace WoWonder.Activities.Communities.Pages
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyPages   });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyPages });
         }
 
         private async Task GetMyPages()
@@ -492,72 +494,40 @@ namespace WoWonder.Activities.Communities.Pages
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
+                    if (respondList is > 0)
                     {
-                        case > 0:
+                        var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.MangedPages);
+                        if (checkList == null)
                         {
-                            result.Data.Reverse();
-
-                            var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.MangedPages);
-                            switch (checkList)
+                            MAdapter.SocialList.Insert(0, new SocialModelsClass
                             {
-                                case null:
+                                Id = 0001111111,
+                                TitleHead = GetString(Resource.String.Lbl_Your_Pages),
+                                TypeView = SocialModelType.Section
+                            });
+
+                            foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Page?.PageId == item.PageId) where check == null select item)
+                            {
+                                MAdapter.SocialList.Add(new SocialModelsClass
                                 {
-                                    var socialSection = new SocialModelsClass
-                                    {
-                                        Id = 0001111111,
-                                        PagesModelClass = new PagesModelClass
-                                        {
-                                            PagesList = new List<PageClass>(),
-                                            More = "",
-                                            TitleHead = GetString(Resource.String.Lbl_Manage_Pages)
-                                        },
-                                        TypeView = SocialModelType.MangedPages
-                                    };
+                                    Id = Convert.ToInt32(item.PageId),
+                                    Page = item,
+                                    TypeView = SocialModelType.MangedPages,
+                                });
 
-                                    foreach (var item in from item in result.Data let check = socialSection.PagesModelClass.PagesList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
-                                    {
-                                        socialSection.PagesModelClass.PagesList.Add(item);
-
-                                        switch (ListUtils.MyPageList.FirstOrDefault(a => a.PageId == item.PageId))
-                                        {
-                                            case null:
-                                                ListUtils.MyPageList.Add(item);
-                                                break;
-                                        }
-                                    }
-
-                                    MAdapter.SocialList.Insert(0, socialSection);
-                                    break;
-                                }
-                                default:
-                                {
-                                    foreach (var item in from item in result.Data let check = checkList.PagesModelClass.PagesList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
-                                    {
-                                        checkList.PagesModelClass.PagesList.Add(item);
-
-                                        switch (ListUtils.MyPageList.FirstOrDefault(a => a.PageId == item.PageId))
-                                        {
-                                            case null:
-                                                ListUtils.MyPageList.Add(item);
-                                                break;
-                                        }
-                                    }
-
-                                    break;
-                                }
+                                if (ListUtils.MyPageList.FirstOrDefault(a => a.PageId == item.PageId) == null)
+                                    ListUtils.MyPageList.Add(item);
                             }
 
-                            break;
-                        }
+                            MAdapter.SocialList.Add(new SocialModelsClass
+                            {
+                                TypeView = SocialModelType.Divider
+                            }); 
+                        } 
                     }
                 }
 
-                await GetLikedPages();
-
-                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-
-                RunOnUiThread(ShowEmptyPage);
+                await GetLikedPages(); 
             }
             else
             {
@@ -572,107 +542,78 @@ namespace WoWonder.Activities.Communities.Pages
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
-         
+
         private async Task GetLikedPages(string offset = "0")
         {
-            switch (MainScrollEvent.IsLoading)
-            {
-                case true:
-                    return;
-            }
+            //switch (MainScrollEvent.IsLoading)
+            //{
+            //    case true:
+            //        return;
+            //}
 
             if (Methods.CheckConnectivity())
             {
-                MainScrollEvent.IsLoading = true; 
+               // MainScrollEvent.IsLoading = true;
 
                 var (apiStatus, respond) = await RequestsAsync.Page.GetLikedPagesAsync(UserDetails.UserId, offset, "10");
                 if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                 {
-                    MainScrollEvent.IsLoading = false;
+                    //MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
+                    if (respondList is > 0)
                     {
-                        case > 0:
+                        result.Data.RemoveAll(a => a.PageId == null);
+
+                        var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.LikedPages);
+                        if (checkList == null)
                         {
-                            result.Data.RemoveAll(a => a.PageId == null);
-
-                            var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.LikedPages);
-                            switch (checkList)
+                            var section = new SocialModelsClass
                             {
-                                case null:
+                                Id = 000001010101,
+                                PageList = new List<PageClass>(),
+                                TitleHead = GetString(Resource.String.Lbl_Liked_Pages),
+                                TypeView = SocialModelType.LikedPages
+                            };
+
+                            foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Id == Convert.ToInt32(item.PageId)) where check == null select item)
+                            {
+                                item.IsLiked = new IsLiked
                                 {
-                                    var section = new SocialModelsClass
-                                    {
-                                        Id = 000001010101,
-                                        TitleHead = GetString(Resource.String.Lbl_Liked_Pages),
-                                        TypeView = SocialModelType.Section
-                                    };
-                                    MAdapter.SocialList.Add(section);
+                                    Bool = true,
+                                    String = "yes"
+                                };
 
-                                    foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Id == Convert.ToInt32(item.PageId)) where check == null select item)
-                                    {
-                                        item.IsLiked = new IsLiked
-                                        {
-                                            Bool = true,
-                                            String = "yes"
-                                        };
+                                section.PageList.Add(item);
 
-                                        MAdapter.SocialList.Add(new SocialModelsClass
-                                        {
-                                            PageData = item,
-                                            Id = Convert.ToInt32(item.PageId),
-                                            TypeView = SocialModelType.LikedPages
-                                        });
-                                    }
-
-                                    break;
-                                }
-                                default:
-                                {
-                                    foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Id == Convert.ToInt32(item.PageId)) where check == null select item)
-                                    {
-                                        item.IsLiked = new IsLiked
-                                        {
-                                            Bool = true,
-                                            String = "yes"
-                                        };
-
-                                        MAdapter.SocialList.Add(new SocialModelsClass
-                                        {
-                                            PageData = item,
-                                            Id = Convert.ToInt32(item.PageId),
-                                            TypeView = SocialModelType.LikedPages
-                                        });
-                                    }
-
-                                    break;
-                                }
                             }
+                            MAdapter.SocialList.Add(section);
 
-                            break;
-                        }
-                        default:
+                            MAdapter.SocialList.Add(new SocialModelsClass
+                            {
+                                TypeView = SocialModelType.Divider
+                            });
+                        } 
+                    }
+                    else
+                    {
+                        switch (MAdapter.SocialList.Count)
                         {
-                            switch (MAdapter.SocialList.Count)
-                            {
-                                case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMorePages), ToastLength.Short)?.Show();
-                                    break;
-                            }
-
-                            break;
+                            case > 10 when !MRecycler.CanScrollHorizontally(1):
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMorePages), ToastLength.Short);
+                                break;
                         }
                     }
                 }
 
-                MainScrollEvent.IsLoading = false;
+                // MainScrollEvent.IsLoading = false;
+                GetSuggestedPage();
                 RunOnUiThread(ShowEmptyPage);
             }
             else
@@ -688,16 +629,41 @@ namespace WoWonder.Activities.Communities.Pages
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                MainScrollEvent.IsLoading = false;
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+               // MainScrollEvent.IsLoading = false;
             }
         }
-          
+
+
+        private void GetSuggestedPage()
+        {
+            try
+            {
+                if (ListUtils.SuggestedPageList.Count > 0)
+                {
+                    MAdapter.SocialList.Add(new SocialModelsClass
+                    {
+                        Id = 000001010101,
+                        SuggestedPageList = new List<PageClass>(ListUtils.SuggestedPageList),
+                        TitleHead = GetString(Resource.String.Lbl_Discover),
+                        TypeView = SocialModelType.SuggestedPages
+                    });
+
+                    ShowEmptyPage();
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+
         private void ShowEmptyPage()
         {
             try
             {
-                MainScrollEvent.IsLoading = false;
+               // MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
                 switch (MAdapter.SocialList.Count)
@@ -709,28 +675,28 @@ namespace WoWonder.Activities.Communities.Pages
                         EmptyStateLayout.Visibility = ViewStates.Gone;
                         break;
                     default:
-                    {
-                        MRecycler.Visibility = ViewStates.Gone;
-
-                        Inflated ??= EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoPage);
-                        switch (x.EmptyStateButton.HasOnClickListeners)
                         {
-                            case false:
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += SearchButtonOnClick;
-                                break;
+                            MRecycler.Visibility = ViewStates.Gone;
+
+                            Inflated ??= EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(Inflated, EmptyStateInflater.Type.NoPage);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    x.EmptyStateButton.Click += SearchButtonOnClick;
+                                    break;
+                            }
+                            EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        EmptyStateLayout.Visibility = ViewStates.Visible;
-                        break;
-                    }
                 }
             }
             catch (Exception e)
             {
-                MainScrollEvent.IsLoading = false;
+               // MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
                 Methods.DisplayReportResultTrack(e);
             }

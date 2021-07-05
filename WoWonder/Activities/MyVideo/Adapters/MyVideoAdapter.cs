@@ -1,5 +1,4 @@
-﻿
-using Android.Views;
+﻿using Android.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -188,8 +187,8 @@ namespace WoWonder.Activities.MyVideo.Adapters
                 Image = MainView.FindViewById<ImageView>(Resource.Id.image);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new MyVideoAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new MyVideoAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new MyVideoAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new MyVideoAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

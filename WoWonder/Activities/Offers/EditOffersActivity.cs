@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -14,7 +14,6 @@ using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Offers.Adapters;
@@ -36,13 +35,13 @@ namespace WoWonder.Activities.Offers
         #region Variables Basic
 
         private TextView TxtSave;
-        private LinearLayout LayoutImage;
+        private LinearLayout LayoutImage, LayoutDiscountItems, LayoutCurrency, LayoutDate, LayoutTime;
         private TextView IconDiscountType, IconDiscountItems, IconCurrency, IconDescription, IconDate, IconTime;
         private EditText TxtDiscountType, TxtDiscountItems, TxtCurrency, TxtDate, TxtTime, TxtDescription;
         private RecyclerView MRecycler;
         private LinearLayoutManager LayoutManager;
         private DiscountTypeAdapter MAdapter;
-        private string TypeDialog, CurrencyId, OfferId, AddDiscountId;
+        private string TypeDialog, OfferId, AddDiscountId;
         private OfferObject OfferClass;
 
         #endregion
@@ -174,20 +173,28 @@ namespace WoWonder.Activities.Offers
                 MRecycler = FindViewById<RecyclerView>(Resource.Id.Recyler);
                 MRecycler.Visibility = ViewStates.Gone;
 
+                LayoutDiscountItems = FindViewById<LinearLayout>(Resource.Id.LayoutDiscountItems);
                 IconDiscountItems = FindViewById<TextView>(Resource.Id.IconDiscountItems);
                 TxtDiscountItems = FindViewById<EditText>(Resource.Id.DiscountItemsEditText);
+                LayoutDiscountItems.Visibility = ViewStates.Gone;
 
+                LayoutCurrency = FindViewById<LinearLayout>(Resource.Id.LayoutCurrency);
                 IconCurrency = FindViewById<TextView>(Resource.Id.IconCurrency);
                 TxtCurrency = FindViewById<EditText>(Resource.Id.CurrencyEditText);
+                LayoutCurrency.Visibility = ViewStates.Gone;
 
                 IconDescription = FindViewById<TextView>(Resource.Id.IconDescription);
                 TxtDescription = FindViewById<EditText>(Resource.Id.DescriptionEditText);
 
+                LayoutDate = FindViewById<LinearLayout>(Resource.Id.LayoutDate);
                 IconDate = FindViewById<TextView>(Resource.Id.IconDate);
                 TxtDate = FindViewById<EditText>(Resource.Id.DateEditText);
+                LayoutDate.Visibility = ViewStates.Gone;
 
+                LayoutTime = FindViewById<LinearLayout>(Resource.Id.LayoutTime);
                 IconTime = FindViewById<TextView>(Resource.Id.IconTime);
                 TxtTime = FindViewById<EditText>(Resource.Id.TimeEditText);
+                LayoutTime.Visibility = ViewStates.Gone;
 
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconDiscountType, FontAwesomeIcon.User);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconDiscountItems, FontAwesomeIcon.MapMarkedAlt);
@@ -197,19 +204,17 @@ namespace WoWonder.Activities.Offers
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTime, FontAwesomeIcon.Clock);
 
                 Methods.SetColorEditText(TxtDiscountType, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtDiscountItems, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtCurrency, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                //Methods.SetColorEditText(TxtDiscountItems, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtDescription, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtDate, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtTime, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                //Methods.SetColorEditText(TxtDate, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                //Methods.SetColorEditText(TxtTime, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
                 Methods.SetFocusable(TxtDiscountType);
-                Methods.SetFocusable(TxtCurrency);
                 Methods.SetFocusable(TxtDate);
                 Methods.SetFocusable(TxtTime);
 
-                TxtDate.SetOnClickListener(this);
-                TxtTime.SetOnClickListener(this);
+                //TxtDate.SetOnClickListener(this);
+                //TxtTime.SetOnClickListener(this);
             }
             catch (Exception e)
             {
@@ -265,12 +270,10 @@ namespace WoWonder.Activities.Offers
                     // true +=  // false -=
                     case true:
                         TxtSave.Click += TxtSaveOnClick;
-                        TxtCurrency.Touch += TxtCurrencyOnTouch;
                         TxtDiscountType.Touch += TxtDiscountTypeOnTouch;
                         break;
                     default:
                         TxtSave.Click -= TxtSaveOnClick;
-                        TxtCurrency.Touch -= TxtCurrencyOnTouch;
                         TxtDiscountType.Touch -= TxtDiscountTypeOnTouch;
                         break;
                 }
@@ -302,7 +305,6 @@ namespace WoWonder.Activities.Offers
                 TxtTime = null!;
                 OfferClass = null!;
                 TypeDialog = null!;
-                CurrencyId = null!;
                 OfferId = null!; 
                 AddDiscountId = null!;
             }
@@ -330,7 +332,7 @@ namespace WoWonder.Activities.Offers
                     {
                         case > 0:
                         {
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency)).TitleColorRes(Resource.Color.primary);
                             dialogList.Items(arrayAdapter);
@@ -360,7 +362,7 @@ namespace WoWonder.Activities.Offers
 
                 TypeDialog = "DiscountOffersAdapter";
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 var arrayAdapter = WoWonderTools.GetAddDiscountList(this).Select(pair => pair.Value).ToList();
                 dialogList.Title(GetText(Resource.String.Lbl_DiscountType)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
@@ -380,10 +382,9 @@ namespace WoWonder.Activities.Offers
             {
                 if (Methods.CheckConnectivity())
                 {
-                    if (string.IsNullOrEmpty(TxtDiscountType.Text) || string.IsNullOrEmpty(TxtDiscountItems.Text) || string.IsNullOrEmpty(TxtCurrency.Text)
-                        || string.IsNullOrEmpty(TxtDescription.Text))
+                    if (string.IsNullOrEmpty(TxtDiscountType.Text) || string.IsNullOrEmpty(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                         return;
                     }
 
@@ -394,22 +395,14 @@ namespace WoWonder.Activities.Offers
                     {
                         Id = OfferId,
                         DiscountType = AddDiscountId,
-                        Currency = CurrencyId,
-                        ExpireDate = TxtDate.Text,
-                        Time = TxtTime.Text,
                         Description = TxtDescription.Text,
-                        DiscountedItems = TxtDiscountItems.Text,
                     };
 
                     var dictionary = new Dictionary<string, string>
                     {
                         {"discount_type", AddDiscountId},
-                        {"currency", CurrencyId},
                         {"offer_id", OfferId},
-                        {"expire_date", TxtDate.Text},
-                        {"expire_time", TxtTime.Text},
                         {"description", TxtDescription.Text},
-                        {"discounted_items", TxtDiscountItems.Text},
                     };
 
                     switch (MAdapter.DiscountList.Count)
@@ -473,7 +466,7 @@ namespace WoWonder.Activities.Offers
                                 case MessageOfferObject result:
                                 {
                                     Console.WriteLine(result.MessageData);
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short);
 
                                     AndHUD.Shared.Dismiss(this);
 
@@ -481,7 +474,6 @@ namespace WoWonder.Activities.Offers
                                     if (data != null)
                                     {
                                         data.DiscountType = AddDiscountId;
-                                        data.Currency = CurrencyId;
                                         data.ExpireDate = TxtDate.Text;
                                         data.Time = TxtTime.Text;
                                         data.Description = TxtDescription.Text;
@@ -515,7 +507,7 @@ namespace WoWonder.Activities.Offers
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
 
             }
@@ -549,24 +541,17 @@ namespace WoWonder.Activities.Offers
             }
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
-                    case "Currency":
-                        TxtCurrency.Text = itemString.ToString();
-
-                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(itemId.ToString());
-                        CurrencyId = currency;
-                        Console.WriteLine(currencyIcon);
-                        break;
                     case "DiscountOffersAdapter":
                     {
-                        AddDiscountId = WoWonderTools.GetAddDiscountList(this)?.FirstOrDefault(a => a.Value == itemString.ToString()).Key.ToString();
+                        AddDiscountId = WoWonderTools.GetAddDiscountList(this)?.FirstOrDefault(a => a.Value == itemString).Key.ToString();
 
-                        TxtDiscountType.Text = itemString.ToString();
+                        TxtDiscountType.Text = itemString;
 
                         switch (AddDiscountId)
                         {
@@ -635,7 +620,7 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                OfferClass = JsonConvert.DeserializeObject<OfferObject>(Intent?.GetStringExtra("OfferItem"));
+                OfferClass = JsonConvert.DeserializeObject<OfferObject>(Intent?.GetStringExtra("OfferItem") ?? "");
                 if (OfferClass != null)
                 {
                     AddDiscountId = OfferClass.DiscountType;
@@ -719,8 +704,6 @@ namespace WoWonder.Activities.Offers
                     TxtDate.Text = OfferClass.ExpireDate; 
                     TxtTime.Text = OfferClass.ExpireTime;
                     TxtDescription.Text = Methods.FunString.DecodeString(OfferClass.Description);
-
-                    CurrencyId = OfferClass.Currency;
                 }
             }
             catch (Exception e)

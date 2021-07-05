@@ -133,9 +133,9 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
                 //Create an Event
                 itemView.Click += (sender, e) => clickListener(new HashtagUserAdapterClickEventArgs
-                    {View = itemView, Position = AdapterPosition});
+                    {View = itemView, Position = BindingAdapterPosition});
                 itemView.LongClick += (sender, e) => longClickListener(new HashtagUserAdapterClickEventArgs
-                    {View = itemView, Position = AdapterPosition});
+                    {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

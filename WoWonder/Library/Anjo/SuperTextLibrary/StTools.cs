@@ -79,9 +79,7 @@ namespace WoWonder.Library.Anjo.SuperTextLibrary
             public static readonly string EmailPattern = Patterns.EmailAddress.InvokePattern();
             public static readonly string HashtagPattern = "(?:^|\\s|$)#[\\p{L}0-9_]*";
             public static readonly string MentionPattern = "(?:^|\\s|$|[.])@[\\p{L}0-9_]*";
-            public static readonly string UrlPattern = "(^|[\\s.:;?\\-\\]<\\(])" +
-                                                       "((https?://|www\\.|pic\\.)[-\\w;/?:@&=+$\\|\\_.!~*\\|'()\\[\\]%#,☺]+[\\w/#](\\(\\))?)" +
-                                                       "(?=$|[\\s',\\|\\(\\).:;?\\-\\[\\]>\\)])";
+            public static readonly string UrlPattern = "(^|[\\s.:;?\\-\\]<\\(])((https?://|www\\.|pic\\.)[-\\w;/?:@&=+$\\|\\_.!~*\\|'()\\[\\]%#,☺]+[\\w/#](\\(\\))?)(?=$|[\\s',\\|\\(\\).:;?\\-\\[\\]>\\)])";
         }
 
         public static class XUtils

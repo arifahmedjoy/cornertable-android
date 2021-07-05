@@ -214,9 +214,9 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
                 //Create an Event
                 itemView.Click += (sender, e) => clickListener(new ProPagesAdapterClickEventArgs
-                    {View = itemView, Position = AdapterPosition});
+                    {View = itemView, Position = BindingAdapterPosition});
                 itemView.LongClick += (sender, e) => longClickListener(new ProPagesAdapterClickEventArgs
-                    {View = itemView, Position = AdapterPosition});
+                    {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

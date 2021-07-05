@@ -173,7 +173,6 @@ namespace WoWonder.Helpers.Controller
                 Resources res = context.Resources;
                 Configuration configuration = res.Configuration;
 
-
                 switch (Build.VERSION.SdkInt)
                 {
                     case >= BuildVersionCodes.N:
@@ -194,9 +193,9 @@ namespace WoWonder.Helpers.Controller
                     }
                     case >= BuildVersionCodes.JellyBeanMr1:
                     {
-#pragma warning disable CS0618 // Type or member is obsolete
+                        #pragma warning disable CS0618 // Type or member is obsolete
                         configuration.Locale = newLocale;
-#pragma warning restore CS0618 // Type or member is obsolete
+                        #pragma warning restore CS0618 // Type or member is obsolete
 
                         configuration.SetLocale(newLocale);
 
@@ -204,19 +203,18 @@ namespace WoWonder.Helpers.Controller
                         CultureInfo.DefaultThreadCurrentCulture = myCulture;
 
                         context = context.CreateConfigurationContext(configuration);
-
-#pragma warning disable 618
-                        res.UpdateConfiguration(configuration, res.DisplayMetrics);
-#pragma warning restore 618
                         break;
                     }
                     default:
-#pragma warning disable 618
+                        #pragma warning disable 618
                         configuration.Locale = newLocale;
-                        res.UpdateConfiguration(configuration, res.DisplayMetrics);
-#pragma warning restore 618
+                        #pragma warning restore 618
                         break;
                 }
+
+                #pragma warning disable 618
+                res.UpdateConfiguration(configuration, res.DisplayMetrics);
+                #pragma warning restore 618
 
                 UserDetails.LangName = language;
                 AppSettings.Lang = language;

@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using Android.Graphics;
 using Newtonsoft.Json;
+using WoWonderClient.Classes.Games;
 using WoWonderClient.Classes.Global;
+using WoWonderClient.Classes.Jobs;
 using WoWonderClient.Classes.Message;
+using WoWonderClient.Classes.Product;
 
 namespace WoWonder.Helpers.Model
 { 
@@ -44,13 +47,13 @@ namespace WoWonder.Helpers.Model
             public long Id { get; set; }
             public string Name { get; set; }
             public Color Color { get; set; }
-            public string Icon { get; set; }
+            public Color BgColor { get; set; }
+            public int Icon { get; set; }
             public string Type { get; set; }
         }
            
         public class ShortCuts
         { 
-            public long Id { get; set; }
             public string Type { get; set; }
             public string SocialId { get; set; }
             public string Name { get; set; }
@@ -108,6 +111,36 @@ namespace WoWonder.Helpers.Model
             public GetWeatherObject Weather  { get; set; } 
             public ExchangeCurrencyObject ExchangeCurrency { get; set; } 
         }
+        
+        public class ProductClass
+        {
+            public long Id { get; set; }
+            public ItemType Type { get; set; }
+            public string Title { get; set; } 
+            
+            public List<ProductDataObject> ProductList { get; set; } 
+            public ProductDataObject Product  { get; set; } 
+        }
+        
+        public class JobClass
+        {
+            public long Id { get; set; }
+            public ItemType Type { get; set; }
+            public string Title { get; set; } 
+            
+            public List<JobInfoObject> JobList { get; set; } 
+            public JobInfoObject Job { get; set; } 
+        }
+
+        public class GameClass
+        {
+            public long Id { get; set; }
+            public ItemType Type { get; set; }
+            public string Title { get; set; }
+
+            public List<GamesDataObject> GameList { get; set; }
+            public GamesDataObject Game { get; set; }
+        }
 
         public enum ItemType
         {
@@ -125,6 +158,22 @@ namespace WoWonder.Helpers.Model
             LastBlogs  = 202012,
             ExchangeCurrency = 202013,
             CoronaVirus = 202014,
+             
+            NearbyShops = 202015,
+            Product = 202016,
+            MyProduct = 202017,
+             
+            NearbyJob = 202018,
+            Job = 202019,
+            JobRecent = 202020,
+
+            FriendsBirthday = 202021,
+             
+            RecentGame = 202022,
+            PopularGame = 202023,
+            RecommendGame = 202024,
+            MyGame = 202025,
+            SearchGame = 202026,
 
             //Chat
             LastChatOldV = 320201,
@@ -133,7 +182,6 @@ namespace WoWonder.Helpers.Model
             GroupRequest = 320205,
             Archive = 320206,
         }
-
 
         //Chat
         public class CallUser
@@ -178,7 +226,7 @@ namespace WoWonder.Helpers.Model
 
         public class OptionLastChat
         {
-            public string IdChat { set; get; }
+            public string ChatId { get; set; }
             public string PageId { set; get; }
             public string GroupId { set; get; }
             public string UserId { set; get; }
@@ -186,15 +234,8 @@ namespace WoWonder.Helpers.Model
             public string ChatType { set; get; }
         }
 
-        public class LastChatArchive
-        {
-            public string IdChat { set; get; }
-            public string PageId { set; get; }
-            public string GroupId { set; get; }
-            public string UserId { set; get; }
-            public string Name { set; get; }
-            public string ChatType { set; get; }
-
+        public class LastChatArchive : OptionLastChat
+        { 
             public string IdLastMessage { set; get; }
 
             public GetUsersListObject.User LastMessagesUser { get; set; }

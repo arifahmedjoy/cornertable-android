@@ -11,7 +11,7 @@
 	<dimen name="timestamp">12dp</dimen>
 	<dimen name="space">12dp</dimen>
 
-	<dimen name="dimen7dp">5dp</dimen>
+	<dimen name="dimen7dp">3dp</dimen>
 
 	<dimen name="txtSize">27sp</dimen>
 

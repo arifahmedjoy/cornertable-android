@@ -21,7 +21,7 @@
         android:layout_marginStart="12dp"
         android:drawablePadding="4dp"
         android:layout_marginTop="18dp" 
-        android:layout_toEndOf="@id/card_pro_pic" 
+        android:layout_toEndOf="@+id/card_pro_pic" 
         android:textSize="@dimen/msg_text_primary" />
     <TextView
         android:id="@+id/card_dist"
@@ -30,10 +30,10 @@
 		android:maxWidth="190dp"
         android:maxLines="2"
         android:lines="2"
-        android:layout_below="@id/card_name"
+        android:layout_below="@+id/card_name"
         android:layout_marginStart="12dp"
         android:layout_marginTop="4.5dp"
-        android:layout_toEndOf="@id/card_pro_pic" 
+        android:layout_toEndOf="@+id/card_pro_pic" 
         android:textColor="#9e9e9e"
         android:textSize="@dimen/msg_text_secondary" />
     <LinearLayout
@@ -78,5 +78,5 @@
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
         android:background="?attr/colorDivider"
-        android:layout_below="@id/card_pro_pic" />
+        android:layout_below="@+id/card_pro_pic" />
 </RelativeLayout>

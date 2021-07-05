@@ -35,7 +35,12 @@ namespace WoWonder.MediaPlayers
                 Methods.DisplayReportResultTrack(exception);
             } 
         }
-         
+
+        public void OnIsPlayingChanged(bool isPlaying)
+        {
+             
+        }
+
         public void OnLoadingChanged(bool p0)
         {
 
@@ -44,6 +49,11 @@ namespace WoWonder.MediaPlayers
         public void OnPlaybackParametersChanged(PlaybackParameters p0)
         {
 
+        }
+
+        public void OnPlaybackSuppressionReasonChanged(int playbackSuppressionReason)
+        {
+             
         }
 
         public void OnPlayerError(ExoPlaybackException p0)

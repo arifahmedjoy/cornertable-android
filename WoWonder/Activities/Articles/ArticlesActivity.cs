@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -16,8 +15,6 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
-using Google.Android.Material.FloatingActionButton;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Articles.Adapters;
 using WoWonder.Activities.Base;
@@ -36,7 +33,7 @@ using AndroidX.AppCompat.Content.Res;
 namespace WoWonder.Activities.Articles
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class ArticlesActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
+    public class ArticlesActivity : BaseActivity
     {
         #region Variables Basic
 
@@ -48,7 +45,6 @@ namespace WoWonder.Activities.Articles
         private View Inflated;
         public RecyclerViewOnScrollListener MainScrollEvent;
         private AdView MAdView;
-        private FloatingActionButton BtnFilter;
         private string CategoryId = "", UserId = "";
         private TextView TxtCreate;
         private static ArticlesActivity Instance;
@@ -216,9 +212,6 @@ namespace WoWonder.Activities.Articles
 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, MRecycler);
-
-                BtnFilter = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                BtnFilter.Visibility = ViewStates.Gone;
             }
             catch (Exception e)
             {
@@ -291,14 +284,12 @@ namespace WoWonder.Activities.Articles
                         MAdapter.ItemClick += MAdapterOnItemClick;
                         MAdapter.UserItemClick += MAdapterOnUserItemClick;
                         SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                        BtnFilter.Click += BtnFilterOnClick;
                         TxtCreate.Click += TxtCreateOnClick;
                         break;
                     default:
                         MAdapter.ItemClick -= MAdapterOnItemClick;
                         MAdapter.UserItemClick -= MAdapterOnUserItemClick;
                         SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                        BtnFilter.Click -= BtnFilterOnClick;
                         TxtCreate.Click -= TxtCreateOnClick;
                         break;
                 }
@@ -321,7 +312,6 @@ namespace WoWonder.Activities.Articles
                 EmptyStateLayout = null!;
                 Inflated = null!;
                 MainScrollEvent = null!;
-                BtnFilter = null!;
                 CategoryId = null!;
                 UserId = null!;
                 MAdView = null!;
@@ -432,40 +422,6 @@ namespace WoWonder.Activities.Articles
             }
         }
          
-        private void BtnFilterOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                switch (CategoriesController.ListCategoriesBlog.Count)
-                {
-                    case > 0:
-                    {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        var arrayAdapter = CategoriesController.ListCategoriesBlog.Select(item => item.CategoriesName).ToList();
-
-                        arrayAdapter.Insert(0,GetString(Resource.String.Lbl_Default));
-                        arrayAdapter.Insert(1,GetString(Resource.String.Lbl_MyArticle));
-
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
-                        dialogList.Content(GetText(Resource.String.Lbl_GetArticlesByCategories));
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
-                        break;
-                    }
-                    default:
-                        Methods.DisplayReportResult(this, "Not have List Categories Blog");
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
         #endregion
          
         #region Result
@@ -520,7 +476,7 @@ namespace WoWonder.Activities.Articles
         public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () =>  LoadArticlesAsync(offset) });
         }
@@ -568,7 +524,7 @@ namespace WoWonder.Activities.Articles
                             switch (MAdapter.ArticlesList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreArticles), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreArticles), ToastLength.Short);
                                     break;
                             }
 
@@ -592,7 +548,7 @@ namespace WoWonder.Activities.Articles
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
@@ -652,13 +608,8 @@ namespace WoWonder.Activities.Articles
 
         #endregion
          
-        #region MaterialDialog
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
-        {
-            FilterCategory(itemString.ToString());
-        }
-
+        #region  Dialog
+         
         private void FilterCategory(string item)
         {
             try
@@ -691,25 +642,7 @@ namespace WoWonder.Activities.Articles
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
+         
         #endregion
 
     }

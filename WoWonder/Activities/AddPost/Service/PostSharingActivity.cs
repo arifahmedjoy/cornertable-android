@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -11,11 +13,11 @@ using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.OS; 
 using Android.Text;
+using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
-using AndroidX.Core.Content;
 using AndroidX.Core.Widget;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SlidingPaneLayout.Widget;
@@ -23,6 +25,7 @@ using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using Com.Luseen.Autolinklibrary; 
 using Com.Sothree.Slidinguppanel;
+using HtmlAgilityPack;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.Lang;
 using Newtonsoft.Json;
@@ -42,12 +45,14 @@ using Exception = System.Exception;
 using File = Java.IO.File;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 using Uri = Android.Net.Uri;
+using static WoWonder.Activities.AddPost.FeelingActivitiesTemplate;
+using static WoWonder.Activities.AddPost.PostDoingDialog;
 
 namespace WoWonder.Activities.AddPost.Service
 {
-    [Activity(Icon = "@mipmap/icon", Label = "Post Sharing", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
+    [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
     [IntentFilter(new[] { Intent.ActionSend , Intent.ActionSendMultiple }, Categories = new[] { Intent.CategoryDefault } , DataMimeTypes = new []{ "application/*"  , "image/*" , "video/*"  , "audio/*" , "text/plain" })]
-    public class PostSharingActivity : BaseActivity, SlidingPaneLayout.IPanelSlideListener, SlidingUpPanelLayout.IPanelSlideListener, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, MaterialDialog.IInputCallback
+    public class PostSharingActivity : BaseActivity, SlidingPaneLayout.IPanelSlideListener, SlidingUpPanelLayout.IPanelSlideListener, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, MaterialDialog.IInputCallback, ITextWatcher, IOnFeelingClick, IOnDoingListener
     {
         #region Variables Basic
 
@@ -64,7 +69,7 @@ namespace WoWonder.Activities.AddPost.Service
         private ColorBoxAdapter ColorBoxAdapter;
         private NestedScrollView ScrollView;
         private View ImportPanel;
-        private Button AddAnswerButton, PostPrivacyButton;
+        private Button AddAnswerButton;
         public Button NameAlbumButton;
         private AutoLinkTextView MentionTextView;
         private string MentionText = "", PlaceText = "", FeelingText = "";
@@ -80,6 +85,10 @@ namespace WoWonder.Activities.AddPost.Service
         private PageClass DataPage; 
         private UserDataObject DataUser;
         private VoiceRecorder VoiceRecorder;
+        private TextView PostState;
+        private LinearLayout LlPostState;
+        private ImageView ImagePostState;
+        private LinearLayout ActivityRootView;
 
         #endregion
 
@@ -113,7 +122,7 @@ namespace WoWonder.Activities.AddPost.Service
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileSharing), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileSharing), ToastLength.Long);
                     Finish();
                 }
             }
@@ -205,7 +214,7 @@ namespace WoWonder.Activities.AddPost.Service
         #endregion
 
         #region Functions
-         
+
         private void InitComponent()
         {
             try
@@ -224,17 +233,24 @@ namespace WoWonder.Activities.AddPost.Service
                 ColorBoxRecyclerView = FindViewById<RecyclerView>(Resource.Id.ColorboxRecyler);
                 ColoredImage = FindViewById<ImageView>(Resource.Id.ColorImage);
                 NameAlbumButton = FindViewById<Button>(Resource.Id.nameAlbumButton);
+                PostState = FindViewById<TextView>(Resource.Id.PostStateText);
+                ImagePostState = FindViewById<ImageView>(Resource.Id.ImagePostState);
+                LlPostState = FindViewById<LinearLayout>(Resource.Id.llPostState);
 
                 IconTag.Tag = "Close";
 
                 Methods.SetColorEditText(TxtContentPost, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
                 MentionTextView = FindViewById<AutoLinkTextView>(Resource.Id.MentionTextview);
-                PostPrivacyButton = FindViewById<Button>(Resource.Id.cont);
+                //PostPrivacyButton = FindViewById<Button>(Resource.Id.cont);
 
+                TxtContentPost.AddTextChangedListener(this);
                 TxtContentPost.ClearFocus();
                 SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
                 SlidingUpPanel.AddPanelSlideListener(this);
+
+                ActivityRootView = FindViewById<LinearLayout>(Resource.Id.activityRoot);
+                ActivityRootView.ViewTreeObserver.AddOnGlobalLayoutListener(new MyOGlobalLayoutListener(this));
             }
             catch (Exception e)
             {
@@ -312,35 +328,37 @@ namespace WoWonder.Activities.AddPost.Service
                 {
                     // true +=  // false -=
                     case true:
-                    {
-                        AttachmentsAdapter.DeleteItemClick += AttachmentsAdapterOnDeleteItemClick;
-                        PostPrivacyButton.Click += PostPrivacyButton_Click;
-                        MainPostAdapter.ItemClick += MainPostAdapterOnItemClick;
-                        NameAlbumButton.Click += NameAlbumButtonOnClick;
-                        TxtAddPost.Click += TxtAddPostOnClick;
-                        switch (AppSettings.ShowColor)
                         {
-                            case true:
-                                ColorBoxAdapter.ItemClick += ColorBoxAdapter_ItemClick;
-                                break;
+                            AttachmentsAdapter.DeleteItemClick += AttachmentsAdapterOnDeleteItemClick;
+                            AttachmentsAdapter.ItemClick += AttachmentsAdapterOnItemClick;
+                            LlPostState.Click += PostPrivacyButton_Click;
+                            MainPostAdapter.ItemClick += MainPostAdapterOnItemClick;
+                            NameAlbumButton.Click += NameAlbumButtonOnClick;
+                            TxtAddPost.Click += TxtAddPostOnClick;
+                            switch (AppSettings.ShowColor)
+                            {
+                                case true:
+                                    ColorBoxAdapter.ItemClick += ColorBoxAdapter_ItemClick;
+                                    break;
+                            }
+                            break;
                         }
-                        break;
-                    }
                     default:
-                    {
-                        AttachmentsAdapter.DeleteItemClick -= AttachmentsAdapterOnDeleteItemClick;
-                        PostPrivacyButton.Click -= PostPrivacyButton_Click;
-                        MainPostAdapter.ItemClick -= MainPostAdapterOnItemClick;
-                        TxtAddPost.Click -= TxtAddPostOnClick;
-                        NameAlbumButton.Click -= NameAlbumButtonOnClick;
-                        switch (AppSettings.ShowColor)
                         {
-                            case true:
-                                ColorBoxAdapter.ItemClick -= ColorBoxAdapter_ItemClick;
-                                break;
+                            AttachmentsAdapter.DeleteItemClick -= AttachmentsAdapterOnDeleteItemClick;
+                            AttachmentsAdapter.ItemClick -= AttachmentsAdapterOnItemClick;
+                            LlPostState.Click -= PostPrivacyButton_Click;
+                            MainPostAdapter.ItemClick -= MainPostAdapterOnItemClick;
+                            TxtAddPost.Click -= TxtAddPostOnClick;
+                            NameAlbumButton.Click -= NameAlbumButtonOnClick;
+                            switch (AppSettings.ShowColor)
+                            {
+                                case true:
+                                    ColorBoxAdapter.ItemClick -= ColorBoxAdapter_ItemClick;
+                                    break;
+                            }
+                            break;
                         }
-                        break;
-                    }
                 }
             }
             catch (Exception e)
@@ -353,25 +371,55 @@ namespace WoWonder.Activities.AddPost.Service
 
         #region Events
 
+        private Attachments ItemAttachmentsClick;
+        private void AttachmentsAdapterOnItemClick(object sender, AttachmentsAdapterClickEventArgs e)
+        {
+            try
+            {
+                var position = e.Position;
+                if (position >= 0)
+                {
+                    ItemAttachmentsClick = AttachmentsAdapter.GetItem(position);
+                    if (ItemAttachmentsClick?.TypeAttachment == "postPhotos[]" && !ItemAttachmentsClick.FileSimple.Contains(".gif"))
+                    {
+                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+
+                        // start cropping activity for pre - acquired image saved on the device
+                        CropImage.Activity(Uri.FromFile(new File(ItemAttachmentsClick.FileSimple)))
+                            .SetInitialCropWindowPaddingRatio(0)
+                            .SetAutoZoomEnabled(true)
+                            .SetMaxZoom(4)
+                            .SetMultiTouchEnabled(true)
+                            .SetGuidelines(CropImageView.Guidelines.On)
+                            .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                            .SetOutputUri(myUri).Start(this);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
         private void AttachmentsAdapterOnDeleteItemClick(object sender, AttachmentsAdapterClickEventArgs e)
         {
             try
             {
                 var position = e.Position;
-                switch (position)
+                if (position >= 0)
                 {
-                    case >= 0:
+                    var item = AttachmentsAdapter.GetItem(position);
+                    if (item != null)
                     {
-                        var item = AttachmentsAdapter.GetItem(position);
-                        if (item != null)
-                        {
-                            AttachmentsAdapter.Remove(item);
+                        AttachmentsAdapter.Remove(item);
 
-                            //remove file the type
-                            var listAttach = AttachmentsAdapter.AttachmentList.Where(a => a.TypeAttachment.Contains("postPhotos")).ToList();
-                            switch (listAttach.Count)
-                            {
-                                case > 1:
+                        //remove file the type
+                        var listAttach = AttachmentsAdapter.AttachmentList
+                            .Where(a => a.TypeAttachment.Contains("postPhotos[]")).ToList();
+                        switch (listAttach.Count)
+                        {
+                            case > 1:
                                 {
                                     NameAlbumButton.Visibility = ViewStates.Visible;
 
@@ -379,21 +427,22 @@ namespace WoWonder.Activities.AddPost.Service
                                         attachments.TypeAttachment = "postPhotos[]";
                                     break;
                                 }
-                                default:
+                            default:
                                 {
                                     NameAlbumButton.Visibility = ViewStates.Gone;
 
-                                    foreach (var attachments in listAttach.Where(attachments => attachments.TypeAttachment.Contains("postPhotos")).ToList())
+                                    foreach (var attachments in listAttach.Where(attachments =>
+                                        attachments.TypeAttachment.Contains("postPhotos[]")).ToList())
                                     {
-                                        attachments.TypeAttachment = "postPhotos";
+                                        attachments.TypeAttachment = "postPhotos[]";
                                     }
 
                                     break;
                                 }
-                            }
                         }
 
-                        break;
+                        if (listAttach.Count == 0 && TxtContentPost.Text.Length == 0)
+                            TxtAddPost.SetTextColor(Color.ParseColor("#C6CBC7"));
                     }
                 }
             }
@@ -409,7 +458,7 @@ namespace WoWonder.Activities.AddPost.Service
             {
                 TypeDialog = "AddPicturesToAlbumName";
 
-                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 dialog.Title(GetText(Resource.String.Lbl_AddPicturesToAlbum)).TitleColorRes(Resource.Color.primary);
                 dialog.Input(Resource.String.Lbl_AlbumName, 0, false, this);
@@ -432,13 +481,13 @@ namespace WoWonder.Activities.AddPost.Service
             {
                 if (string.IsNullOrEmpty(TxtContentPost.Text) && string.IsNullOrEmpty(MentionTextView.Text) && AttachmentsAdapter.AttachmentList.Count == 0)
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_YouCannot_PostanEmptyPost), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_YouCannot_PostanEmptyPost), ToastLength.Long);
                 }
                 else
                 {
                     if (!Methods.CheckConnectivity())
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         return;
                     }
 
@@ -450,7 +499,7 @@ namespace WoWonder.Activities.AddPost.Service
                         if (max < content?.Length)
                         {
                             //You have exceeded the text limit, must be less than ListUtils.SettingsSiteList?.MaxCharacters
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_Error_MaxCharacters) + " " + ListUtils.SettingsSiteList?.MaxCharacters, ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Error_MaxCharacters) + " " + ListUtils.SettingsSiteList?.MaxCharacters, ToastLength.Short);
                             return;
                         }
                     }
@@ -487,7 +536,7 @@ namespace WoWonder.Activities.AddPost.Service
                     //    if (respond is AddPostObject postObject)
                     //    {
                     //        //AndHUD.Shared.Dismiss(this);
-                    //        Toast.MakeText(this, GetText(Resource.String.Lbl_Post_Added), ToastLength.Short)?.Show();
+                    //        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Post_Added), ToastLength.Short);
 
                     //        // put the String to pass back into an Intent and close this activity
                     //        var resultIntent = new Intent();
@@ -529,39 +578,18 @@ namespace WoWonder.Activities.AddPost.Service
                 if (ImportPanel != null)
                     ImportPanel.Visibility = ViewStates.Gone;
 
+                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
+
                 if (MainPostAdapter.PostTypeList[e.Position] != null)
                 {
                     switch (MainPostAdapter.PostTypeList[e.Position].Id)
                     {
                         //Image Gallery
                         case 1:
-                        {
-                            PermissionsType = "Image";
-
-                            switch ((int)Build.VERSION.SdkInt)
                             {
-                                // Check if we're running on Android 5.0 or higher 
-                                case < 23:
-                                    OpenDialogGallery();
-                                    break;
-                                default:
-                                {
-                                    if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
-                                        && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                                    {
-                                        OpenDialogGallery();
-                                    }
-                                    else
-                                    {
-                                        new PermissionsController(this).RequestPermission(108);
-                                    }
-
-                                    break;
-                                }
+                                OpenDialogImage();
+                                break;
                             }
-
-                            break;
-                        }
                         //video Gallery
                         case 2:
                             OpenDialogVideo();
@@ -588,9 +616,9 @@ namespace WoWonder.Activities.AddPost.Service
                             {
                                 TypeDialog = "Feelings";
 
-                                var arrayAdapter = new List<string>();
-                                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
+                                /*var arrayAdapter = new List<string>();
+                                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                              
                                 switch (AppSettings.ShowFeeling)
                                 {
                                     case true:
@@ -626,7 +654,9 @@ namespace WoWonder.Activities.AddPost.Service
                                 dialogList.Items(arrayAdapter);
                                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                                 dialogList.AlwaysCallSingleChoiceCallback();
-                                dialogList.ItemsCallback(this).Build().Show();
+                                dialogList.ItemsCallback(this).Build().Show();*/
+                                var doingDialog = new PostDoingDialog(this);
+                                doingDialog.Show(SupportFragmentManager, "What are you doing");
                             }
                             catch (Exception exception)
                             {
@@ -636,164 +666,163 @@ namespace WoWonder.Activities.AddPost.Service
                             break;
                         // Camera
                         case 6:
-                        {
-                            PermissionsType = "Camera";
-
-                            switch ((int)Build.VERSION.SdkInt)
                             {
-                                // Check if we're running on Android 5.0 or higher
-                                case < 23:
-                                    //requestCode >> 503 => Camera
-                                    new IntentController(this).OpenIntentCamera();
-                                    break;
-                                default:
+                                PermissionsType = "Camera";
+
+                                switch ((int)Build.VERSION.SdkInt)
                                 {
-                                    if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
-                                        && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                                    {
+                                    // Check if we're running on Android 5.0 or higher
+                                    case < 23:
                                         //requestCode >> 503 => Camera
                                         new IntentController(this).OpenIntentCamera();
-                                    }
-                                    else
-                                    {
-                                        new PermissionsController(this).RequestPermission(108);
-                                    }
+                                        break;
+                                    default:
+                                        {
+                                            if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                                && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                            {
+                                                //requestCode >> 503 => Camera
+                                                new IntentController(this).OpenIntentCamera();
+                                            }
+                                            else
+                                            {
+                                                new PermissionsController(this).RequestPermission(108);
+                                            }
 
-                                    break;
+                                            break;
+                                        }
                                 }
-                            }
 
-                            break;
-                        }
+                                break;
+                            }
                         // Gif
                         case 7:
                             StartActivityForResult(new Intent(this, typeof(GifActivity)), 7);
                             break;
                         // File
                         case 8:
-                        {
-                            PermissionsType = "File";
-
-                            switch ((int)Build.VERSION.SdkInt)
                             {
-                                // Check if we're running on Android 5.0 or higher
-                                case < 23:
-                                    //requestCode >> 504 => File
-                                    new IntentController(this).OpenIntentFile(GetText(Resource.String.Lbl_SelectFile));
-                                    break;
-                                default:
+                                PermissionsType = "File";
+
+                                switch ((int)Build.VERSION.SdkInt)
                                 {
-                                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                                    {
+                                    // Check if we're running on Android 5.0 or higher
+                                    case < 23:
                                         //requestCode >> 504 => File
                                         new IntentController(this).OpenIntentFile(GetText(Resource.String.Lbl_SelectFile));
-                                    }
-                                    else
-                                    {
-                                        new PermissionsController(this).RequestPermission(108);
-                                    }
+                                        break;
+                                    default:
+                                        {
+                                            if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                                                CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                            {
+                                                //requestCode >> 504 => File
+                                                new IntentController(this).OpenIntentFile(GetText(Resource.String.Lbl_SelectFile));
+                                            }
+                                            else
+                                            {
+                                                new PermissionsController(this).RequestPermission(108);
+                                            }
 
-                                    break;
+                                            break;
+                                        }
                                 }
-                            }
 
-                            break;
-                        }
+                                break;
+                            }
                         // Music
                         case 9:
-                        {
-                            PermissionsType = "Music";
-
-                            switch ((int)Build.VERSION.SdkInt)
                             {
-                                // Check if we're running on Android 5.0 or higher
-                                case < 23:
-                                    new IntentController(this).OpenIntentAudio(); //505
-                                    break;
-                                default:
-                                {
-                                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                                        new IntentController(this).OpenIntentAudio(); //505
-                                    else
-                                        new PermissionsController(this).RequestPermission(100);
-                                    break;
-                                }
-                            }
+                                PermissionsType = "Music";
 
-                            break;
-                        }
+                                switch ((int)Build.VERSION.SdkInt)
+                                {
+                                    // Check if we're running on Android 5.0 or higher
+                                    case < 23:
+                                        new IntentController(this).OpenIntentAudio(); //505
+                                        break;
+                                    default:
+                                        {
+                                            if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                                new IntentController(this).OpenIntentAudio(); //505
+                                            else
+                                                new PermissionsController(this).RequestPermission(100);
+                                            break;
+                                        }
+                                }
+
+                                break;
+                            }
                         // VoiceRecorder
                         case 10:
-                        {
-                            PermissionsType = "Music";
-
-                            switch ((int)Build.VERSION.SdkInt)
                             {
-                                // Check if we're running on Android 5.0 or higher
-                                case < 23:
-                                    VoiceRecorder = new VoiceRecorder();
-                                    VoiceRecorder.Show(SupportFragmentManager, VoiceRecorder.Tag);
-                                    break;
-                                default:
+                                PermissionsType = "Music";
+
+                                switch ((int)Build.VERSION.SdkInt)
                                 {
-                                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                                    {
-                                        VoiceRecorder = new VoiceRecorder();
+                                    // Check if we're running on Android 5.0 or higher
+                                    case < 23:
+                                        VoiceRecorder = new VoiceRecorder(this, "AddPost");
                                         VoiceRecorder.Show(SupportFragmentManager, VoiceRecorder.Tag);
-                                    }
-                                    else
-                                        new PermissionsController(this).RequestPermission(102);
+                                        break;
+                                    default:
+                                        {
+                                            if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                            {
+                                                VoiceRecorder = new VoiceRecorder(this, "AddPost");
+                                                VoiceRecorder.Show(SupportFragmentManager, VoiceRecorder.Tag);
+                                            }
+                                            else
+                                                new PermissionsController(this).RequestPermission(102);
 
-                                    break;
+                                            break;
+                                        }
                                 }
-                            }
 
-                            break;
-                        }
+                                break;
+                            }
                         // Polls
                         case 11:
-                        {
-                            if (ColoredImage.Visibility != ViewStates.Gone)
                             {
-                                ColoredImage.Visibility = ViewStates.Gone;
-
-                                TxtContentPost.SetTextColor(new Color(ContextCompat.GetColor(TxtContentPost.Context, Resource.Color.textDark_color)));
-                                TxtContentPost.SetHintTextColor(new Color(ContextCompat.GetColor(TxtContentPost.Context, Resource.Color.textDark_color)));
-                            }
-
-                            TxtContentPost.ClearFocus();
-                            SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
-
-                            ImportPanel ??= FindViewById<ViewStub>(Resource.Id.stub_import)?.Inflate();
-                            if (ImportPanel != null)
-                            {
-                                ImportPanel.Visibility = ViewStates.Visible;
-
-                                PollRecyclerView ??= (RecyclerView)ImportPanel.FindViewById(Resource.Id.Recyler);
-                                AddAnswerButton = (Button)ImportPanel.FindViewById(Resource.Id.addanswer);
-
-                                AttachmentsAdapter?.AttachmentList.Clear();
-                                AddPollAnswerAdapter = new AddPollAdapter(this);
-                                PollRecyclerView?.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Vertical, false));
-                                PollRecyclerView?.SetAdapter(AddPollAnswerAdapter);
-                                AddPollAnswerAdapter.AnswersList.Add(new PollAnswers { Answer = GetText(Resource.String.Lbl2_Polls) + " 1", Id = 1 });
-                                AddPollAnswerAdapter.AnswersList.Add(new PollAnswers { Answer = GetText(Resource.String.Lbl2_Polls) + " 2", Id = 2 });
-                                AddPollAnswerAdapter.NotifyDataSetChanged();
-
-
-                                switch (AddAnswerButton.HasOnClickListeners)
+                                if (ColoredImage.Visibility != ViewStates.Gone)
                                 {
-                                    case false:
-                                        AddAnswerButton.Click += AddAnswerButtonOnClick;
-                                        break;
+                                    ColoredImage.Visibility = ViewStates.Gone;
+
+                                    Methods.SetColorEditText(TxtContentPost, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                                 }
 
-                                PollRecyclerView.NestedScrollingEnabled = false;
-                            }
+                                TxtContentPost.ClearFocus();
+                                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
 
-                            break;
-                        }
+                                ImportPanel ??= FindViewById<ViewStub>(Resource.Id.stub_import)?.Inflate();
+                                if (ImportPanel != null)
+                                {
+                                    ImportPanel.Visibility = ViewStates.Visible;
+
+                                    PollRecyclerView ??= (RecyclerView)ImportPanel.FindViewById(Resource.Id.Recyler);
+                                    AddAnswerButton = (Button)ImportPanel.FindViewById(Resource.Id.addanswer);
+
+                                    AttachmentsAdapter?.AttachmentList.Clear();
+                                    AddPollAnswerAdapter = new AddPollAdapter(this);
+                                    PollRecyclerView?.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Vertical, false));
+                                    PollRecyclerView?.SetAdapter(AddPollAnswerAdapter);
+                                    AddPollAnswerAdapter.AnswersList.Add(new PollAnswers { Answer = GetText(Resource.String.Lbl2_Polls) + " 1", Id = 1 });
+                                    AddPollAnswerAdapter.AnswersList.Add(new PollAnswers { Answer = GetText(Resource.String.Lbl2_Polls) + " 2", Id = 2 });
+                                    AddPollAnswerAdapter.NotifyDataSetChanged();
+
+
+                                    switch (AddAnswerButton.HasOnClickListeners)
+                                    {
+                                        case false:
+                                            AddAnswerButton.Click += AddAnswerButtonOnClick;
+                                            break;
+                                    }
+
+                                    PollRecyclerView.NestedScrollingEnabled = false;
+                                }
+
+                                break;
+                            }
                     }
                 }
             }
@@ -828,8 +857,7 @@ namespace WoWonder.Activities.AddPost.Service
                     case "#ffffff" when item.Color2 == "#efefef":
                         ColoredImage.Visibility = ViewStates.Gone;
 
-                        TxtContentPost.SetTextColor(new Color(ContextCompat.GetColor(TxtContentPost.Context, Resource.Color.textDark_color)));
-                        TxtContentPost.SetHintTextColor(new Color(ContextCompat.GetColor(TxtContentPost.Context, Resource.Color.textDark_color)));
+                        Methods.SetColorEditText(TxtContentPost, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
                         return;
                 }
@@ -842,28 +870,28 @@ namespace WoWonder.Activities.AddPost.Service
                         //GlideImageLoader.LoadImage(this, item.Image, ColoredImage, ImageStyle.FitCenter, ImagePlaceholders.Color, false);
                         break;
                     default:
-                    {
-                        var colorsList = new List<int>();
-
-                        switch (string.IsNullOrEmpty(item.Color1))
                         {
-                            case false:
-                                colorsList.Add(Color.ParseColor(item.Color1));
-                                break;
-                        }
+                            var colorsList = new List<int>();
 
-                        switch (string.IsNullOrEmpty(item.Color2))
-                        {
-                            case false:
-                                colorsList.Add(Color.ParseColor(item.Color2));
-                                break;
-                        }
+                            switch (string.IsNullOrEmpty(item.Color1))
+                            {
+                                case false:
+                                    colorsList.Add(Color.ParseColor(item.Color1));
+                                    break;
+                            }
 
-                        GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
-                        gd.SetCornerRadius(0f);
-                        ColoredImage.Background = gd;
-                        break;
-                    }
+                            switch (string.IsNullOrEmpty(item.Color2))
+                            {
+                                case false:
+                                    colorsList.Add(Color.ParseColor(item.Color2));
+                                    break;
+                            }
+
+                            GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TopBottom, colorsList.ToArray());
+                            gd.SetCornerRadius(0f);
+                            ColoredImage.Background = gd;
+                            break;
+                        }
                 }
 
                 switch (string.IsNullOrEmpty(item.TextColor))
@@ -874,9 +902,11 @@ namespace WoWonder.Activities.AddPost.Service
                         break;
                 }
 
-                var layoutparams = (RelativeLayout.LayoutParams)TxtContentPost.LayoutParameters;
-                layoutparams.AddRule(LayoutRules.CenterInParent);
-                TxtContentPost.LayoutParameters = layoutparams;
+                //LinearLayout.LayoutParams layoutparams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+                //layoutparams.Gravity = GravityFlags.Center | GravityFlags.CenterVertical;
+                //TxtContentPost.LayoutParameters = layoutparams;
+
+                TxtContentPost.Gravity = GravityFlags.CenterVertical | GravityFlags.Center;
             }
             catch (Exception exception)
             {
@@ -903,170 +933,170 @@ namespace WoWonder.Activities.AddPost.Service
                 {
                     ColoredImage.Visibility = ViewStates.Gone;
 
-                    TxtContentPost.SetTextColor(new Color(ContextCompat.GetColor(TxtContentPost.Context, Resource.Color.textDark_color)));
-                    TxtContentPost.SetHintTextColor(new Color(ContextCompat.GetColor(TxtContentPost.Context, Resource.Color.textDark_color)));
+                    Methods.SetColorEditText(TxtContentPost, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 }
 
+                TxtAddPost.SetTextColor(Color.ParseColor("#000000"));
                 switch (requestCode)
                 {
                     // Add image 
                     case 500 when resultCode == Result.Ok:
-                    {
-                        if (data.ClipData != null)
                         {
-                            var mClipData = data.ClipData;
-                            for (var i = 0; i < mClipData.ItemCount; i++)
+                            if (data.ClipData != null)
                             {
-                                var item = mClipData.GetItemAt(i);
-                                Uri uri = item.Uri;
+                                var mClipData = data.ClipData;
+                                for (var i = 0; i < mClipData.ItemCount; i++)
+                                {
+                                    var item = mClipData.GetItemAt(i);
+                                    Uri uri = item.Uri;
+                                    var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
+                                    PickiTonCompleteListener(filepath);
+                                }
+                            }
+                            else
+                            {
+                                Uri uri = data.Data;
                                 var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
                                 PickiTonCompleteListener(filepath);
                             }
-                        }
-                        else
-                        {
-                            Uri uri = data.Data;
-                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
-                            PickiTonCompleteListener(filepath);
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Add video 
                     case 501 when resultCode == Result.Ok:
-                    {
-                        NameAlbumButton.Visibility = ViewStates.Gone;
-
-                        AttachmentsAdapter.RemoveAll();
-
-                        UriData = data.Data;
-                        //PickiT.GetPath(uriData, (int)Build.VERSION.SdkInt);
-
-                        var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                        if (filepath != null)
                         {
-                            var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                            switch (type)
+                            NameAlbumButton.Visibility = ViewStates.Gone;
+
+                            AttachmentsAdapter.RemoveAll();
+
+                            UriData = data.Data;
+                            //PickiT.GetPath(uriData, (int)Build.VERSION.SdkInt);
+
+                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                            if (filepath != null)
                             {
-                                case "Video":
+                                var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
+                                switch (type)
                                 {
-                                    var fileName = filepath.Split('/').Last();
-                                    var fileNameWithoutExtension = fileName.Split('.').First();
-                                    var pathWithoutFilename = Methods.Path.FolderDcimImage;
-                                    var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
-
-                                    var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
-                                    switch (videoPlaceHolderImage)
-                                    {
-                                        case "File Dont Exists":
+                                    case "Video":
                                         {
-                                            var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
-                                            Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                            var fileName = filepath.Split('/').Last();
+                                            var fileNameWithoutExtension = fileName.Split('.').First();
+                                            var pathWithoutFilename = Methods.Path.FolderDcimImage;
+                                            var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
+
+                                            var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
+                                            switch (videoPlaceHolderImage)
+                                            {
+                                                case "File Dont Exists":
+                                                    {
+                                                        var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
+                                                        Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                                        break;
+                                                    }
+                                            }
+
+                                            //remove file the type
+                                            var imageAttach = AttachmentsAdapter.AttachmentList.Where(a => a.TypeAttachment != "postVideo").ToList();
+                                            switch (imageAttach.Count)
+                                            {
+                                                case > 0:
+                                                    {
+                                                        foreach (var image in imageAttach)
+                                                            AttachmentsAdapter.Remove(image);
+                                                        break;
+                                                    }
+                                            }
+
+                                            var attach = new Attachments
+                                            {
+                                                Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                                TypeAttachment = "postVideo",
+                                                FileSimple = fullPathFile.AbsolutePath,
+                                                Thumb = new Attachments.VideoThumb
+                                                {
+                                                    FileUrl = fullPathFile.AbsolutePath
+                                                },
+                                                FileUrl = filepath
+                                            };
+
+                                            AttachmentsAdapter.Add(attach);
                                             break;
                                         }
-                                    }
-
-                                    //remove file the type
-                                    var imageAttach = AttachmentsAdapter.AttachmentList.Where(a => a.TypeAttachment != "postVideo").ToList();
-                                    switch (imageAttach.Count)
-                                    {
-                                        case > 0:
-                                        {
-                                            foreach (var image in imageAttach)
-                                                AttachmentsAdapter.Remove(image);
-                                            break;
-                                        }
-                                    }
-                             
-                                    var attach = new Attachments
-                                    {
-                                        Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                                        TypeAttachment = "postVideo",
-                                        FileSimple = fullPathFile.AbsolutePath,
-                                        Thumb = new Attachments.VideoThumb
-                                        {
-                                            FileUrl = fullPathFile.AbsolutePath
-                                        },
-                                        FileUrl = filepath
-                                    };
-
-                                    AttachmentsAdapter.Add(attach);
-                                    break;
                                 }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Add video Camera 
                     case 513 when resultCode == Result.Ok:
-                    {
-                        NameAlbumButton.Visibility = ViewStates.Gone;
-
-                        AttachmentsAdapter.RemoveAll();
-
-                        var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                        if (filepath != null)
                         {
-                            var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                            switch (type)
+                            NameAlbumButton.Visibility = ViewStates.Gone;
+
+                            AttachmentsAdapter.RemoveAll();
+
+                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                            if (filepath != null)
                             {
-                                case "Video":
+                                var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
+                                switch (type)
                                 {
-                                    var fileName = filepath.Split('/').Last();
-                                    var fileNameWithoutExtension = fileName.Split('.').First();
-                                    var pathWithoutFilename = Methods.Path.FolderDcimImage;
-                                    var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
-
-                                    var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
-                                    switch (videoPlaceHolderImage)
-                                    {
-                                        case "File Dont Exists":
+                                    case "Video":
                                         {
-                                            var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
-                                            Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                            var fileName = filepath.Split('/').Last();
+                                            var fileNameWithoutExtension = fileName.Split('.').First();
+                                            var pathWithoutFilename = Methods.Path.FolderDcimImage;
+                                            var fullPathFile = new File(Methods.Path.FolderDcimImage, fileNameWithoutExtension + ".png");
+
+                                            var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
+                                            switch (videoPlaceHolderImage)
+                                            {
+                                                case "File Dont Exists":
+                                                    {
+                                                        var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
+                                                        Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                                                        break;
+                                                    }
+                                            }
+
+                                            //remove file the type
+                                            var imageAttach = AttachmentsAdapter.AttachmentList.Where(a => a.TypeAttachment != "postVideo").ToList();
+                                            switch (imageAttach.Count)
+                                            {
+                                                case > 0:
+                                                    {
+                                                        foreach (var image in imageAttach)
+                                                            AttachmentsAdapter.Remove(image);
+                                                        break;
+                                                    }
+                                            }
+
+                                            var attach = new Attachments
+                                            {
+                                                Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                                TypeAttachment = "postVideo",
+                                                FileSimple = fullPathFile.AbsolutePath,
+                                                Thumb = new Attachments.VideoThumb
+                                                {
+                                                    FileUrl = fullPathFile.AbsolutePath
+                                                },
+                                                FileUrl = filepath
+                                            };
+
+                                            AttachmentsAdapter.Add(attach);
                                             break;
                                         }
-                                    }
-
-                                    //remove file the type
-                                    var imageAttach = AttachmentsAdapter.AttachmentList.Where(a => a.TypeAttachment != "postVideo").ToList();
-                                    switch (imageAttach.Count)
-                                    {
-                                        case > 0:
-                                        {
-                                            foreach (var image in imageAttach)
-                                                AttachmentsAdapter.Remove(image);
-                                            break;
-                                        }
-                                    }
-
-                                    var attach = new Attachments
-                                    {
-                                        Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                                        TypeAttachment = "postVideo",
-                                        FileSimple = fullPathFile.AbsolutePath,
-                                        Thumb = new Attachments.VideoThumb
-                                        {
-                                            FileUrl = fullPathFile.AbsolutePath
-                                        },
-                                        FileUrl = filepath
-                                    };
-
-                                    AttachmentsAdapter.Add(attach);
-                                    break;
                                 }
                             }
-                        }
-                        else
-                        {
-                            UriData = data.Data;
-                            var filepath2 = Methods.AttachmentFiles.GetActualPathFromFile(this, UriData);
-                            PickiTonCompleteListener(filepath2);
-                        }
+                            else
+                            {
+                                UriData = data.Data;
+                                var filepath2 = Methods.AttachmentFiles.GetActualPathFromFile(this, UriData);
+                                PickiTonCompleteListener(filepath2);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Mention
                     case 3 when resultCode == Result.Ok:
                         try
@@ -1075,12 +1105,12 @@ namespace WoWonder.Activities.AddPost.Service
                             switch (dataUser.Count)
                             {
                                 case > 0:
-                                {
-                                    foreach (var item in dataUser) MentionText += " @" + item.Username + " ,";
+                                    {
+                                        foreach (var item in dataUser) MentionText += " @" + item.Username + " ,";
 
-                                    TextSanitizer.Load(LoadPostStrings());
-                                    break;
-                                }
+                                        TextSanitizer.Load(LoadPostStrings());
+                                        break;
+                                    }
                             }
                         }
                         catch (Exception e)
@@ -1091,218 +1121,172 @@ namespace WoWonder.Activities.AddPost.Service
                         break;
                     // Location
                     case 502 when resultCode == Result.Ok:
-                    {
-                        var placeAddress = data.GetStringExtra("Address") ?? "";
-                        switch (string.IsNullOrEmpty(placeAddress))
                         {
-                            //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                            case false:
+                            var placeAddress = data.GetStringExtra("Address") ?? "";
+                            switch (string.IsNullOrEmpty(placeAddress))
                             {
-                                PlaceText = string.IsNullOrEmpty(PlaceText) switch
-                                {
-                                    false => string.Empty,
-                                    _ => PlaceText
-                                };
+                                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                                case false:
+                                    {
+                                        PlaceText = string.IsNullOrEmpty(PlaceText) switch
+                                        {
+                                            false => string.Empty,
+                                            _ => PlaceText
+                                        };
 
-                                PlaceText = " /" + placeAddress;
-                                TextSanitizer.Load(LoadPostStrings());
-                                break;
+                                        PlaceText = " /" + placeAddress;
+                                        TextSanitizer.Load(LoadPostStrings());
+                                        break;
+                                    }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Feeling
                     case 5 when resultCode == Result.Ok:
-                    {
-                        var feelings = data.GetStringExtra("FeelingName") ?? "Data not available";
-                        var feelingsDisplayText = data.GetStringExtra("Feelings") ?? "Data not available";
-                        if (feelings != "Data not available" && !string.IsNullOrEmpty(feelings))
                         {
-                            FeelingText = feelingsDisplayText; //This Will be displayed And translated
-                            PostFeelingType = "feelings"; //Type Of feeling
-                            PostFeelingText = feelings.ToLower(); //This will be send via API
-                            TextSanitizer.Load(LoadPostStrings());
-                        }
+                            var feelings = data.GetStringExtra("FeelingName") ?? "Data not available";
+                            var feelingsDisplayText = data.GetStringExtra("Feelings") ?? "Data not available";
+                            if (feelings != "Data not available" && !string.IsNullOrEmpty(feelings))
+                            {
+                                FeelingText = feelingsDisplayText; //This Will be displayed And translated
+                                PostFeelingType = "feelings"; //Type Of feeling
+                                PostFeelingText = feelings.ToLower(); //This will be send via API
+                                TextSanitizer.Load(LoadPostStrings());
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Add image using camera
                     case 503 when resultCode == Result.Ok:
-                    {
-                        //remove file the type
-                        var videoAttach = AttachmentsAdapter.AttachmentList.Where(a => !a.TypeAttachment.Contains("postPhotos")).ToList();
-                        switch (videoAttach.Count)
                         {
-                            case > 0:
+                            //remove file the type
+                            var videoAttach = AttachmentsAdapter.AttachmentList.Where(a => !a.TypeAttachment.Contains("postPhotos[]")).ToList();
+                            switch (videoAttach.Count)
                             {
-                                foreach (var video in videoAttach)
-                                    AttachmentsAdapter.Remove(video);
-                                break;
+                                case > 0:
+                                    {
+                                        foreach (var video in videoAttach)
+                                            AttachmentsAdapter.Remove(video);
+                                        break;
+                                    }
                             }
-                        }
 
-                        if (string.IsNullOrEmpty(IntentController.CurrentPhotoPath))
-                        {
-                            Uri uri = data.Data;
-                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
-                            PickiTonCompleteListener(filepath);
-                        }
-                        else
-                        {
-                            if (Methods.MultiMedia.CheckFileIfExits(IntentController.CurrentPhotoPath) != "File Dont Exists")
+                            if (string.IsNullOrEmpty(IntentController.CurrentPhotoPath))
                             {
-                                var attach = new Attachments
-                                {
-                                    Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                                    TypeAttachment = "postPhotos",
-                                    FileSimple = IntentController.CurrentPhotoPath,
-                                    FileUrl = IntentController.CurrentPhotoPath
-                                };
-
-                                AttachmentsAdapter.Add(attach);
-
-                                switch (AttachmentsAdapter.AttachmentList.Count)
-                                {
-                                    case > 1:
-                                    {
-                                        NameAlbumButton.Visibility = ViewStates.Visible;
-
-                                        foreach (var item in AttachmentsAdapter.AttachmentList)
-                                            item.TypeAttachment = "postPhotos[]";
-                                        break;
-                                    }
-                                    default:
-                                    {
-                                        NameAlbumButton.Visibility = ViewStates.Gone;
-
-                                        foreach (var item in AttachmentsAdapter.AttachmentList)
-                                            item.TypeAttachment = "postPhotos";
-                                        break;
-                                    }
-                                }
+                                Uri uri = data.Data;
+                                var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
+                                PickiTonCompleteListener(filepath);
                             }
                             else
                             {
-                                //Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
-                            }
-                        }
-
-                        break;
-                    }
-                    // Gif
-                    case 7 when resultCode == Result.Ok:
-                    {
-                        var giflink = data.GetStringExtra("gif") ?? "Data not available";
-                        if (giflink != "Data not available" && !string.IsNullOrEmpty(giflink))
-                        {
-                            GifFile = giflink;
-
-                            //remove file the type
-                            AttachmentsAdapter.RemoveAll();
-
-                            var attach = new Attachments
-                            {
-                                Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                                TypeAttachment = "postPhotos",
-                                FileSimple = GifFile,
-                                FileUrl = GifFile
-                            };
-
-                            AttachmentsAdapter.Add(attach);
-                        }
-
-                        break;
-                    }
-                    // File
-                    case 504 when resultCode == Result.Ok:
-                    {
-                        Uri uri = data.Data;
-                        var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
-                        PickiTonCompleteListener(filepath);
-                        break;
-                    }
-                    // Music
-                    case 505 when resultCode == Result.Ok:
-                    {
-                        Uri uri = data.Data;
-                        var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
-                        PickiTonCompleteListener(filepath);
-                        break;
-                    }
-                    // Add image 
-                    case CropImage.CropImageActivityRequestCode when resultCode == Result.Ok:
-                    {
-                        var videoAttach = AttachmentsAdapter.AttachmentList.Where(a => !a.TypeAttachment.Contains("postPhotos")).ToList();
-
-                        switch (videoAttach.Count)
-                        {
-                            case > 0:
-                            {
-                                foreach (var video in videoAttach)
-                                    AttachmentsAdapter.Remove(video);
-                                break;
-                            }
-                        }
-
-                        var result = CropImage.GetActivityResult(data);
-
-                        switch (result.IsSuccessful)
-                        {
-                            case true:
-                            {
-                                var resultUri = result.Uri;
-
-                                switch (string.IsNullOrEmpty(resultUri.Path))
+                                if (Methods.MultiMedia.CheckFileIfExits(IntentController.CurrentPhotoPath) != "File Dont Exists")
                                 {
-                                    case false:
+                                    var attach = new Attachments
                                     {
-                                        var attach = new Attachments
-                                        {
-                                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                                            TypeAttachment = "postPhotos",
-                                            FileSimple = resultUri.Path,
-                                            FileUrl = resultUri.Path
-                                        };
+                                        Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                        TypeAttachment = "postPhotos[]",
+                                        FileSimple = IntentController.CurrentPhotoPath,
+                                        FileUrl = IntentController.CurrentPhotoPath
+                                    };
 
-                                        AttachmentsAdapter.Add(attach);
+                                    AttachmentsAdapter.Add(attach);
 
-                                        switch (AttachmentsAdapter.AttachmentList.Count)
-                                        {
-                                            case > 1:
+                                    switch (AttachmentsAdapter.AttachmentList.Count)
+                                    {
+                                        case > 1:
                                             {
                                                 NameAlbumButton.Visibility = ViewStates.Visible;
 
                                                 foreach (var item in AttachmentsAdapter.AttachmentList)
-                                                {
                                                     item.TypeAttachment = "postPhotos[]";
-                                                }
-
                                                 break;
                                             }
-                                            default:
+                                        default:
                                             {
                                                 NameAlbumButton.Visibility = ViewStates.Gone;
 
                                                 foreach (var item in AttachmentsAdapter.AttachmentList)
-                                                    item.TypeAttachment = "postPhotos";
+                                                    item.TypeAttachment = "postPhotos[]";
                                                 break;
                                             }
-                                        }
-
-                                        break;
                                     }
-                                    default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                                        break;
                                 }
-
-                                break;
+                                else
+                                {
+                                    //ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
+                                }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
+                    // Gif
+                    case 7 when resultCode == Result.Ok:
+                        {
+                            var giflink = data.GetStringExtra("gif") ?? "Data not available";
+                            if (giflink != "Data not available" && !string.IsNullOrEmpty(giflink))
+                            {
+                                GifFile = giflink;
+
+                                //remove file the type
+                                AttachmentsAdapter.RemoveAll();
+
+                                var attach = new Attachments
+                                {
+                                    Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                    TypeAttachment = "postPhotos[]",
+                                    FileSimple = GifFile,
+                                    FileUrl = GifFile
+                                };
+
+                                AttachmentsAdapter.Add(attach);
+                            }
+
+                            break;
+                        }
+                    // File
+                    case 504 when resultCode == Result.Ok:
+                        {
+                            Uri uri = data.Data;
+                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
+                            PickiTonCompleteListener(filepath);
+                            break;
+                        }
+                    // Music
+                    case 505 when resultCode == Result.Ok:
+                        {
+                            Uri uri = data.Data;
+                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, uri);
+                            PickiTonCompleteListener(filepath);
+                            break;
+                        }
+                    // Crop image 
+                    case CropImage.CropImageActivityRequestCode when resultCode == Result.Ok:
+                        {
+                            var result = CropImage.GetActivityResult(data);
+                            if (result.IsSuccessful)
+                            {
+                                var resultUri = result.Uri;
+                                if (!string.IsNullOrEmpty(resultUri.Path) && ItemAttachmentsClick != null)
+                                {
+                                    var attach = AttachmentsAdapter.AttachmentList.FirstOrDefault(a => a.Id == ItemAttachmentsClick.Id);
+                                    if (attach != null)
+                                    {
+                                        attach.FileSimple = resultUri.Path;
+                                        attach.FileUrl = resultUri.Path;
+
+                                        AttachmentsAdapter.NotifyDataSetChanged();
+                                        ItemAttachmentsClick = null!;
+                                    }
+                                }
+                                else
+                                {
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
+                                }
+                            }
+
+                            break;
+                        }
                 }
 
                 TxtContentPost.ClearFocus();
@@ -1323,11 +1307,12 @@ namespace WoWonder.Activities.AddPost.Service
                 switch (requestCode)
                 {
                     case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        Methods.Path.Chack_MyFolder();
                         switch (PermissionsType)
                         {
                             //requestCode >> 500 => Image Gallery
-                            case "Image" when AppSettings.ImageCropping:
-                                OpenDialogGallery();
+                            case "Image":
+                                new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true);
                                 break;
                             case "VideoGallery":
                                 //requestCode >> 501 => video Gallery
@@ -1350,24 +1335,30 @@ namespace WoWonder.Activities.AddPost.Service
                                 new IntentController(this).OpenIntentAudio();
                                 break;
                         }
-
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                     case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                     case 102 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
-                        VoiceRecorder = new VoiceRecorder();
+                        VoiceRecorder = new VoiceRecorder(this, "AddPost");
                         VoiceRecorder.Show(SupportFragmentManager, VoiceRecorder.Tag);
                         break;
                     case 102:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                        break;
+                    case 1051 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                        Methods.Path.Chack_MyFolder();
+                        break;
+                    case 1051:
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                        Finish();
                         break;
                 }
             }
@@ -1474,7 +1465,7 @@ namespace WoWonder.Activities.AddPost.Service
 
                     TxtUserName.Text = WoWonderTools.GetNameFinal(DataUser);
 
-                    PostPrivacyButton.Text = GetString(Resource.String.Lbl_Everyone);
+                    PostState.Text = GetString(Resource.String.Lbl_Everyone);
 
                     //if (dataUser.post_privacy.Contains("0"))
                     //    PostPrivacyButton.Text = GetString(Resource.String.Lbl_Everyone);
@@ -1508,6 +1499,7 @@ namespace WoWonder.Activities.AddPost.Service
                     case "Normal":
                     case "Normal_More":
                     case "Normal_Gallery":
+                    case "Normal_Mention":
                         LoadDataUser();
 
                         switch (PagePost)
@@ -1516,120 +1508,143 @@ namespace WoWonder.Activities.AddPost.Service
                                 SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
                                 break;
                             case "Normal_Gallery":
-                            {
-                                PermissionsType = "Image";
+                                {
+                                    PermissionsType = "Image";
 
-                                OpenDialogGallery(); //requestCode >> 500 => Image Gallery
-                                break;
-                            }
+                                    new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true); //requestCode >> 500 => Image Gallery
+                                    break;
+                                }
+                            case "Normal_Mention":
+                                {
+                                    StartActivityForResult(new Intent(this, typeof(MentionActivity)), 3);
+                                    break;
+                                }
                         }
 
                         break;
                     case "SocialGroup":
                     case "SocialGroup_More":
                     case "SocialGroup_Gallery":
-                    {
-                        DataGroup = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("itemObject") ?? "");
-                        if (DataGroup != null)
+                    case "SocialGroup_Mention":
                         {
-                            PostPrivacyButton.SetBackgroundResource(0);
-                            PostPrivacyButton.Enabled = false;
-                            PostPrivacyButton.Text = GetText(Resource.String.Lbl_PostingAs) + " " + WoWonderTools.GetNameFinal(DataUser);
-
-                            GlideImageLoader.LoadImage(this, DataGroup.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                            TxtUserName.Text = DataGroup.GroupName;
-                        }
-                        else
-                        {
-                            LoadDataUser();
-                        }
-
-                        switch (PagePost)
-                        {
-                            case "SocialGroup_More":
-                                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
-                                break;
-                            case "SocialGroup_Gallery":
+                            DataGroup = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("itemObject") ?? "");
+                            if (DataGroup != null)
                             {
-                                PermissionsType = "Image";
+                                //PostPrivacyButton.SetBackgroundResource(0);
+                                //PostPrivacyButton.Enabled = false;
+                                PostState.Text = GetText(Resource.String.Lbl_PostingAs) + " " + WoWonderTools.GetNameFinal(DataUser);
 
-                                OpenDialogGallery(); //requestCode >> 500 => Image Gallery
-                                break;
+                                GlideImageLoader.LoadImage(this, DataGroup.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                TxtUserName.Text = DataGroup.GroupName;
                             }
-                        }
+                            else
+                            {
+                                LoadDataUser();
+                            }
 
-                        break;
-                    }
+                            switch (PagePost)
+                            {
+                                case "SocialGroup_More":
+                                    SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
+                                    break;
+                                case "SocialGroup_Gallery":
+                                    {
+                                        PermissionsType = "Image";
+
+                                        new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true); //requestCode >> 500 => Image Gallery
+                                        break;
+                                    }
+                                case "SocialGroup_Mention":
+                                    {
+                                        StartActivityForResult(new Intent(this, typeof(MentionActivity)), 3);
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
                     case "SocialPage":
                     case "SocialPage_More":
                     case "SocialPage_Gallery":
-                    {
-                        DataPage = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("itemObject") ?? "");
-                        if (DataPage != null)
+                    case "SocialPage_Mention":
                         {
-                            PostPrivacyButton.SetBackgroundResource(0);
-                            PostPrivacyButton.Enabled = false;
-                            PostPrivacyButton.Text = GetText(Resource.String.Lbl_PostingAs) + " " + WoWonderTools.GetNameFinal(DataUser);
-
-                            GlideImageLoader.LoadImage(this, DataPage.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                            TxtUserName.Text = DataPage.PageName;
-                        }
-                        else
-                        {
-                            LoadDataUser();
-                        }
-
-                        switch (PagePost)
-                        {
-                            case "SocialPage_More":
-                                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
-                                break;
-                            case "SocialPage_Gallery":
+                            DataPage = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("itemObject") ?? "");
+                            if (DataPage != null)
                             {
-                                PermissionsType = "Image";
+                                //PostPrivacyButton.SetBackgroundResource(0);
+                                //PostPrivacyButton.Enabled = false;
+                                PostState.Text = GetText(Resource.String.Lbl_PostingAs) + " " + WoWonderTools.GetNameFinal(DataUser);
 
-                                OpenDialogGallery(); //requestCode >> 500 => Image Gallery
-                                break;
+                                GlideImageLoader.LoadImage(this, DataPage.Avatar, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                TxtUserName.Text = DataPage.PageName;
                             }
-                        }
+                            else
+                            {
+                                LoadDataUser();
+                            }
 
-                        break;
-                    }
+                            switch (PagePost)
+                            {
+                                case "SocialPage_More":
+                                    SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
+                                    break;
+                                case "SocialPage_Gallery":
+                                    {
+                                        PermissionsType = "Image";
+
+                                        new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true); //requestCode >> 500 => Image Gallery
+                                        break;
+                                    }
+                                case "SocialPage_Mention":
+                                    {
+                                        StartActivityForResult(new Intent(this, typeof(MentionActivity)), 3);
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
                     case "SocialEvent":
                     case "SocialEvent_More":
                     case "SocialEvent_Gallery":
-                    {
-                        DataEvent = JsonConvert.DeserializeObject<EventDataObject>(Intent?.GetStringExtra("itemObject") ?? "");
-                        if (DataEvent != null)
+                    case "SocialEvent_Mention":
                         {
-                            PostPrivacyButton.SetBackgroundResource(0);
-                            PostPrivacyButton.Enabled = false;
-                            PostPrivacyButton.Text = GetText(Resource.String.Lbl_PostingAs) + " " + WoWonderTools.GetNameFinal(DataUser);
-
-                            GlideImageLoader.LoadImage(this, DataEvent.Cover, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                            TxtUserName.Text = DataEvent.Name;
-                        }
-                        else
-                        {
-                            LoadDataUser();
-                        }
-
-                        switch (PagePost)
-                        {
-                            case "SocialEvent_More":
-                                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
-                                break;
-                            case "SocialEvent_Gallery":
+                            DataEvent = JsonConvert.DeserializeObject<EventDataObject>(Intent?.GetStringExtra("itemObject") ?? "");
+                            if (DataEvent != null)
                             {
-                                PermissionsType = "Image";
+                                //PostPrivacyButton.SetBackgroundResource(0);
+                                //PostPrivacyButton.Enabled = false;
+                                PostState.Text = GetText(Resource.String.Lbl_PostingAs) + " " + WoWonderTools.GetNameFinal(DataUser);
 
-                                OpenDialogGallery(); //requestCode >> 500 => Image Gallery
-                                break;
+                                GlideImageLoader.LoadImage(this, DataEvent.Cover, PostSectionImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                                TxtUserName.Text = DataEvent.Name;
                             }
-                        }
+                            else
+                            {
+                                LoadDataUser();
+                            }
 
-                        break;
-                    }
+                            switch (PagePost)
+                            {
+                                case "SocialEvent_More":
+                                    SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Expanded);
+                                    break;
+                                case "SocialEvent_Gallery":
+                                    {
+                                        PermissionsType = "Image";
+
+                                        new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true); //requestCode >> 500 => Image Gallery
+                                        break;
+                                    }
+                                case "SocialEvent_Mention":
+                                    {
+                                        StartActivityForResult(new Intent(this, typeof(MentionActivity)), 3);
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
                     default:
                         LoadDataUser();
                         break;
@@ -1648,7 +1663,7 @@ namespace WoWonder.Activities.AddPost.Service
                 TypeDialog = "PostPrivacy";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetString(Resource.String.Lbl_Everyone));// > 0
 
@@ -1663,7 +1678,13 @@ namespace WoWonder.Activities.AddPost.Service
                         break;
                 }
                 arrayAdapter.Add(GetString(Resource.String.Lbl_No_body)); // > 3
-                arrayAdapter.Add(GetText(Resource.String.Lbl_Anonymous)); // > 4
+
+                switch (AppSettings.ShowAnonymousPrivacyPost)
+                {
+                    case true:
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Anonymous)); // > 4
+                        break;
+                }
 
                 dialogList.Title(GetText(Resource.String.Lbl_PostPrivacy)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
@@ -1691,7 +1712,7 @@ namespace WoWonder.Activities.AddPost.Service
                         ScrollView.SmoothScrollTo(0, ScrollView.Bottom + 200);
                         break;
                     default:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl2_PollsLimitError), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl2_PollsLimitError), ToastLength.Long);
                         break;
                 }
             }
@@ -1705,170 +1726,257 @@ namespace WoWonder.Activities.AddPost.Service
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemid, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "PostPrivacy":
-                    {
-                        PostPrivacyButton.Text = itemString.ToString();
-
-                        if (itemString.ToString() == GetString(Resource.String.Lbl_Everyone))
-                            PostPrivacy = "0";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_People_i_Follow) || itemString.ToString() == GetString(Resource.String.Lbl_MyFriends))
-                            PostPrivacy = "1";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_People_Follow_Me))
-                            PostPrivacy = "2";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_No_body))
-                            PostPrivacy = "3";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_Anonymous))
-                            PostPrivacy = "4";
-                        else
-                            PostPrivacy = "0";
-                        break;
-                    }
-                    case "PostVideos" when itemString.ToString() == GetText(Resource.String.Lbl_VideoGallery):
-                    {
-                        PermissionsType = "VideoGallery";
-                        switch ((int)Build.VERSION.SdkInt)
                         {
-                            // Check if we're running on Android 5.0 or higher
-                            case < 23:
-                                //requestCode >> 501 => video Gallery
-                                new IntentController(this).OpenIntentVideoGallery();
-                                break;
-                            default:
+                            PostState.Text = itemString;
+
+                            if (itemString == GetString(Resource.String.Lbl_Everyone))
                             {
-                                if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted
-                                    && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
-                                    && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                                {
-                                    //requestCode >> 501 => video Gallery
-                                    new IntentController(this).OpenIntentVideoGallery();
-                                }
-                                else
-                                {
-                                    new PermissionsController(this).RequestPermission(108);
-                                }
-
-                                break;
+                                PostPrivacy = "0";
+                                ImagePostState.SetImageResource(Resource.Drawable.ic_world_vector);
                             }
+                            else if (itemString == GetString(Resource.String.Lbl_People_i_Follow) || itemString == GetString(Resource.String.Lbl_MyFriends))
+                            {
+                                PostPrivacy = "1";
+                                ImagePostState.SetImageResource(Resource.Drawable.ic_friend);
+                            }
+                            else if (itemString == GetString(Resource.String.Lbl_People_Follow_Me))
+                            {
+                                PostPrivacy = "2";
+                                ImagePostState.SetImageResource(Resource.Drawable.ic_users);
+                            }
+                            else if (itemString == GetString(Resource.String.Lbl_No_body))
+                            {
+                                PostPrivacy = "3";
+                                ImagePostState.SetImageResource(Resource.Drawable.ic_lock);
+                            }
+                            else if (itemString == GetString(Resource.String.Lbl_Anonymous))
+                            {
+                                PostPrivacy = "4";
+                                ImagePostState.SetImageResource(Resource.Drawable.ic_detective);
+                            }
+                            else
+                                PostPrivacy = "0";
+                            break;
                         }
-
-                        break;
-                    }
-                    case "PostVideos":
-                    {
-                        if (itemString.ToString() == GetText(Resource.String.Lbl_RecordVideoFromCamera))
+                    case "PostImages" when itemString == GetText(Resource.String.Lbl_ImageGallery):
                         {
-                            PermissionsType = "VideoCamera";
+                            PermissionsType = "Image";
 
+                            switch ((int)Build.VERSION.SdkInt)
+                            {
+                                // Check if we're running on Android 5.0 or higher 
+                                case < 23:
+                                    new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true);
+                                    break;
+                                default:
+                                    {
+                                        if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                            && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                        {
+                                            new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.image), true);
+                                        }
+                                        else
+                                        {
+                                            new PermissionsController(this).RequestPermission(108);
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
+                    case "PostImages":
+                        {
+                            if (itemString == GetText(Resource.String.Lbl_TakeImageFromCamera))
+                            {
+                                PermissionsType = "Camera";
+
+                                switch ((int)Build.VERSION.SdkInt)
+                                {
+                                    // Check if we're running on Android 5.0 or higher
+                                    case < 23:
+                                        //requestCode >> 503 => Camera
+                                        new IntentController(this).OpenIntentCamera();
+                                        break;
+                                    default:
+                                        {
+                                            if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                                && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                            {
+                                                //requestCode >> 503 => Camera
+                                                new IntentController(this).OpenIntentCamera();
+                                            }
+                                            else
+                                            {
+                                                new PermissionsController(this).RequestPermission(108);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+
+                            break;
+                        }
+                    case "PostVideos" when itemString == GetText(Resource.String.Lbl_VideoGallery):
+                        {
+                            PermissionsType = "VideoGallery";
                             switch ((int)Build.VERSION.SdkInt)
                             {
                                 // Check if we're running on Android 5.0 or higher
                                 case < 23:
-                                    //requestCode >> 513 => video Camera
-                                    new IntentController(this).OpenIntentVideoCamera();
+                                    //requestCode >> 501 => video Gallery
+                                    new IntentController(this).OpenIntentVideoGallery();
                                     break;
                                 default:
-                                {
-                                    if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted
-                                        && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
-                                        && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
                                     {
+                                        if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted
+                                            && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                            && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                        {
+                                            //requestCode >> 501 => video Gallery
+                                            new IntentController(this).OpenIntentVideoGallery();
+                                        }
+                                        else
+                                        {
+                                            new PermissionsController(this).RequestPermission(108);
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
+                    case "PostVideos":
+                        {
+                            if (itemString == GetText(Resource.String.Lbl_RecordVideoFromCamera))
+                            {
+                                PermissionsType = "VideoCamera";
+
+                                switch ((int)Build.VERSION.SdkInt)
+                                {
+                                    // Check if we're running on Android 5.0 or higher
+                                    case < 23:
                                         //requestCode >> 513 => video Camera
                                         new IntentController(this).OpenIntentVideoCamera();
-                                    }
-                                    else
-                                    {
-                                        new PermissionsController(this).RequestPermission(108);
-                                    }
+                                        break;
+                                    default:
+                                        {
+                                            if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted
+                                                && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
+                                                && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                                            {
+                                                //requestCode >> 513 => video Camera
+                                                new IntentController(this).OpenIntentVideoCamera();
+                                            }
+                                            else
+                                            {
+                                                new PermissionsController(this).RequestPermission(108);
+                                            }
 
-                                    break;
+                                            break;
+                                        }
                                 }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Feelings
-                    case "Feelings" when itemid == 0:
+                    case "Feelings" when position == 0:
                         StartActivityForResult(new Intent(this, typeof(FeelingsActivity)), 5);
                         break;
                     //Listening
-                    case "Feelings" when itemid == 1:
-                    {
-                        TypeDialog = "Listening";
-
-                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        dialog.Title(Resource.String.Lbl_Listening).TitleColorRes(Resource.Color.primary);
-                        dialog.Input(Resource.String.Lbl_Comment_Hint_Listening, 0, false, this);
-                        dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                        dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
-                        dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                        dialog.AlwaysCallSingleChoiceCallback();
-                        dialog.Build().Show();
-                        break;
-                    }
-                    //Playing
-                    case "Feelings" when itemid == 2:
-                    {
-                        TypeDialog = "Playing";
-
-                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        dialog.Title(Resource.String.Lbl_Playing).TitleColorRes(Resource.Color.primary);
-                        dialog.Input(Resource.String.Lbl_Comment_Hint_Playing, 0, false, this);
-                        dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                        dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
-                        dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                        dialog.AlwaysCallSingleChoiceCallback();
-                        dialog.Build().Show();
-                        break;
-                    }
-                    //Watching
-                    case "Feelings" when itemid == 3:
-                    {
-                        TypeDialog = "Watching";
-
-                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        dialog.Title(Resource.String.Lbl_Watching).TitleColorRes(Resource.Color.primary);
-                        dialog.Input(Resource.String.Lbl_Comment_Hint_Watching, 0, false, this);
-                        dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                        dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
-                        dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                        dialog.AlwaysCallSingleChoiceCallback();
-                        dialog.Build().Show();
-                        break;
-                    }
-                    case "Feelings":
-                    {
-                        switch (itemid)
+                    case "Feelings" when position == 1:
                         {
-                            //Traveling
-                            case 4:
-                            {
-                                TypeDialog = "Traveling";
+                            TypeDialog = "Listening";
 
-                                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            /*var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
-                                dialog.Title(Resource.String.Lbl_Traveling).TitleColorRes(Resource.Color.primary);
-                                dialog.Input(Resource.String.Lbl_Comment_Hint_Traveling, 0, false, this);
-                                dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                                dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
-                                dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                                dialog.AlwaysCallSingleChoiceCallback();
-                                dialog.Build().Show();
-                                break;
-                            }
+                            dialog.Title(Resource.String.Lbl_Listening).TitleColorRes(Resource.Color.primary);
+                            dialog.Input(Resource.String.Lbl_Comment_Hint_Listening, 0, false, this);
+                            dialog.InputType(InputTypes.TextFlagImeMultiLine);
+                            dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
+                            dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                            dialog.AlwaysCallSingleChoiceCallback();
+                            dialog.Build().Show();*/
+                            var feelingActivities = new FeelingActivitiesTemplate(0, this);
+                            feelingActivities.Show(SupportFragmentManager, TypeDialog);
+                            break;
                         }
+                    //Playing
+                    case "Feelings" when position == 2:
+                        {
+                            TypeDialog = "Playing";
 
-                        break;
-                    }
+                            /*var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+
+                            dialog.Title(Resource.String.Lbl_Playing).TitleColorRes(Resource.Color.primary);
+                            dialog.Input(Resource.String.Lbl_Comment_Hint_Playing, 0, false, this);
+                            dialog.InputType(InputTypes.TextFlagImeMultiLine);
+                            dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
+                            dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                            dialog.AlwaysCallSingleChoiceCallback();
+                            dialog.Build().Show();*/
+                            var feelingActivities = new FeelingActivitiesTemplate(1, this);
+                            feelingActivities.Show(SupportFragmentManager, TypeDialog);
+
+                            break;
+                        }
+                    //Watching
+                    case "Feelings" when position == 3:
+                        {
+                            TypeDialog = "Watching";
+
+                            /*var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+
+                            dialog.Title(Resource.String.Lbl_Watching).TitleColorRes(Resource.Color.primary);
+                            dialog.Input(Resource.String.Lbl_Comment_Hint_Watching, 0, false, this);
+                            dialog.InputType(InputTypes.TextFlagImeMultiLine);
+                            dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
+                            dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                            dialog.AlwaysCallSingleChoiceCallback();
+                            dialog.Build().Show();*/
+                            var feelingActivities = new FeelingActivitiesTemplate(2, this);
+                            feelingActivities.Show(SupportFragmentManager, TypeDialog);
+
+                            break;
+                        }
+                    case "Feelings":
+                        {
+                            switch (position)
+                            {
+                                //Traveling
+                                case 4:
+                                    {
+                                        TypeDialog = "Traveling";
+
+                                        /*var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+
+                                        dialog.Title(Resource.String.Lbl_Traveling).TitleColorRes(Resource.Color.primary);
+                                        dialog.Input(Resource.String.Lbl_Comment_Hint_Traveling, 0, false, this);
+                                        dialog.InputType(InputTypes.TextFlagImeMultiLine);
+                                        dialog.PositiveText(GetText(Resource.String.Lbl_Submit)).OnPositive(this);
+                                        dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                                        dialog.AlwaysCallSingleChoiceCallback();
+                                        dialog.Build().Show();*/
+                                        var feelingActivities = new FeelingActivitiesTemplate(3, this);
+                                        feelingActivities.Show(SupportFragmentManager, TypeDialog);
+
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -1884,10 +1992,10 @@ namespace WoWonder.Activities.AddPost.Service
                 switch (TypeDialog)
                 {
                     case "PostPrivacy":
-                    {
-                        if (p1 == DialogAction.Positive) p0.Dismiss();
-                        break;
-                    }
+                        {
+                            if (p1 == DialogAction.Positive) p0.Dismiss();
+                            break;
+                        }
                     case "PostBack" when p1 == DialogAction.Positive:
                         p0.Dismiss();
 
@@ -1895,26 +2003,26 @@ namespace WoWonder.Activities.AddPost.Service
                         Finish();
                         break;
                     case "PostBack":
-                    {
-                        if (p1 == DialogAction.Negative)
                         {
-                            p0.Dismiss();
-                        }
+                            if (p1 == DialogAction.Negative)
+                            {
+                                p0.Dismiss();
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
-                    {
-                        if (p1 == DialogAction.Positive)
                         {
-                        }
-                        else if (p1 == DialogAction.Negative)
-                        {
-                            p0.Dismiss();
-                        }
+                            if (p1 == DialogAction.Positive)
+                            {
+                            }
+                            else if (p1 == DialogAction.Negative)
+                            {
+                                p0.Dismiss();
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -1923,71 +2031,71 @@ namespace WoWonder.Activities.AddPost.Service
             }
         }
 
-        public void OnInput(MaterialDialog p0, ICharSequence p1)
+        public void OnInput(MaterialDialog dialog, string input)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "AddPicturesToAlbumName":
-                    {
-                        if (p1.Length() > 0)
                         {
-                            var strName = p1.ToString();
-                            AlbumName = strName;
-                            NameAlbumButton.Text = Methods.FunString.SubStringCutOf(strName, 30);
-                        }
+                            if (input.Length > 0)
+                            {
+                                var strName = input;
+                                AlbumName = strName;
+                                NameAlbumButton.Text = Methods.FunString.SubStringCutOf(strName, 30);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case "Listening":
-                    {
-                        if (p1.Length() > 0)
                         {
-                            var strName = p1.ToString();
-                            ListeningText = strName;
-                            PostFeelingText = strName;
-                            PostFeelingType = "listening"; //Type Of listening
-                        }
+                            if (input.Length > 0)
+                            {
+                                var strName = input;
+                                ListeningText = strName;
+                                PostFeelingText = strName;
+                                PostFeelingType = "listening"; //Type Of listening
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case "Playing":
-                    {
-                        if (p1.Length() > 0)
                         {
-                            var strName = p1.ToString();
-                            PlayingText = strName;
-                            PostFeelingText = strName;
-                            PostFeelingType = "playing"; //Type Of playing
-                        }
+                            if (input.Length > 0)
+                            {
+                                var strName = input;
+                                PlayingText = strName;
+                                PostFeelingText = strName;
+                                PostFeelingType = "playing"; //Type Of playing
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case "Watching":
-                    {
-                        if (p1.Length() > 0)
                         {
-                            var strName = p1.ToString();
-                            WatchingText = strName;
-                            PostFeelingText = strName;
-                            PostFeelingType = "watching"; //Type Of watching
-                        }
+                            if (input.Length > 0)
+                            {
+                                var strName = input;
+                                WatchingText = strName;
+                                PostFeelingText = strName;
+                                PostFeelingType = "watching"; //Type Of watching
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case "Traveling":
-                    {
-                        if (p1.Length() > 0)
                         {
-                            var strName = p1.ToString();
-                            TravelingText = strName;
-                            PostFeelingText = strName;
-                            PostFeelingType = "traveling"; //Type Of traveling
-                        }
+                            if (input.Length > 0)
+                            {
+                                var strName = input;
+                                TravelingText = strName;
+                                PostFeelingText = strName;
+                                PostFeelingType = "traveling"; //Type Of traveling
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
 
                 TextSanitizer.Load(LoadPostStrings());
@@ -2007,177 +2115,6 @@ namespace WoWonder.Activities.AddPost.Service
 
         #endregion
 
-        #region Path
-
-        private void PickiTonCompleteListener(string path)
-        {
-            //Dismiss dialog and return the path
-            try
-            {
-                //  Check if it was a Drive/local/unknown provider file and display a Toast
-                //if (wasDriveFile)
-                //{
-                //    // "Drive file was selected"
-                //}
-                //else if (wasUnknownProvider)
-                //{
-                //    // "File was selected from unknown provider"
-                //}
-                //else
-                //{
-                //    // "Local file was selected"
-                //}
-
-                //  Chick if it was successful
-                var check = WoWonderTools.CheckMimeTypesWithServer(path);
-                switch (check)
-                {
-                    case false:
-                        //this file not supported on the server , please select another file 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                        return;
-                }
-
-                var type = Methods.AttachmentFiles.Check_FileExtension(path);
-                switch (type)
-                {
-                    case "File":
-                    {
-                        NameAlbumButton.Visibility = ViewStates.Gone;
-
-                        //remove file the type
-                        AttachmentsAdapter.RemoveAll();
-
-                        var attach = new Attachments
-                        {
-                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                            TypeAttachment = "postFile",
-                            FileSimple = "Image_File",
-                            FileUrl = path
-                        };
-
-                        AttachmentsAdapter.Add(attach);
-                        break;
-                    }
-                    case "Video":
-                    {
-                        NameAlbumButton.Visibility = ViewStates.Gone;
-
-                        AttachmentsAdapter.RemoveAll();
-
-                        var fileName = path.Split('/').Last();
-                        var fileNameWithoutExtenion = fileName.Split('.').First();
-
-                        var pathImage = Methods.Path.FolderDcimImage + "/" + fileNameWithoutExtenion + ".png";
-
-                        var vidoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimImage, fileNameWithoutExtenion + ".png");
-                        switch (vidoPlaceHolderImage)
-                        {
-                            case "File Dont Exists":
-                            {
-                                var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, path);
-                                Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtenion, Methods.Path.FolderDcimImage);
-                                break;
-                            }
-                        }
-
-                        var attach = new Attachments
-                        {
-                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                            TypeAttachment = "postVideo",
-                            FileSimple = pathImage,
-                            Thumb = new Attachments.VideoThumb
-                            {
-                                FileUrl = pathImage
-                            },
-
-                            FileUrl = path
-                        };
-
-                        AttachmentsAdapter.Add(attach);
-                        break;
-                    }
-                    case "Audio":
-                    {
-                        NameAlbumButton.Visibility = ViewStates.Gone;
-                        //var fileName = filepath.Split('/').Last();
-                        //var fileNameWithoutExtension = fileName.Split('.').First();
-
-                        //remove file the type
-                        AttachmentsAdapter.RemoveAll();
-
-                        var attach = new Attachments
-                        {
-                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                            TypeAttachment = "postMusic",
-                            FileSimple = "Audio_File",
-                            FileUrl = path
-                        };
-
-                        AttachmentsAdapter.Add(attach);
-                        break;
-                    }
-                    case "Image":
-                    {
-                        //remove file the type
-                        var videoAttach = AttachmentsAdapter.AttachmentList.Where(a => !a.TypeAttachment.Contains("postPhotos")).ToList();
-                        switch (videoAttach.Count)
-                        {
-                            case > 0:
-                            {
-                                foreach (var video in videoAttach)
-                                    AttachmentsAdapter.Remove(video);
-                                break;
-                            }
-                        }
-
-                        var attach = new Attachments
-                        {
-                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
-                            TypeAttachment = "postPhotos",
-                            FileSimple = path,
-                            FileUrl = path
-                        };
-
-                        AttachmentsAdapter.Add(attach);
-
-                        switch (AttachmentsAdapter.AttachmentList.Count)
-                        {
-                            case > 1:
-                            {
-                                NameAlbumButton.Visibility = ViewStates.Visible;
-
-                                foreach (var item in AttachmentsAdapter.AttachmentList)
-                                    item.TypeAttachment = "postPhotos[]";
-                                break;
-                            }
-                            default:
-                            {
-                                NameAlbumButton.Visibility = ViewStates.Gone;
-
-                                foreach (var item in AttachmentsAdapter.AttachmentList)
-                                    item.TypeAttachment = "postPhotos";
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    default:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
-                        break;
-                }
-
-                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        #endregion
-      
         // Event Back
         public override void OnBackPressed()
         {
@@ -2187,7 +2124,7 @@ namespace WoWonder.Activities.AddPost.Service
                 {
                     TypeDialog = "PostBack";
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                     dialog.Title(GetText(Resource.String.Lbl_Title_Back)).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_Content_Back));
@@ -2198,7 +2135,6 @@ namespace WoWonder.Activities.AddPost.Service
                 }
                 else
                 {
-
                     base.OnBackPressed();
                 }
             }
@@ -2208,59 +2144,61 @@ namespace WoWonder.Activities.AddPost.Service
             }
         }
 
-        private void OpenDialogGallery()
-        {
-            try
-            {
-                switch ((int)Build.VERSION.SdkInt)
-                {
-                    // Check if we're running on Android 5.0 or higher
-                    case < 23:
-                    {
-                        Methods.Path.Chack_MyFolder();
+        //private void OpenDialogGallery()
+        //{
+        //    try
+        //    {
+        //        switch ((int)Build.VERSION.SdkInt)
+        //        {
+        //            // Check if we're running on Android 5.0 or higher
+        //            case < 23:
+        //            {
+        //                Methods.Path.Chack_MyFolder();
 
-                        //Open Image 
-                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                        CropImage.Activity()
-                            .SetInitialCropWindowPaddingRatio(0)
-                            .SetAutoZoomEnabled(true)
-                            .SetMaxZoom(4)
-                            .SetGuidelines(CropImageView.Guidelines.On)
-                            .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                            .SetOutputUri(myUri).Start(this);
-                        break;
-                    }
-                    default:
-                    {
-                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
-                        {
-                            Methods.Path.Chack_MyFolder();
+        //                //Open Image 
+        //                var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+        //                CropImage.Activity()
+        //                    .SetInitialCropWindowPaddingRatio(0)
+        //                    .SetAutoZoomEnabled(true)
+        //                    .SetMaxZoom(4)
+        //                    .SetMultiTouchEnabled(true)                        
+        //                    .SetGuidelines(CropImageView.Guidelines.On)
+        //                    .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+        //                    .SetOutputUri(myUri).Start(this);
+        //                break;
+        //            }
+        //            default:
+        //            {
+        //                if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+        //                    CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+        //                {
+        //                    Methods.Path.Chack_MyFolder();
 
-                            //Open Image 
-                            var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                            CropImage.Activity()
-                                .SetInitialCropWindowPaddingRatio(0)
-                                .SetAutoZoomEnabled(true)
-                                .SetMaxZoom(4)
-                                .SetGuidelines(CropImageView.Guidelines.On)
-                                .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                                .SetOutputUri(myUri).Start(this);
-                        }
-                        else
-                        {
-                            new PermissionsController(this).RequestPermission(108);
-                        }
+        //                    //Open Image 
+        //                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+        //                    CropImage.Activity()
+        //                        .SetInitialCropWindowPaddingRatio(0)
+        //                        .SetAutoZoomEnabled(true)
+        //                        .SetMaxZoom(4)
+        //                        .SetMultiTouchEnabled(true)
+        //                        .SetGuidelines(CropImageView.Guidelines.On)
+        //                        .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+        //                        .SetOutputUri(myUri).Start(this);
+        //                }
+        //                else
+        //                {
+        //                    new PermissionsController(this).RequestPermission(108);
+        //                }
 
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Methods.DisplayReportResultTrack(e);
+        //    }
+        //}
 
         private string LoadPostStrings()
         {
@@ -2333,6 +2271,30 @@ namespace WoWonder.Activities.AddPost.Service
             }
         }
 
+        private void OpenDialogImage()
+        {
+            try
+            {
+                TypeDialog = "PostImages";
+
+                var arrayAdapter = new List<string>();
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+
+                arrayAdapter.Add(GetText(Resource.String.Lbl_ImageGallery));
+                arrayAdapter.Add(GetText(Resource.String.Lbl_TakeImageFromCamera));
+
+                dialogList.Title(GetText(Resource.String.Lbl_SelectImageFrom)).TitleColorRes(Resource.Color.primary);
+                dialogList.Items(arrayAdapter);
+                dialogList.PositiveText(GetText(Resource.String.Lbl_Close)).OnPositive(this);
+                dialogList.AlwaysCallSingleChoiceCallback();
+                dialogList.ItemsCallback(this).Build().Show();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
         private void OpenDialogVideo()
         {
             try
@@ -2340,7 +2302,7 @@ namespace WoWonder.Activities.AddPost.Service
                 TypeDialog = "PostVideos";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_VideoGallery));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_RecordVideoFromCamera));
@@ -2375,15 +2337,447 @@ namespace WoWonder.Activities.AddPost.Service
             }
         }
 
+        #region Path
+
+        public async void PickiTonCompleteListener(string path)
+        {
+            //Dismiss dialog and return the path
+            try
+            {
+                //  Check if it was a Drive/local/unknown provider file and display a Toast
+                //if (wasDriveFile)
+                //{
+                //    // "Drive file was selected"
+                //}
+                //else if (wasUnknownProvider)
+                //{
+                //    // "File was selected from unknown provider"
+                //}
+                //else
+                //{
+                //    // "Local file was selected"
+                //}
+
+                //  Chick if it was successful
+                var check = await WoWonderTools.CheckMimeTypesWithServer(path);
+                switch (check)
+                {
+                    case false:
+                        //this file not supported on the server , please select another file 
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
+                        return;
+                    default:
+                        {
+                            var type = Methods.AttachmentFiles.Check_FileExtension(path);
+                            switch (type)
+                            {
+                                case "File":
+                                    {
+                                        NameAlbumButton.Visibility = ViewStates.Gone;
+
+                                        //remove file the type
+                                        AttachmentsAdapter.RemoveAll();
+
+                                        var attach = new Attachments
+                                        {
+                                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                            TypeAttachment = "postFile",
+                                            FileSimple = "Image_File",
+                                            FileUrl = path
+                                        };
+
+                                        AttachmentsAdapter.Add(attach);
+                                        break;
+                                    }
+                                case "Video":
+                                    {
+                                        NameAlbumButton.Visibility = ViewStates.Gone;
+
+                                        AttachmentsAdapter.RemoveAll();
+
+                                        var fileName = path.Split('/').Last();
+                                        var fileNameWithoutExtenion = fileName.Split('.').First();
+
+                                        var pathImage = Methods.Path.FolderDcimImage + "/" + fileNameWithoutExtenion + ".png";
+
+                                        var vidoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimImage, fileNameWithoutExtenion + ".png");
+                                        switch (vidoPlaceHolderImage)
+                                        {
+                                            case "File Dont Exists":
+                                                {
+                                                    var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, UriData.ToString());
+                                                    Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtenion, Methods.Path.FolderDcimImage);
+                                                    break;
+                                                }
+                                        }
+
+                                        var attach = new Attachments
+                                        {
+                                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                            TypeAttachment = "postVideo",
+                                            FileSimple = pathImage,
+                                            Thumb = new Attachments.VideoThumb
+                                            {
+                                                FileUrl = pathImage
+                                            },
+
+                                            FileUrl = path
+                                        };
+
+                                        AttachmentsAdapter.Add(attach);
+                                        break;
+                                    }
+                                case "Audio":
+                                    {
+                                        NameAlbumButton.Visibility = ViewStates.Gone;
+                                        //var fileName = filepath.Split('/').Last();
+                                        //var fileNameWithoutExtension = fileName.Split('.').First();
+
+                                        //remove file the type
+                                        AttachmentsAdapter.RemoveAll();
+
+                                        var attach = new Attachments
+                                        {
+                                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                            TypeAttachment = "postMusic",
+                                            FileSimple = "Audio_File",
+                                            FileUrl = path
+                                        };
+
+                                        AttachmentsAdapter.Add(attach);
+                                        break;
+                                    }
+                                case "Image":
+                                    {
+                                        //remove file the type
+                                        var videoAttach = AttachmentsAdapter.AttachmentList.Where(a => !a.TypeAttachment.Contains("postPhotos[]")).ToList();
+                                        switch (videoAttach.Count)
+                                        {
+                                            case > 0:
+                                                {
+                                                    foreach (var video in videoAttach)
+                                                        AttachmentsAdapter.Remove(video);
+                                                    break;
+                                                }
+                                        }
+
+                                        var attach = new Attachments
+                                        {
+                                            Id = AttachmentsAdapter.AttachmentList.Count + 1,
+                                            TypeAttachment = "postPhotos[]",
+                                            FileSimple = path,
+                                            FileUrl = path
+                                        };
+
+                                        AttachmentsAdapter.Add(attach);
+
+                                        switch (AttachmentsAdapter.AttachmentList.Count)
+                                        {
+                                            case > 1:
+                                                {
+                                                    NameAlbumButton.Visibility = ViewStates.Visible;
+
+                                                    foreach (var item in AttachmentsAdapter.AttachmentList)
+                                                        item.TypeAttachment = "postPhotos[]";
+                                                    break;
+                                                }
+                                            default:
+                                                {
+                                                    NameAlbumButton.Visibility = ViewStates.Gone;
+
+                                                    foreach (var item in AttachmentsAdapter.AttachmentList)
+                                                        item.TypeAttachment = "postPhotos[]";
+                                                    break;
+                                                }
+                                        }
+
+                                        break;
+                                    }
+                                default:
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
+                                    break;
+                            }
+
+                            break;
+                        }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+
+        #endregion
+
+
+        public void AfterTextChanged(IEditable s)
+        {
+
+        }
+
+        public void BeforeTextChanged(ICharSequence s, int start, int count, int after)
+        {
+
+        }
+
+        public void OnTextChanged(ICharSequence s, int start, int before, int count)
+        {
+            try
+            {
+                if (count > 0)
+                {
+                    TxtAddPost.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+
+                    if (TxtContentPost.Text?.Length <= 50)
+                    {
+                        //Content Post is less 2
+                        TxtContentPost.SetTextSize(ComplexUnitType.Sp, 23f);
+                    }
+                    else if (TxtContentPost.Layout.LineCount > 3 && TxtContentPost.Text?.Length > 50)
+                    {
+                        TxtContentPost.SetTextSize(ComplexUnitType.Sp, 20f);
+                    }
+                    else //Content Post is more 2
+                    {
+                        TxtContentPost.SetTextSize(ComplexUnitType.Sp, 18f);
+                    }
+                }
+                else
+                {
+                    if (AttachmentsAdapter?.AttachmentList?.Count > 0)
+                        return;
+
+                    TxtAddPost.SetTextColor(Color.ParseColor("#C6CBC7"));
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        public void OnFeelingClick(string inputType)
+        {
+            try
+            {
+                switch (TypeDialog)
+                {
+                    case "Listening":
+                        ListeningText = inputType;
+                        PostFeelingText = inputType;
+                        PostFeelingType = "listening"; //Type Of listening
+                        break;
+                    case "Playing":
+                        PlayingText = inputType;
+                        PostFeelingText = inputType;
+                        PostFeelingType = "playing"; //Type Of playing
+                        break;
+                    case "Watching":
+                        WatchingText = inputType;
+                        PostFeelingText = inputType;
+                        PostFeelingType = "watching"; //Type Of watching
+                        break;
+                    case "Traveling":
+                        TravelingText = inputType;
+                        PostFeelingText = inputType;
+                        PostFeelingType = "traveling"; //Type Of traveling
+                        break;
+                }
+
+                TextSanitizer.Load(LoadPostStrings());
+
+                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+                inputManager?.HideSoftInputFromWindow(TopToolBar.WindowToken, 0);
+
+                TopToolBar.ClearFocus();
+
+                SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        public void OnDoingClick(string type)
+        {
+            try
+            {
+                FeelingActivitiesTemplate feelingActivities;
+                switch (type)
+                {
+                    case "Feeling":
+                        TypeDialog = "Feelings";
+                        StartActivityForResult(new Intent(this, typeof(FeelingsActivity)), 5);
+                        break;
+                    case "Listening":
+                        TypeDialog = type;
+                        feelingActivities = new FeelingActivitiesTemplate(0, this);
+                        feelingActivities.Show(SupportFragmentManager, type);
+                        break;
+                    case "Playing":
+                        TypeDialog = type;
+                        feelingActivities = new FeelingActivitiesTemplate(1, this);
+                        feelingActivities.Show(SupportFragmentManager, type);
+                        break;
+                    case "Watching":
+                        TypeDialog = type;
+                        feelingActivities = new FeelingActivitiesTemplate(2, this);
+                        feelingActivities.Show(SupportFragmentManager, type);
+                        break;
+                    case "Traveling":
+                        TypeDialog = type;
+                        feelingActivities = new FeelingActivitiesTemplate(3, this);
+                        feelingActivities.Show(SupportFragmentManager, type);
+                        break;
+                }
+
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        //General Function to request data from a Server
+        static string UrlRequest(string url)
+        {
+            // Prepare the Request
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+            // Set method to GET to retrieve data
+            request.Method = "GET";
+            request.Timeout = 6000; //60 second timeout
+            request.UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
+
+            // Get the Response
+            using WebResponse response = request.GetResponse();
+            // Retrieve a handle to the Stream
+            using Stream stream = response.GetResponseStream();
+            // Begin reading the Stream
+            using StreamReader streamReader = new StreamReader(stream);
+            // Read the Response Stream to the end
+            string responseContent = streamReader.ReadToEnd();
+
+            return responseContent;
+        }
+
+        public static void DownloadString(string url)
+        {
+            try
+            {
+                HtmlDocument htmlDoc = new HtmlDocument();
+
+                string urlResponse = UrlRequest(url);
+
+                //Convert the Raw HTML into an HTML Object
+                htmlDoc.LoadHtml(urlResponse);
+
+                //Find all title tags in the document
+                /*
+                <head>
+                    <title>Page Title</title>
+                </head>
+                 */
+                var titleNodes = htmlDoc.DocumentNode.SelectNodes("//title");
+
+                Console.WriteLine("The title of the page is:");
+                Console.WriteLine(titleNodes.FirstOrDefault()?.InnerText);
+
+                //Find all keywords tags in the document
+                //<meta name="keywords" content="HTML, CSS, XML, JavaScript">
+                //- [translate] converts upper case letters to lower in cases where the author used Keywords, KEYWORDS, keywords or other
+                var keywwordNodes = htmlDoc.DocumentNode.SelectNodes("//meta[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'description']");
+                if (keywwordNodes != null)
+                {
+                    foreach (var keywordNode in keywwordNodes)
+                    {
+                        string content = keywordNode.GetAttributeValue("content", "");
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            string[] keywords = content.Split(new string[] { "," }, StringSplitOptions.None);
+                            Console.WriteLine("Here are the keywords:");
+                            Console.WriteLine($"{content}");
+
+                            foreach (var keyword in keywords)
+                            {
+                                Console.WriteLine($"\t- {keyword}");
+                            }
+                        }
+                    }
+                }
+
+                //Find all A tags in the document
+                var anchorNodes = htmlDoc.DocumentNode.SelectNodes("//img");
+                if (anchorNodes != null)
+                {
+                    Console.WriteLine($"We found {anchorNodes.Count} anchor tags on this page. Here is the text from those tags:");
+
+                    foreach (var anchorNode in anchorNodes)
+                    {
+                        var sss = $"{anchorNode.InnerHtml} - {anchorNode.GetAttributeValue("src", "")}";
+                        Console.WriteLine(sss);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+
+        private class MyOGlobalLayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
+        {
+            private readonly PostSharingActivity AddPostActivity;
+            public MyOGlobalLayoutListener(PostSharingActivity activity)
+            {
+                AddPostActivity = activity;
+            }
+
+            public void OnGlobalLayout()
+            {
+                try
+                {
+                    int heightDiff = AddPostActivity.ActivityRootView.RootView.Height - AddPostActivity.ActivityRootView.Height;
+                    if (heightDiff > dpToPx(AddPostActivity, 200))
+                    {
+                        // if more than 200 dp, it's probably a keyboard...
+                        //Open keyboard
+                        AddPostActivity.ColorBoxRecyclerView.Visibility = ViewStates.Invisible;
+
+
+                    }
+                    else
+                    {
+                        //Close keyboard
+                        AddPostActivity.ColorBoxRecyclerView.Visibility = ViewStates.Visible;
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
+            public static float dpToPx(Context context, float valueInDp)
+            {
+                DisplayMetrics metrics = context.Resources.DisplayMetrics;
+                return TypedValue.ApplyDimension(ComplexUnitType.Dip, valueInDp, metrics);
+            }
+        }
+
         #region Transfer Message Contacts
 
         private bool CheckAccess()
         {
             try
             {
-                var a = new Client(AppSettings.TripleDesAppServiceProvider);
-                Console.WriteLine(a);
-
+                InitializeWoWonder.Initialize(AppSettings.TripleDesAppServiceProvider);
+                
                 var dbDatabase = new SqLiteDatabase(); 
                 dbDatabase.CheckTablesStatus();
                
@@ -2520,7 +2914,7 @@ namespace WoWonder.Activities.AddPost.Service
         //    }
         //}
 
-        private void HandleSendFile(Intent intent)
+        private async void HandleSendFile(Intent intent)
         {
             try
             {
@@ -2529,12 +2923,12 @@ namespace WoWonder.Activities.AddPost.Service
                 {
                     // Update UI to reflect image being shared
                     var filePath = Methods.AttachmentFiles.GetActualPathFromFile(this, fileUri);
-                    var check = WoWonderTools.CheckMimeTypesWithServer(filePath);
+                    var check = await WoWonderTools.CheckMimeTypesWithServer(filePath);
                     switch (check)
                     {
                         case false:
                             //this file not supported on the server , please select another file 
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                             return;
                         default:
                             PickiTonCompleteListener(filePath);
@@ -2552,7 +2946,7 @@ namespace WoWonder.Activities.AddPost.Service
         ///  Update UI to reflect multiple file being shared
         /// </summary>
         /// <param name="intent"></param>
-        private void HandleSendMultipleFiles(Intent intent)
+        private async void HandleSendMultipleFiles(Intent intent)
         {
             try
             { 
@@ -2565,12 +2959,12 @@ namespace WoWonder.Activities.AddPost.Service
                         { 
                             // Update UI to reflect image being shared
                             var filePath = Methods.AttachmentFiles.GetActualPathFromFile(this, fileUri);
-                            var check = WoWonderTools.CheckMimeTypesWithServer(filePath);
+                            var check = await WoWonderTools.CheckMimeTypesWithServer(filePath);
                             switch (check)
                             {
                                 case false:
                                     //this file not supported on the server , please select another file 
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                                     return;
                                 default:
                                     PickiTonCompleteListener(filePath);
@@ -2587,6 +2981,6 @@ namespace WoWonder.Activities.AddPost.Service
         }
 
         #endregion
-         
+
     }
 }

@@ -1,50 +1,120 @@
+using System;
 using System.Collections.Generic;
+using Android.Runtime;
 using AndroidX.Fragment.App;
-using Java.Lang;
-using String = Java.Lang.String;
+using AndroidX.Lifecycle;
+using AndroidX.ViewPager2.Adapter;
+using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 {
-    public class StickersTabAdapter : FragmentPagerAdapter
+    public class StickersTabAdapter : FragmentStateAdapter
     {
         public List<AndroidX.Fragment.App.Fragment> Fragments { get; set; }
         public List<string> FragmentNames { get; set; }
 
+        public StickersTabAdapter(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
+        {
+        }
 
-#pragma warning disable 618
-        public StickersTabAdapter(FragmentManager fm) : base(fm)
-#pragma warning restore 618
+        public StickersTabAdapter(AndroidX.Fragment.App.Fragment fragment) : base(fragment)
         {
             Fragments = new List<AndroidX.Fragment.App.Fragment>();
             FragmentNames = new List<string>();
         }
 
-        public StickersTabAdapter(FragmentManager fm, int behavior) : base(fm, behavior)
+        public StickersTabAdapter(FragmentActivity fragmentActivity) : base(fragmentActivity)
         {
             Fragments = new List<AndroidX.Fragment.App.Fragment>();
             FragmentNames = new List<string>();
         }
 
-        public void AddFragment(AndroidX.Fragment.App.Fragment fragment, string name)
+        public StickersTabAdapter(FragmentManager fragmentManager, Lifecycle lifecycle) : base(fragmentManager, lifecycle)
         {
-            Fragments.Add(fragment);
-            FragmentNames.Add(name);
+            Fragments = new List<AndroidX.Fragment.App.Fragment>();
+            FragmentNames = new List<string>();
         }
 
-        public override int Count
-        {
-            get { return Fragments.Count; }
-        }
-
-        public override AndroidX.Fragment.App.Fragment GetItem(int position)
+        public override int ItemCount { get; }
+        public override AndroidX.Fragment.App.Fragment CreateFragment(int position)
         {
             return Fragments[position];
         }
 
-        public override ICharSequence GetPageTitleFormatted(int position)
+        public string GetFragment(int position)
         {
-            return new String(FragmentNames[position]);
+            try
+            {
+                if (FragmentNames[position] != null)
+                {
+                    return FragmentNames[position];
+                }
+                else
+                {
+                    return FragmentNames[0];
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+                return "";
+            }
         }
+
+        public void AddFragment(AndroidX.Fragment.App.Fragment fragment, string name)
+        {
+            try
+            {
+                Fragments.Add(fragment);
+                FragmentNames.Add(name);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void ClaerFragment()
+        {
+            try
+            {
+                Fragments.Clear();
+                FragmentNames.Clear();
+                NotifyDataSetChanged();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void RemoveFragment(AndroidX.Fragment.App.Fragment fragment, string name)
+        {
+            try
+            {
+                Fragments.Remove(fragment);
+                FragmentNames.Remove(name);
+                NotifyDataSetChanged();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void InsertFragment(int index, AndroidX.Fragment.App.Fragment fragment, string name)
+        {
+            try
+            {
+                Fragments.Insert(index, fragment);
+                FragmentNames.Insert(index, name);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
 
     }
 }

@@ -22,8 +22,8 @@ namespace WoWonder.Helpers.Utils
                     try
                     {
                         cfg.AllowNullCollections = true;
-
-
+                     
+                         
                         cfg.CreateMap<CommentObjectExtra, GetCommentObject>();
                         cfg.CreateMap<GetCommentObject, CommentObjectExtra>();
 
@@ -32,7 +32,6 @@ namespace WoWonder.Helpers.Utils
                         cfg.CreateMap<UserDataObject, DataTables.MyProfileTb>().ForMember(x => x.AutoIdMyProfile, opt => opt.Ignore());
                         cfg.CreateMap<GetMoviesObject.Movie, DataTables.WatchOfflineVideosTb>().ForMember(x => x.AutoIdWatchOfflineVideos, opt => opt.Ignore());
                         cfg.CreateMap<GiftObject.DataGiftObject, DataTables.GiftsTb>().ForMember(x => x.AutoIdGift, opt => opt.Ignore());
-
                         //chat
                         cfg.CreateMap<MessageDataExtra, MessageData>();
                         cfg.CreateMap<MessageData, MessageDataExtra>();

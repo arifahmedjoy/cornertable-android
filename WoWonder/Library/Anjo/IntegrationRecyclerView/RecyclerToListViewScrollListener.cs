@@ -1,21 +1,20 @@
 ﻿using System;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using JetBrains.Annotations;
 
 namespace WoWonder.Library.Anjo.IntegrationRecyclerView
 {
     public class RecyclerToListViewScrollListener : RecyclerView.OnScrollListener
     {
-        public static readonly int UNKNOWN_SCROLL_STATE = int.MinValue;
-        private readonly AbsListView.IOnScrollListener scrollListener;
-        private int lastFirstVisible = -1;
-        private int lastVisibleCount = -1;
-        private int lastItemCount = -1;
+        public static readonly int UnknownScrollState = int.MinValue;
+        private readonly AbsListView.IOnScrollListener ScrollListener;
+        private int LastFirstVisible = -1;
+        private int LastVisibleCount = -1;
+        private int LastItemCount = -1;
 
-        public RecyclerToListViewScrollListener([NotNull] AbsListView.IOnScrollListener scrollListener)
+        public RecyclerToListViewScrollListener(AbsListView.IOnScrollListener scrollListener)
         {
-            this.scrollListener = scrollListener;
+            this.ScrollListener = scrollListener;
         }
 
         public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
@@ -30,7 +29,7 @@ namespace WoWonder.Library.Anjo.IntegrationRecyclerView
                 _ => ScrollState.TouchScroll
             };
 
-            scrollListener.OnScrollStateChanged(null /*view*/, listViewState);
+            ScrollListener.OnScrollStateChanged(null /*view*/, listViewState);
 
         }
 
@@ -44,14 +43,14 @@ namespace WoWonder.Library.Anjo.IntegrationRecyclerView
             int visibleCount = Math.Abs(firstVisible - layoutManager.FindLastVisibleItemPosition());
             int itemCount = recyclerView.GetAdapter().ItemCount;
 
-            if (firstVisible != lastFirstVisible
-                || visibleCount != lastVisibleCount
-                || itemCount != lastItemCount)
+            if (firstVisible != LastFirstVisible
+                || visibleCount != LastVisibleCount
+                || itemCount != LastItemCount)
             {
-                scrollListener.OnScroll(null, firstVisible, visibleCount, itemCount);
-                lastFirstVisible = firstVisible;
-                lastVisibleCount = visibleCount;
-                lastItemCount = itemCount;
+                ScrollListener.OnScroll(null, firstVisible, visibleCount, itemCount);
+                LastFirstVisible = firstVisible;
+                LastVisibleCount = visibleCount;
+                LastItemCount = itemCount;
             }
         }
 

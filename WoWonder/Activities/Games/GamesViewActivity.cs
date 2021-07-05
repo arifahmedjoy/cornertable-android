@@ -197,11 +197,11 @@ namespace WoWonder.Activities.Games
                 if (!Methods.CheckConnectivity())
                 {
                     SwipeRefreshLayout.Refreshing = false; 
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
                 else
                 {
-                    DataObject = JsonConvert.DeserializeObject<GamesDataObject>(Intent?.GetStringExtra("ItemObject"));
+                    DataObject = JsonConvert.DeserializeObject<GamesDataObject>(Intent?.GetStringExtra("ItemObject") ?? "");
                     if (DataObject != null)
                     {
                         string url;

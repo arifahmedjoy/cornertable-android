@@ -315,7 +315,7 @@ namespace WoWonder.Activities.Pokes
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadPokes });
         }
@@ -373,7 +373,7 @@ namespace WoWonder.Activities.Pokes
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -436,7 +436,7 @@ namespace WoWonder.Activities.Pokes
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 

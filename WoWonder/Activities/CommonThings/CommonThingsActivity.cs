@@ -343,7 +343,7 @@ namespace WoWonder.Activities.CommonThings
         private void StartApiService(string offset = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadCommonThingsAsync(offset) });
         }
@@ -390,7 +390,7 @@ namespace WoWonder.Activities.CommonThings
                             switch (MAdapter.CommonThingsList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -414,7 +414,7 @@ namespace WoWonder.Activities.CommonThings
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

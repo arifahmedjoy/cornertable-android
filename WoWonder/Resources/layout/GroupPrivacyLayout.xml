@@ -111,7 +111,7 @@
               android:hint="@string/Lbl_Yes" 
               android:textSize="15sp"
               android:gravity="start"
-              android:background="@drawable/EditTextStyleOne"
+              android:background="@drawable/round_gray_border"
               android:layout_alignParentEnd="true"
               android:layout_marginStart="3dp" />
           </LinearLayout> 

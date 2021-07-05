@@ -39,7 +39,7 @@ namespace WoWonder.Helpers.Controller
         public class DatePickerFragment : AndroidX.Fragment.App.DialogFragment, DatePickerDialog.IOnDateSetListener
         {
             // TAG can be any string of your choice.
-            public new static readonly string Tag = "X:" + typeof(DatePickerFragment).Name.ToUpper();
+            public new static readonly string Tag = "X:" + typeof(DatePickerFragment).Name?.ToUpper();
 
             // Initialize this value to prevent NullReferenceExceptions.
             Action<DateTime> DateSelectedHandler = delegate { };

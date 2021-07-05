@@ -19,7 +19,6 @@ using Android.Locations;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
-using Google.Android.Material.FloatingActionButton;
 using Plugin.Geolocator;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.NearBy.Adapters;
@@ -48,8 +47,8 @@ namespace WoWonder.Activities.NearBy
         public ViewStub EmptyStateLayout;
         private View Inflated;
         public RecyclerViewOnScrollListener MainScrollEvent;
-        private FloatingActionButton FloatingActionButtonView;
         private LocationManager LocationManager;
+        private ImageView DiscoverImage;
         private bool ShowAlertDialogGps = true; 
         private AdView MAdView;
         
@@ -185,8 +184,10 @@ namespace WoWonder.Activities.NearBy
                 MRecycler = (RecyclerView)FindViewById(Resource.Id.recyler);
                 EmptyStateLayout = FindViewById<ViewStub>(Resource.Id.viewStub);
 
-                FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                FloatingActionButtonView.Visibility = ViewStates.Visible;
+                DiscoverImage = FindViewById<ImageView>(Resource.Id.iv_search);
+                DiscoverImage.SetImageResource(Resource.Drawable.ic_action_discover);
+                DiscoverImage.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                DiscoverImage.Visibility = ViewStates.Visible;
 
                 SwipeRefreshLayout = (SwipeRefreshLayout)FindViewById(Resource.Id.swipeRefreshLayout);
                 SwipeRefreshLayout.SetColorSchemeResources(Android.Resource.Color.HoloBlueLight, Android.Resource.Color.HoloGreenLight, Android.Resource.Color.HoloOrangeLight, Android.Resource.Color.HoloRedLight);
@@ -272,13 +273,13 @@ namespace WoWonder.Activities.NearBy
                         MAdapter.ItemClick += MAdapterOnItemClick;
                         MAdapter.FollowButtonItemClick += OnFollowButtonItemClick;
                         SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                        FloatingActionButtonView.Click += FloatingActionButtonViewOnClick;
+                        DiscoverImage.Click += FloatingActionButtonViewOnClick;
                         break;
                     default:
                         MAdapter.ItemClick -= MAdapterOnItemClick;
                         MAdapter.FollowButtonItemClick -= OnFollowButtonItemClick;
                         SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                        FloatingActionButtonView.Click -= FloatingActionButtonViewOnClick;
+                        DiscoverImage.Click -= FloatingActionButtonViewOnClick;
                         break;
                 }
             }
@@ -299,7 +300,7 @@ namespace WoWonder.Activities.NearBy
                 SwipeRefreshLayout = null!;
                 MRecycler = null!;
                 EmptyStateLayout = null!;
-                FloatingActionButtonView = null!;
+                DiscoverImage = null!;
                 Inflated = null!;
                 MainScrollEvent = null!;
                 MAdView = null!; 
@@ -382,7 +383,7 @@ namespace WoWonder.Activities.NearBy
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -393,7 +394,8 @@ namespace WoWonder.Activities.NearBy
                             UserDataObject item = MAdapter.GetItem(e.Position);
                             if (item != null)
                             {
-                                WoWonderTools.SetAddFriend(this, item, e.BtnAddUser);
+                                WoWonderTools.SetAddFriendWithImage(this, item, e.BtnAddUser, e.Image);
+                                //MAdapter.NotifyItemChanged(e.Position);
                             }
 
                             break;
@@ -454,7 +456,7 @@ namespace WoWonder.Activities.NearBy
         public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadNearByAsync(offset) });
         }
@@ -519,7 +521,7 @@ namespace WoWonder.Activities.NearBy
                                         switch (MAdapter.UserList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -553,7 +555,7 @@ namespace WoWonder.Activities.NearBy
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
@@ -745,7 +747,7 @@ namespace WoWonder.Activities.NearBy
                         StartApiService();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }

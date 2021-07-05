@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-	android:background="?attr/colorBubble"
+	android:background="?attr/colorFill"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <com.google.android.material.appbar.AppBarLayout
@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="fill_vertical"
-        android:background="?attr/colorBubble"
+        android:background="?attr/colorFill"
         android:layout_marginBottom="1dp">
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,80 +40,70 @@
             android:orientation="vertical"
             android:layout_gravity="fill_vertical"
             android:layout_below="@+id/title_pic_s03">
-            <TextView
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/describe"
-                
-                android:layout_marginEnd="30dp"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="25dp"
+                android:layout_height="match_parent">
+                <LinearLayout
+                    android:id="@+id/ll_step1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:padding="16dp"
+                    android:orientation="vertical" 
+                    android:visibility="visible">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Lbl_AlbumName"
+                        android:textSize="15sp"
+                        android:textColor="@color/accent"/> 
+                    <EditText
+                        android:id="@+id/NameEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp" 
+                        android:background="@drawable/round_gray_border"
+                        android:layout_marginTop="20dp"
+                        android:paddingStart="15dp"
+                        android:paddingEnd="7dp" 
+                        android:paddingTop="7dp"
+                        android:paddingBottom="7dp" 
+                        android:textSize="14sp"
+                        android:hint="@string/Lbl_AlbumName"/>
+                </LinearLayout> 
+                <RelativeLayout
+                    android:id="@+id/rl_step2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/imageView1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_empty_albums"/>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="horizontal"
+                        android:layout_marginTop="5dp" />
+                </RelativeLayout>
+            </RelativeLayout>
+            <Button
+                android:id="@+id/btn_next"
+                android:layout_width="match_parent"
+                android:layout_height="37dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/follow_button_profile_friends_pressed"
+                android:textSize="14sp"
+                android:textColor="@color/gnt_white"
                 android:text="@string/Lbl_CreateAlbum"
-                android:textStyle="bold" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/description"
-                android:layout_below="@+id/describe"
-                
-                android:layout_marginEnd="30dp"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/Lbl_Describe_Description_album"
-                android:textSize="12dp" />
-            
-            <!--Name Section -->
-            <LinearLayout
-              android:id="@+id/LayoutName"
-              android:paddingTop="5dp"
-              android:layout_marginTop="5dp"
-              android:layout_marginEnd="5dp"
-              android:layout_width="match_parent"
-              android:orientation="horizontal"
-              android:layout_height="wrap_content">
-              <TextView
-                android:id="@+id/IconName" 
-                android:layout_width="40dp"
-                android:layout_height="wrap_content"
-                android:text="#"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:textSize="20sp" 
-                android:layout_marginStart="5dp" />
-              <EditText
-                android:id="@+id/NameEditText"
-                style="@style/EditTextNormalStyle"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:hint="@string/Lbl_AlbumName" 
-                android:textSize="15sp"
-                android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
-                android:layout_alignParentEnd="true"
-                android:layout_marginStart="3dp" />
-            </LinearLayout> 
-			 
-           <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/describe"
-                
-                android:layout_marginEnd="30dp" 
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="25dp"
-                android:text="@string/Lbl_Photos"
-                android:textSize="16sp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="horizontal"
-                android:layout_marginEnd="30dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="15dp"
-                android:layout_marginStart="30dp" />
-
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                style="@android:style/Widget.DeviceDefault.Button.Borderless"/>
             <View 
 				android:layout_height="?android:attr/actionBarSize"
                 android:layout_width="match_parent" />

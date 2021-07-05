@@ -7,18 +7,19 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using WoWonder.Activities.Contacts;
-using WoWonder.Helpers.Fonts;
+using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
 
 namespace WoWonder.Activities.Wallet.Fragment
 {
-    public class SendMoneyFragment : AndroidX.Fragment.App.Fragment 
+    public class SendMoneyFragment : AndroidX.Fragment.App.Fragment
     {
         #region  Variables Basic
+        private ImageView Avatar;
+        private TextView TxtProfileName, TxtUsername;
 
-        private TextView IconAmount, IconEmail;
         public EditText TxtAmount, TxtEmail;
         private TextView TxtMyBalance;
         private Button BtnContinue;
@@ -34,14 +35,14 @@ namespace WoWonder.Activities.Wallet.Fragment
         {
             base.OnCreate(savedInstanceState);
             // Create your fragment here
-            GlobalContext = (TabbedWalletActivity) Activity;
+            GlobalContext = (TabbedWalletActivity)Activity;
         }
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             try
             {
-                View view = inflater.Inflate(Resource.Layout.SendMoneyLayout, container, false); 
+                View view = inflater.Inflate(Resource.Layout.SendMoneyLayout, container, false);
                 return view;
             }
             catch (Exception exception)
@@ -87,16 +88,15 @@ namespace WoWonder.Activities.Wallet.Fragment
         {
             try
             {
+                Avatar = view.FindViewById<ImageView>(Resource.Id.avatar);
+                TxtProfileName = view.FindViewById<TextView>(Resource.Id.name);
+                TxtUsername = view.FindViewById<TextView>(Resource.Id.tv_subname);
+
                 TxtMyBalance = view.FindViewById<TextView>(Resource.Id.myBalance);
 
-                IconAmount = view.FindViewById<TextView>(Resource.Id.IconAmount);
                 TxtAmount = view.FindViewById<EditText>(Resource.Id.AmountEditText);
-                IconEmail = view.FindViewById<TextView>(Resource.Id.IconEmail);
                 TxtEmail = view.FindViewById<EditText>(Resource.Id.EmailEditText);
                 BtnContinue = view.FindViewById<Button>(Resource.Id.ContinueButton);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, IconAmount, FontAwesomeIcon.MoneyBillWave);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, IconEmail, FontAwesomeIcon.At);
 
                 Methods.SetColorEditText(TxtEmail, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtAmount, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -106,6 +106,10 @@ namespace WoWonder.Activities.Wallet.Fragment
                 var userData = ListUtils.MyProfileList?.FirstOrDefault();
                 if (userData != null)
                 {
+                    GlideImageLoader.LoadImage(GlobalContext, userData.Avatar, Avatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    TxtProfileName.Text = WoWonderTools.GetNameFinal(userData);
+                    TxtUsername.Text = "@" + userData.Username;
+
                     TxtMyBalance.Text = userData.Wallet;
                 }
 
@@ -142,7 +146,7 @@ namespace WoWonder.Activities.Wallet.Fragment
         #endregion
 
         #region Events
-         
+
         //select user >> Get User id
         private void TxtEmailOnTouch(object sender, View.TouchEventArgs e)
         {
@@ -166,22 +170,22 @@ namespace WoWonder.Activities.Wallet.Fragment
             {
                 if (string.IsNullOrEmpty(TxtAmount.Text) || string.IsNullOrWhiteSpace(TxtAmount.Text) || Convert.ToInt32(TxtAmount.Text) == 0)
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short);
                     return;
                 }
 
                 if (string.IsNullOrEmpty(TxtEmail.Text) || string.IsNullOrWhiteSpace(TxtEmail.Text))
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Please_enter_name_email), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Please_enter_name_email), ToastLength.Short);
                     return;
                 }
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                     return;
                 }
-                 
+
                 GlobalContext.TypeOpenPayment = "SendMoneyFragment";
                 Price = TxtAmount.Text;
 
@@ -196,7 +200,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                         TxtEmail.Text = string.Empty;
 
                         AndHUD.Shared.Dismiss(Activity);
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_MoneySentSuccessfully), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_MoneySentSuccessfully), ToastLength.Short);
                         break;
                     default:
                         Methods.DisplayAndHudErrorResult(Activity, respond);

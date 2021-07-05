@@ -9,17 +9,20 @@ using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
+using Bumptech.Glide;
+using Bumptech.Glide.Load.Engine;
+using Bumptech.Glide.Request;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
+using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
+using WoWonder.Activities.Communities.Adapters;
 using WoWonder.Activities.Communities.Groups;
 using WoWonder.Activities.Communities.Pages;
 using WoWonder.Activities.Contacts.Adapters;
@@ -57,7 +60,8 @@ namespace WoWonder.Activities.UsersPages
         private View Inflated;
         //Type = MangedGroupsModel , MangedPagesModel >> itemObject =  SocialModelsClass
         //Type = StoryModel , FollowersModel , GroupsModel , PagesModel >> itemObject = AdapterModelsClass
-        //private SocialModelsClass ModelsClass;
+        private SocialModelsClass ModelsClass;
+        private List<SocialModelsClass> ListSocialModelsClass;
         private AdapterModelsClass AdapterModelsClass;
         private FollowersModelClass FollowersModel;
         private GroupsModelClass GroupsModel;
@@ -215,12 +219,16 @@ namespace WoWonder.Activities.UsersPages
             try
             {
                 var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                var search = FindViewById<ImageView>(Resource.Id.iv_search);
                 if (toolBar != null)
-                {
+                { 
                     toolBar.Title = Type switch
                     {
+                        "JoinedGroupsModel" => GetString(Resource.String.Lbl_Joined_Groups),
                         "MangedGroupsModel" => GetString(Resource.String.Lbl_Manage_Groups),
-                        "MangedPagesModel" => GetString(Resource.String.Lbl_Manage_Pages),
+                        "MangedPagesModel" => GetString(Resource.String.Lbl_Your_Pages),
+                        "LikedPagesModel" => GetString(Resource.String.Lbl_Liked_Pages),
+                        "UserLikedPagesModel" => GetString(Resource.String.Lbl_Liked_Pages),
                         "StoryModel" => GetString(Resource.String.Lbl_Story),
                         "FollowersModel" => GetString(Resource.String.Lbl_Following),
                         "GroupsModel" => GetString(Resource.String.Lbl_Groups),
@@ -237,7 +245,7 @@ namespace WoWonder.Activities.UsersPages
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
-                    
+                    search.Visibility = ViewStates.Visible;
                 }
             }
             catch (Exception e)
@@ -256,6 +264,7 @@ namespace WoWonder.Activities.UsersPages
                 switch (Type)
                 {
                     case "GroupsModel":
+                    case "JoinedGroupsModel":
                     case "MangedGroupsModel":
                         LayoutManager = new LinearLayoutManager(this);
                         MAdapter = new SearchGroupAdapter(this) {GroupList = new ObservableCollection<GroupClass>()};
@@ -269,7 +278,9 @@ namespace WoWonder.Activities.UsersPages
                         preLoader = new RecyclerViewPreloader<GroupClass>(this, MAdapter, sizeProvider, 10);
                         break;
                     case "PagesModel":
-                    case "MangedPagesModel":
+                    case "MangedPagesModel": 
+                    case "LikedPagesModel":
+                    case "UserLikedPagesModel":
                         LayoutManager = new LinearLayoutManager(this);
                         MAdapter = new SearchPageAdapter(this) {PageList = new ObservableCollection<PageClass>()};
                         switch (MAdapter)
@@ -319,6 +330,7 @@ namespace WoWonder.Activities.UsersPages
                 }
 
                 MRecycler.SetLayoutManager(LayoutManager ?? GridLayoutManager);
+                MRecycler.AddItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.Vertical));
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true; 
@@ -406,7 +418,7 @@ namespace WoWonder.Activities.UsersPages
                         switch (Type)
                         {
                             case "StoryModel":
-
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadStoryAsync });
                                 break;
                             case "FollowersModel":
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadContactsAsync });
@@ -423,8 +435,15 @@ namespace WoWonder.Activities.UsersPages
                             case "MangedGroupsModel":
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyGroups });
                                 break;
+                            case "JoinedGroupsModel":
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetJoinedGroups });
+                                break;
                             case "MangedPagesModel":
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyPages });
+                                break;
+                            case "LikedPagesModel":
+                            case "UserLikedPagesModel":
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetLikedPages });
                                 break;
                         }
 
@@ -540,10 +559,17 @@ namespace WoWonder.Activities.UsersPages
                             { 
                                 if (item.Type != "Your")
                                 {
-                                    Intent intent = new Intent(this, typeof(ViewStoryActivity));
+                                    List<StoryDataObject> storyList = new List<StoryDataObject>(adapter.StoryList);
+                                    storyList.RemoveAll(o => o.Type == "Your" || o.Type == "Live");
+
+                                    var indexItem = storyList.IndexOf(item);
+
+                                    Intent intent = new Intent(this, typeof(StoryDetailsActivity));
                                     intent.PutExtra("UserId", item.UserId);
-                                    intent.PutExtra("DataItem", JsonConvert.SerializeObject(item));
-                                    StartActivity(intent);
+                                    intent.PutExtra("IndexItem", indexItem);
+                                    intent.PutExtra("StoriesCount", storyList.Count);
+                                    intent.PutExtra("DataItem", JsonConvert.SerializeObject(new ObservableCollection<StoryDataObject>(storyList)));
+                                    StartActivity(intent); 
                                 } 
                             }
                         }
@@ -602,112 +628,142 @@ namespace WoWonder.Activities.UsersPages
             try
             {
                 var item = Intent?.GetStringExtra("itemObject");
-                if (string.IsNullOrEmpty(item))
-                    return;
-                  
-                switch (Type)
+                if (!string.IsNullOrEmpty(item))
                 {
-                    case "MangedGroupsModel":
-                    case "MangedPagesModel":
+                    switch (Type)
                     {
-                        switch (MAdapter)
-                        {
-                            case SearchGroupAdapter adapter1:
+                        case "JoinedGroupsModel":
+                        case "MangedGroupsModel":
+                        case "MangedPagesModel":
                             {
-                                GroupsModel = JsonConvert.DeserializeObject<GroupsModelClass>(item);
-                                if (GroupsModel != null)
+                                switch (MAdapter)
                                 {
-                                    adapter1.GroupList = new ObservableCollection<GroupClass>(GroupsModel.GroupsList);
-                                    adapter1.NotifyDataSetChanged();
+                                    case SearchGroupAdapter adapter1:
+                                        {
+                                            ListSocialModelsClass = JsonConvert.DeserializeObject<List<SocialModelsClass>>(item);
+                                            if (ListSocialModelsClass != null)
+                                            {
+                                                adapter1.GroupList = new ObservableCollection<GroupClass>();
+                                                foreach (var modelsClass in ListSocialModelsClass.Where(modelsClass => modelsClass.Group != null))
+                                                {
+                                                    adapter1.GroupList.Add(modelsClass.Group);
+                                                }
+
+                                                adapter1.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
+                                    case SearchPageAdapter adapter2:
+                                        {
+                                            ListSocialModelsClass = JsonConvert.DeserializeObject<List<SocialModelsClass>>(item);
+                                            if (ListSocialModelsClass != null)
+                                            {
+                                                adapter2.PageList = new ObservableCollection<PageClass>();
+                                                foreach (var modelsClass in ListSocialModelsClass.Where(modelsClass => modelsClass.Page != null))
+                                                {
+                                                    adapter2.PageList.Add(modelsClass.Page);
+                                                }
+
+                                                adapter2.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
                                 }
 
                                 break;
                             }
-                            case SearchPageAdapter adapter2:
+                        case "LikedPagesModel":
                             {
-                                PagesModel = JsonConvert.DeserializeObject<PagesModelClass>(item);
-                                if (PagesModel != null)
+                                switch (MAdapter)
                                 {
-                                    adapter2.PageList = new ObservableCollection<PageClass>(PagesModel.PagesList);
-                                    adapter2.NotifyDataSetChanged();
+                                    case SearchPageAdapter adapter1:
+                                        {
+                                            ModelsClass = JsonConvert.DeserializeObject<SocialModelsClass>(item);
+                                            if (ModelsClass != null)
+                                            {
+                                                adapter1.PageList = new ObservableCollection<PageClass>(ModelsClass.PageList);
+                                                adapter1.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
                                 }
 
                                 break;
                             }
-                        }
-
-                        break;
-                    } 
-                    case "StoryModel":
-                    case "FollowersModel":
-                    case "GroupsModel":
-                    case "PagesModel":
-                    case "ImagesModel":
-                    {
-                        switch (MAdapter)
-                        {
-                            case SearchGroupAdapter adapter1:
+                        case "StoryModel":
+                        case "FollowersModel":
+                        case "GroupsModel":
+                        case "PagesModel":
+                        case "ImagesModel":
                             {
-                                GroupsModel = JsonConvert.DeserializeObject<GroupsModelClass>(item);
-                                if (GroupsModel != null)
+                                switch (MAdapter)
                                 {
-                                    adapter1.GroupList = new ObservableCollection<GroupClass>(GroupsModel.GroupsList);
-                                    adapter1.NotifyDataSetChanged();
+                                    case SearchGroupAdapter adapter1:
+                                        {
+                                            GroupsModel = JsonConvert.DeserializeObject<GroupsModelClass>(item);
+                                            if (GroupsModel != null)
+                                            {
+                                                adapter1.GroupList = new ObservableCollection<GroupClass>(GroupsModel.GroupsList);
+                                                adapter1.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
+                                    case SearchPageAdapter adapter2:
+                                        {
+                                            PagesModel = JsonConvert.DeserializeObject<PagesModelClass>(item);
+                                            if (PagesModel != null)
+                                            {
+                                                adapter2.PageList = new ObservableCollection<PageClass>(PagesModel.PagesList);
+                                                adapter2.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
+                                    case ContactsAdapter adapter3:
+                                        {
+                                            FollowersModel = JsonConvert.DeserializeObject<FollowersModelClass>(item);
+                                            if (FollowersModel != null)
+                                            {
+                                                adapter3.UserList = new ObservableCollection<UserDataObject>(FollowersModel.FollowersList);
+                                                adapter3.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
+                                    case RowStoryAdapter adapter4:
+                                        {
+                                            AdapterModelsClass = JsonConvert.DeserializeObject<AdapterModelsClass>(item);
+                                            if (AdapterModelsClass != null)
+                                            {
+                                                adapter4.StoryList = new ObservableCollection<StoryDataObject>(AdapterModelsClass.StoryList);
+                                                adapter4.StoryList.Remove(adapter4.StoryList.FirstOrDefault(a => a.Type == "Your"));
+                                                adapter4.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
+                                    case UserPhotosAdapter adapter5:
+                                        {
+                                            ImagesModel = JsonConvert.DeserializeObject<ImagesModelClass>(item);
+                                            if (ImagesModel != null)
+                                            {
+                                                adapter5.UserPhotosList = new ObservableCollection<PostDataObject>(ImagesModel.ImagesList);
+                                                adapter5.NotifyDataSetChanged();
+                                            }
+
+                                            break;
+                                        }
                                 }
 
                                 break;
                             }
-                            case SearchPageAdapter adapter2:
-                            {
-                                PagesModel = JsonConvert.DeserializeObject<PagesModelClass>(item);
-                                if (PagesModel != null)
-                                {
-                                    adapter2.PageList = new ObservableCollection<PageClass>(PagesModel.PagesList);
-                                    adapter2.NotifyDataSetChanged();
-                                }
-
-                                break;
-                            }
-                            case ContactsAdapter adapter3:
-                            {
-                                FollowersModel = JsonConvert.DeserializeObject<FollowersModelClass>(item);
-                                if (FollowersModel != null)
-                                {
-                                    adapter3.UserList = new ObservableCollection<UserDataObject>(FollowersModel.FollowersList);
-                                    adapter3.NotifyDataSetChanged();
-                                }
-
-                                break;
-                            }
-                            case RowStoryAdapter adapter4:
-                            {
-                                AdapterModelsClass = JsonConvert.DeserializeObject<AdapterModelsClass>(item);
-                                if (AdapterModelsClass != null)
-                                {
-                                    adapter4.StoryList = new ObservableCollection<StoryDataObject>(AdapterModelsClass.StoryList);
-                                    adapter4.StoryList.Remove(adapter4.StoryList.FirstOrDefault(a => a.Type == "Your"));
-                                    adapter4.NotifyDataSetChanged();
-                                }
-
-                                break;
-                            }
-                            case UserPhotosAdapter adapter5:
-                            {
-                                ImagesModel = JsonConvert.DeserializeObject<ImagesModelClass>(item);
-                                if (ImagesModel != null)
-                                {
-                                    adapter5.UserPhotosList = new ObservableCollection<PostDataObject>(ImagesModel.ImagesList);
-                                    adapter5.NotifyDataSetChanged();
-                                }
-
-                                break;
-                            }
-                        }
-
-                        break;
-                    } 
+                    }
                 }
-
+                   
                 if (MAdapter?.ItemCount > 0)
                 {
                     MRecycler.Visibility = ViewStates.Visible;
@@ -717,7 +773,6 @@ namespace WoWonder.Activities.UsersPages
                     ShowEmptyPage();
 
                 SwipeRefreshLayout.Refreshing = false;
-                SwipeRefreshLayout.Enabled = false;
 
                 StartApiService(); 
             }
@@ -725,20 +780,19 @@ namespace WoWonder.Activities.UsersPages
             {
                 Methods.DisplayReportResultTrack(e);
                 SwipeRefreshLayout.Refreshing = false;
-                SwipeRefreshLayout.Enabled = false;
             }
         }
 
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
             {
                 switch (Type)
                 {
                     case "StoryModel":
-                        
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadStoryAsync });
                         break;
                     case "FollowersModel":
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadContactsAsync });
@@ -750,14 +804,21 @@ namespace WoWonder.Activities.UsersPages
                          
                         break;
                     case "ImagesModel":
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> {LoadMyImage });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadMyImage });
                         break;
                     case "MangedGroupsModel":
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyGroups });
                         break;
+                    case "JoinedGroupsModel":
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetJoinedGroups });
+                        break;
                     case "MangedPagesModel":
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyPages });
                         break;
+                    case "LikedPagesModel":
+                    case "UserLikedPagesModel":
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetLikedPages });
+                        break; 
                 } 
             }
         }
@@ -786,10 +847,13 @@ namespace WoWonder.Activities.UsersPages
                     {
                         case "GroupsModel":
                         case "MangedGroupsModel":
+                        case "JoinedGroupsModel":
                             x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
                             break;
                         case "PagesModel":
                         case "MangedPagesModel":
+                        case "LikedPagesModel":
+                        case "UserLikedPagesModel":
                             x.InflateLayout(Inflated, EmptyStateInflater.Type.NoPage);
                             break;
                         case "StoryModel":
@@ -815,6 +879,116 @@ namespace WoWonder.Activities.UsersPages
             }
         }
 
+        #region Load Story 
+
+        private async Task LoadStoryAsync()
+        {
+            switch (MAdapter)
+            {
+                case RowStoryAdapter adapter when MainScrollEvent.IsLoading:
+                    return;
+                case RowStoryAdapter adapter:
+                {
+                    var lastIdUser = adapter.StoryList.LastOrDefault()?.UserId ?? "0";
+                    if (Methods.CheckConnectivity())
+                    {
+                        MainScrollEvent.IsLoading = true;
+
+                        var (apiStatus, respond) = await RequestsAsync.Story.GetUserStoriesAsync("10" , lastIdUser);
+                        if (apiStatus != 200 || respond is not GetUserStoriesObject result || result.Stories == null)
+                        {
+                            MainScrollEvent.IsLoading = false;
+                            Methods.DisplayReportResult(this, respond);
+                        }
+                        else
+                        {
+                            foreach (var item in result.Stories)
+                            {
+                                var check = adapter.StoryList.FirstOrDefault(a => a.UserId == item.UserId);
+                                if (check != null)
+                                {
+                                    foreach (var item2 in item.Stories)
+                                    {
+                                        item.DurationsList ??= new List<long>();
+
+                                        //image and video
+                                        var mediaFile = !item2.Thumbnail.Contains("avatar") && item2.Videos.Count == 0 ? item2.Thumbnail : item2.Videos[0].Filename;
+
+                                        var type = Methods.AttachmentFiles.Check_FileExtension(mediaFile);
+                                        if (type != "Video")
+                                        {
+                                            Glide.With(this).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
+                                            item.DurationsList.Add(10000L);
+                                        }
+                                        else
+                                        {
+                                            var fileName = mediaFile.Split('/').Last();
+                                            mediaFile = WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, mediaFile);
+
+                                            var duration = WoWonderTools.GetDuration(mediaFile);
+                                            item.DurationsList.Add(Long.ParseLong(duration));
+                                        }
+                                    }
+
+                                    check.Stories = item.Stories;
+                                }
+                                else
+                                {
+                                    foreach (var item1 in item.Stories)
+                                    {
+                                        item.DurationsList ??= new List<long>();
+
+                                        //image and video
+                                        var mediaFile = !item1.Thumbnail.Contains("avatar") && item1.Videos.Count == 0 ? item1.Thumbnail : item1.Videos[0].Filename;
+
+                                        var type1 = Methods.AttachmentFiles.Check_FileExtension(mediaFile);
+                                        if (type1 != "Video")
+                                        {
+                                            Glide.With(this).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
+                                            item.DurationsList.Add(10000L);
+                                        }
+                                        else
+                                        {
+                                            var fileName = mediaFile.Split('/').Last();
+                                            WoWonderTools.GetFile(DateTime.Now.Day.ToString(), Methods.Path.FolderDiskStory, fileName, mediaFile);
+
+                                            var duration = WoWonderTools.GetDuration(mediaFile);
+                                            item.DurationsList.Add(Long.ParseLong(duration));
+                                        }
+                                    }
+
+                                    adapter.StoryList.Add(item);
+                                }
+                            }
+
+                        }
+
+                        RunOnUiThread(ShowEmptyPage);
+                    }
+                    else
+                    {
+                        Inflated = EmptyStateLayout.Inflate();
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                                break;
+                        }
+
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                        MainScrollEvent.IsLoading = false;
+                    }
+                    MainScrollEvent.IsLoading = false;
+                    break;
+                }
+            }
+        }
+         
+        #endregion
+        
         #region Load Contacts 
 
         private async Task LoadContactsAsync()
@@ -861,7 +1035,7 @@ namespace WoWonder.Activities.UsersPages
                                     switch (adapter.UserList.Count)
                                     {
                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                             break;
                                     }
 
@@ -885,7 +1059,7 @@ namespace WoWonder.Activities.UsersPages
                                 break;
                         }
 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         MainScrollEvent.IsLoading = false;
                     }
                     MainScrollEvent.IsLoading = false;
@@ -951,7 +1125,7 @@ namespace WoWonder.Activities.UsersPages
                                     switch (adapter.UserPhotosList.Count)
                                     {
                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMorePhoto), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMorePhoto), ToastLength.Short);
                                             break;
                                     }
 
@@ -975,7 +1149,7 @@ namespace WoWonder.Activities.UsersPages
                                 break;
                         }
 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         MainScrollEvent.IsLoading = false;
                     }
                     MainScrollEvent.IsLoading = false;
@@ -1038,7 +1212,7 @@ namespace WoWonder.Activities.UsersPages
                                     switch (adapter1.GroupList.Count)
                                     {
                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short);
                                             break;
                                     }
 
@@ -1062,7 +1236,86 @@ namespace WoWonder.Activities.UsersPages
                                 break;
                         }
 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Load Joined Group
+
+        private async Task GetJoinedGroups()
+        {
+            switch (MAdapter)
+            {
+                case SearchGroupAdapter adapter1 when MainScrollEvent.IsLoading:
+                    return;
+                case SearchGroupAdapter adapter1:
+                {
+                    var lastIdGroup = adapter1.GroupList.LastOrDefault()?.GroupId ?? "0";
+                    if (Methods.CheckConnectivity())
+                    {
+                        MainScrollEvent.IsLoading = true;
+                        var countList = adapter1.GroupList.Count;
+
+                        var (apiStatus, respond) = await RequestsAsync.Group.GetJoinedGroupsAsync(PassedId,lastIdGroup, "10");
+                        if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
+                        {
+                            Methods.DisplayReportResult(this, respond);
+                        }
+                        else
+                        {
+                            var respondList = result.Data.Count;
+                            switch (respondList)
+                            {
+                                case > 0 when countList > 0:
+                                {
+                                    foreach (var item in from item in result.Data let check = adapter1.GroupList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
+                                    {
+                                        adapter1.GroupList.Add(item); 
+                                    }
+
+                                    RunOnUiThread(() => { adapter1.NotifyItemRangeInserted(countList, adapter1.GroupList.Count - countList); });
+                                    break;
+                                }
+                                case > 0:
+                                    adapter1.GroupList = new ObservableCollection<GroupClass>(result.Data);
+                                    RunOnUiThread(() => { adapter1.NotifyDataSetChanged(); });
+                                    break;
+                                default:
+                                {
+                                    switch (adapter1.GroupList.Count)
+                                    {
+                                        case > 10 when !MRecycler.CanScrollVertically(1):
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short);
+                                            break;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        RunOnUiThread(ShowEmptyPage);
+                    }
+                    else
+                    {
+                        Inflated ??= EmptyStateLayout.Inflate();
+                        EmptyStateInflater x = new EmptyStateInflater();
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
+                        switch (x.EmptyStateButton.HasOnClickListeners)
+                        {
+                            case false:
+                                x.EmptyStateButton.Click += null!;
+                                x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                                break;
+                        }
+
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
 
                     break;
@@ -1076,34 +1329,133 @@ namespace WoWonder.Activities.UsersPages
          
         private async Task GetMyPages()
         {
-            switch (MAdapter)
+            if (MAdapter is SearchPageAdapter adapter11 && MainScrollEvent.IsLoading)
             {
-                case SearchPageAdapter adapter1 when MainScrollEvent.IsLoading:
-                    return;
-                case SearchPageAdapter adapter1:
+                return;
+            }
+            
+            
+            if (MAdapter is SearchPageAdapter adapter12)
+            {
+                var lastIdPage = adapter12.PageList.LastOrDefault()?.PageId ?? "0";
+
+                if (Methods.CheckConnectivity())
                 {
-                    var lastIdPage = adapter1.PageList.LastOrDefault()?.PageId ?? "0";
+                    MainScrollEvent.IsLoading = true;
+                    var countList = adapter12.PageList.Count;
 
-                    if (Methods.CheckConnectivity())
+                    var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync(lastIdPage, "10");
+                    if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                     {
-                        MainScrollEvent.IsLoading = true;
-                        var countList = adapter1.PageList.Count;
-
-                        var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync(lastIdPage, "10");
-                        if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
+                        Methods.DisplayReportResult(this, respond);
+                    }
+                    else
+                    {
+                        var respondList = result.Data.Count;
+                        switch (respondList)
                         {
-                            Methods.DisplayReportResult(this, respond);
-                        }
-                        else
-                        {
-                            var respondList = result.Data.Count;
-                            switch (respondList)
+                            case > 0 when countList > 0:
                             {
-                                case > 0 when countList > 0:
+                                foreach (var item in from item in result.Data
+                                    let check = adapter12.PageList.FirstOrDefault(a => a.PageId == item.PageId)
+                                    where check == null
+                                    select item)
                                 {
-                                    foreach (var item in from item in result.Data let check = adapter1.PageList.FirstOrDefault(a => a.PageId == item.PageId) where check == null select item)
+                                    adapter12.PageList.Add(item);
+
+                                    switch (ListUtils.MyPageList.FirstOrDefault(a => a.PageId == item.PageId))
                                     {
-                                        adapter1.PageList.Add(item);
+                                        case null:
+                                            ListUtils.MyPageList.Add(item);
+                                            break;
+                                    }
+                                }
+
+                                RunOnUiThread(() =>
+                                {
+                                    adapter12.NotifyItemRangeInserted(countList,
+                                        adapter12.PageList.Count - countList);
+                                });
+                                break;
+                            }
+                            case > 0:
+                                adapter12.PageList = new ObservableCollection<PageClass>(result.Data);
+                                RunOnUiThread(() => { adapter12.NotifyDataSetChanged(); });
+                                break;
+                            default:
+                            {
+                                switch (adapter12.PageList.Count)
+                                {
+                                    case > 10 when !MRecycler.CanScrollVertically(1):
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMorePages),
+                                            ToastLength.Short);
+                                        break;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
+                    RunOnUiThread(ShowEmptyPage);
+                }
+                else
+                {
+                    Inflated ??= EmptyStateLayout.Inflate();
+                    EmptyStateInflater x = new EmptyStateInflater();
+                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
+                    switch (x.EmptyStateButton.HasOnClickListeners)
+                    {
+                        case false:
+                            x.EmptyStateButton.Click += null!;
+                            x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                            break;
+                    }
+
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Load Liked Page
+
+        private async Task GetLikedPages()
+        {
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
+
+            if (MAdapter is SearchPageAdapter adapter12)
+            {
+                var lastIdPage = adapter12.PageList.LastOrDefault()?.PageId ?? "0";
+
+                if (Methods.CheckConnectivity())
+                {
+                    MainScrollEvent.IsLoading = true;
+                    var countList = adapter12.PageList.Count;
+
+                    var (apiStatus, respond) = await RequestsAsync.Page.GetLikedPagesAsync(PassedId, lastIdPage, "10");
+                    if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
+                    {
+                        Methods.DisplayReportResult(this, respond);
+                    }
+                    else
+                    {
+                        var respondList = result.Data.Count;
+                        switch (respondList)
+                        {
+                            case > 0 when countList > 0:
+                                {
+                                    foreach (var item in from item in result.Data
+                                                         let check = adapter12.PageList.FirstOrDefault(a => a.PageId == item.PageId)
+                                                         where check == null
+                                                         select item)
+                                    {
+                                        adapter12.PageList.Add(item);
 
                                         switch (ListUtils.MyPageList.FirstOrDefault(a => a.PageId == item.PageId))
                                         {
@@ -1113,50 +1465,54 @@ namespace WoWonder.Activities.UsersPages
                                         }
                                     }
 
-                                    RunOnUiThread(() => { adapter1.NotifyItemRangeInserted(countList, adapter1.PageList.Count - countList); });
+                                    RunOnUiThread(() =>
+                                    {
+                                        adapter12.NotifyItemRangeInserted(countList,
+                                            adapter12.PageList.Count - countList);
+                                    });
                                     break;
                                 }
-                                case > 0:
-                                    adapter1.PageList = new ObservableCollection<PageClass>(result.Data);
-                                    RunOnUiThread(() => { adapter1.NotifyDataSetChanged(); });
-                                    break;
-                                default:
+                            case > 0:
+                                adapter12.PageList = new ObservableCollection<PageClass>(result.Data);
+                                RunOnUiThread(() => { adapter12.NotifyDataSetChanged(); });
+                                break;
+                            default:
                                 {
-                                    switch (adapter1.PageList.Count)
+                                    switch (adapter12.PageList.Count)
                                     {
                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMorePages), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMorePages),
+                                                ToastLength.Short);
                                             break;
                                     }
 
                                     break;
                                 }
-                            }
                         }
-
-                        RunOnUiThread(ShowEmptyPage);
-                    }
-                    else
-                    {
-                        Inflated ??= EmptyStateLayout.Inflate();
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
-                        switch (x.EmptyStateButton.HasOnClickListeners)
-                        {
-                            case false:
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += EmptyStateButtonOnClick;
-                                break;
-                        }
-
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
                     }
 
-                    break;
+                    RunOnUiThread(ShowEmptyPage);
                 }
-            }
+                else
+                {
+                    Inflated ??= EmptyStateLayout.Inflate();
+                    EmptyStateInflater x = new EmptyStateInflater();
+                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
+                    switch (x.EmptyStateButton.HasOnClickListeners)
+                    {
+                        case false:
+                            x.EmptyStateButton.Click += null!;
+                            x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                            break;
+                    }
+
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                }
+            } 
         }
-     
+
         #endregion
-    } 
+
+
+    }
 } 

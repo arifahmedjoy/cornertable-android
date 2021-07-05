@@ -26,6 +26,7 @@ using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonderClient.Classes.Global;
 using ImageViews.Rounded;
 using Android.Graphics.Drawables;
+using Refractored.Controls;
 using WoWonder.Helpers.Controller;
 
 namespace WoWonder.Activities.Tabbes.Adapters
@@ -49,6 +50,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
+                HasStableIds = true;
                 ActivityContext = context; 
                 RecycledViewPool = new RecyclerView.RecycledViewPool();
             }
@@ -69,7 +71,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     case (int)Classes.ItemType.ProPage:
                     case (int)Classes.ItemType.Shortcuts:
                     {
-                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.TemplateRecyclerViewLayout, parent, false);
+                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
                         var vh = new TemplateRecyclerViewHolder(itemView, OnClick, OnLongClick);
                         RecycledViewPool = new RecyclerView.RecycledViewPool();
                         vh.MRecycler.SetRecycledViewPool(RecycledViewPool);
@@ -85,6 +87,12 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     {
                         var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_FriendRequest, parent, false);
                         var vh = new FriendRequestViewHolder(itemView, OnClick, OnLongClick);
+                        return vh;
+                    } 
+                    case (int)Classes.ItemType.FriendsBirthday: 
+                    {
+                        var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_HContactMore_view, parent, false);
+                        var vh = new FriendsBirthdayViewHolder(itemView, OnClick, OnLongClick);
                         return vh;
                     } 
                     case (int)Classes.ItemType.Weather: 
@@ -126,7 +134,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     case (int)Classes.ItemType.LastBlogs:
                     {
                         View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Article_View, parent, false);
-                        var vh = new ArticlesAdapterViewHolder(itemView, onUserClick, OnClick, OnLongClick);
+                        var vh = new ArticlesAdapterViewHolder(itemView, OnUserClick, OnClick, OnLongClick);
                         return vh;
                     }
                     case (int)Classes.ItemType.ExchangeCurrency:
@@ -181,12 +189,12 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
                                             holder.MRecycler.SetLayoutManager(layoutManager);
                                             holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                            holder.MRecycler.NestedScrollingEnabled = false;
 
                                             var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                                             var preLoader = new RecyclerViewPreloader<UserDataObject>(ActivityContext, ProUsersAdapter, sizeProvider, 10);
                                             holder.MRecycler.AddOnScrollListener(preLoader);
                                             holder.MRecycler.SetAdapter(ProUsersAdapter);
-                                            holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, TabbedMainActivity.GetInstance()?.ViewPager));
                                             ProUsersAdapter.ItemClick += ProUsersAdapterOnItemClick;
                                          
                                             holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Users);
@@ -220,25 +228,11 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                         }
                                     }
 
-                                    var countList = item.UserList.Count;
-                                    switch (item.UserList.Count)
+                                    if (item.UserList.Count > 0)
                                     {
-                                        case > 0 when countList > 0:
-                                        {
-                                            foreach (var user in from user in item.UserList let check = ProUsersAdapter.MProUsersList.FirstOrDefault(a => a.UserId == user.UserId) where check == null select user)
-                                            {
-                                                ProUsersAdapter.MProUsersList.Add(user);
-                                            }
-
-                                            ProUsersAdapter.NotifyItemRangeInserted(countList, ProUsersAdapter.MProUsersList.Count - countList);
-                                            break;
-                                        }
-                                        case > 0:
-                                            ProUsersAdapter.MProUsersList = new ObservableCollection<UserDataObject>(item.UserList);
-                                            ProUsersAdapter.NotifyDataSetChanged();
-                                            break;
-                                    }
-
+                                        ProUsersAdapter.MProUsersList = new ObservableCollection<UserDataObject>(item.UserList);
+                                        ProUsersAdapter.NotifyDataSetChanged();
+                                    }    
                                     break;
                                 }
                             }
@@ -263,12 +257,12 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
                                             holder.MRecycler.SetLayoutManager(layoutManager);
                                             holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                            holder.MRecycler.NestedScrollingEnabled = false;
 
                                             var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                                             var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, ProPagesAdapter, sizeProvider, 10);
                                             holder.MRecycler.AddOnScrollListener(preLoader);
                                             holder.MRecycler.SetAdapter(ProPagesAdapter);
-                                            holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, TabbedMainActivity.GetInstance()?.ViewPager));
                                             ProPagesAdapter.ItemClick += ProPagesAdapterOnItemClick;
                                          
                                             holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_Pro_Pages);
@@ -277,25 +271,12 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                         }
                                     }
 
-                                    var countList = item.PageList.Count;
-                                    switch (item.PageList.Count)
+                                    if (item.PageList.Count > 0)
                                     {
-                                        case > 0 when countList > 0:
-                                        {
-                                            foreach (var page in from page in item.PageList let check = ProPagesAdapter.MProPagesList.FirstOrDefault(a => a.PageId == page.PageId) where check == null select page)
-                                            {
-                                                ProPagesAdapter.MProPagesList.Add(page);
-                                            }
-
-                                            ProPagesAdapter.NotifyItemRangeInserted(countList, ProPagesAdapter.MProPagesList.Count - countList);
-                                            break;
-                                        }
-                                        case > 0:
-                                            ProPagesAdapter.MProPagesList = new ObservableCollection<PageClass>(item.PageList);
-                                            ProPagesAdapter.NotifyDataSetChanged();
-                                            break;
+                                        ProPagesAdapter.MProPagesList = new ObservableCollection<PageClass>(item.PageList);
+                                        ProPagesAdapter.NotifyDataSetChanged();
                                     }
-
+                                    
                                     break;
                                 }
                             }
@@ -332,12 +313,12 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
                                             holder.MRecycler.SetLayoutManager(layoutManager);
                                             holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                            holder.MRecycler.NestedScrollingEnabled = false;
 
                                             var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                                             var preLoader = new RecyclerViewPreloader<Classes.ShortCuts>(ActivityContext, ShortcutsAdapter, sizeProvider, 10);
                                             holder.MRecycler.AddOnScrollListener(preLoader);
                                             holder.MRecycler.SetAdapter(ShortcutsAdapter);
-                                            holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, TabbedMainActivity.GetInstance()?.ViewPager));
                                             ShortcutsAdapter.ItemClick += ShortcutsAdapterOnItemClick;
                                          
                                             holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_AllShortcuts);
@@ -346,23 +327,10 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                         }
                                     }
 
-                                    var countList = item.ShortcutsList.Count;
-                                    switch (item.ShortcutsList.Count)
+                                    if (item.ShortcutsList.Count > 0)
                                     {
-                                        case > 0 when countList > 0:
-                                        {
-                                            foreach (var data in from data in item.ShortcutsList let check = ShortcutsAdapter.ShortcutsList.FirstOrDefault(a => a.Id == data.Id) where check == null select data)
-                                            {
-                                                ShortcutsAdapter.ShortcutsList.Add(data);
-                                            }
-
-                                            ShortcutsAdapter.NotifyItemRangeInserted(countList, ShortcutsAdapter.ShortcutsList.Count - countList);
-                                            break;
-                                        }
-                                        case > 0:
-                                            ShortcutsAdapter.ShortcutsList = new ObservableCollection<Classes.ShortCuts>(item.ShortcutsList);
-                                            ShortcutsAdapter.NotifyDataSetChanged();
-                                            break;
+                                        ShortcutsAdapter.ShortcutsList = new ObservableCollection<Classes.ShortCuts>(item.ShortcutsList);
+                                        ShortcutsAdapter.NotifyDataSetChanged();
                                     }
 
                                     break;
@@ -408,7 +376,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             break;
                                     }
                                          
-                                    holder.Time.Text = item.LastBlogs.Posted;
+                                    holder.Time.Text = holder.Time.Text = ActivityContext.GetText(Resource.String.Lbl_Posted) + " " + item.LastBlogs.Posted;
 
                                     break;
                             }
@@ -422,11 +390,13 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                 case TrendingSearchAdapterViewHolder holder:
                                     holder.Text.Text = "#" + item.HashTags.Tag;
                                     holder.CountPosts.Text = item.HashTags.TrendUseNum + " " + ActivityContext.GetText(Resource.String.Lbl_Post);
+
+                                         
                                     break;
                             }
 
                             break;
-                        }
+                        } 
                         case Classes.ItemType.FriendRequest:
                         {
                             switch (viewHolder)
@@ -434,7 +404,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                 case FriendRequestViewHolder holder:
                                 {
                                     holder.TxTFriendRequest.Text = ActivityContext.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_FollowRequest : Resource.String.Lbl_FriendRequest);
-                                    holder.TxTFriendRequest.Text = ActivityContext.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_View_All_FollowRequest : Resource.String.Lbl_View_All_FriendRequest);
+                                    holder.TxtAllFriendRequest.Text = ActivityContext.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_View_All_FollowRequest : Resource.String.Lbl_View_All_FriendRequest);
 
                                     switch (item.UserList.Count)
                                     {
@@ -478,6 +448,32 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
                                     break;
                                 }
+                            }
+
+                            break;
+                        }
+                        case Classes.ItemType.FriendsBirthday:
+                        {
+                            switch (viewHolder)
+                            {
+                                case FriendsBirthdayViewHolder holder: 
+                                    if (item.UserList?.Count > 0)
+                                    {
+                                        var dataUser = item.UserList?.FirstOrDefault();
+                                        if (dataUser != null)
+                                        {
+                                            GlideImageLoader.LoadImage(ActivityContext, dataUser.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+
+                                            holder.Name.Text = WoWonderTools.GetNameFinal(dataUser);
+
+                                            if (dataUser.Verified == "1")
+                                                holder.Name.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+
+                                            //"birthday": "2007-05-05" >> 14 years old
+                                            holder.About.Text = WoWonderTools.GetAgeUser(dataUser.Birthday) + " " + ActivityContext.GetText(Resource.String.Lbl_YearsOld);
+                                        }
+                                    }
+                                    break;
                             }
 
                             break;
@@ -638,7 +634,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                             {
                                 case SectionViewHolder holder:
                                 {
-                                    holder.AboutHead.Text = item.Title; 
+                                    holder.AboutHead.Text = item.Title.ToUpper(); 
 
                                     switch (item.SectionType)
                                     {
@@ -985,6 +981,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                         Classes.ItemType.ProPage => (int)Classes.ItemType.ProPage,
                         Classes.ItemType.HashTag => (int)Classes.ItemType.HashTag,
                         Classes.ItemType.FriendRequest => (int)Classes.ItemType.FriendRequest, 
+                        Classes.ItemType.FriendsBirthday => (int)Classes.ItemType.FriendsBirthday, 
                         Classes.ItemType.LastActivities => (int)Classes.ItemType.LastActivities, 
                         Classes.ItemType.Weather => (int)Classes.ItemType.Weather, 
                         Classes.ItemType.Shortcuts => (int)Classes.ItemType.Shortcuts, 
@@ -995,33 +992,30 @@ namespace WoWonder.Activities.Tabbes.Adapters
                         Classes.ItemType.LastBlogs => (int)Classes.ItemType.LastBlogs,
                         Classes.ItemType.ExchangeCurrency => (int)Classes.ItemType.ExchangeCurrency,
                         Classes.ItemType.CoronaVirus => (int)Classes.ItemType.CoronaVirus,
-                        _ => position
+                        _ => (int)Classes.ItemType.EmptyPage
                     };
                 }
 
-                return position;
+                return (int)Classes.ItemType.EmptyPage;
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return 0;
+                return (int)Classes.ItemType.EmptyPage;
             }
         }
 
         void OnClick(TrendingAdapterClickEventArgs args) => ItemClick?.Invoke(ActivityContext, args);
         void OnLongClick(TrendingAdapterClickEventArgs args) => ItemLongClick?.Invoke(ActivityContext, args);
-        void onUserClick(TrendingAdapterClickEventArgs args) => ItemUserClick?.Invoke(ActivityContext, args);
+        void OnUserClick(TrendingAdapterClickEventArgs args) => ItemUserClick?.Invoke(ActivityContext, args);
     }
 
     public class TemplateRecyclerViewHolder : RecyclerView.ViewHolder
     {
         #region Variables Basic
 
-        public View MainView { get; private set; }
-        public LinearLayout MainLinear { get; private set; }
-        public TextView TitleText { get; private set; }
-        public TextView IconTitle { get; private set; }
-        public TextView DescriptionText { get; private set; }
+        public View MainView { get; private set; } 
+        public TextView TitleText { get; private set; } 
         public TextView MoreText { get; private set; }
         public RecyclerView MRecycler { get; private set; }
 
@@ -1033,22 +1027,17 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 MainView = itemView;
 
-                MainLinear = (LinearLayout)itemView.FindViewById(Resource.Id.mainLinear);
-                TitleText = (TextView)itemView.FindViewById(Resource.Id.textTitle);
-                IconTitle = (TextView)itemView.FindViewById(Resource.Id.iconTitle);
-                DescriptionText = (TextView)itemView.FindViewById(Resource.Id.textSecondery);
-                MoreText = (TextView)itemView.FindViewById(Resource.Id.textMore);
-                MRecycler = (RecyclerView)itemView.FindViewById(Resource.Id.recyler);
-              
-                IconTitle.Visibility = ViewStates.Gone;
-                DescriptionText.Visibility = ViewStates.Gone;
+                MainView = itemView;
+                MRecycler = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
+                TitleText = MainView.FindViewById<TextView>(Resource.Id.headText);
+                MoreText = MainView.FindViewById<TextView>(Resource.Id.moreText);
                  
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1102,8 +1091,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 MoreText.SetOnClickListener(this);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1115,9 +1104,9 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-                if (AdapterPosition != RecyclerView.NoPosition)
+                if (BindingAdapterPosition != RecyclerView.NoPosition)
                 {
-                    var item = TrendingAdapter.TrendingList[AdapterPosition]?.LastBlogs;
+                    var item = TrendingAdapter.TrendingList[BindingAdapterPosition]?.LastBlogs;
 
                     if (v.Id == UserItem.Id)
                         WoWonderTools.OpenProfile(TrendingAdapter.ActivityContext, item.Author.UserId, item.Author);
@@ -1152,6 +1141,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
         public View MainView { get; private set; }
         public TextView Text { get; private set; }
         public TextView CountPosts { get; private set; } 
+        public TextView IconArrow { get; private set; } 
 
         #endregion
 
@@ -1163,10 +1153,14 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
                 Text = MainView.FindViewById<TextView>(Resource.Id.text);
                 CountPosts = MainView.FindViewById<TextView>(Resource.Id.countPosts);
+                IconArrow = MainView.FindViewById<TextView>(Resource.Id.icon_arrow);
+
+                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconArrow, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowBack : IonIconsFonts.IosArrowForward);
+
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1232,7 +1226,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
             {
                 MainView = itemView;
 
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
                 Console.WriteLine(longClickListener);
             }
             catch (Exception exception)
@@ -1276,8 +1270,50 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 TxtAllFriendRequest = (TextView)itemView.FindViewById(Resource.Id.tv_Friends);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+    }
+    
+    public class FriendsBirthdayViewHolder : RecyclerView.ViewHolder
+    {
+        #region Variables Basic
+         
+        public View MainView { get; }
+         
+        public ImageView Image { get; private set; }
+        public TextView Name { get; private set; }
+        public TextView About { get; private set; }
+        public TextView ButtonMore { get; private set; }
+        public CircleImageView ImageLastSeen { get; private set; }
+
+        #endregion
+
+        public FriendsBirthdayViewHolder(View itemView, Action<TrendingAdapterClickEventArgs> clickListener, Action<TrendingAdapterClickEventArgs> longClickListener) : base(itemView)
+        {
+            try
+            {
+                MainView = itemView;
+                 
+                Image = MainView.FindViewById<ImageView>(Resource.Id.card_pro_pic);
+                Name = MainView.FindViewById<TextView>(Resource.Id.card_name);
+                About = MainView.FindViewById<TextView>(Resource.Id.card_dist);
+                ImageLastSeen = (CircleImageView)MainView.FindViewById(Resource.Id.ImageLastseen);
+                ButtonMore = MainView.FindViewById<TextView>(Resource.Id.more);
+
+                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, ButtonMore, FontAwesomeIcon.BirthdayCake);
+                ButtonMore.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+
+                ImageLastSeen.Visibility = ViewStates.Gone;
+
+                //Create an Event
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1311,8 +1347,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 Time = MainView.FindViewById<TextView>(Resource.Id.Time);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1320,33 +1356,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
             }
         }
     }
-
-    public class SectionViewHolder : RecyclerView.ViewHolder
-    {
-        public View MainView { get; private set; }
-        public TextView AboutHead { get; private set; }
-        public TextView AboutMore { get; private set; }
-
-        public SectionViewHolder(View itemView, Action<TrendingAdapterClickEventArgs> clickListener, Action<TrendingAdapterClickEventArgs> longClickListener) : base(itemView)
-        {
-            try
-            {
-                MainView = itemView;
-
-                AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
-                AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
-
-                //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-    }
-
+     
     public class WeatherViewHolder : RecyclerView.ViewHolder
     {
         #region Variables Basic
@@ -1382,12 +1392,38 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 WeatherItems = itemView.FindViewById<LinearLayout>(Resource.Id.LLWeatherItem);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
+            }
+        }
+    }
+
+    public class SectionViewHolder : RecyclerView.ViewHolder
+    {
+        public View MainView { get; private set; }
+        public TextView AboutHead { get; private set; }
+        public TextView AboutMore { get; private set; }
+
+        public SectionViewHolder(View itemView, Action<TrendingAdapterClickEventArgs> clickListener, Action<TrendingAdapterClickEventArgs> longClickListener) : base(itemView)
+        {
+            try
+            {
+                MainView = itemView;
+
+                AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
+                AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
+
+                //Create an Event
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
             }
         }
     }
@@ -1448,9 +1484,9 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 ViewMore = MainView.FindViewById<TextView>(Resource.Id.View_more);
                  
                 //Event
-                UserItem.Click += (sender, e) => userClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                UserItem.Click += (sender, e) => userClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new TrendingAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

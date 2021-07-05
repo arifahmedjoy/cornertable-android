@@ -1,37 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
 using Android.App;
 using Android.Content;
-using Android.Content.Res;
 using Android.OS;
-using Android.Text;
 using Android.Views;
-using Android.Widget;
-using AndroidX.AppCompat.App;
 using AndroidX.Preference;
-using Java.Lang;
 using WoWonder.Activities.BlockedUsers;
 using WoWonder.Activities.Chat;
 using WoWonder.Activities.MyProfile;
-using WoWonder.Activities.Tabbes;
-using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Utils;
-using WoWonder.SQLite;
-using WoWonderClient.Requests;
 using Exception = System.Exception;
 
 namespace WoWonder.Activities.SettingsPreferences.General
 {
-    public class GeneralAccountPrefsFragment : PreferenceFragmentCompat, ISharedPreferencesOnSharedPreferenceChangeListener, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, MaterialDialog.IInputCallback
+    public class GeneralAccountPrefsFragment : PreferenceFragmentCompat, ISharedPreferencesOnSharedPreferenceChangeListener 
     { 
         #region  Variables Basic
 
         private Preference EditProfilePref,EditAccountPref, EditSocialLinksPref, EditPasswordPref, BlockedUsersPref, DeleteAccountPref, AboutMePref,TwoFactorPref, ManageSessionsPref , VerificationPref; 
         //private ListPreference LangPref;
-        private string SAbout = "", TypeDialog; 
+        private string SAbout = ""; 
         private readonly Activity ActivityContext;
         private Preference WallpaperPref, NightMode;
 
@@ -151,7 +139,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 TwoFactorPref = FindPreference("Twofactor_key");
                 ManageSessionsPref = FindPreference("ManageSessions_key"); 
                 NightMode = FindPreference("Night_Mode_key");
-                VerificationPref = FindPreference("verification_key");  
+                VerificationPref = FindPreference("verification_key");
                 WallpaperPref = FindPreference("Wallpaper_key");
                 //LangPref = (ListPreference) FindPreference("Lang_key");
 
@@ -381,16 +369,8 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                TypeDialog = "DeleteAccount";
-
-                var dialog = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-
-                dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
-                dialog.Content(ActivityContext.GetText(Resource.String.Lbl_Are_you_DeleteAccount) + " " + AppSettings.ApplicationName);
-                dialog.PositiveText(ActivityContext.GetText(Resource.String.Lbl_Ok)).OnPositive(this);
-                dialog.NegativeText(ActivityContext.GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                dialog.Build().Show();
-                dialog.AlwaysCallSingleChoiceCallback();
+                var intent = new Intent(ActivityContext, typeof(DeleteAccountActivity));
+                ActivityContext.StartActivity(intent);
             }
             catch (Exception e)
             {
@@ -441,7 +421,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
         //            MainSettings.SetApplicationLang(Activity, AppSettings.Lang);
 
-        //            Toast.MakeText(ActivityContext, GetText(Resource.String.Lbl_Application_Restart), ToastLength.Long)?.Show();
+        //            ToastUtils.ShowToast(ActivityContext, GetText(Resource.String.Lbl_Application_Restart), ToastLength.Long);
 
         //            var intent = new Intent(Activity, typeof(SplashScreenActivity));
         //            intent.AddCategory(Intent?.CategoryHome);
@@ -627,42 +607,16 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 {
                     case "about_me_key":
                     {
-                        TypeDialog = "About";
-                        var dialog = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                        dialog.Title(GetString(Resource.String.Lbl_About)).TitleColorRes(Resource.Color.primary);
-                        dialog.Input(GetString(Resource.String.Lbl_About), preference.Summary, false, this);
-                        dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                        dialog.PositiveText(GetText(Resource.String.Lbl_Save)).OnPositive(this);
-                        dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                        dialog.AlwaysCallSingleChoiceCallback();
-                        dialog.Build().Show();
-                      
+                        var intent = new Intent(ActivityContext, typeof(UpdateAboutActivity));
+                        intent.PutExtra("about", preference.Summary);
+                        ActivityContext.StartActivity(intent);
                         return true;
                     }
                     case "Night_Mode_key":
                     {
-                        TypeDialog = "NightMode";
+                        var intent = new Intent(ActivityContext, typeof(ThemeActivity));
+                        ActivityContext.StartActivity(intent);
 
-                        var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(ActivityContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-
-                        dialogList.Title(Resource.String.Lbl_Theme).TitleColorRes(Resource.Color.primary);
-
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_Light));
-                        arrayAdapter.Add(GetText(Resource.String.Lbl_Dark));
-
-                        switch ((int)Build.VERSION.SdkInt)
-                        {
-                            case >= 29:
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_SetByBattery));
-                                break;
-                        }
-
-                        dialogList.Items(arrayAdapter);
-                        dialogList.PositiveText(GetText(Resource.String.Lbl_Close)).OnPositive(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
-                 
                         return true;
                     }
                     default:
@@ -675,237 +629,6 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 return base.OnPreferenceTreeClick(preference);
             }
         }
-
-        #region MaterialDialog
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                switch (TypeDialog)
-                {
-                    case "DeleteAccount" when p1 == DialogAction.Positive:
-                    {
-                        var intent = new Intent(ActivityContext, typeof(DeleteAccountActivity));
-                        ActivityContext.StartActivity(intent);
-                        break;
-                    }
-                    case "DeleteAccount":
-                    {
-                        if (p1 == DialogAction.Negative)
-                        {
-                            p0.Dismiss();
-                        }
-
-                        break;
-                    }
-                    default:
-                    {
-                        if (p1 == DialogAction.Positive)
-                        {
-                        
-                        }
-                        else if (p1 == DialogAction.Negative)
-                        {
-                            p0.Dismiss();
-                        }
-
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
-        {
-            try
-            {
-                string text = itemString.ToString();
-                switch (TypeDialog)
-                {
-                    case "NightMode":
-                    {
-                        string getValue = MainSettings.SharedData?.GetString("Night_Mode_key", string.Empty);
-
-                        if (text == GetString(Resource.String.Lbl_Light) && getValue != MainSettings.LightMode)
-                        {
-                            //Set Light Mode   
-                            NightMode.Summary = ActivityContext.GetString(Resource.String.Lbl_Light);
-
-                            AppCompatDelegate.DefaultNightMode = AppCompatDelegate.ModeNightNo;
-                            AppSettings.SetTabDarkTheme = false;
-                            MainSettings.SharedData?.Edit()?.PutString("Night_Mode_key", MainSettings.LightMode)?.Commit();
-
-                            switch (Build.VERSION.SdkInt)
-                            {
-                                case >= BuildVersionCodes.Lollipop:
-                                    ActivityContext.Window?.ClearFlags(WindowManagerFlags.TranslucentStatus);
-                                    ActivityContext.Window?.AddFlags(WindowManagerFlags.DrawsSystemBarBackgrounds);
-                                    break;
-                            }
-
-                            Intent intent = new Intent(ActivityContext, typeof(TabbedMainActivity));
-                            intent.AddCategory(Intent.CategoryHome);
-                            intent.SetAction(Intent.ActionMain);
-                            intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
-                            intent.AddFlags(ActivityFlags.NoAnimation);
-                            ActivityContext.FinishAffinity();
-                            ActivityContext.OverridePendingTransition(0, 0);
-                            ActivityContext.StartActivity(intent);
-                        }
-                        else if (text == GetString(Resource.String.Lbl_Dark) && getValue != MainSettings.DarkMode)
-                        {
-                            NightMode.Summary = ActivityContext.GetString(Resource.String.Lbl_Dark);
-
-                            AppCompatDelegate.DefaultNightMode = AppCompatDelegate.ModeNightYes;
-                            AppSettings.SetTabDarkTheme = true;
-                            MainSettings.SharedData?.Edit()?.PutString("Night_Mode_key", MainSettings.DarkMode)?.Commit();
-
-                            switch (Build.VERSION.SdkInt)
-                            {
-                                case >= BuildVersionCodes.Lollipop:
-                                    ActivityContext.Window?.ClearFlags(WindowManagerFlags.TranslucentStatus);
-                                    ActivityContext.Window?.AddFlags(WindowManagerFlags.DrawsSystemBarBackgrounds);
-                                    break;
-                            }
-
-                            Intent intent = new Intent(ActivityContext, typeof(TabbedMainActivity));
-                            intent.AddCategory(Intent.CategoryHome);
-                            intent.SetAction(Intent.ActionMain);
-                            intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
-                            intent.AddFlags(ActivityFlags.NoAnimation);
-                            ActivityContext.FinishAffinity();
-                            ActivityContext.OverridePendingTransition(0, 0);
-                            ActivityContext.StartActivity(intent);
-                        }
-                        else if (text == GetString(Resource.String.Lbl_SetByBattery) && getValue != MainSettings.DefaultMode)
-                        {
-                            NightMode.Summary = ActivityContext.GetString(Resource.String.Lbl_SetByBattery);
-                            MainSettings.SharedData?.Edit()?.PutString("Night_Mode_key", MainSettings.DefaultMode)?.Commit();
-
-                            switch ((int)Build.VERSION.SdkInt)
-                            {
-                                case >= 29:
-                                {
-                                    AppCompatDelegate.DefaultNightMode = AppCompatDelegate.ModeNightFollowSystem;
-
-                                    var currentNightMode = Resources?.Configuration?.UiMode & UiMode.NightMask;
-                                    AppSettings.SetTabDarkTheme = currentNightMode switch
-                                    {
-                                        UiMode.NightNo =>
-                                            // Night mode is not active, we're using the light theme
-                                            false,
-                                        UiMode.NightYes =>
-                                            // Night mode is active, we're using dark theme
-                                            true,
-                                        _ => AppSettings.SetTabDarkTheme
-                                    };
-
-                                    break;
-                                }
-                                default:
-                                {
-                                    AppCompatDelegate.DefaultNightMode = AppCompatDelegate.ModeNightAutoBattery;
-
-                                    var currentNightMode = Resources?.Configuration?.UiMode & UiMode.NightMask;
-                                    AppSettings.SetTabDarkTheme = currentNightMode switch
-                                    {
-                                        UiMode.NightNo =>
-                                            // Night mode is not active, we're using the light theme
-                                            false,
-                                        UiMode.NightYes =>
-                                            // Night mode is active, we're using dark theme
-                                            true,
-                                        _ => AppSettings.SetTabDarkTheme
-                                    };
-
-                                    switch (Build.VERSION.SdkInt)
-                                    {
-                                        case >= BuildVersionCodes.Lollipop:
-                                            ActivityContext.Window?.ClearFlags(WindowManagerFlags.TranslucentStatus);
-                                            ActivityContext.Window?.AddFlags(WindowManagerFlags.DrawsSystemBarBackgrounds);
-                                            break;
-                                    }
-
-                                    Intent intent = new Intent(ActivityContext, typeof(TabbedMainActivity));
-                                    intent.AddCategory(Intent.CategoryHome);
-                                    intent.SetAction(Intent.ActionMain);
-                                    intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.ClearTask);
-                                    intent.AddFlags(ActivityFlags.NoAnimation);
-                                    ActivityContext.FinishAffinity();
-                                    ActivityContext.OverridePendingTransition(0, 0);
-                                    ActivityContext.StartActivity(intent);
-                                    break;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnInput(MaterialDialog p0, ICharSequence p1)
-        {
-            try
-            {
-                if (p1.Length() <= 0) return;
-
-                var strName = p1.ToString();
-                if (!string.IsNullOrEmpty(strName) || !string.IsNullOrWhiteSpace(strName))
-                {
-                    switch (TypeDialog)
-                    {
-                        case "About":
-                        {
-                            MainSettings.SharedData?.Edit()?.PutString("about_me_key", strName)?.Commit();
-                            AboutMePref.Summary = strName;
-
-                            var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                            if (dataUser != null)
-                            {
-                                dataUser.About = strName;
-                                SAbout = strName;
-
-                                var sqLiteDatabase = new SqLiteDatabase();
-                                sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
-                             
-                            }
-
-                            if (Methods.CheckConnectivity())
-                            {
-                                var dataPrivacy = new Dictionary<string, string>
-                                {
-                                    {"about", strName}
-                                };
-
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
-                            }
-                            else
-                            {
-                                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        #endregion
+         
     }
 }

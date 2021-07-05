@@ -11,6 +11,7 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.SwipeRefreshLayout.Widget;
+using Com.Adcolony.Sdk;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
@@ -57,7 +58,10 @@ namespace WoWonder.Activities.PopularPosts
 
                 StartApiService();
 
-                InterstitialAd = AdsFacebook.InitInterstitial(this);
+                if (AppSettings.ShowFbInterstitialAds)
+                    InterstitialAd = AdsFacebook.InitInterstitial(this);
+                else
+                    AdsColony.Ad_Interstitial(this);
             }
             catch (Exception e)
             {
@@ -135,7 +139,7 @@ namespace WoWonder.Activities.PopularPosts
         {
             try
             { 
-                MainRecyclerView.ReleasePlayer();
+                MainRecyclerView?.ReleasePlayer();
                 DestroyBasic();
                 BannerAd?.Destroy();
                 base.OnDestroy(); 
@@ -206,7 +210,10 @@ namespace WoWonder.Activities.PopularPosts
                 MainRecyclerView.SetXAdapter(PostFeedAdapter, SwipeRefreshLayout);
               
                 LinearLayout adContainer = FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(this, adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(this, adContainer, MainRecyclerView);
+                else
+                    AdsColony.InitBannerAd(this, adContainer, AdColonyAdSize.Banner, MainRecyclerView);
             }
             catch (Exception e)
             {
@@ -259,13 +266,15 @@ namespace WoWonder.Activities.PopularPosts
         {
             try
             {
-                PostFeedAdapter.ListDiffer = PostFeedAdapter.ListDiffer;
-
-                PostFeedAdapter.ListDiffer.Clear();
-                PostFeedAdapter.NotifyDataSetChanged();
-
-                PostFeedAdapter.NativePostType = NativeFeedType.Popular;
-
+                if (!Methods.CheckConnectivity())
+                {
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    return;
+                }
+                 
+                PostFeedAdapter?.ListDiffer?.Clear();
+                PostFeedAdapter?.NotifyDataSetChanged();
+ 
                 StartApiService();
             }
             catch (Exception exception)
@@ -279,7 +288,7 @@ namespace WoWonder.Activities.PopularPosts
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
               PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts(offset) });
         }  

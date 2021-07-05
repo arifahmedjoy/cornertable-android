@@ -216,8 +216,8 @@ namespace WoWonder.Activities.Communities.Adapters
                 ImageLastSeen = (CircleImageView)MainView.FindViewById(Resource.Id.ImageLastseen);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new JoinAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new JoinAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new JoinAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new JoinAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
 
                 Button.Visibility = ViewStates.Gone;
                 ImageLastSeen.Visibility = ViewStates.Gone;

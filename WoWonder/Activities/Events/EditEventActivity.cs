@@ -60,7 +60,7 @@ namespace WoWonder.Activities.Events
                 Methods.App.FullScreenApp(this);
 
                 // Create your application here
-                SetContentView(Resource.Layout.CreateEvent_Layout);
+                SetContentView(Resource.Layout.EditEvent_Layout);
 
                 EventId = Intent?.GetStringExtra("EventId") ?? string.Empty;
 
@@ -194,6 +194,10 @@ namespace WoWonder.Activities.Events
                 Methods.SetColorEditText(TxtLocation, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtDescription, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
+                Methods.SetFocusable(TxtStartTime);
+                Methods.SetFocusable(TxtEndTime);
+                Methods.SetFocusable(TxtStartDate);
+                Methods.SetFocusable(TxtEndDate);
 
                 TxtStartTime.SetOnClickListener(this);
                 TxtEndTime.SetOnClickListener(this);
@@ -344,55 +348,55 @@ namespace WoWonder.Activities.Events
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtEventName.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtStartDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtEndDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtLocation.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtStartTime.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_start_time), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_time), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtEndTime.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_end_time), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_time), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(EventPathImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                     }
                     else
                     {
@@ -409,7 +413,7 @@ namespace WoWonder.Activities.Events
                                     case EditEventObject result:
                                     {
                                         AndHUD.Shared.Dismiss(this); 
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_EventSuccessfullyEdited), ToastLength.Short)?.Show();
+                                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_EventSuccessfullyEdited), ToastLength.Short);
 
                                         Console.WriteLine(result.MessageData);
                                         //Add new item to my Event list
@@ -518,14 +522,14 @@ namespace WoWonder.Activities.Events
                                         break;
                                     }
                                     default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                         break;
                                 }
 
                                 break;
                             }
                             case Result.Ok:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 break;
                         }
 
@@ -564,14 +568,14 @@ namespace WoWonder.Activities.Events
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                     //Open intent Location when the request code of result is 502
                     case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -633,6 +637,12 @@ namespace WoWonder.Activities.Events
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher
@@ -687,7 +697,7 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                EventData = JsonConvert.DeserializeObject<EventDataObject>(Intent?.GetStringExtra("EventData"));
+                EventData = JsonConvert.DeserializeObject<EventDataObject>(Intent?.GetStringExtra("EventData") ?? "");
                 if (EventData != null)
                 {
                     TxtEventName.Text = Methods.FunString.DecodeString(EventData.Name);

@@ -260,7 +260,7 @@ namespace WoWonder.Payment
                 {
                     if (string.IsNullOrEmpty(PathImage) || string.IsNullOrWhiteSpace(PathImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_ErrorPleaseSelectImage), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ErrorPleaseSelectImage), ToastLength.Long);
                         return;
                     }
 
@@ -273,17 +273,17 @@ namespace WoWonder.Payment
                     {
                         case "membership":
                             description = "Account upgrade request for type" + Id + " = " + Price;
-                            (apiStatus, respond) = await RequestsAsync.Global.UploadBankRecipeAsync(Id, Price, description, PathImage);
+                            (apiStatus, respond) = await RequestsAsync.Payments.UploadBankRecipeAsync(Id, Price, description, PathImage);
                             break;
                         case "AddFunds":
                             description = "Add to balance = " + Price; 
                             //wallet
-                            (apiStatus, respond) = await RequestsAsync.Global.UploadBankRecipeAsync("wallet", Price, description, PathImage);
+                            (apiStatus, respond) = await RequestsAsync.Payments.UploadBankRecipeAsync("wallet", Price, description, PathImage);
                             break;
                         case "Funding":
                             description = "Doante = " + Price;
                             //funding
-                            (apiStatus, respond) = await RequestsAsync.Global.UploadBankRecipeAsync("funding", Price, description, PathImage, Id);
+                            (apiStatus, respond) = await RequestsAsync.Payments.UploadBankRecipeAsync("funding", Price, description, PathImage, Id);
                             break;
                     }
 
@@ -295,7 +295,7 @@ namespace WoWonder.Payment
                                 try
                                 {
                                     AndHUD.Shared.Dismiss(this);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourWasReceiptSuccessfullyUploaded), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourWasReceiptSuccessfullyUploaded), ToastLength.Short);
                                     Finish();
                                 }
                                 catch (Exception exception)
@@ -311,7 +311,7 @@ namespace WoWonder.Payment
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 } 
             }
             catch (Exception exception)
@@ -373,13 +373,13 @@ namespace WoWonder.Payment
                                     break;
                                 }
                                 default:
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                     break;
                             }
                         }
                         else
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -405,7 +405,7 @@ namespace WoWonder.Payment
                         OpenDialogGallery();
                         break;
                     case 106:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -422,6 +422,12 @@ namespace WoWonder.Payment
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher

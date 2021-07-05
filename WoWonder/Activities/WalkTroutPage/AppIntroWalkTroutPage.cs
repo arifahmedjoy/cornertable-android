@@ -1,27 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Graphics;
 using Android.OS;
-using AppIntro;
+using Android.Widget;
+using AndroidX.ViewPager2.Widget;
+using Google.Android.Material.Tabs;
+using WoWonder.Activities.Base;
 using WoWonder.Activities.General;
-using WoWonder.Activities.NativePost.Post;
+using WoWonder.Activities.NativePost.Services;
 using WoWonder.Activities.Suggested.User;
 using WoWonder.Activities.Tabbes;
+using WoWonder.Adapters;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Activities.WalkTroutPage
 {
-    [Activity(Icon = "@mipmap/icon", Theme = "@style/Theme.AppCompat.Light.NoActionBar", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class AppIntroWalkTroutPage : AppIntro2
-    {
-        private int Count = 1;
+    [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
+    public class AppIntroWalkTroutPage : BaseActivity, TabLayoutMediator.ITabConfigurationStrategy
+    { 
+        #region Variables Basic
+
         private string Caller = "";
+        private ViewPager2 VpIntro;
+        private TabLayout TabLayout;
+        private static readonly int MaxPages = 4;
+        private MainTabAdapter PagerAdapter;
+        private TextView TvSkip, TvNext;
+
+        #endregion
 
         #region General
 
@@ -30,53 +40,45 @@ namespace WoWonder.Activities.WalkTroutPage
             try
             {
                 base.OnCreate(savedInstanceState);
+                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
 
-                AddSlide(new AnimFragment1());
-                AddSlide(new AnimFragment2());
-                AddSlide(new AnimFragment4());
-                AddSlide(new AnimFragment3());
-
-                if (AppSettings.WalkThroughSetFlowAnimation)
-                    SetFlowAnimation();
-
-                if (AppSettings.WalkThroughSetZoomAnimation)
-                    SetZoomAnimation();
-
-                else if (AppSettings.WalkThroughSetSlideOverAnimation)
-                    SetSlideOverAnimation();
-
-                else if (AppSettings.WalkThroughSetFadeAnimation)
-                    SetFadeAnimation();
-
-                if (AppSettings.WalkThroughSetDepthAnimation)
-                    SetDepthAnimation();
-
-                ShowStatusBar(false);
-
-                //SetNavBarColor(Color.ParseColor(AppSettings.MainColor));
-                SetIndicatorColor(Color.ParseColor(AppSettings.MainColor), Color.ParseColor("#888888"));
-                //SetBarColor(Color.ParseColor("#3F51B5"));
-                // SetSeparatorColor(Color.ParseColor("#2196f3"));
+                Methods.App.FullScreenApp(this, true);
+                 
+                SetContentView(Resource.Layout.walkthrough);
 
                 Caller = Intent?.GetStringExtra("class") ?? "";
 
-                switch ((int)Build.VERSION.SdkInt)
-                {
-                    // Check if we're running on Android 5.0 or higher
-                    case < 23:
-                        break;
-                    default:
-                        RequestPermissions(new[]
-                        {
-                            Manifest.Permission.AccessFineLocation,
-                            Manifest.Permission.AccessCoarseLocation,
-                            Manifest.Permission.Camera
-                        }, 208);
-                        break;
-                }
+                //Get Value And Set Toolbar
+                InitComponent();
 
                 if (Methods.CheckConnectivity())
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiPostAsync.FetchFirstNewsFeedApiPosts, ApiRequest.LoadSuggestedUser, ApiRequest.LoadSuggestedGroup, ApiRequest.GetMyGroups, ApiRequest.GetMyPages });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => PostUpdaterHelper.FetchFirstNewsFeedApiPosts(true), ApiRequest.LoadSuggestedUser, ApiRequest.LoadSuggestedGroup, ApiRequest.LoadSuggestedPage, ApiRequest.GetMyGroups, ApiRequest.GetMyPages });
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        protected override void OnResume()
+        {
+            try
+            {
+                base.OnResume();
+                AddOrRemoveEvent(true); 
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        protected override void OnPause()
+        {
+            try
+            {
+                base.OnPause();
+                AddOrRemoveEvent(false); 
             }
             catch (Exception e)
             {
@@ -109,91 +111,191 @@ namespace WoWonder.Activities.WalkTroutPage
                 Methods.DisplayReportResultTrack(e);
             }
         }
+         
+        #endregion
+           
+        #region Functions
+
+        private void InitComponent()
+        {
+            try
+            {
+                VpIntro = FindViewById<ViewPager2>(Resource.Id.vp2Intro);
+                TvSkip = FindViewById<TextView>(Resource.Id.tv_onboard_skip);
+                TvNext = FindViewById<TextView>(Resource.Id.tv_onboard_next);
+                TabLayout = FindViewById<TabLayout>(Resource.Id.tab_layout);
+
+                PagerAdapter = new MainTabAdapter(this);
+                PagerAdapter.AddFragment(new AnimFragment1() , "0"); //loction 
+                PagerAdapter.AddFragment(new AnimFragment2() , "1"); //contact
+                PagerAdapter.AddFragment(new AnimFragment4() , "2"); //recurd 
+                PagerAdapter.AddFragment(new AnimFragment3(), "3"); //camrea
+                VpIntro.Adapter = PagerAdapter;
+                VpIntro.RegisterOnPageChangeCallback(new MyOnPageChangeCallback(this));
+                new TabLayoutMediator(TabLayout, VpIntro, this).Attach();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+  
+        private void AddOrRemoveEvent(bool addEvent)
+        {
+            try
+            {
+                switch (addEvent)
+                {
+                    // true +=  // false -=
+                    case true:
+                        TvSkip.Click += TvSkip_Click;
+                        TvNext.Click += TvNext_Click;
+                        break;
+                    default:
+                        TvSkip.Click -= TvSkip_Click;
+                        TvNext.Click -= TvNext_Click;
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        } 
+        public void OnConfigureTab(TabLayout.Tab p0, int p1)
+        {
+        }
+
 
         #endregion
 
-        #region Permissions && Result
+        #region Event
+
+        private void TvNext_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int current = VpIntro.CurrentItem + 1;
+                if(current < MaxPages)
+                {
+                    VpIntro.SetCurrentItem(current, false);
+                }
+                else
+                {
+                    DonePressed();
+                } 
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void TvSkip_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (Caller.Contains("register"))
+                {
+                    switch (ListUtils.SettingsSiteList?.MembershipSystem)
+                    {
+                        case "1":
+                            {
+                                var intent = new Intent(this, typeof(GoProActivity));
+                                intent.PutExtra("class", "register");
+                                StartActivity(intent);
+                                break;
+                            }
+                        default:
+                            {
+                                switch (AppSettings.ShowSuggestedUsersOnRegister)
+                                {
+                                    case true:
+                                        {
+                                            Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
+                                            newIntent?.PutExtra("class", "register");
+                                            StartActivity(newIntent);
+                                            break;
+                                        }
+                                    default:
+                                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                                        break;
+                                }
+
+                                break;
+                            }
+                    }
+                }
+                else
+                {
+                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
+                }
+
+                Finish();
+            }
+            catch (Exception ex)
+            {
+                Methods.DisplayReportResultTrack(ex);
+            }
+        }
+         
+        #endregion
+
+        #region Permissions 
 
         //Permissions
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
             try
             {
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+                base.OnRequestPermissionsResult(requestCode, permissions, grantResults); 
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-
+         
         #endregion
 
         #region Functions
 
-        public override void OnSlideChanged()
+        private void Pressed(int page)
         {
             try
             {
-                base.OnSlideChanged();
-                Pressed();
-                Count++;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        private void Pressed()
-        {
-            try
-            {
-                switch (Count)
+                if (page == 0) //Location
                 {
-                    case 1:
-                        {
-                            switch ((int)Build.VERSION.SdkInt)
-                            {
-                                case >= 23 when AppSettings.InvitationSystem:
-                                    RequestPermissions(new[]
-                                    {
-                                    Manifest.Permission.ReadContacts,
-                                    Manifest.Permission.ReadPhoneNumbers,
-                                    Manifest.Permission.GetAccounts,
-                                }, 2);
-                                    break;
-                                case >= 23:
-                                    RequestPermissions(new[]
-                                    {
-                                    Manifest.Permission.Camera
-                                }, 2);
-                                    break;
-                            }
-
-                            break;
-                        }
-                    case 2:
-                        {
-                            switch ((int)Build.VERSION.SdkInt)
-                            {
-                                case >= 23:
-                                    RequestPermissions(new[]
-                                    {
-                                    Manifest.Permission.RecordAudio,
-                                    Manifest.Permission.ModifyAudioSettings
-                                }, 4);
-                                    break;
-                            }
-
-                            break;
-                        }
-                    case 3:
-                        break;
-                    case 4:
-                        break;
+                    if ((int)Build.VERSION.SdkInt > 23)
+                    {
+                        //if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Denied && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Denied)
+                            new PermissionsController(this).RequestPermission(105);
+                    } 
                 }
+                else if (page == 1) //Contacts
+                {
+                    if ((int)Build.VERSION.SdkInt > 23 && AppSettings.InvitationSystem)
+                    {
+                        //if (CheckSelfPermission(Manifest.Permission.ReadContacts) == Permission.Denied && CheckSelfPermission(Manifest.Permission.ReadPhoneNumbers) == Permission.Denied)
+                            new PermissionsController(this).RequestPermission(101);
+                    } 
+                }
+                else if (page == 2) // Record
+                {
+                    if ((int)Build.VERSION.SdkInt > 23)
+                    {
+                        //if (CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Denied && CheckSelfPermission(Manifest.Permission.ModifyAudioSettings) == Permission.Denied)
+                            new PermissionsController(this).RequestPermission(102);
+                    } 
+                }
+                else if (page == 3) // Storage & Camera
+                {
+                    if ((int)Build.VERSION.SdkInt > 23)
+                    {
+                        //if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Denied && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Denied && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Denied)
+                            new PermissionsController(this).RequestPermission(108);
+                    } 
+                } 
             }
             catch (Exception e)
             {
@@ -202,7 +304,7 @@ namespace WoWonder.Activities.WalkTroutPage
         }
 
         // Do something when users tap on Done button.
-        public override void OnDonePressed()
+        private void DonePressed()
         {
             try
             {
@@ -249,58 +351,71 @@ namespace WoWonder.Activities.WalkTroutPage
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        // Do something when users tap on Skip button.
-        public override void OnSkipPressed()
-        {
-            try
-            {
-                if (Caller.Contains("register"))
-                {
-                    switch (ListUtils.SettingsSiteList?.MembershipSystem)
-                    {
-                        case "1":
-                            {
-                                var intent = new Intent(this, typeof(GoProActivity));
-                                intent.PutExtra("class", "register");
-                                StartActivity(intent);
-                                break;
-                            }
-                        default:
-                            {
-                                switch (AppSettings.ShowSuggestedUsersOnRegister)
-                                {
-                                    case true:
-                                        {
-                                            Intent newIntent = new Intent(this, typeof(SuggestionsUsersActivity));
-                                            newIntent?.PutExtra("class", "register");
-                                            StartActivity(newIntent);
-                                            break;
-                                        }
-                                    default:
-                                        StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                                        break;
-                                }
-
-                                break;
-                            }
-                    }
-                }
-                else
-                {
-                    StartActivity(new Intent(this, typeof(TabbedMainActivity)));
-                }
-
-                Finish();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
 
         #endregion
+         
+        private class MyOnPageChangeCallback : ViewPager2.OnPageChangeCallback
+        {
+            private readonly AppIntroWalkTroutPage Activity;
 
+            public MyOnPageChangeCallback(AppIntroWalkTroutPage activity)
+            {
+                try
+                {
+                    Activity = activity;
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            //public override void OnPageScrolled(int position, float positionOffset, int positionOffsetPixels)
+            //{
+            //    try
+            //    {
+            //        base.OnPageScrolled(position, positionOffset, positionOffsetPixels);
+            //        Activity.Pressed(position);
+
+            //        switch (position)
+            //        {
+            //            case 3:
+            //                Activity.TvNext.Text = Activity.GetText(Resource.String.Lbl_Done);
+            //                break;
+            //            default:
+            //                Activity.TvNext.Text = Activity.GetText(Resource.String.Lbl_Next);
+            //                break;
+            //        }
+            //    }
+            //    catch (Exception exception)
+            //    {
+            //        Methods.DisplayReportResultTrack(exception);
+            //    }
+            //}
+
+            public override void OnPageSelected(int position)
+            {
+                try
+                {
+                    base.OnPageSelected(position);
+                    Activity.Pressed(position);
+
+                    switch (position)
+                    {
+                        case 3:
+                            Activity.TvNext.Text = Activity.GetText(Resource.String.Lbl_Done);
+                            break;
+                        default:
+                            Activity.TvNext.Text = Activity.GetText(Resource.String.Lbl_Next);
+                            break;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+             
+        }
     }
 }

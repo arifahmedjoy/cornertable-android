@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Android.App;
-using Android.Graphics;
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
@@ -24,6 +22,12 @@ namespace WoWonder.Adapters
 
         private readonly Activity ActivityContext;
         public ObservableCollection<Classes.Categories> CategoriesList = new ObservableCollection<Classes.Categories>();
+
+        private readonly int[] Ids = {Resource.Drawable.category_car, Resource.Drawable.category_comedy, Resource.Drawable.category_economics, Resource.Drawable.category_education,
+                             Resource.Drawable.category_entertainment, Resource.Drawable.category_movies, Resource.Drawable.category_gaming, Resource.Drawable.category_history,
+                             Resource.Drawable.category_live_style, Resource.Drawable.category_natural, Resource.Drawable.category_news, Resource.Drawable.category_people,
+                             Resource.Drawable.category_pet, Resource.Drawable.category_place, Resource.Drawable.category_science, Resource.Drawable.category_sport, Resource.Drawable.category_travel,
+                             Resource.Drawable.category_other};
 
         public CategoriesImageAdapter(Activity context)
         {
@@ -70,7 +74,7 @@ namespace WoWonder.Adapters
                         if (item != null)
                         { 
                             holder.Name.Text = Methods.FunString.DecodeString(item.CategoriesName);
-                            holder.Image.SetColorFilter(Color.ParseColor(Methods.FunString.RandomColor()),PorterDuff.Mode.Screen); 
+                            holder.Image.SetImageResource(Ids[position]);
                         }
 
                         break;
@@ -161,8 +165,8 @@ namespace WoWonder.Adapters
                 Name = MainView.FindViewById<TextView>(Resource.Id.cat);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new CategoriesImageAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new CategoriesImageAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new CategoriesImageAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new CategoriesImageAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
            
             }

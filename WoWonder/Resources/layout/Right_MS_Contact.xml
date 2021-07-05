@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="end"
-    android:padding="4dp"
-    android:id="@+id/main"
-    android:paddingEnd="2dp">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:padding="4dp"
+                android:id="@+id/main"
+                android:paddingEnd="2dp">
     <LinearLayout
         android:orientation="vertical"
         android:id="@+id/bubble_layout"
@@ -103,18 +103,45 @@
                 android:layout_marginEnd="5dp" />
         </LinearLayout>
     </LinearLayout>
-	<TextView
-		android:layout_height="match_parent"
-		android:id="@+id/time"
-		android:textColor="#444"
-		android:textSize="13dp"
-		android:visibility="gone"
-		android:gravity="bottom|end"
-		android:layout_marginTop="5dp"
-		android:layout_marginEnd="3dp"
-		android:layout_marginStart="5dp"
-		android:layout_marginBottom="5dp"
-		android:layout_width="wrap_content"
-		android:translationX="0dp"
-		android:paddingBottom="2dp" />  
-</LinearLayout>
+
+  <LinearLayout
+    android:orientation="horizontal"
+    android:id="@+id/countLikeSection"
+    android:layout_alignStart="@+id/bubble_layout"
+    android:layout_below="@+id/bubble_layout"
+    android:layout_width="wrap_content"
+    android:visibility="gone"
+    android:clickable="true"
+    android:translationY="-5dp"
+    android:gravity="center"
+    android:backgroundTint="?attr/colorFill"
+    android:background="@drawable/shape_radius_btn"
+    android:layout_height="20dp">
+    <ImageView
+      android:id="@+id/ImagecountLike"
+      android:layout_width="16dp"
+      android:layout_height="16dp"
+      android:src="@drawable/emoji_love"
+      android:layout_margin="5dp"
+      android:scaleType="centerCrop" />
+  </LinearLayout>
+
+  <TextView
+    android:layout_height="wrap_content"
+    android:id="@+id/time"
+    android:layout_alignEnd="@+id/bubble_layout"
+    android:layout_below="@+id/bubble_layout"
+    android:textColor="#444"
+    android:textSize="10dp"
+    android:gravity="bottom|end"
+    android:layout_marginTop="1dp"
+    android:layout_marginEnd="3dp"
+    android:layout_marginStart="5dp"
+    android:layout_marginBottom="5dp"
+    android:layout_width="wrap_content"
+    android:text="30:00"
+    android:visibility="gone"
+    android:translationX="0dp"
+    android:paddingBottom="2dp" />
+   
+</RelativeLayout>

@@ -4,6 +4,7 @@
     <domain includeSubdomains="true">@string/ApplicationUrlWeb</domain> 
     <domain includeSubdomains="true">ip-api.com</domain> 
     <domain includeSubdomains="true">cdn.weatherapi.com</domain> 
+    <domain includeSubdomains="true">openexchangerates.org</domain> 
     <trust-anchors>
       <certificates src="system" />
       <certificates src="user" />

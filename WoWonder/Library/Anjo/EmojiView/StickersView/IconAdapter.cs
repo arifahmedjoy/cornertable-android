@@ -53,7 +53,7 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -141,8 +141,8 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
                 Image = itemView.FindViewById<ImageView>(Resource.Id.stickerImage); 
  
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new IconAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new IconAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new IconAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new IconAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

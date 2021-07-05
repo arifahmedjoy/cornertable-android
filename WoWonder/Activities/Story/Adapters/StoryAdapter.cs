@@ -281,7 +281,7 @@ namespace WoWonder.Activities.Story.Adapters
                 //CivStoryAvatar = MainView.FindViewById<CircleImageView>(Resource.Id.civ_story_avatar);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new StoryAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new StoryAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
                 Console.WriteLine(longClickListener);
             }

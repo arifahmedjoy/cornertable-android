@@ -14,6 +14,7 @@ using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
+using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Chat.Call.Adapters;
 using WoWonder.Activities.Chat.Call.Agora;
@@ -24,6 +25,7 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Global;
+using WoWonderClient.Classes.Message;
 using WoWonderClient.Classes.User;
 using WoWonderClient.Requests;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
@@ -227,11 +229,7 @@ namespace WoWonder.Activities.Chat.Call
         private void CallAdapter_OnVideoCallClick(object sender, AddNewCallAdapterClickEventArgs adapterClickEvents)
         {
             try
-            {
-                string timeNow = DateTime.Now.ToString("hh:mm");
-                var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string time = Convert.ToString(unixTimestamp);
-
+            { 
                 var position = adapterClickEvents.Position;
                 if (position >= 0)
                 {
@@ -251,18 +249,15 @@ namespace WoWonder.Activities.Chat.Call
                                 break;
                         }
 
-                        intentVideoCall.PutExtra("UserID", item.UserId);
-                        intentVideoCall.PutExtra("avatar", item.Avatar);
-                        intentVideoCall.PutExtra("name", item.Name);
-                        intentVideoCall.PutExtra("time", timeNow);
-                        intentVideoCall.PutExtra("CallID", time);
-                        intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                        intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                        intentVideoCall.PutExtra("from_id", "0");
-                        intentVideoCall.PutExtra("active", "0");
-                        intentVideoCall.PutExtra("status", "0");
-                        intentVideoCall.PutExtra("room_name", "TestRoom");
-
+                        var callUserObject = new CallUserObject
+                        {
+                            UserId = item.UserId,
+                            Avatar = item.Avatar,
+                            Name = item.Name,
+                            Data = new CallUserObject.DataCallUser()
+                        };
+                        intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                          
                         StartActivity(intentVideoCall);
                     }
                 }
@@ -276,11 +271,7 @@ namespace WoWonder.Activities.Chat.Call
         private void CallAdapter_OnAudioCallClick(object sender, AddNewCallAdapterClickEventArgs adapterClickEvents)
         {
             try
-            {
-                string timeNow = DateTime.Now.ToString("hh:mm");
-                var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string time = Convert.ToString(unixTimestamp);
-
+            { 
                 var position = adapterClickEvents.Position;
                 if (position >= 0)
                 {
@@ -299,17 +290,16 @@ namespace WoWonder.Activities.Chat.Call
                                 intentVideoCall.PutExtra("type", "Twilio_audio_calling_start");
                                 break;
                         }
-                        intentVideoCall.PutExtra("UserID", item.UserId);
-                        intentVideoCall.PutExtra("avatar", item.Avatar);
-                        intentVideoCall.PutExtra("name", item.Name);
-                        intentVideoCall.PutExtra("time", timeNow);
-                        intentVideoCall.PutExtra("CallID", time);
-                        intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                        intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                        intentVideoCall.PutExtra("from_id", "0");
-                        intentVideoCall.PutExtra("active", "0");
-                        intentVideoCall.PutExtra("status", "0");
-                        intentVideoCall.PutExtra("room_name", "TestRoom");
+
+                        var callUserObject = new CallUserObject
+                        {
+                            UserId = item.UserId,
+                            Avatar = item.Avatar,
+                            Name = item.Name,
+                            Data = new CallUserObject.DataCallUser()
+                        };
+                        intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                         
                         StartActivity(intentVideoCall);
                     }
                 }
@@ -388,7 +378,7 @@ namespace WoWonder.Activities.Chat.Call
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadContactsAsync });
         }
@@ -430,7 +420,7 @@ namespace WoWonder.Activities.Chat.Call
                         else
                         {
                             if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                         }
                     }
                 }
@@ -445,11 +435,11 @@ namespace WoWonder.Activities.Chat.Call
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
                 if (!x.EmptyStateButton.HasOnClickListeners)
                 {
-                    x.EmptyStateButton.Click += null;
+                    x.EmptyStateButton.Click += null!;
                     x.EmptyStateButton.Click += EmptyStateButtonOnClick;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
             MainScrollEvent.IsLoading = false;
@@ -481,7 +471,7 @@ namespace WoWonder.Activities.Chat.Call
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }

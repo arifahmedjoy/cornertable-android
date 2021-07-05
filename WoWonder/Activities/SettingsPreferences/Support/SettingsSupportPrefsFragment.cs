@@ -5,18 +5,17 @@ using Android.OS;
 
 using Android.Views;
 using AndroidX.Preference;
+using WoWonder.Activities.SettingsPreferences.Custom;
 using WoWonder.Helpers.Utils;
 using WoWonderClient;
-
-
-
+ 
 namespace WoWonder.Activities.SettingsPreferences.Support
 {
     public class SettingsSupportPrefsFragment : PreferenceFragmentCompat, ISharedPreferencesOnSharedPreferenceChangeListener
     {
         #region Variables Basic
 
-        private Preference HelpPref,ReportProblemPref, AboutAppPref, RateAppPref, PrivacyPolicyPref, TermsOfUsePref; 
+        private GeneralCustomPreference HelpPref,ReportProblemPref, AboutAppPref, RateAppPref, PrivacyPolicyPref, TermsOfUsePref; 
         private readonly Activity ActivityContext;
 
         #endregion 
@@ -125,12 +124,12 @@ namespace WoWonder.Activities.SettingsPreferences.Support
                 MainSettings.SharedData = PreferenceManager.SharedPreferences;
                 PreferenceManager.SharedPreferences.RegisterOnSharedPreferenceChangeListener(this);
 
-                HelpPref = FindPreference("help_key");
-                ReportProblemPref = FindPreference("Report_key");
-                AboutAppPref = FindPreference("About_key");
-                RateAppPref = FindPreference("RateApp_key");
-                PrivacyPolicyPref = FindPreference("PrivacyPolicy_key");
-                TermsOfUsePref = FindPreference("TermsOfUse_key");
+                HelpPref = (GeneralCustomPreference)FindPreference("help_key");
+                ReportProblemPref = (GeneralCustomPreference)FindPreference("Report_key");
+                AboutAppPref = (GeneralCustomPreference)FindPreference("About_key");
+                RateAppPref = (GeneralCustomPreference)FindPreference("RateApp_key");
+                PrivacyPolicyPref = (GeneralCustomPreference)FindPreference("PrivacyPolicy_key");
+                TermsOfUsePref = (GeneralCustomPreference)FindPreference("TermsOfUse_key");
 
                 //Delete Preference
                 var mCategorySupport = (PreferenceCategory)FindPreference("SectionSupport_key");
@@ -238,7 +237,7 @@ namespace WoWonder.Activities.SettingsPreferences.Support
             try
             {
                 var intent = new Intent(ActivityContext, typeof(LocalWebViewActivity));
-                intent.PutExtra("URL", Client.WebsiteUrl + "/terms/terms");
+                intent.PutExtra("URL", InitializeWoWonder.WebsiteUrl + "/terms/terms");
                 intent.PutExtra("Type", ActivityContext.GetString(Resource.String.Lbl_TermsOfUse));
                 ActivityContext.StartActivity(intent);
             }
@@ -254,7 +253,7 @@ namespace WoWonder.Activities.SettingsPreferences.Support
             try
             {
                 var intent = new Intent(ActivityContext, typeof(LocalWebViewActivity));
-                intent.PutExtra("URL", Client.WebsiteUrl + "/terms/privacy-policy");
+                intent.PutExtra("URL", InitializeWoWonder.WebsiteUrl + "/terms/privacy-policy");
                 intent.PutExtra("Type", ActivityContext.GetString(Resource.String.Privacy_Policy));
                 ActivityContext.StartActivity(intent);
             }
@@ -270,7 +269,7 @@ namespace WoWonder.Activities.SettingsPreferences.Support
             try
             {
                 var intent = new Intent(ActivityContext, typeof(LocalWebViewActivity));
-                intent.PutExtra("URL", Client.WebsiteUrl + "/terms/about-us");
+                intent.PutExtra("URL", InitializeWoWonder.WebsiteUrl + "/terms/about-us");
                 intent.PutExtra("Type", ActivityContext.GetString(Resource.String.Lbl_About_App));
                 ActivityContext.StartActivity(intent);
             }
@@ -286,7 +285,7 @@ namespace WoWonder.Activities.SettingsPreferences.Support
             try
             {
                 var intent = new Intent(ActivityContext, typeof(LocalWebViewActivity));
-                intent.PutExtra("URL", Client.WebsiteUrl + "/contact-us");
+                intent.PutExtra("URL", InitializeWoWonder.WebsiteUrl + "/contact-us");
                 intent.PutExtra("Type", ActivityContext.GetString(Resource.String.Lbl_Report_Problem));
                 ActivityContext.StartActivity(intent);
             }
@@ -302,7 +301,7 @@ namespace WoWonder.Activities.SettingsPreferences.Support
             try
             {
                 var intent = new Intent(ActivityContext, typeof(LocalWebViewActivity));
-                intent.PutExtra("URL", Client.WebsiteUrl + "/contact-us");
+                intent.PutExtra("URL", InitializeWoWonder.WebsiteUrl + "/contact-us");
                 intent.PutExtra("Type", ActivityContext.GetString(Resource.String.Lbl_Help));
                 ActivityContext.StartActivity(intent);
             }

@@ -11,6 +11,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.Core.Widget;
 using Bumptech.Glide;
@@ -34,14 +35,14 @@ namespace WoWonder.Activities.SettingsPreferences.General
     {
         #region Variables Basic
 
-        private ImageView YourImage, PassportImage;
-        private Button BtnAddImage, BtnAddImagePassport, BtnSubmit;
+        private ImageView YourImage, PassportImage, BtnAddImage, BtnAddImagePassport;
+        private Button BtnSubmit;
         private EditText NameEdit, MessagesEdit;
-        private string PathYourImage = "" , PathPassportImage = "", TypeImage;
+        private string PathYourImage = "", PathPassportImage = "", TypeImage;
         private NestedScrollView ScrollView;
         private LinearLayout VerifiedLinear, NotVerifiedLinear;
-        private TextView VerifiedIcon, TextTitleVerified;
-      
+        private TextView VerifiedIcon, TxtVerifyDescription;
+
         #endregion
 
         #region General
@@ -156,17 +157,18 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
+                TxtVerifyDescription = FindViewById<TextView>(Resource.Id.VerifyDescTxt);
+
                 YourImage = FindViewById<ImageView>(Resource.Id.Image);
-                BtnAddImage = FindViewById<Button>(Resource.Id.btn_AddPhoto);
+                BtnAddImage = FindViewById<ImageView>(Resource.Id.btn_AddPhoto);
 
                 PassportImage = FindViewById<ImageView>(Resource.Id.ImagePassport);
-                BtnAddImagePassport = FindViewById<Button>(Resource.Id.btn_Passport);
-                
+                BtnAddImagePassport = FindViewById<ImageView>(Resource.Id.btn_Passport);
+
                 NameEdit = FindViewById<EditText>(Resource.Id.Name_text);
                 MessagesEdit = FindViewById<EditText>(Resource.Id.Messages_Edit);
                 BtnSubmit = FindViewById<Button>(Resource.Id.submitButton);
-
-                TextTitleVerified = FindViewById<TextView>(Resource.Id.textTitileVerified);
+                 
                 VerifiedIcon = FindViewById<TextView>(Resource.Id.verifiedIcon);
                 ScrollView = FindViewById<NestedScrollView>(Resource.Id.ScrollView);
                 VerifiedLinear = FindViewById<LinearLayout>(Resource.Id.verified);
@@ -174,6 +176,8 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, VerifiedIcon, IonIconsFonts.CheckmarkCircle);
                 VerifiedIcon.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+
+                TxtVerifyDescription.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#7F8E9D"));
             }
             catch (Exception e)
             {
@@ -188,14 +192,14 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolBar != null)
                 {
-                    toolBar.Title = " ";
-
+                    toolBar.Title = GetString(Resource.String.Lbl_Verification);
+                     
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
-                    SupportActionBar.SetDisplayShowHomeEnabled(true); 
-
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -239,7 +243,6 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 NameEdit = null!;
                 MessagesEdit = null!;
                 BtnSubmit = null!;
-                TextTitleVerified = null!;
                 VerifiedIcon = null!;
                 ScrollView = null!;
                 VerifiedLinear = null!;
@@ -263,25 +266,25 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(NameEdit.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(MessagesEdit.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Messages), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Messages), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(PathYourImage) || string.IsNullOrEmpty(PathPassportImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                     }
                     else
                     {
@@ -298,7 +301,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                                     case MessageObject result:
                                         Console.WriteLine(result.Message);
                                         AndHUD.Shared.Dismiss(this);
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_Successfully_Verification), ToastLength.Short)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Successfully_Verification), ToastLength.Short);
 
                                         Finish();
                                         break;
@@ -392,7 +395,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                                         break;
                                     default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Short)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Short);
                                         break;
                                 }
 
@@ -424,7 +427,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                         OpenGallery(TypeImage);
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -442,7 +445,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -519,13 +522,13 @@ namespace WoWonder.Activities.SettingsPreferences.General
                             VerifiedLinear.Visibility = ViewStates.Visible;
                             NotVerifiedLinear.Visibility = ViewStates.Gone;
                             ScrollView.Visibility = ViewStates.Gone;
-                            TextTitleVerified.Text = GetText(Resource.String.Lbl_WelcomeTo) + " " + AppSettings.ApplicationName;
+                            //TextTitleVerified.Text = GetText(Resource.String.Lbl_WelcomeTo) + " " + AppSettings.ApplicationName;
                             break;
                         default:
                             VerifiedLinear.Visibility = ViewStates.Gone;
                             NotVerifiedLinear.Visibility = ViewStates.Visible;
                             ScrollView.Visibility = ViewStates.Visible;
-                            TextTitleVerified.Text = GetText(Resource.String.Lbl_Please_select_Image_passport);
+                            //TextTitleVerified.Text = GetText(Resource.String.Lbl_Please_select_Image_passport);
                             break;
                     }
                 }

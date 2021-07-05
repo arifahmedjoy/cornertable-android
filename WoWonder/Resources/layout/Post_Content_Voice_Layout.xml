@@ -4,7 +4,7 @@
               android:layout_width="match_parent"
               android:layout_height="80dp"
               android:layout_marginTop="10dp"
-              android:background="#F3EAEA"
+              android:background="?attr/colorBgApp"
               android:gravity="center_vertical"
               android:weightSum="10">
         <RelativeLayout

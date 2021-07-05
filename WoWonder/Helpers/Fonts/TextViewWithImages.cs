@@ -45,7 +45,14 @@ namespace WoWonder.Helpers.Fonts
             try
             {
                 //SpannableString s = GetTextWithImages(Context, new Java.Lang.String(text.ToArray(), 0, text.Count()));
-                base.SetText(text, BufferType.Spannable);
+                if (IsInEditMode)
+                {
+                    base.SetText(text, type);
+                }
+                else
+                {
+                    base.SetText(text, BufferType.Spannable);
+                } 
             }
             catch (Exception e)
             {
@@ -89,8 +96,6 @@ namespace WoWonder.Helpers.Fonts
 
                 Pattern refImg = Pattern.Compile("\\Q[img src=\\E([a-zA-Z0-9_]+?)\\Q/]\\E");
 
-                //bool hasChanges = false;
-
                 Matcher matcher = refImg.Matcher(spendable);
 
                 while (matcher.Find())
@@ -108,26 +113,20 @@ namespace WoWonder.Helpers.Fonts
                             break;
                         }
                     }
-
-                    switch (set)
+                     
+                    if (set)
                     {
-                        case true:
+                        string resName = spendable.SubSequence(matcher.Start(1), matcher.End(1))?.Trim();
+                        int id = context.Resources.GetIdentifier(resName, "drawable", context.PackageName);
+                        var d = ContextCompat.GetDrawable(context, id);
+                        if (d != null)
                         {
-                            string resName = spendable.SubSequence(matcher.Start(1), matcher.End(1))?.Trim();
-                            int id = context.Resources.GetIdentifier(resName, "drawable", context.PackageName);
-
-                            var d = ContextCompat.GetDrawable(context, id);
-                            if (d != null)
-                            {
-                                d.SetBounds(0, 0, d.IntrinsicWidth, d.IntrinsicHeight);
-                                spendable.SetSpan(new ImageSpan(d, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
-                            }
-                            else
-                                spendable.SetSpan(new ImageSpan(context, id, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
-                         
-                            //hasChanges = true;
-                            break;
+                            d.SetBounds(0, 0, d.IntrinsicWidth, d.IntrinsicHeight);
+                            spendable.SetSpan(new ImageSpan(d, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
                         }
+                        else
+                            spendable.SetSpan(new ImageSpan(context, id, SpanAlign.Baseline), matcher.Start(), matcher.End(), SpanTypes.ExclusiveExclusive);
+
                     }
                 }
 
@@ -142,26 +141,29 @@ namespace WoWonder.Helpers.Fonts
                 {
                     SetTextColor(spendable, context.GetText(Resource.String.Lbl_ChangedProfilePicture), "#888888"); 
                 }
-                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_WasLive))|| spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_IsLiveNow)))
+                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_WasLive)))
+                {
+                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_WasLive), "#888888");
+                }
+                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_IsLiveNow)))
                 {
                     SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsLiveNow), "#888888");
-                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_WasLive), "#888888");
                 }
                 else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_IsListeningTo)))
                 {
-                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsListeningTo) + " " + item.PostTraveling, "#888888");
+                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsListeningTo) + " " + item?.PostTraveling, "#888888");
                 }
                 else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_IsPlaying)))
                 {
-                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsPlaying) + " " + item.PostPlaying, "#888888");
+                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsPlaying) + " " + item?.PostPlaying, "#888888");
                 }
                 else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_IsTravelingTo)))
                 {
-                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsTravelingTo) + " " + item.PostTraveling, "#888888");
+                    SetTextColor(spendable, context.GetText(Resource.String.Lbl_IsTravelingTo) + " " + item?.PostTraveling, "#888888");
                 }
                 else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_IsWatching)))
                 {
-                    SetTextColor(spendable ,context.GetText(Resource.String.Lbl_IsWatching) + " " + item.PostWatching, "#888888");
+                    SetTextColor(spendable ,context.GetText(Resource.String.Lbl_IsWatching) + " " + item?.PostWatching, "#888888");
                 }
                 else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_AddedNewProductForSell)))
                 {
@@ -171,14 +173,17 @@ namespace WoWonder.Helpers.Fonts
                 {
                     SetTextColor(spendable ,context.GetText(Resource.String.Lbl_CreatedNewArticle), "#888888");
                 }
-                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_CreatedNewEvent)) || item.Event?.EventClass != null && item.SharedInfo.SharedInfoClass == null)
+                else if (item?.Event?.EventClass != null && item?.SharedInfo.SharedInfoClass == null)
+                {
+                    SetTextColor(spendable , Methods.FunString.DecodeString(item?.Event?.EventClass.Name), "#888888");
+                }
+                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_CreatedNewEvent)))
                 {
                     SetTextColor(spendable ,context.GetText(Resource.String.Lbl_CreatedNewEvent), "#888888");
-                    SetTextColor(spendable , Methods.FunString.DecodeString(item.Event?.EventClass.Name), "#888888");
                 }
-                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_addedNewPhotosTo)))
+                else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_AddedNewPhotosTo)))
                 {
-                    SetTextColor(spendable ,context.GetText(Resource.String.Lbl_addedNewPhotosTo) + " " + Methods.FunString.DecodeString(item.AlbumName), "#888888");
+                    SetTextColor(spendable ,context.GetText(Resource.String.Lbl_AddedNewPhotosTo) + " " + Methods.FunString.DecodeString(item?.AlbumName) + " " + context.GetText(Resource.String.Lbl_Album), "#888888");
                 }
                 else if (spendable.ToString()!.Contains(context.GetText(Resource.String.Lbl_CreatedNewFund)))
                 {
@@ -196,10 +201,10 @@ namespace WoWonder.Helpers.Fonts
                 {
                     SetTextColor(spendable ,context.GetText(Resource.String.Lbl_SharedPost), "#888888");
                 }
-                else switch (string.IsNullOrEmpty(item.PostMap))
+                else switch (string.IsNullOrEmpty(item?.PostMap))
                 {
-                    case false when spendable.ToString()!.Contains(item.PostMap.Replace("/", "")):
-                        SetTextColor(spendable, item.PostMap.Replace("/", ""), "#888888");
+                    case false when spendable.ToString()!.Contains(item?.PostMap.Replace("/", "")):
+                        SetTextColor(spendable, item?.PostMap.Replace("/", ""), "#888888");
                         break;
                 }
                 return spendable;
@@ -353,7 +358,7 @@ namespace WoWonder.Helpers.Fonts
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
 
@@ -361,7 +366,7 @@ namespace WoWonder.Helpers.Fonts
             {
                 try
                 {
-                    var item = PostAdapter.ListDiffer[ViewHolder.AdapterPosition]?.PostData;
+                    var item = PostAdapter.ListDiffer[ViewHolder.BindingAdapterPosition]?.PostData;
                     switch (Type)
                     {
                         case "user":
@@ -376,13 +381,13 @@ namespace WoWonder.Helpers.Fonts
                             break;
                         }
                         default:
-                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = ViewHolder.AdapterPosition, View = ViewHolder.MainView }, "NewsFeedClass", "Username");
+                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = ViewHolder.BindingAdapterPosition, View = ViewHolder.MainView }, "NewsFeedClass", "Username");
                             break;
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e); 
+                    Methods.DisplayReportResultTrack(e); 
                 }
             }
 

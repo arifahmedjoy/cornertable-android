@@ -48,7 +48,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Fragment
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -150,7 +150,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Fragment
                 }
                 else
                 {
-                    Toast.MakeText(Context, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)

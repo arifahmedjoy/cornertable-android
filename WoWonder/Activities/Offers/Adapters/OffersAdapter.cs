@@ -11,10 +11,6 @@ using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Offers;
 using IList = System.Collections.IList;
-using Android.Content.Res;
-
-using Android.Graphics;
-using AndroidX.Core.View;
 using AndroidX.RecyclerView.Widget;
 
 namespace WoWonder.Activities.Offers.Adapters
@@ -69,13 +65,13 @@ namespace WoWonder.Activities.Offers.Adapters
                         var item = OffersList[position];
                         if (item != null)
                         {
-                            GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                            GlideImageLoader.LoadImage(ActivityContext, item.Image, holder.Image, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
 
-                            holder.Type.Text = Methods.FunString.DecodeString(item.OfferText) + " " + Methods.FunString.DecodeString(item.DiscountedItems);
-                            holder.Title.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Description),200);
+                            holder.Type.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Description), 200);
+                            holder.Title.Text = Methods.FunString.DecodeString(item.OfferText) + " " + Methods.FunString.DecodeString(item.DiscountedItems); 
                             holder.Date.Text = ActivityContext.GetText(Resource.String.Lbl_End_Date) + " : " + item.ExpireDate;
 
-                            ViewCompat.SetBackgroundTintList(holder.Date, ColorStateList.ValueOf(Color.ParseColor(Methods.FunString.RandomColor())));
+                            //ViewCompat.SetBackgroundTintList(holder.Date, ColorStateList.ValueOf(Color.ParseColor(Methods.FunString.RandomColor())));
 
                         }
 
@@ -207,8 +203,8 @@ namespace WoWonder.Activities.Offers.Adapters
                 Date = MainView.FindViewById<TextView>(Resource.Id.date);
                  
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new OffersAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new OffersAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new OffersAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new OffersAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

@@ -8,6 +8,8 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
+using Bumptech.Glide.Request;
+using Java.IO;
 using Java.Util;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Model;
@@ -74,29 +76,40 @@ namespace WoWonder.Activities.Suggested.Adapters
                             holder.Name.Text = Methods.FunString.DecodeString(item.GroupName);
                             holder.CountMembers.Text = Methods.FunString.FormatPriceValue(item.Members) +  " " +ActivityContext.GetString(Resource.String.Lbl_Members);
 
+                            if (item.Avatar.Contains("http"))
+                                GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Avatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            else
+                                Glide.With(ActivityContext).Load(new File(item.Avatar)).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder_circle).Error(Resource.Drawable.ImagePlacholder_circle)).Into(holder.Avatar);
+
                             if (item.IsOwner != null && item.IsOwner.Value || item.UserId == UserDetails.UserId)
                             {
                                 holder.JoinButton.Visibility = ViewStates.Gone;
                             }
                             else
                             {
-                                if (WoWonderTools.IsJoinedGroup(item))
+                                //Set style Btn Joined Group 
+                                if (WoWonderTools.IsJoinedGroup(item) == "1") //joined
                                 {
                                     holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
                                     holder.JoinButton.SetTextColor(Color.White);
-                                    holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Joined);
-                                    holder.JoinButton.Tag = "true";
+                                    holder.JoinButton.Text = ActivityContext.GetText(Resource.String.Btn_Joined);
+                                    holder.JoinButton.Tag = "1";
                                 }
-                                else
+                                else if (WoWonderTools.IsJoinedGroup(item) == "2") //requested
+                                {
+                                    holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
+                                    holder.JoinButton.SetTextColor(Color.White);
+                                    holder.JoinButton.Text = ActivityContext.GetText(Resource.String.Lbl_Request);
+                                    holder.JoinButton.Tag = "2";
+                                }
+                                else //not joined
                                 {
                                     holder.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlat);
                                     holder.JoinButton.SetTextColor(Color.White);
                                     holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Join_Group);
-                                    holder.JoinButton.Tag = "false";
-                                }
-                            }
-
-                        
+                                    holder.JoinButton.Tag = "0";
+                                } 
+                            } 
                         }
 
                         break;
@@ -215,6 +228,7 @@ namespace WoWonder.Activities.Suggested.Adapters
         public TextView Name { get; private set; }
         public TextView CountMembers { get; private set; }
         public Button JoinButton { get; private set; }
+        public ImageView Avatar { get; private set; }
 
         #endregion
 
@@ -228,11 +242,12 @@ namespace WoWonder.Activities.Suggested.Adapters
                 Name = MainView.FindViewById<TextView>(Resource.Id.name);
                 CountMembers = MainView.FindViewById<TextView>(Resource.Id.countMembers);
                 JoinButton = MainView.FindViewById<Button>(Resource.Id.JoinButton);
+                Avatar = MainView.FindViewById<ImageView>(Resource.Id.avatar);
 
                 //Event
-                JoinButton.Click += (sender, e) => joinButtonClickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = AdapterPosition , JoinButton = JoinButton });
-                itemView.Click += (sender, e) => clickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                Console.WriteLine(longClickListener);
+                JoinButton.Click += (sender, e) => joinButtonClickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition , JoinButton = JoinButton });
+                itemView.Click += (sender, e) => clickListener(new SuggestedGroupAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                System.Console.WriteLine(longClickListener);
             }
             catch (Exception e)
             {

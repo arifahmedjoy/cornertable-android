@@ -8,7 +8,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
+using Aghajari.EmojiView.Views;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -18,9 +19,7 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.ConstraintLayout.Widget;
 using AndroidX.RecyclerView.Widget;
-using Bumptech.Glide.Util;
-using Developer.SEmojis.Actions;
-using Developer.SEmojis.Helper;
+using Bumptech.Glide.Util; 
 using DT.Xamarin.Agora;
 using DT.Xamarin.Agora.Video;
 using Java.Lang;
@@ -39,6 +38,7 @@ using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo.EmojiView;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonderClient.Classes.Comments;
 using WoWonderClient.Classes.Posts;
@@ -53,7 +53,7 @@ namespace WoWonder.Activities.Live.Page
     {
         #region Variables Basic
 
-        private FrameLayout RootView, MVideoControlLyt, MLiveStreamEndedLyt;
+        private FrameLayout MVideoControlLyt, MLiveStreamEndedLyt;
         private ViewStub MHeaderViewStub, MFooterViewStub;
         private ConstraintLayout MGetReadyLyt, MLoadingViewer;
         private ImageView MAvatarBg, MCloseIn, MCloseOut, MCloseStreaming;
@@ -63,7 +63,7 @@ namespace WoWonder.Activities.Live.Page
         ////////////// Comments ///////////// 
         private ImageView MEmojisIconBtn, MMoreBtn,MShareBtn;
         private TextView MCameraBtn , MEffectBtn, MVideoEnabledBtn, MAudioEnabledBtn;
-        private EmojiconEditText TxtComment;
+        private AXEmojiEditText TxtComment;
         private ImageButton MSendBtn;
         private LinearLayoutManager LayoutManager;
         private RecyclerView MRecycler;
@@ -237,6 +237,7 @@ namespace WoWonder.Activities.Live.Page
                         SetupFinishAsk(true);
                         break;
                     case true:
+                        DeleteLiveStream();
                         Finish();
                         break;
                     default:
@@ -266,7 +267,7 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 switch (isStreamer)
                 {
                     case true:
@@ -311,16 +312,21 @@ namespace WoWonder.Activities.Live.Page
                 StopTimer();
                 DestroyTimerComment();
 
-                if (isStreamer)
+                if (IsOwner)
                 {
-                    if (ListUtils.SettingsSiteList?.LiveVideoSave != null && ListUtils.SettingsSiteList?.LiveVideoSave.Value == 0) 
-                        DeleteLiveStream();
-                    else
+                    if (isStreamer)
                     {
-                       await AgoraStop(AppSettings.AppIdAgoraLive, ListUtils.SettingsSiteList?.AgoraCustomerId, ListUtils.SettingsSiteList?.AgoraCustomerCertificate, ResourceId, SId, Config().GetChannelName(), UidLive); 
+                        if (ListUtils.SettingsSiteList?.LiveVideoSave is 0)
+                            DeleteLiveStream();
+                        else
+                        {
+                            await AgoraStop(AppSettings.AppIdAgoraLive, ListUtils.SettingsSiteList?.AgoraCustomerId, ListUtils.SettingsSiteList?.AgoraCustomerCertificate, ResourceId, SId, Config().GetChannelName(), UidLive);
+                        }
                     }
+                    else
+                        DeleteLiveStream();
                 }
-
+                 
                 StatsManager()?.ClearAllData();
 
                 //add end page
@@ -347,7 +353,7 @@ namespace WoWonder.Activities.Live.Page
                 BgAvatar = FindViewById<ImageView>(Resource.Id.bg_avatar_end);
                 StreamRateLevel = FindViewById<ImageView>(Resource.Id.streamRateLevel);
                 CloseEnded = FindViewById<ImageView>(Resource.Id.close_ended);
-                CloseEnded.Click += (sender, args) => Finish();
+                CloseEnded.Click += CloseEndedOnClick;
 
                 Header = FindViewById<TextView>(Resource.Id.header);
                 ShareStreamText = FindViewById<TextView>(Resource.Id.shareStreamText);
@@ -405,6 +411,18 @@ namespace WoWonder.Activities.Live.Page
             }
         }
 
+        private void CloseEndedOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                Finish();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception); 
+            }
+        }
+
         private void GoLiveButtonOnClick(object sender, EventArgs e)
         {
             try
@@ -412,7 +430,7 @@ namespace WoWonder.Activities.Live.Page
                 var streamName = "live" + Methods.Time.CurrentTimeMillis();
                 if (string.IsNullOrEmpty(streamName) || string.IsNullOrWhiteSpace(streamName))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short);
                     return;
                 }
                 //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
@@ -437,7 +455,6 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                RootView = FindViewById<FrameLayout>(Resource.Id.rootView);
                 MHeaderViewStub = FindViewById<ViewStub>(Resource.Id.liveStreaming_headerStub);
                 MFooterViewStub = FindViewById<ViewStub>(Resource.Id.liveStreaming_footer);
                  
@@ -455,13 +472,14 @@ namespace WoWonder.Activities.Live.Page
                 MEmojisIconBtn = FindViewById<ImageView>(Resource.Id.sendEmojisIconButton);
                 MMoreBtn = FindViewById<ImageView>(Resource.Id.more_btn);
                 MShareBtn = FindViewById<ImageView>(Resource.Id.share_btn);
-                TxtComment = FindViewById<EmojiconEditText>(Resource.Id.MessageWrapper);
+                TxtComment = FindViewById<AXEmojiEditText>(Resource.Id.MessageWrapper);
                 MSendBtn = FindViewById<ImageButton>(Resource.Id.sendMessageButton);
                  
-                var emojisIcon = new EmojIconActions(this, RootView, TxtComment, MEmojisIconBtn);
-                emojisIcon.ShowEmojIcon();
-                emojisIcon.SetIconsIds(Resource.Drawable.ic_action_keyboard, Resource.Drawable.ic_action_sentiment_satisfied_alt);
-                 
+                EmojisViewTools.MStickerView = false;
+                AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, TxtComment, "");
+                AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
+                var emojisViewActions = new EmojisViewActions(this, "", popup, TxtComment, MEmojisIconBtn);
+
                 switch (IsOwner)
                 {
                     case true:
@@ -574,7 +592,6 @@ namespace WoWonder.Activities.Live.Page
         {
             try
             {
-                RootView = null!;
                 MVideoControlLyt = null!;
                 MHeaderViewStub = null!;
                 MFooterViewStub = null!;
@@ -796,7 +813,7 @@ namespace WoWonder.Activities.Live.Page
             try
             { 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                   
                 arrayAdapter.Add(GetText(Resource.String.Lbl_ViewProfile));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Copy));
@@ -863,7 +880,7 @@ namespace WoWonder.Activities.Live.Page
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(PostId, text);
+                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(PostId, text, "", "", "");
                     switch (apiStatus)
                     {
                         case 200:
@@ -920,7 +937,7 @@ namespace WoWonder.Activities.Live.Page
                                                             break;
                                                     }
 
-                                                    postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
+                                                    postFeedAdapter?.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
                                                 }
 
                                                 break;
@@ -942,7 +959,7 @@ namespace WoWonder.Activities.Live.Page
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -1348,7 +1365,7 @@ namespace WoWonder.Activities.Live.Page
         private void CreateLiveStream()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { CreateLive });
         }
@@ -1370,8 +1387,8 @@ namespace WoWonder.Activities.Live.Page
             else
                 Methods.DisplayReportResult(this, respond);
         }
-         
-        public static string Base64Encode(string plainText)
+
+        private static string Base64Encode(string plainText)
         {
             var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);
@@ -1443,16 +1460,16 @@ namespace WoWonder.Activities.Live.Page
                 catch (Exception) { // ignored
                 }
 
-                var StorageVendor = "1";
-                var region = GetRegion(ListUtils.SettingsSiteList.Region2);
-                var bucket = ListUtils.SettingsSiteList.BucketName2; 
-                var accessKey = ListUtils.SettingsSiteList.AmazoneS3Key2;
-                var secretKey = ListUtils.SettingsSiteList.AmazoneS3SKey2; 
+                var storageVendor = "1";
+                var region = GetRegion(ListUtils.SettingsSiteList?.Region2);
+                var bucket = ListUtils.SettingsSiteList?.BucketName2; 
+                var accessKey = ListUtils.SettingsSiteList?.AmazoneS3Key2;
+                var secretKey = ListUtils.SettingsSiteList?.AmazoneS3SKey2; 
 
                 var jsonBody = "{\n\t\"cname\":\"" + channel + "\",\n\t\"uid\":\"" + uid + "\"," +
                                "\n\t\"clientRequest\":{\n\t\t\"recordingConfig\":{\n\t\t\t\"channelType\":1,\n\t\t\t\"streamTypes\":2,\n\t\t\t\"audioProfile\":1,\n\t\t\t\"videoStreamType\":1,\n\t\t\t\"maxIdleTime\":120,\n\t\t\t\"transcodingConfig\":{\n\t\t\t\t\"width\":480,\n\t\t\t\t\"height\":480,\n\t\t\t\t\"fps\":24,\n\t\t\t\t\"bitrate\":800,\n\t\t\t\t\"maxResolutionUid\":\"1\"," +
                                "\n\t\t\t\t\"mixedVideoLayout\":1\n\t\t\t\t}\n\t\t\t},\n\t\t\"storageConfig\":" +
-                               "{\n\t\t\t\"vendor\":" + StorageVendor + ",\n\t\t\t\"region\":" + region + "," +
+                               "{\n\t\t\t\"vendor\":" + storageVendor + ",\n\t\t\t\"region\":" + region + "," +
                                "\n\t\t\t\"bucket\":\"" + bucket + "\",\n\t\t\t\"accessKey\":\"" + accessKey + "\"," +
                                "\n\t\t\t\"secretKey\":\"" + secretKey + "\"\n\t\t}\t\n\t}\n} \n";
 
@@ -1543,9 +1560,9 @@ namespace WoWonder.Activities.Live.Page
         private void DeleteLiveStream()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> {async () => await RequestsAsync.Posts.DeleteLiveAsync(PostId)});
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { async () => await RequestsAsync.Posts.DeleteLiveAsync(PostId) });
         }
 
         #region CreateLiveThumbnail
@@ -1556,7 +1573,7 @@ namespace WoWonder.Activities.Live.Page
         //    try
         //    {
         //        if (!Methods.CheckConnectivity())
-        //            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+        //            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
         //        else
         //        {
         //            GetSurfaceBitmap(SurfaceView);
@@ -1616,7 +1633,7 @@ namespace WoWonder.Activities.Live.Page
         //    }
         //    catch (Exception e)
         //    {
-        //        Console.WriteLine(e);
+        //        Methods.DisplayReportResultTrack(e);
         //    }
         //}
          
@@ -1625,7 +1642,7 @@ namespace WoWonder.Activities.Live.Page
         private void LoadMessages()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { async () => await LoadDataComment() });
         }
@@ -1803,7 +1820,7 @@ namespace WoWonder.Activities.Live.Page
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);  
+                Methods.DisplayReportResultTrack(e);  
             }
         }
 
@@ -1873,11 +1890,11 @@ namespace WoWonder.Activities.Live.Page
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_ViewProfile))
+                if (itemString == GetText(Resource.String.Lbl_ViewProfile))
                 {
                     switch (IsOwner)
                     {
@@ -1889,7 +1906,7 @@ namespace WoWonder.Activities.Live.Page
                             break;
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Copy))
+                else if (itemString == GetText(Resource.String.Lbl_Copy))
                 {
                     Methods.CopyToClipboard(this, IsOwner ? PostObject.Url : LiveStreamViewerObject.Url);
                 } 

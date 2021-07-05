@@ -15,6 +15,9 @@
 	<color name="primaryDark">#974041</color>
 	<color name="primary_transparent">#30a84849</color>
 
+	<color name="bgApp_color">#F6ECEC</color>
+	<color name="bgApp_Dark_color">#444444</color>
+
   <color name="colorMoreSection">#F6565D</color>
   <color name="colorSocialSection">#E02020</color>
 
@@ -99,7 +102,10 @@
 
   <color name="colorAddStory">#FF2D55</color>
   <color name="colorIcon">#C3C7D0</color>
-  <color name="colorCommentText">#4E586E</color>
+  <color name="colorNotiBg">#C235FF</color>
+  <color name="colorCircleYellow">#FFAE35</color>
+
+  <color name="ExoPlayer_TimeBar_color">#FF2D55</color>
 
   <!--MusicBar-->
   <color name="BackgroundBarPrimeColor">#dfd6d6</color>
@@ -125,5 +131,12 @@
   <color name="right_ModeMention_color">@color/text_color_light</color>
 
   <color name="DragTransparentBlack">#90000000</color>
+
+
+  <color name="green100">#c8e6c9</color>
+  <color name="greenA700">#00ad07</color>
+
+  <color name="red100">#ffcdd2</color>
+  <color name="redA700">#d50000</color>
 
 </resources>

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using System.Threading.Tasks;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Gms.Ads.DoubleClick;
@@ -11,38 +12,52 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Widget;
+using AndroidX.CardView.Widget;
+using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using AT.Markushi.UI;
+using Com.Adcolony.Sdk;
 using Com.Luseen.Autolinklibrary;
 using ImageViews.Rounded;
+using Java.IO;
 using Newtonsoft.Json;
 using Refractored.Controls;
 using WoWonder.Activities.AddPost;
-using WoWonder.Activities.Communities.Adapters;
+using WoWonder.Activities.Chat.ChatWindow;
 using WoWonder.Activities.Communities.Groups;
 using WoWonder.Activities.Communities.Pages;
+using WoWonder.Activities.Contacts;
 using WoWonder.Activities.Live.Page;
 using WoWonder.Activities.Live.Utils;
+using WoWonder.Activities.MyPhoto;
+using WoWonder.Activities.MyProfile;
 using WoWonder.Activities.NativePost.Extra;
+using WoWonder.Activities.NativePost.Pages;
 using WoWonder.Activities.Search;
 using WoWonder.Activities.SearchForPosts;
+using WoWonder.Activities.SettingsPreferences.TellFriend;
 using WoWonder.Activities.Story.Adapters;
 using WoWonder.Activities.Suggested.Adapters;
 using WoWonder.Activities.Suggested.Groups;
+using WoWonder.Activities.Suggested.Pages;
 using WoWonder.Activities.Suggested.User;
 using WoWonder.Activities.Tabbes;
 using WoWonder.Activities.UserProfile.Adapters;
-using WoWonder.Activities.UsersPages;
+using WoWonder.Activities.Wallet;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
-using WoWonder.Library.Anjo; 
+using WoWonder.Library.Anjo;
+using WoWonder.Library.Anjo.Share;
+using WoWonder.Library.Anjo.Share.Abstractions;
 using WoWonder.Library.UI;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.Group;
+using WoWonderClient.Classes.Page;
 using WoWonderClient.Classes.Posts;
+using WoWonderClient.Classes.User;
 using WoWonderClient.Requests;
 using SuperTextView = WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView;
 
@@ -65,6 +80,7 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
+                    PostAdapter = postAdapter;
                     MainView = itemView;
 
                     Username = itemView.FindViewById<AppCompatTextView>(Resource.Id.username);
@@ -72,7 +88,6 @@ namespace WoWonder.Activities.NativePost.Post
                     PrivacyPostIcon = itemView.FindViewById<ImageView>(Resource.Id.privacyPost);
                     UserAvatar = itemView.FindViewById<ImageView>(Resource.Id.userAvatar);
 
-                    PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
 
                     Username.SetOnClickListener(this);
@@ -88,14 +103,14 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == Username.Id)
-                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, "NewsFeedClass", "Username");
+                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, "NewsFeedClass", "Username");
                         else if (v.Id == UserAvatar.Id) 
-                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, "NewsFeedClass", "UserAvatar");
+                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, "NewsFeedClass", "UserAvatar");
                     } 
                 }
                 catch (Exception e)
@@ -147,14 +162,14 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
                          
                         if (v.Id == UserAvatar.Id)
-                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, "NewsFeedClass", "UserAvatar");
+                            PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, "NewsFeedClass", "UserAvatar");
                         else if (v.Id == MoreIcon.Id)
-                            PostClickListener.MorePostIconClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.MorePostIconClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -232,17 +247,17 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
                         var postType = PostFunctions.GetAdapterType(item);
 
                         if (v.Id == LikeCount.Id)
-                            PostClickListener.DataItemPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.DataItemPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                         else if (v.Id == CommentCount.Id)
-                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                         else if (v.Id == ShareCount.Id)
-                            PostClickListener.SharePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, postType);
+                            PostClickListener.SharePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, postType);
                     }
                 }
                 catch (Exception e)
@@ -263,13 +278,9 @@ namespace WoWonder.Activities.NativePost.Post
             public LinearLayout CommentLinearLayout { get; private set; }
             public LinearLayout SecondReactionLinearLayout { get; set; }
             public LinearLayout ReactLinearLayout { get; set; }
-            public LinearLayout ViewsLinearLayout { get; set; }
-            public ReactButton LikeButton { get; private set; } 
+            public ReactButton LikeButton { get; private set; }
             public TextView SecondReactionButton { get; private set; }
              
-            public TextView TvCommentCount { get; private set; } 
-           
-
             public PostBottomSectionViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
             {
                 try
@@ -279,15 +290,11 @@ namespace WoWonder.Activities.NativePost.Post
                     ShareLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ShareLinearLayout);
                     CommentLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.CommentLinearLayout);
                     SecondReactionLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.SecondReactionLinearLayout);
-                    ViewsLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ViewsLinearLayout);
                     ReactLinearLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ReactLinearLayout);
-                    LikeButton = itemView.FindViewById<ReactButton>(Resource.Id.ReactButton); 
+                    LikeButton = itemView.FindViewById<ReactButton>(Resource.Id.ReactButton);
 
                     SecondReactionButton = itemView.FindViewById<TextView>(Resource.Id.SecondReactionText);
-
-                    TvCommentCount = itemView.FindViewById<TextView>(Resource.Id.CommentText);
-                    //TvCommentCount.Text = "";
-
+                     
                     ShareLinearLayout.Visibility = AppSettings.ShowShareButton switch
                     {
                         false => ViewStates.Gone,
@@ -300,12 +307,12 @@ namespace WoWonder.Activities.NativePost.Post
                         case PostButtonSystem.ReactionDefault:
                         case PostButtonSystem.ReactionSubShine:
                         case PostButtonSystem.Like:
-                            //MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 3 : 2;
+                            MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 3 : 2;
 
                             SecondReactionLinearLayout.Visibility = ViewStates.Gone;
                             break;
                         case PostButtonSystem.Wonder:
-                            //MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 4 : 3;
+                            MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 4 : 3;
 
                             SecondReactionLinearLayout.Visibility = ViewStates.Visible;
 
@@ -313,7 +320,7 @@ namespace WoWonder.Activities.NativePost.Post
                             SecondReactionButton.Text = Application.Context.GetText(Resource.String.Btn_Wonder);
                             break;
                         case PostButtonSystem.DisLike:
-                            //MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 4 : 3;
+                            MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 4 : 3;
 
                             SecondReactionLinearLayout.Visibility = ViewStates.Visible;
                             SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(Resource.Drawable.ic_action_dislike, 0, 0, 0);
@@ -340,20 +347,20 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         var postType = PostFunctions.GetAdapterType(item);
 
                         if (v.Id == ReactLinearLayout.Id)
-                            LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, PostAdapter);
+                            LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, PostAdapter);
                         else if (v.Id == CommentLinearLayout.Id)
-                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                         else if (v.Id == ShareLinearLayout.Id)
-                            PostClickListener.SharePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, postType); 
+                            PostClickListener.SharePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, postType); 
                         else if (v.Id == SecondReactionButton.Id)
-                            PostClickListener.SecondReactionButtonClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.SecondReactionButtonClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -370,10 +377,10 @@ namespace WoWonder.Activities.NativePost.Post
                     case PostButtonSystem.ReactionDefault:
                     case PostButtonSystem.ReactionSubShine:
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (ReactLinearLayout.Id == v.Id)
-                            LikeButton.LongClickDialog(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView },PostAdapter);
+                            LikeButton.LongClickDialog(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView },PostAdapter);
                         break;
                     }
                 }
@@ -389,7 +396,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly PostClickListener PostClickListener;
             private readonly int ClickType;
 
-            public RoundedImageView Image { get; set; }
+            public ImageView Image { get; set; }
 
             public PostImageSectionViewHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener , int clickType) : base(itemView)
             {
@@ -399,12 +406,26 @@ namespace WoWonder.Activities.NativePost.Post
                     ClickType = clickType;
 
                     itemView.SetLayerType(LayerType.Hardware, null);
-                    Image = itemView.FindViewById<RoundedImageView>(Resource.Id.Image);
+                    Image = itemView.FindViewById<ImageView>(Resource.Id.Image);
 
+                    try
+                    {
+                        if (AppSettings.ImagePostStyle == ImagePostStyle.FullWidth)
+                        {
+                            var parameter = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+                            parameter.SetMargins(0, parameter.TopMargin, 0, 0); // left, top, right, bottom
+                            Image.LayoutParameters = parameter;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+                     
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
 
-                    Image.SetOnClickListener(this);
+                    Image?.SetOnClickListener(this);
                 }
                 catch (Exception e)
                 {
@@ -416,20 +437,20 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == Image.Id)
                         {
                             switch (ClickType)
                             {
                                 case (int)PostModelType.MapPost:
-                                    PostClickListener.MapPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                                    PostClickListener.MapPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                                     break;
                                 case (int)PostModelType.ImagePost:
                                 case (int)PostModelType.StickerPost:
-                                     PostClickListener.SingleImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                                     PostClickListener.SingleImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                                     break;
                             }
                         }
@@ -477,9 +498,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == Image.Id)
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 0, View = MainView });
@@ -531,9 +552,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == Image.Id)
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 0, View = MainView });
@@ -591,9 +612,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == Image.Id)
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 0, View = MainView });
@@ -665,9 +686,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == Image.Id)
                             PostClickListener.ImagePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = 0, View = MainView });
@@ -718,6 +739,20 @@ namespace WoWonder.Activities.NativePost.Post
                     PlayControl = itemView.FindViewById<ImageView>(Resource.Id.Play_control);
                     VideoProgressBar = itemView.FindViewById<ProgressBar>(Resource.Id.progressBar);
 
+                    try
+                    {
+                        if (AppSettings.ImagePostStyle == ImagePostStyle.FullWidth)
+                        {
+                            var parameter = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+                            parameter.SetMargins(0, parameter.TopMargin, 0, 0); // left, top, right, bottom
+                            MediaContainer.LayoutParameters = parameter;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+
                     PostAdapter = postAdapter;
 
                     PlayControl.SetOnClickListener(this);
@@ -731,9 +766,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == PlayControl.Id)
                             WRecyclerView.GetInstance()?.PlayVideo(!WRecyclerView.GetInstance().CanScrollVertically(1), this, item);
@@ -788,9 +823,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == PostLinkLinearLayout.Id || v.Id == PostBlogText.Id)
                             PostClickListener.ArticleItemPostClick(item?.Blog);
@@ -863,12 +898,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == PostLinkLinearLayout.Id)
-                            PostClickListener.EventItemPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.EventItemPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -918,12 +953,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == PostLinkLinearLayout.Id)
-                            PostClickListener.LinkPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, "LinkPost");
+                            PostClickListener.LinkPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, "LinkPost");
                     }
                 }
                 catch (Exception e)
@@ -970,14 +1005,14 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == DownlandButton.Id)
-                            PostClickListener.FileDownloadPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.FileDownloadPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                         else if (v.Id == PostFileText.Id || v.Id == FileIcon.Id)
-                            PostClickListener.OpenFilePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.OpenFilePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -1032,12 +1067,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == MainCardView.Id)
-                            PostClickListener.OpenFundingPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.OpenFundingPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -1105,12 +1140,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == PlayButton.Id)
-                            PostClickListener.VoicePostClick(new GlobalClickEventArgs { AdapterModelsClass = item, NewsFeedClass = item.PostData, Position = AdapterPosition, View = MainView, HolderSound = this });
+                            PostClickListener.VoicePostClick(new GlobalClickEventArgs { AdapterModelsClass = item, NewsFeedClass = item.PostData, Position = BindingAdapterPosition, View = MainView, HolderSound = this });
                     }
                 }
                 catch (Exception e)
@@ -1137,6 +1172,20 @@ namespace WoWonder.Activities.NativePost.Post
                     Image = itemView.FindViewById<ImageView>(Resource.Id.image);
                     VideoIcon = itemView.FindViewById<ImageView>(Resource.Id.videoicon);
 
+                    try
+                    {
+                        if (AppSettings.ImagePostStyle == ImagePostStyle.FullWidth)
+                        {
+                            var parameter = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+                            parameter.SetMargins(0, parameter.TopMargin, 0, 0); // left, top, right, bottom
+                            Image.LayoutParameters = parameter;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
 
@@ -1151,12 +1200,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == VideoIcon.Id)
-                            PostClickListener.YoutubePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.YoutubePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -1207,12 +1256,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == MainLayout.Id)
-                            PostClickListener.OffersPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.OffersPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -1260,6 +1309,20 @@ namespace WoWonder.Activities.NativePost.Post
                     ImageLive = itemView.FindViewById<ImageView>(Resource.Id.ImageLive);
                     TxtName = itemView.FindViewById<TextView>(Resource.Id.Txt_Username);
 
+                    try
+                    {
+                        if (AppSettings.ImagePostStyle == ImagePostStyle.FullWidth)
+                        {
+                            var parameter = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+                            parameter.SetMargins(0, parameter.TopMargin, 0, 0); // left, top, right, bottom
+                            MainLayout.LayoutParameters = parameter;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
 
@@ -1276,11 +1339,11 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
-                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
+                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && item.IsStillLive != null && item.IsStillLive.Value && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
                         {
                             //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
                             Intent intent = new Intent(PostAdapter.ActivityContext, typeof(LiveStreamingActivity));
@@ -1361,6 +1424,7 @@ namespace WoWonder.Activities.NativePost.Post
                     PostClickListener = postClickListener;
 
                     PostLinkLinearLayout.SetOnClickListener(this);
+                    Moreicon.SetOnClickListener(this);
                 }
                 catch (Exception e)
                 {
@@ -1371,12 +1435,14 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == PostLinkLinearLayout.Id)
-                            PostClickListener.LinkPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }, "AdsPost");
+                            PostClickListener.LinkPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }, "AdsPost");
+                        else if (v.Id == Moreicon.Id)
+                            PostClickListener.SharePostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView } , PostModelType.AdsPost);
                     }
                 }
                 catch (Exception e)
@@ -1394,7 +1460,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly PostClickListener PostClickListener;
 
             public RoundedImageView Image { get; private set; }
-            public ImageView LocationIcon { get; private set; }
+             
             public TextView PostProductLocationText { get; private set; }
             public TextView PostLinkTitle { get; private set; }
             public TextView PostProductContent { get; private set; }
@@ -1410,7 +1476,7 @@ namespace WoWonder.Activities.NativePost.Post
                     MainView = itemView;
 
                     Image = itemView.FindViewById<RoundedImageView>(Resource.Id.image);
-                    LocationIcon = itemView.FindViewById<ImageView>(Resource.Id.locationIcon);
+                     
                     PostProductLocationText = itemView.FindViewById<TextView>(Resource.Id.postProductLocationText);
                     PostLinkTitle = itemView.FindViewById<TextView>(Resource.Id.postProductTitle);
                     PostProductContent = itemView.FindViewById<TextView>(Resource.Id.postProductContent);
@@ -1433,12 +1499,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == PostLinkLinearLayout.Id)
-                            PostClickListener.ProductPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.ProductPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -1484,22 +1550,22 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
                         if (!Methods.CheckConnectivity())
                         {
-                            Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             return;
                         }
                           
-                        var itemObject = PostAdapter.ListDiffer[AdapterPosition];
+                        var itemObject = PostAdapter.ListDiffer[BindingAdapterPosition];
                         if (v.Id == LinkLinearLayout.Id && itemObject != null)
                         {
                             switch (string.IsNullOrEmpty(itemObject.PostData.VotedId))
                             {
                                 case false when itemObject.PostData.VotedId != "0":
                                     //You have already voted this poll.
-                                    Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetText(Resource.String.Lbl_ErrorVotedPoll), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetText(Resource.String.Lbl_ErrorVotedPoll), ToastLength.Short);
                                     return;
                             }
                              
@@ -1596,7 +1662,7 @@ namespace WoWonder.Activities.NativePost.Post
                                     switch (string.IsNullOrEmpty(errorText))
                                     {
                                         case false:
-                                            Toast.MakeText(PostAdapter.ActivityContext, errorText, ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(PostAdapter.ActivityContext, errorText, ToastLength.Short);
                                             break;
                                     }
 
@@ -1654,12 +1720,12 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == MainLayout.Id)
-                            PostClickListener.JobPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.JobPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -1719,14 +1785,14 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == MainLayout.Id)
-                            PostClickListener.JobPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.JobPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                         else if (v.Id == JobButton.Id)
-                            PostClickListener.JobButtonPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView }); 
+                            PostClickListener.JobButtonPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView }); 
                     }
                 }
                 catch (Exception e)
@@ -1772,10 +1838,9 @@ namespace WoWonder.Activities.NativePost.Post
                     if (StoryAdapter != null)
                         return;
 
-                    StoryRecyclerView?.SetLayoutManager(new LinearLayoutManager(postAdapter.ActivityContext, LinearLayoutManager.Horizontal, false));
-                    StoryAdapter = new StoryAdapter(postAdapter.ActivityContext);
+                    StoryRecyclerView?.SetLayoutManager(new LinearLayoutManager(PostAdapter.ActivityContext, LinearLayoutManager.Horizontal, false));
+                    StoryAdapter = new StoryAdapter(PostAdapter.ActivityContext);
                     StoryRecyclerView?.SetAdapter(StoryAdapter);
-                    StoryRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(StoryRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     StoryAdapter.ItemClick += TabbedMainActivity.GetInstance().StoryAdapterOnItemClick;
                 }
                 catch (Exception e)
@@ -1800,9 +1865,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == AboutMore.Id)
                             PostClickListener.OpenAllViewer("StoryModel", PostAdapter.IdParameter, item);
@@ -1822,7 +1887,7 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly NativePostAdapter PostAdapter;
 
             public CircleImageView ProfileImageView { get; private set; }
-            public LinearLayout PostText { get; private set; }
+            public LinearLayout AddLayout { get; private set; }
 
             public RelativeLayout RlGallery { get; private set; }
             public RelativeLayout RlFriend { get; private set; }
@@ -1834,7 +1899,7 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     MainView = itemView;
                     ProfileImageView = MainView.FindViewById<CircleImageView>(Resource.Id.image);
-                    PostText = MainView.FindViewById<LinearLayout>(Resource.Id.ll_post_text);
+                    AddLayout = MainView.FindViewById<LinearLayout>(Resource.Id.addLayout);
 
                     RlGallery = MainView.FindViewById<RelativeLayout>(Resource.Id.rlPostGallery);
                     RlFriend = MainView.FindViewById<RelativeLayout>(Resource.Id.rlPostFriend);
@@ -1845,7 +1910,7 @@ namespace WoWonder.Activities.NativePost.Post
 
                     PostAdapter = postAdapter;
 
-                    PostText.SetOnClickListener(this);
+                    AddLayout.SetOnClickListener(this);
 
                     RlGallery.SetOnClickListener(this);
                     RlFriend.SetOnClickListener(this);
@@ -1861,9 +1926,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
                         var intent = new Intent(PostAdapter.ActivityContext, typeof(AddPostActivity));
                         if (v.Id == RlGallery.Id)
                         {
@@ -1907,14 +1972,14 @@ namespace WoWonder.Activities.NativePost.Post
                                 }
 
                                 //intent.PutExtra("itemObject", JsonConvert.SerializeObject(EventData));
-                                PostAdapter.ActivityContext.StartActivityForResult(intent, 2500);
+                                PostAdapter.ActivityContext.StartActivity(intent);
                             }
                             catch (Exception e)
                             {
                                 Methods.DisplayReportResultTrack(e);  
                             }
                         }
-                        else if (v.Id == PostText.Id)
+                        else if (v.Id == AddLayout.Id)
                         {
                             try
                             { 
@@ -1954,7 +2019,7 @@ namespace WoWonder.Activities.NativePost.Post
                                         intent.PutExtra("PostId", PostAdapter.IdParameter);
                                         break;
                                 }
-                                PostAdapter.ActivityContext.StartActivityForResult(intent, 2500);
+                                PostAdapter.ActivityContext.StartActivity(intent);
                             }
                             catch (Exception e)
                             {
@@ -2001,7 +2066,7 @@ namespace WoWonder.Activities.NativePost.Post
                                         intent.PutExtra("PostId", PostAdapter.IdParameter);
                                         break;
                                 }
-                                PostAdapter.ActivityContext.StartActivityForResult(intent, 2500);
+                                PostAdapter.ActivityContext.StartActivity(intent);
                             }
                             catch (Exception e)
                             {
@@ -2057,9 +2122,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == SearchForPostsLayout.Id)
                         {
@@ -2144,51 +2209,51 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == BtnFacebook.Id)
                         {
                             if (Methods.CheckConnectivity())
                                 new IntentController(PostAdapter.ActivityContext).OpenFacebookIntent(PostAdapter.ActivityContext, item.SocialLinksModel.Facebook);
                             else
-                                Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                         else if (v.Id == BtnInstegram.Id)
                         {
                             if (Methods.CheckConnectivity())
                                 new IntentController(PostAdapter.ActivityContext).OpenInstagramIntent(item.SocialLinksModel.Instegram);
                             else
-                                Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                         else if (v.Id == BtnTwitter.Id)
                         {
                             if (Methods.CheckConnectivity())
                                 new IntentController(PostAdapter.ActivityContext).OpenTwitterIntent(item.SocialLinksModel.Twitter);
                             else
-                                Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                         else if (v.Id == BtnGoogle.Id)
                         {
                             if (Methods.CheckConnectivity())
                                 new IntentController(PostAdapter.ActivityContext).OpenBrowserFromApp("https://plus.google.com/u/0/" + item.SocialLinksModel.Google);
                             else
-                                Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                         else if (v.Id == BtnVk.Id)
                         {
                             if (Methods.CheckConnectivity())
                                 new IntentController(PostAdapter.ActivityContext).OpenVkontakteIntent(item.SocialLinksModel.Vk);
                             else
-                                Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                         else if (v.Id == BtnYoutube.Id)
                         {
                             if (Methods.CheckConnectivity())
                                 new IntentController(PostAdapter.ActivityContext).OpenYoutubeIntent(item.SocialLinksModel.Youtube);
                             else
-                                Toast.MakeText(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                     }
                 }
@@ -2227,9 +2292,10 @@ namespace WoWonder.Activities.NativePost.Post
             private readonly Activity ActivityContext;
             public View MainView { get; private set; }
 
+             
+            public LinearLayout LayoutPro { get; private set; }
+            public TextView ProText { get; private set; }
 
-            public LinearLayout LayoutTime { get; private set; }
-            public TextView TimeText { get; private set; }
             public LinearLayout LayoutWebsite { get; private set; }
             public TextView WebsiteText { get; private set; }
             
@@ -2257,11 +2323,10 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     ActivityContext = activityContext;
                     MainView = itemView;
-                   
-                    LayoutTime = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutTime);
-                    //IconTime = MainView.FindViewById<TextView>(Resource.Id.IconTime);
-                    TimeText = MainView.FindViewById<TextView>(Resource.Id.TimeText);
 
+                    LayoutPro = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutPro);
+                    ProText = MainView.FindViewById<TextView>(Resource.Id.ProText);
+                    
                     LayoutWebsite = MainView.FindViewById<LinearLayout>(Resource.Id.LayoutWebsite);
                     //IconWebsite = MainView.FindViewById<TextView>(Resource.Id.IconWebsite);
                     WebsiteText = MainView.FindViewById<TextView>(Resource.Id.WebsiteText);
@@ -2318,7 +2383,7 @@ namespace WoWonder.Activities.NativePost.Post
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
         }
@@ -2360,9 +2425,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == TxtMembers.Id)
                         {
@@ -2385,26 +2450,25 @@ namespace WoWonder.Activities.NativePost.Post
                 }
             }
         }
-        
+
         public class InfoPageBoxViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
         {
             private readonly NativePostAdapter PostAdapter;
             public View MainView { get; private set; }
-             
+
             public LinearLayout RatingLiner { get; private set; }
             public RatingBar RatingBarView { get; private set; }
 
-            public TextView IconLike { get; private set; }
+            public ImageView IconLike { get; private set; }
             public TextView LikeCountText { get; private set; }
 
-            public TextView IconCategory { get; private set; }
+            public ImageView IconCategory { get; private set; }
             public TextView CategoryText { get; private set; }
 
-            public LinearLayout MembersLiner { get; private set; }
-            public TextView IconMembers { get; private set; } 
-         
-            public SuperTextView AboutDesc { get; private set; }
-              
+            public ImageView IconMembers { get; private set; }
+            public TextView MembersText { get; private set; }
+
+
             public InfoPageBoxViewHolder(View itemView, NativePostAdapter postAdapter) : base(itemView)
             {
                 try
@@ -2415,27 +2479,25 @@ namespace WoWonder.Activities.NativePost.Post
                     RatingLiner = (LinearLayout)MainView.FindViewById(Resource.Id.ratingLiner);
                     RatingBarView = (RatingBar)MainView.FindViewById(Resource.Id.ratingBar);
 
-                    IconLike = (TextView)MainView.FindViewById(Resource.Id.IconLike);
+                    IconLike = (ImageView)MainView.FindViewById(Resource.Id.IconLike);
                     LikeCountText = (TextView)MainView.FindViewById(Resource.Id.LikeCountText);
 
-                    IconCategory = (TextView)MainView.FindViewById(Resource.Id.IconCategory);
+                    IconCategory = (ImageView)MainView.FindViewById(Resource.Id.IconCategory);
                     CategoryText = (TextView)MainView.FindViewById(Resource.Id.CategoryText);
-                     
-                    IconMembers = (TextView)MainView.FindViewById(Resource.Id.IconMembers); 
-                    MembersLiner = (LinearLayout)MainView.FindViewById(Resource.Id.liner5);
 
-                    AboutDesc = (SuperTextView)MainView.FindViewById(Resource.Id.aboutdesc);
+                    IconMembers = (ImageView)MainView.FindViewById(Resource.Id.IconMembers);
+                    MembersText = (TextView)MainView.FindViewById(Resource.Id.MembersText);
 
-                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconLike, IonIconsFonts.ThumbsUp);
-                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconMembers, IonIconsFonts.PersonAdd);
-                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconCategory, IonIconsFonts.Pricetag);
-                     
+                    CategoryText.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#4E586E"));
+                    LikeCountText.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#4E586E"));
+                    MembersText.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#4E586E"));
+
                     RatingLiner?.SetOnClickListener(this);
-                    MembersLiner?.SetOnClickListener(this); 
+                    MembersText?.SetOnClickListener(this);
                 }
                 catch (Exception e)
                 {
-                    Methods.DisplayReportResultTrack(e); 
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
 
@@ -2443,29 +2505,29 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == RatingLiner.Id)
                         {
                             PageProfileActivity.GetInstance()?.RatingLinerOnClick();
                         }
-                        else if (v.Id == MembersLiner.Id)
+                        else if (v.Id == MembersText.Id)
                         {
                             var intent = new Intent(PostAdapter.ActivityContext, typeof(InviteMembersPageActivity));
-                            intent.PutExtra("PageId", item.PageInfoModelClass.PageId); 
+                            intent.PutExtra("PageId", item.PageInfoModelClass.PageId);
                             PostAdapter.ActivityContext.StartActivity(intent);
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Methods.DisplayReportResultTrack(e); 
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
         }
-        
+         
         public class FollowersViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
         {
             public View MainView { get; private set; }
@@ -2495,7 +2557,7 @@ namespace WoWonder.Activities.NativePost.Post
                         return;
 
                     FollowersRecyclerView?.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
-                    FollowersAdapter = new UserFriendsAdapter(postAdapter.ActivityContext);
+                    FollowersAdapter = new UserFriendsAdapter(PostAdapter.ActivityContext);
                     FollowersRecyclerView?.SetAdapter(FollowersAdapter);
 
                     FollowersAdapter.ItemClick += (sender, e) =>
@@ -2515,7 +2577,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 case null:
                                     return;
                                 default:
-                                    WoWonderTools.OpenProfile(postAdapter.ActivityContext, user.UserId, user);
+                                    WoWonderTools.OpenProfile(PostAdapter.ActivityContext, user.UserId, user);
                                     break;
                             }
                         }
@@ -2535,9 +2597,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == AboutMore.Id)
                             PostClickListener.OpenAllViewer("FollowersModel", PostAdapter.IdParameter, item);
@@ -2573,13 +2635,13 @@ namespace WoWonder.Activities.NativePost.Post
                     PostAdapter = postAdapter;
                     PostClickListener = postClickListener;
 
-                    AboutMore.SetOnClickListener(this);
+                    AboutMore?.SetOnClickListener(this);
 
                     if (ImagesAdapter != null)
                         return;
                      
                     ImagesRecyclerView.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
-                    ImagesAdapter = new UserPhotosAdapter(postAdapter.ActivityContext);
+                    ImagesAdapter = new UserPhotosAdapter(PostAdapter.ActivityContext);
                     ImagesRecyclerView.SetAdapter(ImagesAdapter);
 
                     ImagesAdapter.ItemClick += (sender, e) =>
@@ -2590,14 +2652,19 @@ namespace WoWonder.Activities.NativePost.Post
                             case < 0:
                                 return;
                         }
-
-                        var photo = ImagesAdapter.GetItem(position);
-                        switch (photo)
+                         
+                        var item = ImagesAdapter.GetItem(position);
+                        switch (item)
                         {
                             case null:
                                 return;
-                            default:
-                                postClickListener.OpenImageLightBox(photo);
+                            default: 
+                                var intent = new Intent(PostAdapter.ActivityContext, typeof(MyPhotoViewActivity));
+                                intent.PutExtra("itemIndex", e.Position.ToString());
+                                intent.PutExtra("AlbumObject", JsonConvert.SerializeObject(item)); // PostDataObject
+                                intent.PutExtra("PostList", JsonConvert.SerializeObject(ImagesAdapter.UserPhotosList)); // List<PostDataObject>
+                                PostAdapter.ActivityContext.OverridePendingTransition(Resource.Animation.abc_popup_enter, Resource.Animation.popup_exit);
+                                PostAdapter.ActivityContext.StartActivity(intent); 
                                 break;
                         }
                     };
@@ -2612,9 +2679,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == AboutMore?.Id)
                             PostClickListener.OpenAllViewer("ImagesModel", PostAdapter.IdParameter, item);
@@ -2627,117 +2694,7 @@ namespace WoWonder.Activities.NativePost.Post
             }
 
         }
-
-        public class PagesSocialViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
-        {
-            private readonly SocialAdapter SocialAdapter;
-            private readonly Activity ActivityContext;
-
-            public View MainView { get; private set; }
-            public RecyclerView PagesRecyclerView { get; private set; }
-            public TextView AboutHead { get; private set; }
-            public TextView AboutMore { get; private set; }
-            public PagesSocialViewHolder(Activity activity, View itemView, SocialAdapter socialAdapter) : base(itemView)
-            {
-                try
-                {
-                    SocialAdapter = socialAdapter;
-                    ActivityContext = activity;
-                     
-                    MainView = itemView;
-                    PagesRecyclerView = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
-                    AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
-                    AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
-
-                    AboutMore?.SetOnClickListener(this); 
-                }
-                catch (Exception e)
-                {
-                    Methods.DisplayReportResultTrack(e); 
-                }
-            }
-             
-            public void OnClick(View v)
-            {
-                try
-                {
-                    if (AdapterPosition != RecyclerView.NoPosition)
-                    {
-                        var item = SocialAdapter.SocialList[AdapterPosition];
-
-                        if (v.Id == AboutMore?.Id)
-                        { 
-                            var intent = new Intent(ActivityContext, typeof(AllViewerActivity));
-                            intent.PutExtra("Type", "MangedPagesModel"); //MangedGroupsModel , MangedPagesModel 
-                            intent.PutExtra("PassedId", UserDetails.UserId);
-                            intent.PutExtra("itemObject", JsonConvert.SerializeObject(item.PagesModelClass));
-                            ActivityContext.StartActivity(intent);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Methods.DisplayReportResultTrack(e); 
-                }
-            } 
-        }
-
-        public class GroupsSocialViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
-        {
-            private readonly SocialAdapter SocialAdapter;
-            private readonly Activity ActivityContext;
-
-            public View MainView { get; private set; }
-            public RecyclerView GroupsRecyclerView { get; private set; }
           
-            public TextView AboutHead { get; private set; }
-            public TextView AboutMore { get; private set; }
-
-            public GroupsSocialViewHolder(Activity activity, View itemView, SocialAdapter socialAdapter) : base(itemView)
-            {
-                try
-                {
-                    SocialAdapter = socialAdapter;
-                    ActivityContext = activity;
-
-                    MainView = itemView;
-                    GroupsRecyclerView = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
-                    AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
-                    AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
-
-                    AboutMore?.SetOnClickListener(this); 
-                }
-                catch (Exception e)
-                {
-                    Methods.DisplayReportResultTrack(e); 
-                }
-            }
-             
-            public void OnClick(View v)
-            {
-                try
-                {
-                    if (AdapterPosition != RecyclerView.NoPosition)
-                    {
-                        var item = SocialAdapter.SocialList[AdapterPosition];
-
-                        if (v.Id == AboutMore?.Id)
-                        {
-                            var intent = new Intent(ActivityContext, typeof(AllViewerActivity));
-                            intent.PutExtra("Type", "MangedGroupsModel");  
-                            intent.PutExtra("PassedId", UserDetails.UserId);
-                            intent.PutExtra("itemObject", JsonConvert.SerializeObject(item.MangedGroupsModel));
-                            ActivityContext.StartActivity(intent);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Methods.DisplayReportResultTrack(e);
-                }
-            } 
-        }
-         
         public class GroupsViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
         {
             public View MainView { get; private set; }
@@ -2767,9 +2724,8 @@ namespace WoWonder.Activities.NativePost.Post
                         return;
 
                     GroupsRecyclerView?.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
-                    GroupsAdapter = new UserGroupsAdapter(postAdapter.ActivityContext);
+                    GroupsAdapter = new UserGroupsAdapter(PostAdapter.ActivityContext);
                     GroupsRecyclerView?.SetAdapter(GroupsAdapter);
-                    GroupsRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(GroupsRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     GroupsAdapter.ItemClick += (sender, e) =>
                     {
                         try
@@ -2791,7 +2747,7 @@ namespace WoWonder.Activities.NativePost.Post
                             if (UserDetails.UserId == item.UserId)
                                 item.IsOwner = true;
 
-                            MainApplication.GetInstance()?.NavigateTo(postAdapter.ActivityContext, typeof(GroupProfileActivity), item);
+                            MainApplication.GetInstance()?.NavigateTo(PostAdapter.ActivityContext, typeof(GroupProfileActivity), item);
                         }
                         catch (Exception x)
                         {
@@ -2808,9 +2764,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == AboutMore?.Id)
                             PostClickListener.OpenAllViewer("GroupsModel", PostAdapter.IdParameter, item);
@@ -2847,7 +2803,7 @@ namespace WoWonder.Activities.NativePost.Post
                     AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
 
                     if (AboutHead != null)
-                        AboutHead.Text = postAdapter.ActivityContext.GetString(Resource.String.Lbl3_SuggestionsUsers);
+                        AboutHead.Text = PostAdapter.ActivityContext.GetString(Resource.String.Lbl3_SuggestionsUsers);
                      
                     AboutMore.Text = PostAdapter.ActivityContext.GetText(Resource.String.Lbl_SeeAll);
                     AboutMore.SetTextColor(new Color(MainView.Context.GetColor(Resource.Color.primary)));
@@ -2858,12 +2814,11 @@ namespace WoWonder.Activities.NativePost.Post
                         return;
                      
                     UsersRecyclerView?.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
-                    UsersAdapter = new SuggestionsUserAdapter(postAdapter.ActivityContext)
+                    UsersAdapter = new SuggestionsUserAdapter(PostAdapter.ActivityContext)
                     {
                         UserList = new ObservableCollection<UserDataObject>(ListUtils.SuggestedUserList.Take(12))
                     };
                     UsersRecyclerView?.SetAdapter(UsersAdapter);
-                    UsersRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(UsersRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     UsersAdapter.ItemClick += (sender, e) =>
                     {
                         try
@@ -2881,7 +2836,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 case null:
                                     return;
                                 default:
-                                    WoWonderTools.OpenProfile(postAdapter.ActivityContext, item.UserId, item);
+                                    WoWonderTools.OpenProfile(PostAdapter.ActivityContext, item.UserId, item);
                                     break;
                             }
                         }
@@ -2906,7 +2861,7 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     if (!Methods.CheckConnectivity())
                     {
-                        Toast.MakeText(UsersAdapter.ActivityContext, UsersAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(UsersAdapter.ActivityContext, UsersAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                     else
                     {
@@ -2935,12 +2890,176 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
                         if (v.Id == AboutMore?.Id)
                         {
                             var intent = new Intent(PostAdapter.ActivityContext, typeof(SuggestionsUsersActivity));
                             intent.PutExtra("class", "newsFeed");
+                            PostAdapter.ActivityContext.StartActivity(intent);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e); 
+                }
+            } 
+        }
+
+        public class SuggestedPagesViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
+        {
+            public View MainView { get; private set; }
+            private readonly NativePostAdapter PostAdapter;
+
+            public RecyclerView PagesRecyclerView { get; private set; }
+            public SuggestedPageAdapter PagesAdapter { get; private set; }
+
+            public TextView AboutHead { get; private set; }
+            public TextView AboutMore { get; private set; }
+
+            public SuggestedPagesViewHolder(View itemView, NativePostAdapter postAdapter) : base(itemView)
+            {
+                try
+                {
+                    PostAdapter = postAdapter;
+                    MainView = itemView;
+                    PagesRecyclerView = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
+                    AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
+                    AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
+
+                    AboutHead.Text = PostAdapter.ActivityContext.GetString(Resource.String.Lbl_SuggestedPages);
+                    AboutMore.Text = PostAdapter.ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                    AboutMore.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                     
+
+                    AboutMore.SetOnClickListener(this);
+                      
+                    if (PagesAdapter != null)
+                        return;
+
+                    PagesRecyclerView.SetLayoutManager(new LinearLayoutManager(PostAdapter.ActivityContext, LinearLayoutManager.Horizontal, false));
+                    PagesAdapter = new SuggestedPageAdapter(PostAdapter.ActivityContext)
+                    {
+                        PageList = new ObservableCollection<PageClass>(ListUtils.SuggestedPageList.Take(12))
+                    };
+                    PagesRecyclerView.SetAdapter(PagesAdapter);
+                    PagesAdapter.ItemClick += (sender, e) =>
+                    {
+                        try
+                        {
+                            var position = e.Position;
+                            switch (position)
+                            {
+                                case < 0:
+                                    return;
+                            }
+
+                            var item = PagesAdapter.GetItem(position);
+                            switch (item)
+                            {
+                                case null:
+                                    return;
+                            }
+
+                            if (UserDetails.UserId == item.UserId)
+                                item.IsPageOnwer = true;
+
+                            //if (!string.IsNullOrEmpty(item.PagesModel.UserProfileId) && UserDetails.UserId == item.PagesModel.UserProfileId)
+                            //    Page.IsJoined = "true";
+
+                            MainApplication.GetInstance()?.NavigateTo(PostAdapter.ActivityContext, typeof(PageProfileActivity), item);
+                        }
+                        catch (Exception exception)
+                        {
+                            Methods.DisplayReportResultTrack(exception);
+                        }
+                    };
+                    PagesAdapter.LikeButtonItemClick += async (sender, e) =>
+                    {
+                        try
+                        {
+                            var position = e.Position;
+                            switch (position)
+                            {
+                                case < 0:
+                                    return;
+                            }
+
+                            var item = PagesAdapter.GetItem(position);
+                            switch (item)
+                            {
+                                case null:
+                                    return;
+                            }
+
+                            if (!Methods.CheckConnectivity())
+                            {
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                                return;
+                            }
+
+                            var (apiStatus, respond) = await RequestsAsync.Page.LikePageAsync(item.PageId);
+                            switch (apiStatus)
+                            {
+                                case 200:
+                                {
+                                    switch (respond)
+                                    {
+                                        case LikePageObject result:
+                                        {
+                                            var isLiked = result.LikeStatus == "unliked" ? "false" : "true";
+                                            e.LikeButton.Text = PostAdapter.ActivityContext.GetText(isLiked == "true" ? Resource.String.Btn_Liked : Resource.String.Btn_Like);
+
+                                            switch (isLiked)
+                                            {
+                                                case "true":
+                                                    e.LikeButton.SetBackgroundResource(Resource.Drawable.round_button_normal);
+                                                    e.LikeButton.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                                    break;
+                                                default:
+                                                    e.LikeButton.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                                                    e.LikeButton.SetTextColor(Color.White);
+                                                    break;
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    Methods.DisplayReportResult(PostAdapter.ActivityContext, respond);
+                                    break;
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Methods.DisplayReportResultTrack(exception);
+                        }
+                    };
+
+                    AboutMore.Visibility = PagesAdapter?.PageList?.Count switch
+                    {
+                        > 4 => ViewStates.Visible,
+                        _ => ViewStates.Invisible
+                    };
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e); 
+                }
+            }
+            public void OnClick(View v)
+            {
+                try
+                {
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
+                    {
+                        if (v.Id == AboutMore.Id)
+                        {
+                            var intent = new Intent(PostAdapter.ActivityContext, typeof(SuggestedPageActivity));
                             PostAdapter.ActivityContext.StartActivity(intent);
                         }
                     }
@@ -2967,29 +3086,29 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
+                    PostAdapter = postAdapter;
                     MainView = itemView;
+
                     GroupsRecyclerView = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
                     AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
                     AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
 
-                    AboutHead.Text = postAdapter.ActivityContext.GetString(Resource.String.Lbl_SuggestedGroups);
+                    AboutHead.Text = PostAdapter.ActivityContext.GetString(Resource.String.Lbl_SuggestedGroups);
                     AboutMore.Text = PostAdapter.ActivityContext.GetText(Resource.String.Lbl_SeeAll);
-                    AboutMore.SetTextColor(new Color(MainView.Context.GetColor(Resource.Color.primary)));
+                    AboutMore.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                      
-                    PostAdapter = postAdapter;
 
                     AboutMore.SetOnClickListener(this);
                       
                     if (GroupsAdapter != null)
                         return;
 
-                    GroupsRecyclerView.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
-                    GroupsAdapter = new SuggestedGroupAdapter(postAdapter.ActivityContext)
+                    GroupsRecyclerView.SetLayoutManager(new LinearLayoutManager(PostAdapter.ActivityContext, LinearLayoutManager.Horizontal, false));
+                    GroupsAdapter = new SuggestedGroupAdapter(PostAdapter.ActivityContext)
                     {
                         GroupList = new ObservableCollection<GroupClass>(ListUtils.SuggestedGroupList.Take(12))
                     };
                     GroupsRecyclerView.SetAdapter(GroupsAdapter);
-                    GroupsRecyclerView?.AddOnItemTouchListener(new RecyclerViewOnItemTouch(GroupsRecyclerView, TabbedMainActivity.GetInstance()?.ViewPager));
                     GroupsAdapter.ItemClick += (sender, e) =>
                     {
                         try
@@ -3014,11 +3133,11 @@ namespace WoWonder.Activities.NativePost.Post
                             //if (!string.IsNullOrEmpty(item.GroupsModel.UserProfileId) && UserDetails.UserId == item.GroupsModel.UserProfileId)
                             //    group.IsJoined = "true";
 
-                            MainApplication.GetInstance()?.NavigateTo(postAdapter.ActivityContext, typeof(GroupProfileActivity), item);
+                            MainApplication.GetInstance()?.NavigateTo(PostAdapter.ActivityContext, typeof(GroupProfileActivity), item);
                         }
-                        catch (Exception x)
+                        catch (Exception exception)
                         {
-                            Console.WriteLine(x);
+                            Methods.DisplayReportResultTrack(exception);
                         }
                     };
                     GroupsAdapter.JoinButtonItemClick += async (sender, e) =>
@@ -3041,7 +3160,7 @@ namespace WoWonder.Activities.NativePost.Post
 
                             if (!Methods.CheckConnectivity())
                             {
-                                Toast.MakeText(postAdapter.ActivityContext, postAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                                 return;
                             }
                              
@@ -3052,7 +3171,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 {
                                     switch (respond)
                                     {
-                                        case JoinGroupObject result when result.JoinStatus == "requested":
+                                        case JoinGroupObject {JoinStatus: "requested"}:
                                             e.JoinButton.SetTextColor(Color.White);
                                             e.JoinButton.Text = Application.Context.GetText(Resource.String.Lbl_Request);
                                             e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
@@ -3060,11 +3179,10 @@ namespace WoWonder.Activities.NativePost.Post
                                         case JoinGroupObject result:
                                         {
                                             var isJoined = result.JoinStatus == "left" ? "false" : "true";
-                                            e.JoinButton.Text = postAdapter.ActivityContext.GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
+                                            e.JoinButton.Text = PostAdapter.ActivityContext.GetText(isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
 
                                             switch (isJoined)
                                             {
-                                                case "yes":
                                                 case "true":
                                                     e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
                                                     e.JoinButton.SetTextColor(Color.White);
@@ -3082,13 +3200,13 @@ namespace WoWonder.Activities.NativePost.Post
                                     break;
                                 }
                                 default:
-                                    Methods.DisplayReportResult(postAdapter.ActivityContext, respond);
+                                    Methods.DisplayReportResult(PostAdapter.ActivityContext, respond);
                                     break;
                             }
                         }
-                        catch (Exception x)
+                        catch (Exception exception)
                         {
-                            Console.WriteLine(x);
+                            Methods.DisplayReportResultTrack(exception);
                         }
                     };
 
@@ -3103,11 +3221,12 @@ namespace WoWonder.Activities.NativePost.Post
                     Methods.DisplayReportResultTrack(e); 
                 }
             }
+
             public void OnClick(View v)
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
                         if (v.Id == AboutMore.Id)
                         {
@@ -3154,7 +3273,7 @@ namespace WoWonder.Activities.NativePost.Post
                         return;
 
                     PagesRecyclerView?.SetLayoutManager(new LinearLayoutManager(itemView.Context, LinearLayoutManager.Horizontal, false));
-                    PagesAdapter = new UserPagesAdapter(postAdapter.ActivityContext);
+                    PagesAdapter = new UserPagesAdapter(PostAdapter.ActivityContext);
                     PagesRecyclerView?.SetAdapter(PagesAdapter);
                     PagesAdapter.ItemClick += (sender, e) =>
                     {
@@ -3177,7 +3296,7 @@ namespace WoWonder.Activities.NativePost.Post
                             /*if (UserDetails.UserId == item.UserId)
                                 item.IsOwner = true;*/
 
-                            MainApplication.GetInstance()?.NavigateTo(postAdapter.ActivityContext, typeof(PageProfileActivity), item);
+                            MainApplication.GetInstance()?.NavigateTo(PostAdapter.ActivityContext, typeof(PageProfileActivity), item);
                         }
                         catch (Exception x)
                         {
@@ -3195,9 +3314,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == AboutMore?.Id)
                             PostClickListener.OpenAllViewer("PagesModel", PostAdapter.IdParameter, item);
@@ -3251,9 +3370,9 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition];
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                         if (v.Id == LayoutSuggestionPages.Id)
                             PostClickListener.OpenAllViewer("PagesModel", PostAdapter.IdParameter, item);
@@ -3349,7 +3468,7 @@ namespace WoWonder.Activities.NativePost.Post
                 }
             }
         }
-
+        
         public class AdMobAdapterViewHolder : RecyclerView.ViewHolder
         {
             public View MainView { get; private set; }
@@ -3364,7 +3483,7 @@ namespace WoWonder.Activities.NativePost.Post
                     MianAlert = MainView.FindViewById<TemplateView>(Resource.Id.my_template);
                     MianAlert.Visibility = ViewStates.Gone;
 
-                   postAdapter.BindAdMob(this);
+                    AdsGoogle.Ad_AdMobNative(postAdapter.ActivityContext, MianAlert);
                 }
                 catch (Exception e)
                 {
@@ -3412,14 +3531,22 @@ namespace WoWonder.Activities.NativePost.Post
                     switch (postAdapter.MAdItems.Count)
                     {
                         case > 0:
-                        {
-                            var ad = postAdapter.MAdItems.FirstOrDefault();
-                            AdsFacebook.InitNative(activity, NativeAdLayout, ad);
-                            postAdapter.MAdItems.Remove(ad);
+                        { 
+                            if (AppSettings.ShowFbNativeAds)
+                            {
+                                var ad = postAdapter.MAdItems.FirstOrDefault();
+                                AdsFacebook.InitNative(activity, NativeAdLayout, ad);
+                                postAdapter.MAdItems.Remove(ad);
+                            }
+                            else
+                                AdsColony.InitBannerAd(activity, NativeAdLayout, AdColonyAdSize.MediumRectangle, null);
                             break;
                         }
                         default:
-                            AdsFacebook.InitNative(activity, NativeAdLayout, null);
+                            if (AppSettings.ShowFbNativeAds)
+                                AdsFacebook.InitNative(activity, NativeAdLayout, null);
+                            else
+                                AdsColony.InitBannerAd(activity, NativeAdLayout, AdColonyAdSize.MediumRectangle, null);
                             break;
                     }
                     postAdapter.BindAdFb();
@@ -3468,11 +3595,11 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
                         if (v.Id == ButtonView.Id)
                         {
-                            var item = PostAdapter.ListDiffer[AdapterPosition];
+                            var item = PostAdapter.ListDiffer[BindingAdapterPosition];
 
                             var intent = new Intent(PostAdapter.ActivityContext, typeof(SearchTabbedActivity));
 
@@ -3511,6 +3638,10 @@ namespace WoWonder.Activities.NativePost.Post
 
                     AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
                     AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
+
+                    //wael
+                    AboutHead.SetTypeface(Typeface.Default, TypefaceStyle.Bold);
+                    AboutMore.Visibility = ViewStates.Invisible;
                 }
                 catch (Exception e)
                 {
@@ -3546,7 +3677,7 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
                         if (v.Id == AboutMore.Id)
                         {
@@ -3631,7 +3762,7 @@ namespace WoWonder.Activities.NativePost.Post
                     PostClickListener = postClickListener;
 
                     AddCommentLayout.SetOnClickListener(this);
-                    LayoutEditText.SetOnClickListener(this);
+                    AddCommentTextView.SetOnClickListener(this);
                     ImageIcon.SetOnClickListener(this);
                     EmojiIcon.SetOnClickListener(this); 
                 }
@@ -3645,16 +3776,16 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = PostAdapter.ListDiffer[AdapterPosition]?.PostData;
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.PostData;
 
                         if (v.Id == ImageIcon.Id)
-                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView } , "Normal_Gallery");
+                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView } , "Normal_Gallery");
                         else if (v.Id == EmojiIcon.Id)
-                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView } , "Normal_EmojiIcon");
-                        else if (v.Id == AddCommentLayout.Id || v.Id == LayoutEditText.Id)
-                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = AdapterPosition, View = MainView });
+                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView } , "Normal_EmojiIcon");
+                        else if (v.Id == AddCommentLayout.Id || v.Id == AddCommentTextView.Id)
+                            PostClickListener.CommentPostClick(new GlobalClickEventArgs { NewsFeedClass = item, Position = BindingAdapterPosition, View = MainView });
                     }
                 }
                 catch (Exception e)
@@ -3723,8 +3854,12 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
 
-        public class ProfileHeaderSectionHolder : RecyclerView.ViewHolder
+        public class ProfileDetailsSectionHolder : RecyclerView.ViewHolder, View.IOnClickListener
         {
+            public View MainView { get; private set; }
+            private readonly NativePostAdapter PostAdapter;
+            private readonly PostClickListener PostClickListener;
+             
             public LinearLayout MainLayout { get; private set; }
             public TextView CountFollowers { get; private set; }
             public TextView CountFollowings { get; private set; }
@@ -3737,10 +3872,14 @@ namespace WoWonder.Activities.NativePost.Post
             public LinearLayout LlCountLike { get; private set; }
             public LinearLayout LlPoint { get; private set; }
 
-            public ProfileHeaderSectionHolder(View itemView) : base(itemView)
+            public ProfileDetailsSectionHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
             {
                 try
                 {
+                    MainView = itemView;
+                    PostAdapter = postAdapter;
+                    PostClickListener = postClickListener;
+                     
                     MainLayout = itemView.FindViewById<LinearLayout>(Resource.Id.mainLayout);
 
                     CountFollowers = itemView.FindViewById<TextView>(Resource.Id.CountFollowers);
@@ -3771,10 +3910,12 @@ namespace WoWonder.Activities.NativePost.Post
                     }
 
                     if (!AppSettings.ShowUserPoint)
-                    {
                         LlPoint.Visibility = ViewStates.Gone;
-                    }
 
+                    LlCountFollowers?.SetOnClickListener(this);
+                    LlCountFollowing?.SetOnClickListener(this);
+                    LlCountLike?.SetOnClickListener(this);
+                    LlPoint?.SetOnClickListener(this);
                 }
                 catch (Exception e)
                 {
@@ -3782,6 +3923,547 @@ namespace WoWonder.Activities.NativePost.Post
                 }
             }
 
+            public void OnClick(View v)
+            {
+                try
+                {
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
+                    {
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.InfoUserModel;
+
+                        if (v.Id == LlCountFollowers.Id)
+                            LlCountFollowers_Click(item?.UserData?.UserId);
+                        else if (v.Id == LlCountFollowing.Id)
+                            LlCountFollowing_Click(item?.UserData?.UserId);
+                        else if (v.Id == LlPoint.Id)
+                            LlPointOnClick();
+                        else if (v.Id == LlCountLike.Id)
+                            PostClickListener.OpenAllViewer("UserLikedPagesModel", PostAdapter.IdParameter, PostAdapter.ListDiffer[BindingAdapterPosition]);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+              
+            private void LlPointOnClick()
+            {
+                try
+                {
+                    var intent = new Intent(PostAdapter.ActivityContext, typeof(MyPointsActivity));
+                    PostAdapter.ActivityContext.StartActivity(intent);
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private void LlCountFollowing_Click(string userId)
+            {
+                try
+                {
+                    var intent = new Intent(PostAdapter.ActivityContext, typeof(MyContactsActivity));
+                    intent.PutExtra("ContactsType", "Following");
+                    intent.PutExtra("UserId", userId);
+                    PostAdapter.ActivityContext.StartActivity(intent);
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private void LlCountFollowers_Click(string userId)
+            {
+                try
+                {
+                    var intent = new Intent(PostAdapter.ActivityContext, typeof(MyContactsActivity));
+                    intent.PutExtra("ContactsType", "Followers");
+                    intent.PutExtra("UserId", userId);
+
+                    PostAdapter.ActivityContext.StartActivity(intent);
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            } 
+        }
+        
+        public class MyProfileInfoHeaderSectionHolder : RecyclerView.ViewHolder, View.IOnClickListener
+        {
+            public View MainView { get; private set; }
+            private readonly NativePostAdapter PostAdapter;
+            private readonly PostClickListener PostClickListener;
+
+            public TextViewWithImages TxtName { get; private set; }
+            public TextView TxtUsername { get; private set; }
+            public ImageView ImageAvatar { get; private set; }
+            public Button BtnEdit { get; private set; }
+            public Button BtnWallet { get; private set; }
+
+             
+            public MyProfileInfoHeaderSectionHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
+            {
+                try
+                {
+                    MainView = itemView;
+                    PostAdapter = postAdapter;
+                    PostClickListener = postClickListener;
+
+
+                    ImageAvatar = itemView.FindViewById<ImageView>(Resource.Id.profileimage_head);
+                    TxtName = itemView.FindViewById<TextViewWithImages>(Resource.Id.name_profile);
+                    TxtUsername = itemView.FindViewById<TextView>(Resource.Id.username_profile);
+                    BtnEdit = itemView.FindViewById<Button>(Resource.Id.btnEdit);
+                    BtnWallet = itemView.FindViewById<Button>(Resource.Id.btnWallet);
+
+                    BtnWallet.Text = itemView.Context.GetText(AppSettings.ShowWallet ? Resource.String.Lbl_Wallet : Resource.String.Lbl_Share);
+
+                    ImageAvatar?.SetOnClickListener(this);
+                    BtnEdit?.SetOnClickListener(this);
+                    BtnWallet?.SetOnClickListener(this); 
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
+            public void OnClick(View v)
+            {
+                try
+                {
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
+                    {
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.InfoUserModel;
+
+                        if (v.Id == ImageAvatar.Id)
+                            ImageAvatarOnClick(item?.UserData);
+                        else if (v.Id == BtnEdit.Id)
+                            BtnEditOnClick();
+                        else if (v.Id == BtnWallet.Id)
+                            BtnWalletOnClick(item?.UserData); 
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+                
+            private void ImageAvatarOnClick(UserDataObject UserData)
+            {
+                try
+                {
+                    if (UserData.Avatar.Contains("d-avatar"))
+                        return;
+
+                    if (!string.IsNullOrEmpty(UserData.AvatarPostId) && UserData.AvatarPostId != "0")
+                    {
+                        var intent = new Intent(PostAdapter.ActivityContext, typeof(ViewFullPostActivity));
+                        intent.PutExtra("Id", UserData.AvatarPostId);
+                        //intent.PutExtra("DataItem", JsonConvert.SerializeObject(e.NewsFeedClass));
+                        PostAdapter.ActivityContext.StartActivity(intent);
+                    }
+                    else
+                    {
+                        var media = WoWonderTools.GetFile("", Methods.Path.FolderDiskImage, UserData.Avatar.Split('/').Last(), UserData.Avatar);
+                        if (media.Contains("http"))
+                        {
+                            var intent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(media));
+                            PostAdapter.ActivityContext.StartActivity(intent);
+                        }
+                        else
+                        {
+                            var file2 = new File(media);
+                            var photoUri = FileProvider.GetUriForFile(PostAdapter.ActivityContext, PostAdapter.ActivityContext.PackageName + ".fileprovider", file2);
+
+                            var intent = new Intent(Intent.ActionPick);
+                            intent.SetAction(Intent.ActionView);
+                            intent.AddFlags(ActivityFlags.GrantReadUriPermission);
+                            intent.SetDataAndType(photoUri, "image/*");
+                            PostAdapter.ActivityContext.StartActivity(intent);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private void BtnWalletOnClick(UserDataObject UserData)
+            {
+                try
+                {
+                    if (AppSettings.ShowWallet)
+                    {
+                        var intent = new Intent(PostAdapter.ActivityContext, typeof(TabbedWalletActivity));
+                        PostAdapter.ActivityContext.StartActivity(intent);
+                    }
+                    else
+                    {
+                        OnShare_Button_Click(UserData);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private async void OnShare_Button_Click(UserDataObject UserData)
+            {
+                try
+                {
+                    switch (CrossShare.IsSupported)
+                    {
+                        //Share Plugin same as video
+                        case false:
+                            return;
+                        default:
+                            await CrossShare.Current.Share(new ShareMessage
+                            {
+                                Title = UserData.Name,
+                                Text = "",
+                                Url = UserData.Url
+                            });
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
+            private void BtnEditOnClick()
+            {
+                try
+                {
+                    var intent = new Intent(PostAdapter.ActivityContext, typeof(EditMyProfileActivity));
+                    PostAdapter.ActivityContext.StartActivityForResult(intent, 5124);
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+        }
+        
+        public class UserProfileInfoHeaderSectionHolder : RecyclerView.ViewHolder, View.IOnClickListener
+        {
+            public View MainView { get; private set; }
+            private readonly NativePostAdapter PostAdapter;
+            private readonly PostClickListener PostClickListener;
+
+            public TextViewWithImages TxtName { get; private set; }
+            public TextView TxtUsername { get; private set; }
+            public CardView BtnFollow { get; private set; }
+            public TextView TxtFollow { get; private set; }
+            public ImageView ImageAvatar { get; private set; }
+            public ImageView ImageStopNotify { get; private set; }
+            public Button BtnMessage { get; private set; }
+            public LinearLayout LiveLayout { get; private set; }
+            public LinearLayout StopNotifyLayout { get; private set; }
+             
+            public UserProfileInfoHeaderSectionHolder(View itemView, NativePostAdapter postAdapter, PostClickListener postClickListener) : base(itemView)
+            {
+                try
+                {
+                    MainView = itemView;
+                    PostAdapter = postAdapter;
+                    PostClickListener = postClickListener;
+                     
+                    ImageAvatar = itemView.FindViewById<ImageView>(Resource.Id.profileimage_head);
+                    TxtName = itemView.FindViewById<TextViewWithImages>(Resource.Id.name_profile);
+                    TxtUsername = itemView.FindViewById<TextView>(Resource.Id.username_profile);
+                    BtnFollow = itemView.FindViewById<CardView>(Resource.Id.btnFollow);
+                    TxtFollow = itemView.FindViewById<TextView>(Resource.Id.followTxt);
+
+                    BtnMessage = itemView.FindViewById<Button>(Resource.Id.btnMessage);
+
+                    StopNotifyLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ll_stopNotify);
+                    ImageStopNotify = itemView.FindViewById<ImageView>(Resource.Id.image_stopNotify);
+                    StopNotifyLayout.Visibility = ViewStates.Visible;
+
+                    LiveLayout = itemView.FindViewById<LinearLayout>(Resource.Id.ll_live);
+                    LiveLayout.Visibility = ViewStates.Gone;
+                     
+                    ImageAvatar?.SetOnClickListener(this);
+                    BtnFollow?.SetOnClickListener(this);
+                    BtnMessage?.SetOnClickListener(this);
+                    StopNotifyLayout?.SetOnClickListener(this);
+                    LiveLayout?.SetOnClickListener(this);
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
+            public void OnClick(View v)
+            {
+                try
+                {
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
+                    {
+                        var item = PostAdapter.ListDiffer[BindingAdapterPosition]?.InfoUserModel;
+
+                        if (v.Id == ImageAvatar.Id)
+                            ImageAvatarOnClick(item?.UserData);
+                        else if (v.Id == BtnFollow.Id)
+                            BtnFollowOnClick(item?.UserData);
+                        else if (v.Id == BtnMessage.Id)
+                            BtnMessageOnClick(item?.UserData); 
+                        else if (v.Id == StopNotifyLayout.Id)
+                            StopNotifyLayoutOnClick(item?.UserData); 
+                        else if (v.Id == LiveLayout.Id)
+                            LiveLayoutOnClick(); 
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+                
+            private void ImageAvatarOnClick(UserDataObject UserData)
+            {
+                try
+                {
+                    if (UserData.Avatar.Contains("d-avatar"))
+                        return;
+
+                    if (!string.IsNullOrEmpty(UserData.AvatarPostId) && UserData.AvatarPostId != "0")
+                    {
+                        var intent = new Intent(PostAdapter.ActivityContext, typeof(ViewFullPostActivity));
+                        intent.PutExtra("Id", UserData.AvatarPostId);
+                        //intent.PutExtra("DataItem", JsonConvert.SerializeObject(e.NewsFeedClass));
+                        PostAdapter.ActivityContext.StartActivity(intent);
+                    }
+                    else
+                    {
+                        var media = WoWonderTools.GetFile("", Methods.Path.FolderDiskImage, UserData.Avatar.Split('/').Last(), UserData.Avatar);
+                        if (media.Contains("http"))
+                        {
+                            var intent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(media));
+                            PostAdapter.ActivityContext.StartActivity(intent);
+                        }
+                        else
+                        {
+                            var file2 = new File(media);
+                            var photoUri = FileProvider.GetUriForFile(PostAdapter.ActivityContext, PostAdapter.ActivityContext.PackageName + ".fileprovider", file2);
+
+                            var intent = new Intent(Intent.ActionPick);
+                            intent.SetAction(Intent.ActionView);
+                            intent.AddFlags(ActivityFlags.GrantReadUriPermission);
+                            intent.SetDataAndType(photoUri, "image/*");
+                            PostAdapter.ActivityContext.StartActivity(intent);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private async void BtnFollowOnClick(UserDataObject UserData)
+            {
+                try
+                {
+                    if (!Methods.CheckConnectivity())
+                    {
+                        ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    }
+                    else
+                    {
+                        switch (UserData.IsFollowing)
+                        {
+                            case "0": // Add Or request friends
+                                if (UserData?.ConfirmFollowers == "1" || AppSettings.ConnectivitySystem == 0)
+                                {
+                                    UserData.IsFollowing = "2";
+                                    BtnFollow.Tag = "request";
+                                }
+                                else
+                                {
+                                    UserData.IsFollowing = "1";
+                                    BtnFollow.Tag = "friends";
+                                }
+                                break;
+                            case "1": // Remove friends
+                                UserData.IsFollowing = "0";
+                                BtnFollow.Tag = "Add";
+                                break;
+                            case "2": // Remove request friends
+                                UserData.IsFollowing = "0";
+                                BtnFollow.Tag = "Add";
+                                break;
+                        }
+
+                        SetAddFriendCondition(UserData);
+
+                        var (apiStatus, respond) = await RequestsAsync.Global.FollowUserAsync(UserData.UserId).ConfigureAwait(false);
+                        if (apiStatus != 200 || respond is not FollowUserObject result || result.FollowStatus == null)
+                        {
+                            Methods.DisplayReportResult(PostAdapter.ActivityContext, respond);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            public void SetAddFriendCondition(UserDataObject UserData)
+            {
+                try
+                {
+                    switch (UserData.IsFollowing)
+                    {
+                        //>> Not Friend
+                        case "0":
+                            TxtFollow.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                            TxtFollow.Text = Application.Context.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Follow : Resource.String.Lbl_AddFriends);
+                            BtnFollow.SetCardBackgroundColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#444444") : Color.ParseColor("#FFFEFE"));
+                            BtnFollow.Tag = "Add";
+                            break;
+                        //>> Friend
+                        case "1":
+                            TxtFollow.SetTextColor(Color.White);
+                            TxtFollow.Text = Application.Context.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Following : Resource.String.Lbl_Friends);
+                            BtnFollow.SetCardBackgroundColor(Color.ParseColor(AppSettings.MainColor));
+                            BtnFollow.Tag = "friends";
+                            break;
+                        //>> Request
+                        case "2":
+                            TxtFollow.SetTextColor(Color.ParseColor("#444444"));
+                            TxtFollow.Text = Application.Context.GetText(Resource.String.Lbl_Request);
+                            BtnFollow.SetCardBackgroundColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#444444") : Color.ParseColor("#FFFEFE"));
+                            BtnFollow.Tag = "request";
+                            break;
+                        default:
+                            TxtFollow.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                            TxtFollow.Text = Application.Context.GetText(AppSettings.ConnectivitySystem == 1 ? Resource.String.Lbl_Follow : Resource.String.Lbl_AddFriends);
+                            BtnFollow.SetCardBackgroundColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#444444") : Color.ParseColor("#FFFEFE"));
+                            BtnFollow.Tag = "Add";
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+
+
+            private void BtnMessageOnClick(UserDataObject UserData)
+            {
+                try
+                {
+                    switch (AppSettings.MessengerIntegration)
+                    {
+                        case true when AppSettings.ShowDialogAskOpenMessenger:
+                            {
+                                var dialog = new MaterialDialog.Builder(PostAdapter.ActivityContext).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+
+                                dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
+                                dialog.Content(PostAdapter.ActivityContext.GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
+                                dialog.PositiveText(PostAdapter.ActivityContext.GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
+                                {
+                                    try
+                                    {
+                                        Intent intent = new Intent(PostAdapter.ActivityContext, typeof(ChatWindowActivity));
+                                        intent.PutExtra("UserID", UserData.UserId);
+                                        intent.PutExtra("TypeChat", "User");
+                                        intent.PutExtra("UserItem", JsonConvert.SerializeObject(UserData));
+                                        PostAdapter.ActivityContext.StartActivity(intent);
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        Methods.DisplayReportResultTrack(exception);
+                                    }
+                                });
+                                dialog.NegativeText(PostAdapter.ActivityContext.GetText(Resource.String.Lbl_No)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                                dialog.AlwaysCallSingleChoiceCallback();
+                                dialog.Build().Show();
+                                break;
+                            }
+                        case true:
+                            Intent intent = new Intent(PostAdapter.ActivityContext, typeof(ChatWindowActivity));
+                            intent.PutExtra("UserID", UserData.UserId);
+                            intent.PutExtra("TypeChat", "User");
+                            intent.PutExtra("UserItem", JsonConvert.SerializeObject(UserData));
+                            PostAdapter.ActivityContext.StartActivity(intent); break;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private void LiveLayoutOnClick()
+            {
+                try
+                {
+                    if (UserDetails.DataLivePost?.LiveTime != null && UserDetails.DataLivePost?.LiveTime.Value > 0 && string.IsNullOrEmpty(UserDetails.DataLivePost?.AgoraResourceId) && string.IsNullOrEmpty(UserDetails.DataLivePost?.PostFile))
+                    {
+                        //Live
+                        //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
+                        Intent intent = new Intent(PostAdapter.ActivityContext, typeof(LiveStreamingActivity));
+                        intent.PutExtra(Constants.KeyClientRole, DT.Xamarin.Agora.Constants.ClientRoleAudience);
+                        intent.PutExtra("PostId", UserDetails.DataLivePost.PostId);
+                        intent.PutExtra("StreamName", UserDetails.DataLivePost.StreamName);
+                        intent.PutExtra("PostLiveStream", JsonConvert.SerializeObject(UserDetails.DataLivePost));
+                        PostAdapter.ActivityContext.StartActivity(intent);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
+
+            private void StopNotifyLayoutOnClick(UserDataObject UserData)
+            {
+                try
+                {
+                    if (!Methods.CheckConnectivity())
+                    {
+                        ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    }
+                    else
+                    {
+                        //check is stopped or no ic_notifications_on_vector , ic_notifications_off_vector
+                        if (UserData.IsNotifyStopped != null && UserData.IsNotifyStopped.Value == 1)
+                        {
+                            UserData.IsNotifyStopped = 0;
+                            ImageStopNotify.SetImageResource(Resource.Drawable.ic_notifications_on_vector);
+                            ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_NotificationsAreTurnedOn), ToastLength.Short);
+                        }
+                        else
+                        {
+                            UserData.IsNotifyStopped = 1;
+                            ImageStopNotify.SetImageResource(Resource.Drawable.ic_notifications_off_vector);
+                            ToastUtils.ShowToast(PostAdapter.ActivityContext, PostAdapter.ActivityContext.GetString(Resource.String.Lbl_NotificationsHaveBeenStopped), ToastLength.Short);
+                        }
+
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.StopNotifyAsync(UserData.UserId) });
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            }
         }
 
     }

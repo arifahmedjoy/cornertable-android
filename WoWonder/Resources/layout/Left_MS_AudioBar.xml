@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center_vertical"
-    android:padding="4dp"
-    android:id="@+id/main"
-    android:paddingEnd="2dp">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="4dp"
+                android:id="@+id/main"
+                android:paddingEnd="2dp">
     <LinearLayout
         android:orientation="vertical"
         android:background="@drawable/chat_rounded_left_layout"
@@ -49,7 +49,7 @@
                 <at.markushi.ui.CircleButton
                     android:layout_width="25dp"
                     android:layout_height="25dp"
-                    app:cb_color="?attr/colorReact"
+                    app:cb_color="?attr/colorFill"
                     app:cb_pressedRingWidth="0dip"
                     android:tint="?attr/colorAccent"
                     android:src="@drawable/ic_play_dark_arrow"
@@ -137,4 +137,25 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+  <LinearLayout
+    android:orientation="horizontal"
+    android:id="@+id/countLikeSection"
+    android:layout_alignEnd="@+id/bubble_layout"
+    android:layout_below="@+id/bubble_layout"
+    android:layout_width="wrap_content" 
+    android:clickable="true"
+    android:translationY="-5dp"
+    android:visibility="gone"
+    android:gravity="center"
+    android:backgroundTint="?attr/colorFill"
+    android:background="@drawable/shape_radius_btn"
+    android:layout_height="20dp">
+    <ImageView
+      android:id="@+id/ImagecountLike"
+      android:layout_width="16dp"
+      android:layout_height="16dp"
+      android:src="@drawable/emoji_love"
+      android:layout_margin="5dp"
+      android:scaleType="centerCrop" />
+  </LinearLayout>
+</RelativeLayout>

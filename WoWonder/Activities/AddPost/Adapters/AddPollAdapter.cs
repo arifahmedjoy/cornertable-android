@@ -5,8 +5,8 @@ using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
+using AT.Markushi.UI;
 using Google.Android.Material.Snackbar;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Posts;
 
@@ -60,8 +60,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                     case AddPollAdapterViewHolder holder:
                     {
                         var itemcount = position + 1;
-                        holder.Number.Text = itemcount.ToString(); 
-                        holder.Input.Hint = ActivityContext.GetText(Resource.String.Lbl2_Answer) + " " + itemcount;
+                        holder.Number.Text = ActivityContext.GetText(Resource.String.Lbl_Option) + " " + itemcount; 
+                        //holder.Input.Hint = ActivityContext.GetText(Resource.String.Lbl2_Answer) + " " + itemcount;
                         break;
                     }
                 }
@@ -152,25 +152,19 @@ namespace WoWonder.Activities.AddPost.Adapters
                 MainView = itemView; 
                 Number = (TextView)MainView.FindViewById(Resource.Id.number);
                 Input = (EditText)MainView.FindViewById(Resource.Id.text_input);
-                CloseButton = (Button)MainView.FindViewById(Resource.Id.Close);
-                 
-                Methods.SetColorEditText(Input, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-
-                Typeface font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "ionicons.ttf");
-                if (CloseButton != null)
+                CloseButton = (CircleButton)MainView.FindViewById(Resource.Id.Close);
+                //Create an Event
+                if (Input != null)
                 {
-                    CloseButton.SetTypeface(font, TypefaceStyle.Normal);
-                    CloseButton.Text = IonIconsFonts.Close;
-
-                    //Create an Event
-                    if (Input != null)
-                    {
-                        Input.AfterTextChanged += (sender, e) => clickListener(new AddPollAdapterClickEventArgs {View = itemView, Position = AdapterPosition, Text = Input.Text, Input = Input});
-                        CloseButton.Click += (sender, e) => closeClickListener(new AddPollAdapterClickEventArgs {View = itemView, Position = AdapterPosition, Text = Input.Text});
-                    }
+                    Input.AfterTextChanged += (sender, e) => clickListener(new AddPollAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, Text = Input.Text, Input = Input });
+                    Methods.SetColorEditText(Input, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 }
 
-                //itemView.Click += (sender, e) => clickListener(new AddPollAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                if (CloseButton != null)
+                {
+                    CloseButton.Click += (sender, e) => closeClickListener(new AddPollAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, Text = Input.Text });
+                }
+
             }
             catch (Exception e)
             {
@@ -183,7 +177,7 @@ namespace WoWonder.Activities.AddPost.Adapters
         public View MainView { get; private set; }
         public TextView Number { get; private set; }
         public EditText Input { get; private set; }
-        public Button CloseButton { get; private set; }
+        public CircleButton CloseButton { get; private set; }
 
         #endregion
     }

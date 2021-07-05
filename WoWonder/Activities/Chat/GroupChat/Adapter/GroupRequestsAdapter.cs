@@ -50,7 +50,7 @@ namespace WoWonder.Activities.Chat.GroupChat.Adapter
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -64,9 +64,9 @@ namespace WoWonder.Activities.Chat.GroupChat.Adapter
                     var item = GroupList[position];
                     if (item != null)
                     {
-                        var image = item.GroupTab.Avatar.Replace(Client.WebsiteUrl, "");
+                        var image = item.GroupTab.Avatar.Replace(InitializeWoWonder.WebsiteUrl, "");
                         if (!image.Contains("http"))
-                            item.GroupTab.Avatar = Client.WebsiteUrl + "/" + image;
+                            item.GroupTab.Avatar = InitializeWoWonder.WebsiteUrl + "/" + image;
 
                         GlideImageLoader.LoadImage(ActivityContext, item.GroupTab.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                         holder.Name.Text = item.GroupTab.GroupName + " (" + ActivityContext.GetText(Resource.String.Lbl_Group) + ")";
@@ -146,10 +146,10 @@ namespace WoWonder.Activities.Chat.GroupChat.Adapter
                 DeleteButton = MainView.FindViewById<CircleButton>(Resource.Id.delete_button);
 
                 //Event
-                AddButton.Click += (sender, e) => addButtonClickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                DeleteButton.Click += (sender, e) => deleteButtonClickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                AddButton.Click += (sender, e) => addButtonClickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                DeleteButton.Click += (sender, e) => deleteButtonClickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new GroupRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

@@ -134,7 +134,7 @@ namespace WoWonder.Activities.Memories
         {
             try
             {
-                MainRecyclerView.ReleasePlayer();
+                MainRecyclerView?.ReleasePlayer();
                 DestroyBasic(); 
                 base.OnDestroy();
             }
@@ -255,8 +255,14 @@ namespace WoWonder.Activities.Memories
         {
             try
             {
-                PostFeedAdapter.ListDiffer.Clear();
-                PostFeedAdapter.NotifyDataSetChanged();
+                if (!Methods.CheckConnectivity())
+                {
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    return;
+                }
+
+                PostFeedAdapter?.ListDiffer?.Clear();
+                PostFeedAdapter?.NotifyDataSetChanged();
 
                 StartApiService();
             }
@@ -273,7 +279,7 @@ namespace WoWonder.Activities.Memories
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadMemories() });
         }
@@ -314,13 +320,13 @@ namespace WoWonder.Activities.Memories
                                             TypeView = PostModelType.Section
                                         };
 
-                                        PostFeedAdapter.ListDiffer.Add(section); 
-                                        PostFeedAdapter.NotifyDataSetChanged();
+                                        PostFeedAdapter?.ListDiffer?.Add(section); 
+                                        PostFeedAdapter?.NotifyDataSetChanged();
                                         break;
                                     }
                                 }
 
-                                MainRecyclerView.ApiPostAsync.LoadMemoriesDataApi(apiStatus, respond, PostFeedAdapter.ListDiffer);
+                                MainRecyclerView.ApiPostAsync.LoadMemoriesDataApi(apiStatus, respond, PostFeedAdapter?.ListDiffer);
                                 break;
                             }
                         }
@@ -347,7 +353,7 @@ namespace WoWonder.Activities.Memories
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -371,7 +377,7 @@ namespace WoWonder.Activities.Memories
                     FollowersModel = followersClass
                 };
 
-                PostFeedAdapter.ListDiffer.Insert(0, followersBox); 
+                PostFeedAdapter?.ListDiffer?.Insert(0, followersBox); 
             }
             catch (Exception e)
             {
@@ -385,7 +391,7 @@ namespace WoWonder.Activities.Memories
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                switch (PostFeedAdapter.ListDiffer.Count)
+                switch (PostFeedAdapter?.ListDiffer?.Count)
                 {
                     case > 0:
                         MainRecyclerView.Visibility = ViewStates.Visible;

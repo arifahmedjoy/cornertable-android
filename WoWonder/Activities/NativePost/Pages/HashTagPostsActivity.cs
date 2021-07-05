@@ -12,6 +12,7 @@ using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.SwipeRefreshLayout.Widget;
+using Com.Adcolony.Sdk;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
@@ -141,7 +142,7 @@ namespace WoWonder.Activities.NativePost.Pages
             try
             {
                 base.OnDestroy();
-                MainRecyclerView.ReleasePlayer();
+                MainRecyclerView?.ReleasePlayer();
                 BannerAd?.Destroy();
             }
             catch (Exception e)
@@ -176,7 +177,7 @@ namespace WoWonder.Activities.NativePost.Pages
                 var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolBar != null)
                 {
-                    toolBar.Title = "#" + Tag;
+                    toolBar.Title = "#" + Tag.Replace("#" , "");
                     toolBar.SetTitleTextColor(ContextCompat.GetColor(this, Resource.Color.primary));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
@@ -209,7 +210,10 @@ namespace WoWonder.Activities.NativePost.Pages
                 MainRecyclerView.SetXAdapter(PostFeedAdapter, SwipeRefreshLayout);
 
                 LinearLayout adContainer = FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(this, adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(this, adContainer, MainRecyclerView);
+                else
+                    AdsColony.InitBannerAd(this, adContainer, AdColonyAdSize.Banner, MainRecyclerView);
             }
             catch (Exception e)
             {
@@ -246,9 +250,15 @@ namespace WoWonder.Activities.NativePost.Pages
         private void SwipeRefreshLayoutOnRefresh(object sender, EventArgs e)
         {
             try
-            { 
-                PostFeedAdapter.ListDiffer.Clear();
-                PostFeedAdapter.NotifyDataSetChanged();
+            {
+                if (!Methods.CheckConnectivity())
+                {
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    return;
+                }
+
+                PostFeedAdapter?.ListDiffer?.Clear();
+                PostFeedAdapter?.NotifyDataSetChanged();
 
                 StartApiService();
             }
@@ -263,7 +273,7 @@ namespace WoWonder.Activities.NativePost.Pages
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts(offset, "Add", Tag.Replace("#","")) });
         }

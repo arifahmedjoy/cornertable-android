@@ -60,7 +60,7 @@ namespace WoWonder.NiceArt.Models
             /// undo and redo happens or text is removed
             /// </summary>
             /// <param name="numberOfAddedViews">number of views currently added</param>
-           // void OnRemoveViewListener(int numberOfAddedViews);
+            void OnRemoveViewListener(int numberOfAddedViews);
 
             /// <summary>
             /// This is a callback when user remove any view on the {@link NiceArtEditorView} it happens when usually

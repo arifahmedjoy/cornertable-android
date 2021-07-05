@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content.Res;
 using Android.Graphics;
@@ -10,7 +10,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
-using Java.Lang;
 using Java.Util;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
@@ -94,27 +93,30 @@ namespace WoWonder.Activities.Movies.Adapters
             try
             {
                 GlideImageLoader.LoadImage(ActivityContext, movie.Cover, holder.VideoImage, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                 
+                //GlideImageLoader.LoadImage(ActivityContext, movie., holder.AvatarImage, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+
                 string name = Methods.FunString.DecodeString(movie.Name);
                 holder.TxtTitle.Text = name;
-                holder.TxtDescription.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(movie.Description), 50);
+                holder.TxtSubname.Text = "@" + AppSettings.ApplicationName;
 
                 var millis = Convert.ToInt32(movie.Duration);  
                 int hours = millis / 60; //since both are ints, you get an int
                 int minutes = millis % 60; 
                 holder.TxtDuration.Text = hours + ":" + minutes;
-               
-                holder.TxtViewsCount.Text = movie.Views + " " + ActivityContext.GetText(Resource.String.Lbl_Views);
+                 
+                holder.TxtViewsCount.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(movie.Views)) + " " + ActivityContext.GetText(Resource.String.Lbl_Views);
 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.MenueView, IonIconsFonts.More);
+                holder.TxtTime.Text = Methods.FunString.DecodeString(movie.Release);
+
+                //FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.MenueView, IonIconsFonts.More);
 
                 //Video Type
-                ShowGlobalBadgeSystem(holder.VideoType, movie);
+                //ShowGlobalBadgeSystem(holder.VideoType, movie);
 
-                switch (holder.MenueView.HasOnClickListeners)
+                switch (holder.MoreImage.HasOnClickListeners)
                 {
                     case false:
-                        holder.MenueView.Click +=  (sender, args) => 
+                        holder.MoreImage.Click +=  (sender, args) => 
                         {
                             try
                             {
@@ -302,11 +304,11 @@ namespace WoWonder.Activities.Movies.Adapters
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == ActivityContext.GetString(Resource.String.Lbl_CopeLink))
                 {
                     OnCopeLink_Button_Click(MovieDataMenue);
@@ -352,16 +354,17 @@ namespace WoWonder.Activities.Movies.Adapters
                 MainView = itemView;
 
                 VideoImage = (ImageView) MainView.FindViewById(Resource.Id.Imagevideo);
+                AvatarImage = MainView.FindViewById<ImageView>(Resource.Id.iv_avatar);
                 TxtDuration = MainView.FindViewById<TextView>(Resource.Id.duration);
                 TxtTitle = MainView.FindViewById<TextView>(Resource.Id.Title);
-                TxtDescription = MainView.FindViewById<TextView>(Resource.Id.description);
                 TxtViewsCount = MainView.FindViewById<TextView>(Resource.Id.Views_Count);
-                MenueView = MainView.FindViewById<TextView>(Resource.Id.videoMenue);
-                VideoType = MainView.FindViewById<TextView>(Resource.Id.videoType);
+                TxtSubname = MainView.FindViewById<TextView>(Resource.Id.tv_subname);
+                TxtTime = MainView.FindViewById<TextView>(Resource.Id.tv_time);
+                MoreImage = MainView.FindViewById<ImageView>(Resource.Id.iv_more);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new MoviesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new MoviesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new MoviesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new MoviesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
 
              
             }
@@ -376,13 +379,13 @@ namespace WoWonder.Activities.Movies.Adapters
         public View MainView { get; }
 
         public ImageView VideoImage { get; private set; }
+        public ImageView AvatarImage { get; private set; }
         public TextView TxtDuration { get; private set; }
         public TextView TxtTitle { get; private set; }
-        public TextView TxtDescription { get; private set; }
+        public TextView TxtTime { get; private set; }
         public TextView TxtViewsCount { get; private set; }
-        public TextView MenueView { get; private set; }
-        public TextView VideoType { get; private set; }
-
+        public TextView TxtSubname { get; private set; }
+        public ImageView MoreImage { get; private set; }
         #endregion
     }
 

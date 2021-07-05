@@ -6,21 +6,20 @@ using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
+using Com.Adcolony.Sdk;
 using Newtonsoft.Json;
 using WoWonder.Activities.Games.Adapters;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Utils;
-using WoWonderClient.Classes.Games;
 using Xamarin.Facebook.Ads;
+using WoWonder.Helpers.Model;
 
 namespace WoWonder.Activities.Games.Fragment
 {
@@ -32,7 +31,7 @@ namespace WoWonder.Activities.Games.Fragment
         private GamesActivity ContextGames;
         public SwipeRefreshLayout SwipeRefreshLayout;
         public RecyclerView MRecycler;
-        private GridLayoutManager LayoutManager;
+        private LinearLayoutManager LayoutManager;
         public ViewStub EmptyStateLayout;
         public View Inflated;
         public RecyclerViewOnScrollListener MainScrollEvent;
@@ -117,7 +116,10 @@ namespace WoWonder.Activities.Games.Fragment
                 SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
 
                 LinearLayout adContainer = view.FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(Activity,adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(Activity, adContainer, MRecycler);
+                else
+                    AdsColony.InitBannerAd(Activity, adContainer, AdColonyAdSize.Banner, MRecycler);
             }
             catch (Exception e)
             {
@@ -129,13 +131,16 @@ namespace WoWonder.Activities.Games.Fragment
         {
             try
             {
-                MAdapter = new GamesAdapter(Activity) { GamesList = new ObservableCollection<GamesDataObject>() };
+                MAdapter = new GamesAdapter(Activity) { GamesList = new ObservableCollection<Classes.GameClass>() };
                 MAdapter.ItemClick += MAdapterOnItemClick;
-                LayoutManager = new GridLayoutManager(Context, 2);
-                //LayoutManager.SetSpanSizeLookup(new MySpanSizeLookup(4, 1, 1)); //5, 1, 2 
-                MRecycler.SetLayoutManager(LayoutManager); 
+
+                LayoutManager = new LinearLayoutManager(Activity);
+                MRecycler.SetLayoutManager(LayoutManager);
+
+                //LayoutManager = new GridLayoutManager(Context, 2);
+                //MRecycler.SetLayoutManager(LayoutManager); 
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
-                var preLoader = new RecyclerViewPreloader<GamesDataObject>(Activity, MAdapter, sizeProvider, 10 /*maxPreload*/);
+                var preLoader = new RecyclerViewPreloader<Classes.GameClass>(Activity, MAdapter, sizeProvider, 10 /*maxPreload*/);
                 MRecycler.AddOnScrollListener(preLoader);
                 MRecycler.SetAdapter(MAdapter);
                 MRecycler.HasFixedSize = true;
@@ -165,17 +170,17 @@ namespace WoWonder.Activities.Games.Fragment
             {
                 //Code get last id where LoadMore >>
                 var item = MAdapter.GamesList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item.Id) && !MainScrollEvent.IsLoading)
+                if (item != null && !string.IsNullOrEmpty(item.Game?.Id) && !MainScrollEvent.IsLoading)
                 {
                     if (Methods.CheckConnectivity())
                     {
                         if (string.IsNullOrWhiteSpace(ContextGames.SearchKey) || string.IsNullOrEmpty(ContextGames.SearchKey))
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.GetGames(item.Id) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.GetPopularGames(item.Game?.Id) });
                         else
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.SearchGames(item.Id) });
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.SearchGames(item.Game?.Id) });
                     }
                     else
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show(); 
+                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long); 
                 }
             }
             catch (Exception exception)
@@ -195,9 +200,10 @@ namespace WoWonder.Activities.Games.Fragment
                 MainScrollEvent.IsLoading = false;
 
                 if (Methods.CheckConnectivity())
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.GetGames() });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.GetRecentGames() });
+//                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextGames.GetGames() });
                 else
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
             }
             catch (Exception exception)
             {

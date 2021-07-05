@@ -73,7 +73,7 @@ namespace WoWonder.Activities.Suggested.Adapters
 
                             GlideImageLoader.LoadImage(ActivityContext, item.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
-                            WoWonderTools.SetAddFriendCondition(item.IsFollowing, holder.Button); 
+                            WoWonderTools.SetAddFriendCondition(item,item.IsFollowing, holder.Button); 
                         }
 
                         break;
@@ -210,9 +210,9 @@ namespace WoWonder.Activities.Suggested.Adapters
                 Button = MainView.FindViewById<Button>(Resource.Id.FollowButton);
 
                 //Event
-                Button.Click += (sender, e) => followButtonClickListener(new SuggestionsUserAdapterClickEventArgs { View = itemView, Position = AdapterPosition, BtnAddUser = Button });
-                itemView.Click += (sender, e) => clickListener(new SuggestionsUserAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new SuggestionsUserAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => followButtonClickListener(new SuggestionsUserAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, BtnAddUser = Button });
+                itemView.Click += (sender, e) => clickListener(new SuggestionsUserAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SuggestionsUserAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

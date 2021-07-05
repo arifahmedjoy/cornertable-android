@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Android.App;
-
+using Android.Content;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
+using Bumptech.Glide.Util;
 using Java.Util;
+using Newtonsoft.Json;
+using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.CacheLoaders;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonderClient.Classes.Games;
 using IList = System.Collections.IList;
 
@@ -22,7 +28,12 @@ namespace WoWonder.Activities.Games.Adapters
 
         private readonly Activity ActivityContext;
 
-        public ObservableCollection<GamesDataObject> GamesList = new ObservableCollection<GamesDataObject>();
+        private RecyclerView.RecycledViewPool RecycledViewPool { get; set; }
+        public ObservableCollection<Classes.GameClass> GamesList = new ObservableCollection<Classes.GameClass>();
+
+        private PopularGamesAdapter PopularGamesAdapter;
+        private MyGamesAdapter RecommendGamesAdapter, SearchGamesAdapter;
+        private RecentGamesAdapter RecentGamesAdapter;
 
         public GamesAdapter(Activity context)
         {
@@ -41,11 +52,37 @@ namespace WoWonder.Activities.Games.Adapters
         {
             try
             {
+                switch (viewType)
+                {
+                    case (int)Classes.ItemType.RecommendGame:
+                    case (int)Classes.ItemType.PopularGame:
+                    case (int)Classes.ItemType.RecentGame:
+                    case (int)Classes.ItemType.SearchGame:
+                        {
+                            View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.TemplateRecyclerViewLayout, parent, false);
+                            var vh = new TemplateRecyclerViewHolder(itemView, OnClick, OnLongClick);
+                            RecycledViewPool = new RecyclerView.RecycledViewPool();
+                            vh.MRecycler.SetRecycledViewPool(RecycledViewPool);
+                            return vh;
+                        }
+                    case (int)Classes.ItemType.Section:
+                        {
+                            View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_Section, parent, false);
+                            var vh = new AdapterHolders.SectionViewHolder(itemView);
+                            return vh;
+                        }
+                    case (int)Classes.ItemType.Divider:
+                        {
+                            View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Post_Devider, parent, false);
+                            var vh = new AdapterHolders.PostDividerSectionViewHolder(itemView);
+                            return vh;
+                        }
+                    default:
+                        {
+                            return null;
+                        }
+                }
                 //Setup your layout here >> Style_LastActivities_View
-                View itemView = LayoutInflater.From(parent.Context)
-                    .Inflate(Resource.Layout.Style_GamesView, parent, false);
-                var vh = new GamesAdapterViewHolder(itemView, OnClick, OnLongClick);
-                return vh;
             }
             catch (Exception exception)
             {
@@ -59,18 +96,214 @@ namespace WoWonder.Activities.Games.Adapters
         {
             try
             {
-                switch (viewHolder)
+                var item = GamesList[position];
+                if (item != null)
                 {
-                    case GamesAdapterViewHolder holder:
+                    switch (item.Type)
                     {
-                        var item = GamesList[position];
-                        if (item != null)
-                        {
-                            GlideImageLoader.LoadImage(ActivityContext, item.GameAvatar, holder.Image,ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
-                            holder.Title.Text = Methods.FunString.DecodeString(item.GameName);
-                        }
+                        case Classes.ItemType.PopularGame:
+                            {
+                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                                {
+                                    if (PopularGamesAdapter == null)
+                                    {
+                                        PopularGamesAdapter = new PopularGamesAdapter(ActivityContext, "Wrap_Content")
+                                        {
+                                            GamesList = new ObservableCollection<GamesDataObject>()
+                                        };
 
-                        break;
+                                        LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                        
+                                        holder.MRecycler.SetLayoutManager(layoutManager);
+                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                        holder.MRecycler.NestedScrollingEnabled = false;
+
+                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                        var preLoader = new RecyclerViewPreloader<GamesDataObject>(ActivityContext, PopularGamesAdapter, sizeProvider, 10);
+                                        holder.MRecycler.AddOnScrollListener(preLoader);
+                                        holder.MRecycler.SetAdapter(PopularGamesAdapter);
+                                        //holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, GamesActivity.GetInstance()?.ViewPager));
+                                        PopularGamesAdapter.ItemClick += PopularGamesAdapterOnItemClick;
+
+                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_PopularGames);
+                                        holder.MoreText.Text = ActivityContext.GetText(Resource.String.Lbl_ViewAll);
+                                        holder.MoreText.Visibility = ViewStates.Visible;
+                                        holder.MoreText.Click += MoreTextOnClick;
+                                    }
+
+                                    var countList = item.GameList.Count;
+                                    if (item.GameList.Count is > 0 && countList > 0)
+                                    {
+                                        foreach (var user in from user in item.GameList let check = PopularGamesAdapter.GamesList.FirstOrDefault(a => a.Id == user.Id) where check == null select user)
+                                        {
+                                            PopularGamesAdapter.GamesList.Add(user);
+                                        }
+
+                                        PopularGamesAdapter.NotifyItemRangeInserted(countList, PopularGamesAdapter.GamesList.Count - countList);
+                                    }
+                                    else if (item.GameList.Count is > 0)
+                                    {
+                                        PopularGamesAdapter.GamesList = new ObservableCollection<GamesDataObject>(item.GameList);
+                                        PopularGamesAdapter.NotifyDataSetChanged();
+                                    }
+                                }
+                                break;
+                            }
+                        case Classes.ItemType.RecommendGame:
+                            {
+                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                                {
+                                    if (RecommendGamesAdapter == null)
+                                    {
+                                        RecommendGamesAdapter = new MyGamesAdapter(ActivityContext)
+                                        {
+                                            GamesList = new ObservableCollection<GamesDataObject>()
+                                        };
+
+                                        GridLayoutManager layoutManager = new GridLayoutManager(ActivityContext, 2);
+                                        layoutManager.SetSpanSizeLookup(new MySpanSizeLookup(4, 1, 1));
+
+                                        holder.MRecycler.SetLayoutManager(layoutManager);
+                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+
+                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                        var preLoader = new RecyclerViewPreloader<GamesDataObject>(ActivityContext, RecommendGamesAdapter, sizeProvider, 10);
+                                        holder.MRecycler.AddOnScrollListener(preLoader);
+                                        holder.MRecycler.SetAdapter(RecommendGamesAdapter);
+                                        //holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, GamesActivity.GetInstance()?.ViewPager));
+                                        RecommendGamesAdapter.ItemClick += RecommendGamesAdapterOnItemClick;
+
+                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_GameRecommendations);
+                                        holder.MoreText.Visibility = ViewStates.Gone;
+                                    }
+
+                                    var countList = item.GameList.Count;
+                                    if (item.GameList.Count is > 0 && countList > 0)
+                                    {
+                                        foreach (var user in from user in item.GameList let check = RecommendGamesAdapter.GamesList.FirstOrDefault(a => a.Id == user.Id) where check == null select user)
+                                        {
+                                            RecommendGamesAdapter.GamesList.Add(user);
+                                        }
+
+                                        RecommendGamesAdapter.NotifyItemRangeInserted(countList, RecommendGamesAdapter.GamesList.Count - countList);
+                                    }
+                                    else if (item.GameList.Count is > 0)
+                                    {
+                                        RecommendGamesAdapter.GamesList = new ObservableCollection<GamesDataObject>(item.GameList);
+                                        RecommendGamesAdapter.NotifyDataSetChanged();
+                                    }
+                                }
+                                break;
+                            }
+                        case Classes.ItemType.RecentGame:
+                            {
+                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                                {
+                                    if (RecentGamesAdapter == null)
+                                    {
+                                        RecentGamesAdapter = new RecentGamesAdapter(ActivityContext)
+                                        {
+                                            GamesList = new ObservableCollection<GamesDataObject>()
+                                        };
+
+                                        LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+
+                                        holder.MRecycler.SetLayoutManager(layoutManager);
+                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                        holder.MRecycler.NestedScrollingEnabled = false;
+
+                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                        var preLoader = new RecyclerViewPreloader<GamesDataObject>(ActivityContext, RecentGamesAdapter, sizeProvider, 10);
+                                        holder.MRecycler.AddOnScrollListener(preLoader);
+                                        holder.MRecycler.SetAdapter(RecentGamesAdapter);
+                                        //holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, GamesActivity.GetInstance()?.ViewPager));
+                                        RecentGamesAdapter.ItemClick += PopularGamesAdapterOnItemClick;
+
+                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_RecentlyPlayed);
+                                        holder.MoreText.Visibility = ViewStates.Gone;
+                                    }
+
+                                    var countList = item.GameList.Count;
+                                    if (item.GameList.Count is > 0 && countList > 0)
+                                    {
+                                        foreach (var user in from user in item.GameList let check = RecentGamesAdapter.GamesList.FirstOrDefault(a => a.Id == user.Id) where check == null select user)
+                                        {
+                                            RecentGamesAdapter.GamesList.Add(user);
+                                        }
+
+                                        RecentGamesAdapter.NotifyItemRangeInserted(countList, RecentGamesAdapter.GamesList.Count - countList);
+                                    }
+                                    else if (item.GameList.Count is > 0)
+                                    {
+                                        RecentGamesAdapter.GamesList = new ObservableCollection<GamesDataObject>(item.GameList);
+                                        RecentGamesAdapter.NotifyDataSetChanged();
+                                    }
+                                }
+                                break;
+                            }
+                        case Classes.ItemType.SearchGame:
+                            {
+                                if (viewHolder is TemplateRecyclerViewHolder holder)
+                                {
+                                    if (SearchGamesAdapter == null)
+                                    {
+                                        SearchGamesAdapter = new MyGamesAdapter(ActivityContext)
+                                        {
+                                            GamesList = new ObservableCollection<GamesDataObject>()
+                                        };
+
+                                        GridLayoutManager layoutManager = new GridLayoutManager(ActivityContext, 2);
+                                        layoutManager.SetSpanSizeLookup(new MySpanSizeLookup(4, 1, 1));
+
+                                        holder.MRecycler.SetLayoutManager(layoutManager);
+                                        holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+
+                                        var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                        var preLoader = new RecyclerViewPreloader<GamesDataObject>(ActivityContext, SearchGamesAdapter, sizeProvider, 10);
+                                        holder.MRecycler.AddOnScrollListener(preLoader);
+                                        holder.MRecycler.SetAdapter(SearchGamesAdapter);
+                                        //holder.MRecycler.AddOnItemTouchListener(new RecyclerViewOnItemTouch(holder.MRecycler, GamesActivity.GetInstance()?.ViewPager));
+                                        SearchGamesAdapter.ItemClick += SearchGamesAdapterOnItemClick;
+
+                                        holder.TitleText.Text = ActivityContext.GetText(Resource.String.Lbl_SearchResults);   
+                                        holder.MoreText.Visibility = ViewStates.Gone;
+                                    }
+
+                                    var countList = item.GameList.Count;
+                                    if (item.GameList.Count is > 0 && countList > 0)
+                                    {
+                                        foreach (var user in from user in item.GameList let check = SearchGamesAdapter.GamesList.FirstOrDefault(a => a.Id == user.Id) where check == null select user)
+                                        {
+                                            SearchGamesAdapter.GamesList.Add(user);
+                                        }
+
+                                        SearchGamesAdapter.NotifyItemRangeInserted(countList, SearchGamesAdapter.GamesList.Count - countList);
+                                    }
+                                    else if (item.GameList.Count is > 0)
+                                    {
+                                        SearchGamesAdapter.GamesList = new ObservableCollection<GamesDataObject>(item.GameList);
+                                        SearchGamesAdapter.NotifyDataSetChanged();
+                                    }
+                                }
+                                break;
+                            }
+                        case Classes.ItemType.Section:
+                            {
+                                switch (viewHolder)
+                                {
+                                    case AdapterHolders.SectionViewHolder holder:
+                                        {
+                                            holder.AboutHead.Text = item.Title;
+
+                                            break;
+                                        }
+                                }
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                 }
             }
@@ -79,6 +312,74 @@ namespace WoWonder.Activities.Games.Adapters
                 Methods.DisplayReportResultTrack(exception);
             }
         }
+
+        private void SearchGamesAdapterOnItemClick(object sender, MyGamesAdapterViewHolderClickEventArgs e)
+        {
+            try
+            {
+                var item = SearchGamesAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    var intent = new Intent(ActivityContext, typeof(GamesViewActivity));
+                    intent.PutExtra("ItemObject", JsonConvert.SerializeObject(item));
+                    ActivityContext.StartActivity(intent);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void RecommendGamesAdapterOnItemClick(object sender, MyGamesAdapterViewHolderClickEventArgs e)
+        {
+            try
+            {
+                var item = RecommendGamesAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    var intent = new Intent(ActivityContext, typeof(GamesViewActivity));
+                    intent.PutExtra("ItemObject", JsonConvert.SerializeObject(item));
+                    ActivityContext.StartActivity(intent);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void MoreTextOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var intent = new Intent(ActivityContext, typeof(PopularGamesActivity));
+                ActivityContext.StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void PopularGamesAdapterOnItemClick(object sender, GamesAdapterViewHolderClickEventArgs e)
+        {
+            try
+            {
+                var item = PopularGamesAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    var intent = new Intent(ActivityContext, typeof(GamesViewActivity));
+                    intent.PutExtra("ItemObject", JsonConvert.SerializeObject(item));
+                    ActivityContext.StartActivity(intent);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
         public override void OnViewRecycled(Java.Lang.Object holder)
         {
             try
@@ -101,7 +402,7 @@ namespace WoWonder.Activities.Games.Adapters
         }
         public override int ItemCount => GamesList?.Count ?? 0;
 
-        public GamesDataObject GetItem(int position)
+        public Classes.GameClass GetItem(int position)
         {
             return GamesList[position];
         }
@@ -123,7 +424,17 @@ namespace WoWonder.Activities.Games.Adapters
         {
             try
             {
-                return position;
+                var item = GamesList[position];
+                return item.Type switch
+                {
+                    Classes.ItemType.RecentGame => (int)Classes.ItemType.RecentGame,
+                    Classes.ItemType.RecommendGame => (int)Classes.ItemType.RecommendGame,
+                    Classes.ItemType.PopularGame => (int)Classes.ItemType.PopularGame,
+                    Classes.ItemType.MyGame => (int)Classes.ItemType.MyGame,
+                    Classes.ItemType.Section => (int)Classes.ItemType.Section,
+                    Classes.ItemType.Divider => (int)Classes.ItemType.Divider,
+                    _ => (int)Classes.ItemType.PopularGame
+                };
             }
             catch (Exception exception)
             {
@@ -147,10 +458,10 @@ namespace WoWonder.Activities.Games.Adapters
                         return d;
                     default:
                     {
-                        switch (string.IsNullOrEmpty(item.GameAvatar))
+                        switch (string.IsNullOrEmpty(item.Game?.GameAvatar))
                         {
                             case false:
-                                d.Add(item.GameAvatar);
+                                d.Add(item.Game?.GameAvatar);
                                 break;
                         }
 
@@ -191,8 +502,8 @@ namespace WoWonder.Activities.Games.Adapters
                 Title = (TextView)MainView.FindViewById(Resource.Id.title);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new GamesAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new GamesAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new GamesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new GamesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {
@@ -200,6 +511,52 @@ namespace WoWonder.Activities.Games.Adapters
             }
         }
     }
+
+    class TemplateRecyclerViewHolder : RecyclerView.ViewHolder
+    {
+        #region Variables Basic
+
+        public View MainView { get; private set; }
+        public LinearLayout MainLinear { get; private set; }
+        public TextView TitleText { get; private set; }
+        public TextView IconTitle { get; private set; }
+        public TextView DescriptionText { get; private set; }
+        public TextView MoreText { get; private set; }
+        public RecyclerView MRecycler { get; private set; }
+
+        #endregion
+
+        public TemplateRecyclerViewHolder(View itemView, Action<GamesAdapterViewHolderClickEventArgs> clickListener, Action<GamesAdapterViewHolderClickEventArgs> longClickListener) : base(itemView)
+        {
+            try
+            {
+                MainView = itemView;
+
+                MainLinear = (LinearLayout)itemView.FindViewById(Resource.Id.mainLinear);
+                TitleText = (TextView)itemView.FindViewById(Resource.Id.textTitle);
+                IconTitle = (TextView)itemView.FindViewById(Resource.Id.iconTitle);
+                DescriptionText = (TextView)itemView.FindViewById(Resource.Id.textSecondery);
+                MoreText = (TextView)itemView.FindViewById(Resource.Id.textMore);
+                MRecycler = (RecyclerView)itemView.FindViewById(Resource.Id.recyler);
+
+                IconTitle.Visibility = ViewStates.Gone;
+                DescriptionText.Visibility = ViewStates.Gone;
+
+                MRecycler.HasFixedSize = true;
+                MRecycler.SetItemViewCacheSize(10);
+
+                //Create an Event
+                itemView.Click += (sender, e) => clickListener(new GamesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new GamesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+    }
+
+
 
     public class GamesAdapterViewHolderClickEventArgs : EventArgs
     {

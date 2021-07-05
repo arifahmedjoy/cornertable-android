@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,17 +11,18 @@ using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide.Util;
 using Java.IO;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Chat.Adapters;
 using WoWonder.Activities.Chat.ChatWindow.Adapters;
 using WoWonder.Activities.Chat.Viewer;
+using WoWonder.Activities.NativePost.Pages;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
@@ -72,9 +73,8 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 InitComponent();
                 InitToolbar();
                 SetRecyclerViewAdapters();
-
+                 
                 GetMessages();
-
                 AdsGoogle.Ad_Interstitial(this);
             }
             catch (Exception e)
@@ -158,12 +158,13 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 if (toolbar != null)
                 {
                     toolbar.Title = GetText(Resource.String.Lbl_PinnedMessage);
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -270,7 +271,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                     i.SetData(Uri.Parse(item.MesData.Media));
                                     i.SetType(mimeType);
                                     StartActivity(i);
-                                    // Toast.MakeText(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                    // ToastUtils.ShowToast(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 }
 
                                 break;
@@ -382,7 +383,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     if (SelectedItemPositions != null)
                     {
                         var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         if (e.Type == Holders.TypeClick.Text)
                             arrayAdapter.Add(GetText(Resource.String.Lbl_Copy));
@@ -419,34 +420,34 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_Copy))
+                if (itemString == GetText(Resource.String.Lbl_Copy))
                 {
                     CopyItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_MessageInfo))
+                else if (itemString == GetText(Resource.String.Lbl_MessageInfo))
                 {
                     var intent = new Intent(this, typeof(MessageInfoActivity));
                     intent.PutExtra("UserId", UserId);
                     intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
                     StartActivity(intent);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Forward))
+                else if (itemString == GetText(Resource.String.Lbl_Forward))
                 {
                     ForwardItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_DeleteMessage))
+                else if (itemString == GetText(Resource.String.Lbl_DeleteMessage))
                 {
                     DeleteMessageItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_UnFavorite) || itemString.ToString() == GetText(Resource.String.Lbl_Favorite))
+                else if (itemString == GetText(Resource.String.Lbl_UnFavorite) || itemString == GetText(Resource.String.Lbl_Favorite))
                 {
                     StarMessageItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_UnPin) || itemString.ToString() == GetText(Resource.String.Lbl_Pin))
+                else if (itemString == GetText(Resource.String.Lbl_UnPin) || itemString == GetText(Resource.String.Lbl_Pin))
                 {
                     PinMessageItems();
                 }
@@ -582,6 +583,9 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         #endregion
 
+
+        #region Load Pinned 
+
         private void GetMessages()
         {
             try
@@ -602,6 +606,68 @@ namespace WoWonder.Activities.Chat.ChatWindow
             }
         }
 
+        //public void StartApiService()
+        //{
+        //    if (!Methods.CheckConnectivity())
+        //        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+        //    else
+        //        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadPinned });
+        //}
+
+        //private async Task LoadPinned()
+        //{
+        //    if (Methods.CheckConnectivity())
+        //    {
+        //        var countList = MAdapter.DifferList.Count;
+        //        var (apiStatus, respond) = await RequestsAsync.Message.GetPinMessageAsync();
+        //        if (apiStatus != 200 || respond is not UserMessagesObject result || result.Messages == null)
+        //        {
+        //            Methods.DisplayReportResult(this, respond);
+        //        }
+        //        else
+        //        {
+        //            var respondList = result.Messages?.Count;
+        //            if (respondList > 0)
+        //            {
+        //                //if (countList > 0)
+        //                //{
+        //                //    foreach (var item in from item in result.Messages let check = MAdapter.DifferList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+        //                //    {
+        //                //        MAdapter.LastChatsList.Add(item);
+        //                //    }
+
+        //                //    RunOnUiThread(() =>
+        //                //    {
+        //                //        MAdapter.NotifyItemRangeInserted(countList, MAdapter.LastChatsList.Count - countList);
+        //                //    });
+        //                //}
+        //                //else
+        //                //{
+        //                //    // MAdapter.LastChatsList = new ObservableCollection<PostDataObject>(result.Data);
+        //                //    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+        //                //}
+        //            }
+        //        }
+
+        //        RunOnUiThread(ShowEmptyPage);
+        //    }
+        //    else
+        //    {
+        //        Inflated = EmptyStateLayout.Inflate();
+        //        EmptyStateInflater x = new EmptyStateInflater();
+        //        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
+        //        switch (x.EmptyStateButton.HasOnClickListeners)
+        //        {
+        //            case false:
+        //                x.EmptyStateButton.Click += null!;
+        //                x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+        //                break;
+        //        }
+
+        //        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+        //    }
+        //}
+
         private void ShowEmptyPage()
         {
             try
@@ -613,6 +679,11 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 {
                     MRecycler.Visibility = ViewStates.Visible;
                     EmptyStateLayout.Visibility = ViewStates.Gone;
+
+                    //ChatWindowActivity.GetInstance().PinnedMessageList = new ObservableCollection<AdapterModelsClassMessage>(MAdapter.DifferList);
+
+                    //SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                    //dbDatabase.Insert_Or_Replace_PinnedMessagesTable(MAdapter.DifferList);
                 }
                 else
                 {
@@ -624,7 +695,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoPinnedMessages);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
@@ -636,5 +707,20 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 Methods.DisplayReportResultTrack(e);
             }
         }
+         
+        //No Internet Connection 
+        //private void EmptyStateButtonOnClick(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        StartApiService();
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Methods.DisplayReportResultTrack(exception);
+        //    }
+        //}
+
+        #endregion 
     }
 }

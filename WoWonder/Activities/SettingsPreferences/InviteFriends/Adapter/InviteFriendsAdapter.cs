@@ -157,8 +157,8 @@ namespace WoWonder.Activities.SettingsPreferences.InviteFriends.Adapter
 
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new InviteFriendsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new InviteFriendsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new InviteFriendsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new InviteFriendsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
                
                 ImageLastSeen.Visibility = ViewStates.Gone;

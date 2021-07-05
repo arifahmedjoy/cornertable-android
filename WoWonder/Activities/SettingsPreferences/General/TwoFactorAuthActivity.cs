@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -12,11 +12,9 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Global;
@@ -31,7 +29,6 @@ namespace WoWonder.Activities.SettingsPreferences.General
     {
         #region Variables Basic
 
-        private TextView IconTwoFactor;
         private EditText TxtTwoFactor, TxtTwoFactorCode;
         private Button SaveButton;
         private string TypeTwoFactor, TypeDialog = "Confirmation";
@@ -149,7 +146,6 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                IconTwoFactor = FindViewById<TextView>(Resource.Id.IconTwoFactor);
                 TxtTwoFactor = FindViewById<EditText>(Resource.Id.TwoFactorEditText);
 
                 //IconTwoFactorCode = FindViewById<TextView>(Resource.Id.IconTwoCodeFactor);
@@ -158,8 +154,6 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 TxtTwoFactorCode.Visibility = ViewStates.Invisible;
 
                 SaveButton = FindViewById<Button>(Resource.Id.SaveButton);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTwoFactor, FontAwesomeIcon.ShieldAlt);
 
                 Methods.SetColorEditText(TxtTwoFactor, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
@@ -235,10 +229,9 @@ namespace WoWonder.Activities.SettingsPreferences.General
         private void DestroyBasic()
         {
             try
-            {  
-                IconTwoFactor = null!;
+            {
                 TxtTwoFactor = null!;
-                TxtTwoFactorCode = null!; 
+                TxtTwoFactorCode = null!;
                 SaveButton = null!;
                 TypeTwoFactor = null!;
                 TypeDialog = null!;
@@ -259,13 +252,13 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 if (string.IsNullOrEmpty(TxtTwoFactorCode.Text) || string.IsNullOrWhiteSpace(TxtTwoFactorCode.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                     return;
                 }
 
@@ -276,33 +269,33 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 switch (apiStatus)
                 {
                     case 200:
-                    {
-                        switch (respond)
                         {
-                            case MessageObject result:
+                            switch (respond)
                             {
-                                Console.WriteLine(result.Message);
+                                case MessageObject result:
+                                    {
+                                        Console.WriteLine(result.Message);
 
-                                var local = ListUtils.MyProfileList?.FirstOrDefault();
-                                if (local != null)
-                                {
-                                    local.TwoFactor = "1";
+                                        var local = ListUtils.MyProfileList?.FirstOrDefault();
+                                        if (local != null)
+                                        {
+                                            local.TwoFactor = "1";
 
-                                    var sqLiteDatabase = new SqLiteDatabase();
-                                    sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(local);
-                            
-                                }
+                                            var sqLiteDatabase = new SqLiteDatabase();
+                                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(local);
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_TwoFactorOn), ToastLength.Short)?.Show();
-                                AndHUD.Shared.Dismiss(this);
+                                        }
 
-                                Finish();
-                                break;
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_TwoFactorOn), ToastLength.Short);
+                                        AndHUD.Shared.Dismiss(this);
+
+                                        Finish();
+                                        break;
+                                    }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
                         Methods.DisplayAndHudErrorResult(this, respond);
                         break;
@@ -323,7 +316,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                 TypeDialog = "Confirmation";
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = new List<string>
                 {
@@ -348,7 +341,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -358,44 +351,63 @@ namespace WoWonder.Activities.SettingsPreferences.General
                         switch (TypeTwoFactor)
                         {
                             case "on":
-                            {
-                                //Show a progress
-                                AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
-
-                                var (apiStatus, respond) = await RequestsAsync.Global.UpdateTwoFactorAsync();
-                                switch (apiStatus)
                                 {
-                                    case 200:
+                                    //Show a progress
+                                    AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
+
+                                    int apiStatus; dynamic respond;
+                                    if (ListUtils.SettingsSiteList?.TwoFactorType == "phone")
                                     {
-                                        if (respond is not MessageObject result) return;
-                                        if (result.Message.Contains("confirmation code sent"))
+                                        var phoneNumber = ListUtils.MyProfileList.FirstOrDefault()?.PhoneNumber;
+                                        if (!string.IsNullOrEmpty(phoneNumber) && Methods.FunString.IsPhoneNumber(phoneNumber))
                                         {
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_ConfirmationCodeSent), ToastLength.Short)?.Show();
-
-                                            AndHUD.Shared.Dismiss(this);
-
-                                            TypeDialog = "ConfirmationCode";
-
-                                            TxtTwoFactorCode.Visibility = ViewStates.Visible;
-                                            SaveButton.Text = GetText(Resource.String.Btn_Send);
+                                            (apiStatus, respond) = await RequestsAsync.Global.UpdateTwoFactorAsync(phoneNumber);
                                         }
                                         else
                                         {
-                                            //Show a Error image with a message
-                                            AndHUD.Shared.ShowError(this, result.Message, MaskType.Clear, TimeSpan.FromSeconds(1));
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PhoneNumberIsWrong), ToastLength.Short);
+                                            AndHUD.Shared.Dismiss(this);
+                                            return;
                                         }
-
-                                        break;
                                     }
-                                    default:
-                                        Methods.DisplayAndHudErrorResult(this, respond);
-                                        break;
-                                }
+                                    else
+                                    {
+                                        (apiStatus, respond) = await RequestsAsync.Global.UpdateTwoFactorAsync();
+                                    }
 
-                                break;
-                            }
+                                    switch (apiStatus)
+                                    {
+                                        case 200:
+                                            {
+                                                if (respond is not MessageObject result) return;
+                                                if (result.Message.Contains("confirmation code sent"))
+                                                {
+                                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ConfirmationCodeSent), ToastLength.Short);
+
+                                                    AndHUD.Shared.Dismiss(this);
+
+                                                    TypeDialog = "ConfirmationCode";
+
+                                                    TxtTwoFactorCode.Visibility = ViewStates.Visible;
+                                                    SaveButton.Text = GetText(Resource.String.Btn_Send);
+                                                }
+                                                else
+                                                {
+                                                    //Show a Error image with a message
+                                                    AndHUD.Shared.ShowError(this, result.Message, MaskType.Clear, TimeSpan.FromSeconds(1));
+                                                }
+
+                                                break;
+                                            }
+                                        default:
+                                            Methods.DisplayAndHudErrorResult(this, respond);
+                                            break;
+                                    }
+
+                                    break;
+                                }
                             case "off":
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { RequestsAsync.Global.UpdateTwoFactorAsync });
+                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateTwoFactorAsync() });
                                 var local = ListUtils.MyProfileList?.FirstOrDefault();
                                 if (local != null)
                                 {
@@ -403,7 +415,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                                     var sqLiteDatabase = new SqLiteDatabase();
                                     sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(local);
-                                
+
                                 }
 
                                 Finish();
@@ -427,17 +439,17 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_Enable))
+                if (itemString == GetText(Resource.String.Lbl_Enable))
                 {
                     TxtTwoFactor.Text = GetText(Resource.String.Lbl_Enable);
                     TypeTwoFactor = "on";
                     TxtTwoFactorCode.Visibility = ViewStates.Invisible;
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Disable))
+                else if (itemString == GetText(Resource.String.Lbl_Disable))
                 {
                     TxtTwoFactor.Text = GetText(Resource.String.Lbl_Disable);
                     TypeTwoFactor = "off";

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -18,7 +18,6 @@ using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.IO;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.MyProfile;
 using WoWonder.Activities.NativePost.Extra;
@@ -37,7 +36,7 @@ using Uri = Android.Net.Uri;
 namespace WoWonder.Activities.Advertise
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class CreateAdvertiseActivity : BaseActivity, MaterialDialog.IListCallback , MaterialDialog.ISingleButtonCallback 
+    public class CreateAdvertiseActivity : BaseActivity, MaterialDialog.IListCallback , MaterialDialog.ISingleButtonCallback , MaterialDialog.IListCallbackMultiChoice
     {
         #region Variables Basic
 
@@ -338,7 +337,7 @@ namespace WoWonder.Activities.Advertise
                 TypeDialog = "Bidding";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_BiddingClick)); //clicks
                 arrayAdapter.Add(GetText(Resource.String.Lbl_BiddingViews)); //views
@@ -364,7 +363,7 @@ namespace WoWonder.Activities.Advertise
                 TypeDialog = "Placement";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_PlacementPost)); //post
                 arrayAdapter.Add(GetText(Resource.String.Lbl_PlacementSidebar)); //sidebar
@@ -394,10 +393,10 @@ namespace WoWonder.Activities.Advertise
                 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
                
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 dialogList.Title(GetText(Resource.String.Lbl_Audience)).TitleColorRes(Resource.Color.primary)
                     .Items(arrayAdapter)
-                    .ItemsCallbackMultiChoice(arrayIndexAdapter, OnSelection)
+                    .ItemsCallbackMultiChoice(arrayIndexAdapter, this)
                     .AlwaysCallMultiChoiceCallback()
                     .AutoDismiss(false)
                     .PositiveText(GetText(Resource.String.Lbl_Close)).OnPositive(this)
@@ -435,7 +434,7 @@ namespace WoWonder.Activities.Advertise
                 TypeDialog = "MyPages";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 switch (ListUtils.MyPageList?.Count)
                 {
@@ -465,7 +464,7 @@ namespace WoWonder.Activities.Advertise
                 TypeDialog = "Genders";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_All));
 
@@ -502,7 +501,7 @@ namespace WoWonder.Activities.Advertise
 
                 var countriesArray = WoWonderTools.GetCountryList(this);
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
 
@@ -563,91 +562,91 @@ namespace WoWonder.Activities.Advertise
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {    
                     if (string.IsNullOrEmpty(TxtName.Text) || string.IsNullOrWhiteSpace(TxtName.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
                      
                     if (string.IsNullOrEmpty(TxtTitle.Text) || string.IsNullOrWhiteSpace(TxtTitle.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short);
                         return;
                     }
                      
                     if (string.IsNullOrEmpty(TxtDescription.Text) || string.IsNullOrWhiteSpace(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtStartDate.Text) || string.IsNullOrWhiteSpace(TxtStartDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtEndDate.Text) || string.IsNullOrWhiteSpace(TxtEndDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtWebsite.Text) || string.IsNullOrWhiteSpace(TxtWebsite.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Website), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Website), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtMyPages.Text) || string.IsNullOrWhiteSpace(TxtMyPages.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_page), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_page), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtLocation.Text) || string.IsNullOrWhiteSpace(TxtLocation.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtAudience.Text) || string.IsNullOrWhiteSpace(TxtAudience.Text) || string.IsNullOrEmpty(TotalIdAudienceChecked))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Audience), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Audience), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtGender.Text) || string.IsNullOrWhiteSpace(TxtGender.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Gender), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Gender), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtPlacement.Text) || string.IsNullOrWhiteSpace(TxtPlacement.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Placement), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Placement), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtBudget.Text) || string.IsNullOrWhiteSpace(TxtBudget.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Budget), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Budget), ToastLength.Short);
                         return;
                     }
                     
                     if (string.IsNullOrEmpty(TxtBidding.Text) || string.IsNullOrWhiteSpace(TxtBidding.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Bidding), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Bidding), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(PathImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                         return;
                     }
 
@@ -685,31 +684,25 @@ namespace WoWonder.Activities.Advertise
                                 case CreateAdvertiseObject result:
                                 {
                                     AndHUD.Shared.Dismiss(this);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short);
 
                                     //Add new item to list
                                     if (result.Data?.PostClass != null)
                                     {
                                         result.Data.Value.PostClass.PostType = "ad";
 
-                                        var countList = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
-                                 
-                                        var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer, this);
+                                        var countList = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ItemCount ?? 0;
+
+                                                var combine = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer, this);
                                         combine.AddAdsPost();
 
                                         int countIndex = 1;
-                                        var model1 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                        var model2 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                        var model3 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                        var model4 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                        var model5 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                        var model1 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                        var model2 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                        var model4 = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
 
-                                        if (model5 != null)
-                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
-                                        else if (model4 != null)
+                                        if (model4 != null)
                                             countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                        else if (model3 != null)
-                                            countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
                                         else if (model2 != null)
                                             countIndex += GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
                                         else if (model1 != null)
@@ -717,35 +710,29 @@ namespace WoWonder.Activities.Advertise
                                         else
                                             countIndex = 0;
 
-                                        var emptyStateChecker = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                        if (emptyStateChecker != null && GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
+                                        var emptyStateChecker = GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                        if (emptyStateChecker != null && GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.Count > 1)
                                             GlobalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
 
-                                        GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
+                                        GlobalContextTabbed.NewsFeedTab.PostFeedAdapter?.NotifyItemRangeInserted(countIndex, GlobalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
 
                                         // My Profile
                                         MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
                                         if (myProfileActivity != null)
                                         { 
-                                            var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+                                            var countList1 = myProfileActivity.PostFeedAdapter?.ItemCount ?? 0;
 
-                                            var combine1 = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), myProfileActivity.PostFeedAdapter.ListDiffer, this);
+                                            var combine1 = new FeedCombiner(ApiPostAsync.RegexFilterText(result.Data.Value.PostClass), myProfileActivity.PostFeedAdapter?.ListDiffer, this);
 
                                             combine1.AddAdsPost();
 
                                             int countIndex1 = 1;
-                                            var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                            var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                            var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                            var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                            var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                            var model11 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                            var model21 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                            var model41 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
 
-                                            if (model51 != null)
-                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
-                                            else if (model41 != null)
+                                            if (model41 != null)
                                                 countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
-                                            else if (model31 != null)
-                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
                                             else if (model21 != null)
                                                 countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
                                             else if (model11 != null)
@@ -753,11 +740,11 @@ namespace WoWonder.Activities.Advertise
                                             else
                                                 countIndex1 = 0;
 
-                                            var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                            if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                            var emptyStateChecker1 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                            if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter?.ListDiffer?.Count > 1)
                                                 myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
 
-                                            myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                            myProfileActivity.PostFeedAdapter?.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
                                         }
                                     }
 
@@ -776,8 +763,8 @@ namespace WoWonder.Activities.Advertise
             }
             catch (Exception exception)
             {
-                Methods.DisplayReportResultTrack(exception);
                 AndHUD.Shared.Dismiss(this);
+                Methods.DisplayReportResultTrack(exception);
             }
         }
 
@@ -821,7 +808,7 @@ namespace WoWonder.Activities.Advertise
                                                 break;
                                             }
                                             default:
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                                 break;
                                         }
 
@@ -856,7 +843,7 @@ namespace WoWonder.Activities.Advertise
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -872,6 +859,12 @@ namespace WoWonder.Activities.Advertise
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher
@@ -924,37 +917,37 @@ namespace WoWonder.Activities.Advertise
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
-                    case "Genders" when itemString.ToString() == GetText(Resource.String.Lbl_All):
+                    case "Genders" when itemString == GetText(Resource.String.Lbl_All):
                         TxtGender.Text = GetText(Resource.String.Lbl_All);
                         GenderStatus = "all";
                         break;
                     case "Genders" when ListUtils.SettingsSiteList?.Genders?.Count > 0:
                     {
-                        var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString.ToString()).Key;
+                        var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString).Key;
                         if (key != null)
                         {
-                            TxtGender.Text = itemString.ToString();
+                            TxtGender.Text = itemString;
                             GenderStatus = key;
                         }
                         else
                         {
-                            TxtGender.Text = itemString.ToString();
+                            TxtGender.Text = itemString;
                             GenderStatus = "male";
                         }
 
                         break;
                     }
-                    case "Genders" when itemString.ToString() == GetText(Resource.String.Radio_Male):
+                    case "Genders" when itemString == GetText(Resource.String.Radio_Male):
                         TxtGender.Text = GetText(Resource.String.Radio_Male);
                         GenderStatus = "male";
                         break;
-                    case "Genders" when itemString.ToString() == GetText(Resource.String.Radio_Female):
+                    case "Genders" when itemString == GetText(Resource.String.Radio_Female):
                         TxtGender.Text = GetText(Resource.String.Radio_Female);
                         GenderStatus = "female";
                         break;
@@ -963,45 +956,45 @@ namespace WoWonder.Activities.Advertise
                         GenderStatus = "male";
                         break;
                     case "Country":
-                        TxtLocation.Text = itemString.ToString();
+                        TxtLocation.Text = itemString;
                         break;
                     case "MyPages":
                     {
-                        var dataPage = ListUtils.MyPageList[itemId];
+                        var dataPage = ListUtils.MyPageList[position];
                         if (dataPage != null)
                         {
                             TxtWebsite.Text = dataPage.Url;
                         }
 
-                        TxtMyPages.Text = itemString.ToString();
+                        TxtMyPages.Text = itemString;
                         break;
                     }
                     case "Placement":
                     {
-                        if (itemString.ToString() == GetText(Resource.String.Lbl_PlacementPost))
+                        if (itemString == GetText(Resource.String.Lbl_PlacementPost))
                         {
                             PlacementStatus = "post";
                         }
-                        else if (itemString.ToString() == GetText(Resource.String.Lbl_PlacementSidebar))
+                        else if (itemString == GetText(Resource.String.Lbl_PlacementSidebar))
                         {
                             PlacementStatus = "sidebar";
                         } 
 
-                        TxtPlacement.Text = itemString.ToString();
+                        TxtPlacement.Text = itemString;
                         break;
                     }
                     case "Bidding":
                     {
-                        if (itemString.ToString() == GetText(Resource.String.Lbl_BiddingClick))
+                        if (itemString == GetText(Resource.String.Lbl_BiddingClick))
                         {
                             BiddingStatus = "clicks";
                         }
-                        else if (itemString.ToString() == GetText(Resource.String.Lbl_BiddingViews))
+                        else if (itemString == GetText(Resource.String.Lbl_BiddingViews))
                         {
                             BiddingStatus = "views";
                         }
 
-                        TxtBidding.Text = itemString.ToString();
+                        TxtBidding.Text = itemString;
                         break;
                     }
                 }
@@ -1012,7 +1005,7 @@ namespace WoWonder.Activities.Advertise
             }
         }
 
-        private bool OnSelection(MaterialDialog dialog, int[] which, string[] text)
+        bool MaterialDialog.IListCallbackMultiChoice.OnSelection(MaterialDialog dialog, int[] which, string[] text)
         {
             try
             {
@@ -1071,6 +1064,6 @@ namespace WoWonder.Activities.Advertise
         }
          
         #endregion
-         
+
     }
 }

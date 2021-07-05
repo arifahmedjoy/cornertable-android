@@ -6,14 +6,11 @@ using Android.App;
 using Android.Content;
 using Android.Graphics;
 using Android.Media;
-
-
 using Android.Views;
 using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
-using Com.Tuyenmonkey.Textdecorator;
 using Java.IO;
 using Java.Util;
 using WoWonder.Activities.Comment.Fragment;
@@ -23,7 +20,6 @@ using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.UserProfile;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.Anjo;
@@ -44,7 +40,7 @@ namespace WoWonder.Activities.Comment.Adapters
         public new Timer MediaTimer { get; set; } 
     }
 
-    public class CommentAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider ,StTools.IXAutoLinkOnClickListener
+    public class CommentAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider, StTools.IXAutoLinkOnClickListener
     {
         public string EmptyState = "Wo_Empty_State";
         public readonly Activity ActivityContext;
@@ -83,23 +79,19 @@ namespace WoWonder.Activities.Comment.Adapters
         {
             try
             {
-                return viewType switch
+                switch (viewType)
                 {
-                    0 => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
-                        this, PostEventListener),
-                    1 => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)
-                            ?.Inflate(Resource.Layout.Style_Comment_Image, parent, false), this, PostEventListener),
-                    2 => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)
-                            ?.Inflate(Resource.Layout.Style_Comment_Voice, parent, false), this, PostEventListener),
-                    666 => new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)
-                        ?.Inflate(Resource.Layout.Style_EmptyState, parent, false)),
-                    _ => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
-                        this, PostEventListener)
-                };
+                    case 0:
+                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
+                    case 1:
+                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment_Image, parent, false), this, PostEventListener);
+                    case 2:
+                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment_Voice, parent, false), this, PostEventListener);
+                    case 666:
+                        return new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_EmptyState, parent, false));
+                    default:
+                        return new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
+                }
             }
             catch (Exception exception)
             {
@@ -124,46 +116,19 @@ namespace WoWonder.Activities.Comment.Adapters
                 }
 
                 holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time) , true);
-                holder.UserName.Text = item.Publisher.Name;
+                
 
                 GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-
-                var textHighLighter = WoWonderTools.GetNameFinal(item.Publisher);
-                var textIsPro = string.Empty;
-
-                switch (item.Publisher.Verified)
-                {
-                    case "1":
-                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
-                        break;
-                }
-
-                switch (item.Publisher.IsPro)
-                {
-                    case "1":
-                        textIsPro = " " + IonIconsFonts.Flash;
-                        textHighLighter += textIsPro;
-                        break;
-                }
-
-                var decorator = TextDecorator.Decorate(holder.UserName, textHighLighter).SetTextStyle((int)TypefaceStyle.Bold, 0, item.Publisher.Name.Length);
+                 
+                holder.UserName.Text = WoWonderTools.GetNameFinal(item.Publisher);
 
                 switch (item.Publisher.Verified)
                 {
                     case "1":
-                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
+                        holder.UserName.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
                         break;
                 }
-
-                switch (item.Publisher.IsPro)
-                {
-                    case "1":
-                        decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
-                        break;
-                }
-
-                decorator.Build();
-
+                  
                 //Image
                 if (holder.ItemViewType == 1 || holder.CommentImage != null)
                 {
@@ -180,7 +145,7 @@ namespace WoWonder.Activities.Comment.Adapters
                         }
                         default:
                         {
-                            item.CFile = item.CFile.Contains(Client.WebsiteUrl) switch
+                            item.CFile = item.CFile.Contains(InitializeWoWonder.WebsiteUrl) switch
                             {
                                 false => WoWonderTools.GetTheFinalLink(item.CFile),
                                 _ => item.CFile
@@ -386,6 +351,8 @@ namespace WoWonder.Activities.Comment.Adapters
                         if (viewHolder is not AdapterHolders.EmptyStateAdapterViewHolder emptyHolder)
                             return;
 
+                        emptyHolder.EmptyImage.SetImageResource(Resource.Drawable.comment_emptstate);
+ 
                         var itemEmpty = CommentList.FirstOrDefault(a => a.Id == EmptyState);
                         if (itemEmpty != null && !string.IsNullOrEmpty(itemEmpty.Orginaltext))
                         {

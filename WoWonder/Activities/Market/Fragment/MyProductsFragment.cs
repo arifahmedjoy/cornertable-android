@@ -5,9 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
-using Android.OS;
-
-
+using Android.OS; 
 using Android.Views;
 using Android.Views.Animations;
 using Android.Widget;
@@ -15,12 +13,13 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
+using Com.Adcolony.Sdk;
 using Newtonsoft.Json;
 using WoWonder.Activities.Market.Adapters;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
-using WoWonderClient.Classes.Product;
 using Xamarin.Facebook.Ads;
 
 namespace WoWonder.Activities.Market.Fragment
@@ -119,7 +118,10 @@ namespace WoWonder.Activities.Market.Fragment
                 SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
 
                 LinearLayout adContainer = view.FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(Activity,adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(Activity, adContainer, MRecycler);
+                else
+                    AdsColony.InitBannerAd(Activity, adContainer, AdColonyAdSize.Banner, MRecycler);
             }
             catch (Exception e)
             {
@@ -131,16 +133,15 @@ namespace WoWonder.Activities.Market.Fragment
         {
             try
             {
-                MAdapter = new MarketAdapter(Activity) { MarketList = new ObservableCollection<ProductDataObject>() };
+                MAdapter = new MarketAdapter(Activity) { MarketList = new ObservableCollection<Classes.ProductClass>() };
                 MAdapter.ItemClick += MAdapterOnItemClick;
                 LayoutManager = new GridLayoutManager(Activity, 2);
-                LayoutManager.SetSpanSizeLookup(new MySpanSizeLookup(7, 1, 2));
                 MRecycler.AddItemDecoration(new GridSpacingItemDecoration(2, 10, true));
                 MRecycler.SetLayoutManager(LayoutManager);
                 var animation = AnimationUtils.LoadAnimation(Activity, Resource.Animation.slideUpAnim);
                 MRecycler.StartAnimation(animation);
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
-                var preLoader = new RecyclerViewPreloader<ProductDataObject>(Activity, MAdapter, sizeProvider, 10 /*maxPreload*/);
+                var preLoader = new RecyclerViewPreloader<Classes.ProductClass>(Activity, MAdapter, sizeProvider, 10 /*maxPreload*/);
                 MRecycler.AddOnScrollListener(preLoader);
                 MRecycler.SetAdapter(MAdapter);
                 MRecycler.HasFixedSize = true;
@@ -170,12 +171,12 @@ namespace WoWonder.Activities.Market.Fragment
             {
                 //Code get last id where LoadMore >>
                 var item = MAdapter.MarketList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item.Id) && !MainScrollEvent.IsLoading)
+                if (item != null && !string.IsNullOrEmpty(item.Product?.Id) && !MainScrollEvent.IsLoading)
                 {
                     if (Methods.CheckConnectivity())
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextMarket.GetMyProducts(item.Id) });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextMarket.GetMyProducts(item.Product?.Id) });
                     else
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception exception)
@@ -192,8 +193,8 @@ namespace WoWonder.Activities.Market.Fragment
                 if (item != null)
                 {
                     var intent = new Intent(Context, typeof(ProductViewActivity));
-                    intent.PutExtra("Id", item.PostId);
-                    intent.PutExtra("ProductView", JsonConvert.SerializeObject(item));
+                    intent.PutExtra("Id", item.Product.PostId);
+                    intent.PutExtra("ProductView", JsonConvert.SerializeObject(item.Product));
                     Context.StartActivity(intent);
                 }
             }
@@ -216,7 +217,7 @@ namespace WoWonder.Activities.Market.Fragment
                 if (Methods.CheckConnectivity())
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextMarket.GetMyProducts() });
                 else
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
             }
             catch (Exception exception)
             {

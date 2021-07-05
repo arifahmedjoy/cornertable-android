@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -333,7 +333,7 @@ namespace WoWonder.Activities.Communities.Groups
                 {
                     ItemJoinRequests = item;
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                     dialog.Title(Resource.String.Lbl_joinRequest).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_Do_you_want_approve_join));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Accept)).OnPositive(this);
@@ -355,7 +355,7 @@ namespace WoWonder.Activities.Communities.Groups
         private void StartApiService(string offset = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadJoinAsync(offset) });
         }
@@ -403,7 +403,7 @@ namespace WoWonder.Activities.Communities.Groups
                             switch (MAdapter.JoinList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -427,7 +427,7 @@ namespace WoWonder.Activities.Communities.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
@@ -509,7 +509,7 @@ namespace WoWonder.Activities.Communities.Groups
                             break;
                     }
 
-                    Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyAccepted), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyAccepted), ToastLength.Short);
 
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.JoinRequestActionAsync(GroupId, ItemJoinRequests?.UserData?.UserId, true) });// true >> Accept 
                 }
@@ -529,7 +529,7 @@ namespace WoWonder.Activities.Communities.Groups
                             break;
                     }
 
-                    Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyDeleted), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, GetString(Resource.String.Lbl_RequestSuccessfullyDeleted), ToastLength.Short);
 
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.JoinRequestActionAsync(GroupId, ItemJoinRequests?.UserData?.UserId, false) }); // false >> Delete 
 

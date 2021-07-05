@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
-        android:layout_below="@id/Logoplace">
+        android:layout_below="@+id/Logoplace">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

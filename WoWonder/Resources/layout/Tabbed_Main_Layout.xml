@@ -26,11 +26,11 @@
 				android:layout_height="match_parent"
 				android:gravity="center_vertical"
 				android:orientation="horizontal">
-				<ImageView
-					android:layout_width="120dp"
-					android:layout_height="20dp"
-					android:src="@drawable/logo"
-					android:tint="@color/primary"/>
+                <ImageView
+                    android:src="@drawable/logo"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:id="@+id/imageView1" />
 				<View
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
@@ -64,10 +64,10 @@
 						android:background="@drawable/circle_drawable"
 						android:backgroundTint="@color/primary"
 						android:alpha="0.1"/>
-					<ImageView
+					<ImageView 
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
-						android:src="@drawable/ic_message"
+						android:src="@drawable/ic_more_messages"
 						android:layout_margin="8dp"/>
 				</RelativeLayout>
 				<RelativeLayout
@@ -114,10 +114,15 @@
 		app:layout_behavior="@string/appbar_scrolling_view_behavior"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"/>
+   <include
+     android:id="@+id/bottomnavigationtab"
+     layout="@layout/bottomnavigationtab"
+     />
 	<MeoNavLib.Com.MeowBottomNavigation
 		android:id="@+id/ntb_horizontal"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+	    android:visibility="gone"
 		android:layout_gravity="bottom"
 		app:mbn_shadowColor="?attr/colorDivider" />
 	<com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -126,6 +131,7 @@
 		android:layout_height="wrap_content"
 		android:layout_gravity="end|bottom"
 		android:clickable="true"
+        android:visibility="gone"
 		app:elevation="6dp"
 		app:pressedTranslationZ="12dp"
 		app:rippleColor="@android:color/transparent"
@@ -135,4 +141,6 @@
 		android:layout_marginEnd="20dp"
 		app:backgroundTint="@color/accent"
 		android:layout_marginBottom="75dp" />
+    
+    
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

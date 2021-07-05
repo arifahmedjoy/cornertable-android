@@ -11,7 +11,6 @@ using Java.Lang;
 using Javax.Microedition.Khronos.Opengles;
 using WoWonder.Helpers.Utils;
 using WoWonder.NiceArt.Models;
-using WoWonder.NiceArt.Utils;
 using EGLConfig = Javax.Microedition.Khronos.Egl.EGLConfig;
 using Exception = Java.Lang.Exception;
 
@@ -75,7 +74,7 @@ namespace WoWonder.NiceArt
             }
         }
 
-        public async Task SetFilterEffect(PhotoFilter effect)
+        public Task SetFilterEffect(PhotoFilter effect)
         {
             try
             {
@@ -86,22 +85,25 @@ namespace WoWonder.NiceArt
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e);
-
+                Methods.DisplayReportResultTrack(e); 
             }
+
+            return Task.CompletedTask;
         }
 
-        public async Task SetFilterEffect(CustomEffect customEffect)
+        public Task SetFilterEffect(CustomEffect customEffect)
         {
             try
             {
                 MCustomEffect = customEffect;
-                RequestRender();
+                RequestRender(); 
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e); 
             }
+
+            return Task.CompletedTask;
         }
 
         public void SetSourceBitmap(Bitmap sourceBitmap)
@@ -202,7 +204,7 @@ namespace WoWonder.NiceArt
             }
         }
 
-        public async Task SaveBitmap(INiceArt.IOnSaveBitmap onSaveBitmap)
+        public Task SaveBitmap(INiceArt.IOnSaveBitmap onSaveBitmap)
         {
             try
             {
@@ -213,8 +215,8 @@ namespace WoWonder.NiceArt
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-
             }
+            return Task.CompletedTask;
         }
 
         public void LoadTextures()

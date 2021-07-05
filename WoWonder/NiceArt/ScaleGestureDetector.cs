@@ -10,7 +10,7 @@ namespace WoWonder.NiceArt
 {
     public class ScaleGestureDetector
     {
-        private static readonly string Tag = "ScaleGestureDetector";
+        public static readonly string Tag = "ScaleGestureDetector";
 
         // This value is the threshold ratio between our previous combined pressure
         // and the current combined pressure.We will only fire an onScale Event if
@@ -20,29 +20,29 @@ namespace WoWonder.NiceArt
         // that the user is in the process of lifting a pointer off of the device.
         // Its value was tuned experimentally.
 
-        private static readonly float PressureThreshold = 0.67f;
-        private readonly INiceArt.IOnScaleGestureListener MListener;
-        private bool MGestureInProgress;
-        private MotionEvent MPrevEvent;
-        private MotionEvent MCurrEvent;
-        private readonly Vector2D MCurrSpanVector;
-        private float MFocusX;
-        private float MFocusY;
-        private float MPrevFingerDiffX;
-        private float MPrevFingerDiffY;
-        private float MCurrFingerDiffX;
-        private float MCurrFingerDiffY;
-        private float MCurrLen;
-        private float MPrevLen;
-        private float MScaleFactor;
-        private float MCurrPressure;
-        private float MPrevPressure;
-        private long MTimeDelta;
-        private bool MInvalidGesture;
+        public static readonly float PressureThreshold = 0.67f;
+        public readonly INiceArt.IOnScaleGestureListener MListener;
+        public bool MGestureInProgress;
+        public MotionEvent MPrevEvent;
+        public MotionEvent MCurrEvent;
+        public Vector2D MCurrSpanVector;
+        public float MFocusX;
+        public float MFocusY;
+        public float MPrevFingerDiffX;
+        public float MPrevFingerDiffY;
+        public float MCurrFingerDiffX;
+        public float MCurrFingerDiffY;
+        public float MCurrLen;
+        public float MPrevLen;
+        public float MScaleFactor;
+        public float MCurrPressure;
+        public float MPrevPressure;
+        public long MTimeDelta;
+        public bool MInvalidGesture;
         // Pointer IDs currently responsible for the two fingers controlling the gesture
-        private int MActiveId0;
-        private int MActiveId1;
-        private bool MActive0MostRecent;
+        public int MActiveId0;
+        public int MActiveId1;
+        public bool MActive0MostRecent;
 
         public ScaleGestureDetector(INiceArt.IOnScaleGestureListener listener)
         {

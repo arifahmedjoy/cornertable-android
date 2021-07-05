@@ -27,7 +27,7 @@
     android:layout_marginBottom="15dp"
     android:textAlignment="center"
     android:layout_marginTop="8dp"
-    android:text="Featured member"
+    android:text="@string/Lbl_go_pro_1"
     android:layout_centerHorizontal="true"
     android:textSize="12sp"
     android:gravity="center"

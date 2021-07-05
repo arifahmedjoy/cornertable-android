@@ -6,6 +6,7 @@ using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
+using AT.Markushi.UI;
 using Bumptech.Glide;
 using Com.Tuyenmonkey.Textdecorator;
 using Java.Util;
@@ -231,6 +232,8 @@ namespace WoWonder.Activities.Movies.Adapters
                         if (viewHolder is not AdapterHolders.EmptyStateAdapterViewHolder emptyHolder)
                             return;
 
+                         emptyHolder.EmptyImage.SetImageResource(Resource.Drawable.comment_emptstate);
+
                         emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoComments);
 
                         return;
@@ -359,7 +362,11 @@ namespace WoWonder.Activities.Movies.Adapters
         public LinearLayout CountLikeSection { get; private set; }
         public TextView CountLike { get; private set; }
         public ImageView ImageCountLike { get; private set; }
-
+        public ImageView CommentImage { get; private set; }
+        public LinearLayout VoiceLayout { get; private set; }
+        public CircleButton PlayButton { get; private set; }
+        public TextView DurationVoice { get; private set; }
+        public TextView TimeVoice { get; private set; }
         #endregion
 
         //Comment Article
@@ -384,10 +391,24 @@ namespace WoWonder.Activities.Movies.Adapters
                 ReplyTextView = MainView.FindViewById<TextView>(Resource.Id.reply);
                 LikeTextView = MainView.FindViewById<TextView>(Resource.Id.Like);
                 DislikeTextView = MainView.FindViewById<TextView>(Resource.Id.dislike);
+                CommentImage = MainView.FindViewById<ImageView>(Resource.Id.image);
                 CountLikeSection = MainView.FindViewById<LinearLayout>(Resource.Id.countLikeSection);
                 CountLike = MainView.FindViewById<TextView>(Resource.Id.countLike);
                 ImageCountLike = MainView.FindViewById<ImageView>(Resource.Id.ImagecountLike);
                 CountLikeSection.Visibility = ViewStates.Gone;
+                try
+                {
+                    VoiceLayout = MainView.FindViewById<LinearLayout>(Resource.Id.voiceLayout);
+                    PlayButton = MainView.FindViewById<CircleButton>(Resource.Id.playButton);
+                    DurationVoice = MainView.FindViewById<TextView>(Resource.Id.Duration);
+                    TimeVoice = MainView.FindViewById<TextView>(Resource.Id.timeVoice);
+
+                    PlayButton?.SetOnClickListener(this);
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
 
                 var font = Typeface.CreateFromAsset(MainView.Context.Resources?.Assets, "ionicons.ttf");
                 UserName.SetTypeface(font, TypefaceStyle.Normal);
@@ -418,7 +439,9 @@ namespace WoWonder.Activities.Movies.Adapters
                 Image.SetOnClickListener(this);
                 LikeTextView.SetOnClickListener(this);
                 DislikeTextView.SetOnClickListener(this);
-                ReplyTextView.SetOnClickListener(this);
+                ReplyTextView.SetOnClickListener(this); 
+                CommentImage?.SetOnClickListener(this);
+                CountLikeSection?.SetOnClickListener(this);
             }
             catch (Exception e)
             {
@@ -430,23 +453,23 @@ namespace WoWonder.Activities.Movies.Adapters
         {
             try
             {
-                if (AdapterPosition != RecyclerView.NoPosition)
+                if (BindingAdapterPosition != RecyclerView.NoPosition)
                 {
                     CommentsMoviesObject item = TypeClass switch
                     {
-                        "Comment" => CommentAdapter.CommentList[AdapterPosition],
-                        "Reply" => CommentAdapter.CommentList[AdapterPosition],
+                        "Comment" => CommentAdapter.CommentList[BindingAdapterPosition],
+                        "Reply" => CommentAdapter.CommentList[BindingAdapterPosition],
                         _ => null!
                     };
 
                     if (v.Id == Image.Id)
-                        PostClickListener.ProfileClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.ProfileClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == LikeTextView.Id)
-                        PostClickListener.LikeCommentReplyPostClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.LikeCommentReplyPostClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == DislikeTextView.Id)
-                        PostClickListener.DislikeCommentReplyPostClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.DislikeCommentReplyPostClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == ReplyTextView.Id)
-                        PostClickListener.CommentReplyClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.CommentReplyClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                 }
             }
             catch (Exception e)
@@ -458,17 +481,17 @@ namespace WoWonder.Activities.Movies.Adapters
         public bool OnLongClick(View v)
         {
             //add event if System = ReactButton 
-            if (AdapterPosition != RecyclerView.NoPosition)
+            if (BindingAdapterPosition != RecyclerView.NoPosition)
             {
                 CommentsMoviesObject item = TypeClass switch
                 {
-                    "Comment" => CommentAdapter.CommentList[AdapterPosition],
-                    "Reply" => CommentAdapter.CommentList[AdapterPosition],
+                    "Comment" => CommentAdapter.CommentList[BindingAdapterPosition],
+                    "Reply" => CommentAdapter.CommentList[BindingAdapterPosition],
                     _ => null!
                 };
 
                 if (v.Id == MainView.Id)
-                    PostClickListener.MoreCommentReplyPostClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                    PostClickListener.MoreCommentReplyPostClick(new CommentReplyMoviesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
             }
 
             return true;

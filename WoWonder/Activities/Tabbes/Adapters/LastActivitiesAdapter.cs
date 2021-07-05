@@ -368,8 +368,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 Time = MainView.FindViewById<TextView>(Resource.Id.Time);
                  
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new LastActivitiesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new LastActivitiesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new LastActivitiesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new LastActivitiesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

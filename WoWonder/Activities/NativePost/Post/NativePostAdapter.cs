@@ -11,8 +11,6 @@ using Android.Graphics;
 using Android.Graphics.Drawables;
 using WoWonderClient.Classes.Posts;
 using Android.Content;
-using Android.Gms.Ads;
-using Android.Gms.Ads.Formats;
 using Bumptech.Glide.Util;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Java.Lang;
@@ -40,7 +38,7 @@ using Bumptech.Glide.Signature;
 
 namespace WoWonder.Activities.NativePost.Post
 { 
-    public class NativePostAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider, StTools.IXAutoLinkOnClickListener, UnifiedNativeAd.IOnUnifiedNativeAdLoadedListener
+    public class NativePostAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider, StTools.IXAutoLinkOnClickListener
     {
         public readonly Activity ActivityContext;
 
@@ -52,7 +50,6 @@ namespace WoWonder.Activities.NativePost.Post
         public readonly RequestBuilder CircleGlideRequestBuilder;
 
         public List<AdapterModelsClass> ListDiffer { get; set; }
-        public readonly List<PostDataObject> NewPostList = new List<PostDataObject>(); 
         private PreCachingLayoutManager PreCachingLayout { get; set; }
 
         private RecyclerView.RecycledViewPool RecycledViewPool { get; set; }
@@ -66,7 +63,7 @@ namespace WoWonder.Activities.NativePost.Post
         //private bool Loading;
         public int PositionSound;
         private readonly AdapterBind AdapterBind;
-        private int headerCount=0;
+        //private int HeaderCount=0;
 
         public NativePostAdapter(Activity context, string apiIdParameter, RecyclerView recyclerView, NativeFeedType nativePostType)
         {
@@ -103,7 +100,7 @@ namespace WoWonder.Activities.NativePost.Post
               
                 AdapterBind = new AdapterBind(this);
 
-                NewPostList = new List<PostDataObject>(); 
+                ListUtils.NewPostList = new List<PostDataObject>(); 
                 ListDiffer = new List<AdapterModelsClass>();
                 PreCachingLayout = new PreCachingLayoutManager(ActivityContext)
                 {
@@ -383,13 +380,6 @@ namespace WoWonder.Activities.NativePost.Post
                             Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = Section " + viewType);
                             return vh;
                         }
-                    case (int)PostModelType.FilterSection:
-                        {
-                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_Section, parent, false);
-                            var vh = new AdapterHolders.FilterSectionViewHolder(itemView);
-                            Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = Section " + viewType);
-                            return vh;
-                        }
                     case (int)PostModelType.AddPostBox:
                         {
                             itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_AddPost, parent, false);
@@ -397,13 +387,13 @@ namespace WoWonder.Activities.NativePost.Post
                             Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType =  AddPostBox " + viewType);
                             return vh;
                         }
-                    case (int)PostModelType.SearchForPosts:
-                        {
-                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_SearchForPost, parent, false);
-                            var vh = new AdapterHolders.SearchForPostsViewHolder(itemView, this);
-                            Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = SearchForPosts" + viewType);
-                            return vh;
-                        }
+                    //case (int)PostModelType.SearchForPosts:
+                    //    {
+                    //        itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_SearchForPost, parent, false);
+                    //        var vh = new AdapterHolders.SearchForPostsViewHolder(itemView, this);
+                    //        Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = SearchForPosts" + viewType);
+                    //        return vh;
+                    //    }
                     case (int)PostModelType.SocialLinks:
                         {
                             itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_SociaLink, parent, false);
@@ -462,6 +452,15 @@ namespace WoWonder.Activities.NativePost.Post
                             itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
                             var vh = new AdapterHolders.GroupsViewHolder(itemView, this, PostClickListener);
                             Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = GroupsBox " + viewType);
+                            return vh;
+                        }
+                    case (int)PostModelType.SuggestedPagesBox:
+                        {
+                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
+                            var vh = new AdapterHolders.SuggestedPagesViewHolder(itemView, this);
+                            RecycledViewPool = new RecyclerView.RecycledViewPool();
+                            vh.PagesRecyclerView.SetRecycledViewPool(RecycledViewPool);
+                            Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = " + viewType);
                             return vh;
                         }
                     case (int)PostModelType.SuggestedGroupsBox:
@@ -548,10 +547,22 @@ namespace WoWonder.Activities.NativePost.Post
                             Console.WriteLine("WoLog: NativePostAdapter / OnCreateViewHolder  >>  PostModelType = ViewProgress " + viewType);
                             return vh;
                         }
-                    case (int)PostModelType.ProfileHeaderSection:
+                    case (int)PostModelType.ProfileDetailsSection:
+                        {
+                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_ProfileDetailsSection, parent, false);
+                            var vh = new AdapterHolders.ProfileDetailsSectionHolder(itemView, this, PostClickListener);
+                            return vh; 
+                        } 
+                    case (int)PostModelType.MyProfileInfoHeaderSection:
                         {
                             itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_ProfileHeaderSection, parent, false);
-                            var vh = new AdapterHolders.ProfileHeaderSectionHolder(itemView);
+                            var vh = new AdapterHolders.MyProfileInfoHeaderSectionHolder(itemView, this, PostClickListener);
+                            return vh;
+                        }
+                    case (int)PostModelType.UserProfileInfoHeaderSection:
+                        {
+                            itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_UserProfileHeaderSection, parent, false);
+                            var vh = new AdapterHolders.UserProfileInfoHeaderSectionHolder(itemView, this, PostClickListener);
                             return vh;
                         }
                     default:
@@ -565,7 +576,7 @@ namespace WoWonder.Activities.NativePost.Post
             }
             catch (Exception exception)
             {
-                Console.WriteLine("EX:ALLEN PostAdapter >> " + exception);
+                Methods.DisplayReportResultTrack(exception);
                 return null!;
             }
         }
@@ -1030,16 +1041,6 @@ namespace WoWonder.Activities.NativePost.Post
 
                             break;
                         }  
-                    case (int)PostModelType.FilterSection: 
-                        {
-                            if (viewHolder is not AdapterHolders.FilterSectionViewHolder holder)
-                                return;
-
-                            holder.AboutHead.Text = item.AboutModel.TitleHead;
-                            holder.AboutMore.Text = ActivityContext.GetText(Resource.String.Lbl_Sort);
-
-                            break;
-                        }
                     case (int)PostModelType.AddPostBox:
                         {
                             if (viewHolder is not AdapterHolders.AddPostViewHolder holder)
@@ -1049,13 +1050,13 @@ namespace WoWonder.Activities.NativePost.Post
 
                             break;
                         }
-                    case (int)PostModelType.SearchForPosts:
-                        {
-                            if (viewHolder is not AdapterHolders.SearchForPostsViewHolder holder)
-                                return;
-                            Console.WriteLine(holder);
-                            break;
-                        }
+                    //case (int)PostModelType.SearchForPosts:
+                    //    {
+                    //        if (viewHolder is not AdapterHolders.SearchForPostsViewHolder holder)
+                    //            return;
+                    //        Console.WriteLine(holder);
+                    //        break;
+                    //    }
                     case (int)PostModelType.SocialLinks:
                         {
                             if (viewHolder is not AdapterHolders.SocialLinksViewHolder holder)
@@ -1125,6 +1126,14 @@ namespace WoWonder.Activities.NativePost.Post
                             AdapterBind.GroupsBoxBind(holder, item);
                             break;
                         }
+                    case (int)PostModelType.SuggestedPagesBox:
+                        {
+                            if (viewHolder is not AdapterHolders.SuggestedPagesViewHolder holder)
+                                return;
+
+                            AdapterBind.SuggestedPagesBoxBind(holder, item); 
+                            break;
+                        }
                     case (int)PostModelType.SuggestedGroupsBox:
                         {
                             if (viewHolder is not AdapterHolders.SuggestedGroupsViewHolder holder)
@@ -1190,14 +1199,25 @@ namespace WoWonder.Activities.NativePost.Post
                             Console.WriteLine(holder);
                             break;
                         }
-                    case (int)PostModelType.ProfileHeaderSection:
+                    case (int)PostModelType.ProfileDetailsSection:
                         {
-                            if (viewHolder is not AdapterHolders.ProfileHeaderSectionHolder holder)
-                                return;
-                            if (headerCount > 0)
-                                return;
-                            headerCount++;
-                            AdapterBind.ProfileHeaderSeltionBind(holder, item);
+                            if (viewHolder is not AdapterHolders.ProfileDetailsSectionHolder holder)
+                                return; 
+                            AdapterBind.ProfileDetailsSectionBind(holder, item);
+                            break;
+                        }
+                    case (int)PostModelType.MyProfileInfoHeaderSection:
+                        {
+                            if (viewHolder is not AdapterHolders.MyProfileInfoHeaderSectionHolder holder)
+                                return; 
+                            AdapterBind.MyProfileInfoHeaderSectionBind(holder, item);
+                            break;
+                        }
+                    case (int)PostModelType.UserProfileInfoHeaderSection:
+                        {
+                            if (viewHolder is not AdapterHolders.UserProfileInfoHeaderSectionHolder holder)
+                                return; 
+                            AdapterBind.UserProfileInfoHeaderSectionBind(holder, item);
                             break;
                         }
                     default:
@@ -1406,7 +1426,7 @@ namespace WoWonder.Activities.NativePost.Post
 
                 return item switch
                 {
-                    null => (int)PostModelType.NormalPost,
+                    null => (int) PostModelType.NormalPost,
                     _ => item.TypeView switch
                     {
                         PostModelType.SharedHeaderPost => (int) PostModelType.SharedHeaderPost,
@@ -1421,7 +1441,6 @@ namespace WoWonder.Activities.NativePost.Post
                         PostModelType.AlertBoxAnnouncement => (int) PostModelType.AlertBoxAnnouncement,
                         PostModelType.AlertBox => (int) PostModelType.AlertBox,
                         PostModelType.AddPostBox => (int) PostModelType.AddPostBox,
-                        PostModelType.SearchForPosts => (int) PostModelType.SearchForPosts,
                         PostModelType.SocialLinks => (int) PostModelType.SocialLinks,
                         PostModelType.VideoPost => (int) PostModelType.VideoPost,
                         PostModelType.AboutBox => (int) PostModelType.AboutBox,
@@ -1435,6 +1454,7 @@ namespace WoWonder.Activities.NativePost.Post
                         PostModelType.MapPost => (int) PostModelType.MapPost,
                         PostModelType.FollowersBox => (int) PostModelType.FollowersBox,
                         PostModelType.GroupsBox => (int) PostModelType.GroupsBox,
+                        PostModelType.SuggestedPagesBox => (int) PostModelType.SuggestedPagesBox,
                         PostModelType.SuggestedGroupsBox => (int) PostModelType.SuggestedGroupsBox,
                         PostModelType.SuggestedUsersBox => (int) PostModelType.SuggestedUsersBox,
                         PostModelType.ImagePost => (int) PostModelType.ImagePost,
@@ -1448,7 +1468,6 @@ namespace WoWonder.Activities.NativePost.Post
                         PostModelType.VoicePost => (int) PostModelType.VoicePost,
                         PostModelType.YoutubePost => (int) PostModelType.YoutubePost,
                         PostModelType.Section => (int) PostModelType.Section,
-                        PostModelType.FilterSection => (int) PostModelType.FilterSection,
                         PostModelType.AlertJoinBox => (int) PostModelType.AlertJoinBox,
                         PostModelType.SharedPost => (int) PostModelType.SharedPost,
                         PostModelType.EventPost => (int) PostModelType.EventPost,
@@ -1475,7 +1494,9 @@ namespace WoWonder.Activities.NativePost.Post
                         PostModelType.InfoPageBox => (int) PostModelType.InfoPageBox,
                         PostModelType.InfoGroupBox => (int) PostModelType.InfoGroupBox,
                         PostModelType.TikTokPost => (int) PostModelType.TikTokPost,
-                        PostModelType.ProfileHeaderSection=> (int)PostModelType.ProfileHeaderSection,
+                        PostModelType.ProfileDetailsSection => (int) PostModelType.ProfileDetailsSection,
+                        PostModelType.MyProfileInfoHeaderSection => (int) PostModelType.MyProfileInfoHeaderSection,
+                        PostModelType.UserProfileInfoHeaderSection => (int) PostModelType.UserProfileInfoHeaderSection,
                         _ => (int) PostModelType.NormalPost
                     }
                 };
@@ -1772,63 +1793,7 @@ namespace WoWonder.Activities.NativePost.Post
             }
 
         }
-
-        private TemplateView Template;
-        public void BindAdMob(AdapterHolders.AdMobAdapterViewHolder holder)
-        {
-            try
-            {
-                Template = holder.MianAlert;
-               
-                AdLoader.Builder builder = new AdLoader.Builder(holder.MainView.Context, AppSettings.AdAdMobNativeKey);
-                builder.ForUnifiedNativeAd(this);
-
-                VideoOptions videoOptions = new VideoOptions.Builder()
-                    .SetStartMuted(true)
-                    .Build();
-
-                NativeAdOptions adOptions = new NativeAdOptions.Builder()
-                    .SetVideoOptions(videoOptions)
-                    .Build();
-
-                builder.WithNativeAdOptions(adOptions);
-
-                AdLoader adLoader = builder.WithAdListener(new AdListener()).Build();
-                adLoader.LoadAd(new AdRequest.Builder().Build());
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnUnifiedNativeAdLoaded(UnifiedNativeAd ad)
-        {
-            try
-            { 
-                if (Template.GetTemplateTypeName() == TemplateView.NativeContentAd)
-                {
-                    Template.NativeContentAdView(ad);
-                } 
-                else
-                {
-                    NativeTemplateStyle styles = new NativeTemplateStyle.Builder().Build();
-
-                    Template.SetStyles(styles);
-                    Template.SetNativeAd(ad);
-                }
-                 
-                ActivityContext?.RunOnUiThread(() =>
-                {
-                    Template.Visibility = ViewStates.Visible;
-                });
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
+         
         public void AutoLinkTextClick(StTools.XAutoLinkMode p0, string p1, Dictionary<string, string> userData)
         {
             try

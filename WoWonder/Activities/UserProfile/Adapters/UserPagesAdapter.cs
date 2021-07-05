@@ -202,8 +202,8 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 IconPage = MainView.FindViewById<TextView>(Resource.Id.Icon);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new UserPagesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new UserPagesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new UserPagesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new UserPagesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
 
              
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconPage, IonIconsFonts.IosFlag);

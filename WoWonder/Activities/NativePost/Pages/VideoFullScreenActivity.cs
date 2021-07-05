@@ -4,7 +4,6 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
 using Android.Widget;
 using Com.Google.Android.Exoplayer2;
 using Com.Google.Android.Exoplayer2.Drm;
@@ -29,7 +28,6 @@ namespace WoWonder.Activities.NativePost.Pages
     {
         #region Variables Basic
 
-        private ProgressBar ProgressBar; 
         private string VideoUrl;
          
         private PlayerView VideoSurfaceView;
@@ -115,10 +113,7 @@ namespace WoWonder.Activities.NativePost.Pages
                 BtFullScreen.Click += BtFullScreen_Click;
 
                 ///////////////////////////
-
-                ProgressBar = FindViewById<ProgressBar>(Resource.Id.progress_bar);
-                ProgressBar.Visibility = ViewStates.Visible;
- 
+                 
                 //===================== Exo Player ======================== 
 
                 // Uri
@@ -135,20 +130,19 @@ namespace WoWonder.Activities.NativePost.Pages
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-
+         
         private void SetPlayer()
         {
             try
             {
-                var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(this);
+                var bandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(this);
 
                 DefaultTrackSelector trackSelector = new DefaultTrackSelector(this);
                 trackSelector.SetParameters(new DefaultTrackSelector.ParametersBuilder(this));
 
                 VideoPlayer = new SimpleExoPlayer.Builder(this).SetTrackSelector(trackSelector).Build();
 
-                DefaultDataSourceFac = new DefaultDataSourceFactory(this, Util.GetUserAgent(this, AppSettings.ApplicationName), BandwidthMeter);
+                DefaultDataSourceFac = new DefaultDataSourceFactory(this, Util.GetUserAgent(this, AppSettings.ApplicationName), bandwidthMeter);
                 VideoSurfaceView.UseController = true;
                 VideoSurfaceView.Player = VideoPlayer;
             }
@@ -160,10 +154,10 @@ namespace WoWonder.Activities.NativePost.Pages
 
         private IMediaSource GetMediaSourceFromUrl(Uri uri, string extension, string tag)
         {
-            var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(this);
+            var bandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(this);
             //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(this, AppSettings.ApplicationName), mBandwidthMeter);
-            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(this, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(this, AppSettings.ApplicationName)));
-            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(this, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(this, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(this, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(this, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(this, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(this, AppSettings.ApplicationName)));
             int type = Util.InferContentType(uri, extension);
             try
             {
@@ -218,6 +212,11 @@ namespace WoWonder.Activities.NativePost.Pages
         {
         }
 
+        public void OnPlaybackSuppressionReasonChanged(int playbackSuppressionReason)
+        {
+
+        }
+
         public void OnPlayerError(ExoPlaybackException p0)
         {
         }
@@ -229,10 +228,8 @@ namespace WoWonder.Activities.NativePost.Pages
                 switch (playbackState)
                 {
                     case IPlayer.StateBuffering:
-                        ProgressBar.Visibility = ViewStates.Visible;
                         break;
                     case IPlayer.StateReady:
-                        ProgressBar.Visibility = ViewStates.Gone;
                         break;
                 }
             }
@@ -327,7 +324,7 @@ namespace WoWonder.Activities.NativePost.Pages
             }
             catch (Exception e)
             {
-                Console.WriteLine(e); 
+                Methods.DisplayReportResultTrack(e); 
             }
         }
 
@@ -341,7 +338,7 @@ namespace WoWonder.Activities.NativePost.Pages
             }
             catch (Exception e)
             {
-                Console.WriteLine(e); 
+                Methods.DisplayReportResultTrack(e); 
             }
         }
     }

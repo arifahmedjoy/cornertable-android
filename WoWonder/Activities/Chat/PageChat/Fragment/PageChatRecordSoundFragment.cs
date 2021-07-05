@@ -1,26 +1,30 @@
 using System;
 using System.Timers;
 using Android.Graphics;
+using Android.Media;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using AndroidX.Core.Content;
 using AndroidX.Interpolator.View.Animation;
 using AT.Markushi.UI;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using Uri = Android.Net.Uri; 
 
 namespace WoWonder.Activities.Chat.PageChat.Fragment
 {
     public class PageChatRecordSoundFragment : AndroidX.Fragment.App.Fragment
     {
-        private CircleButton RecourdPlaybutton;
-        private CircleButton Recourdclosebutton;
-        private SeekBar VoiceSeekbar;
-        private string RecourdFilePath;
+        private CircleButton RecordPlayButton;
+        private CircleButton RecordCloseButton;
+        private SeekBar VoiceSeekBar;
+        private string RecordFilePath;
         private Methods.AudioRecorderAndPlayer AudioPlayerClass;
-        private PageChatWindowActivity MainActivityview;
+        private PageChatWindowActivity MainActivity;
         private Timer TimerSound;
-
+        private MediaPlayer MediaPlayer;
+         
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             try
@@ -31,7 +35,7 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -41,23 +45,24 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
             {
                 base.OnViewCreated(view, savedInstanceState);
 
-                RecourdFilePath = Arguments.GetString("FilePath");
+                RecordFilePath = Arguments.GetString("FilePath");
 
-                MainActivityview = (PageChatWindowActivity)Activity;
-                MainActivityview.RecordButton.SetImageResource(Resource.Drawable.SendLetter);
-                MainActivityview.RecordButton.Tag = "Audio";
-                MainActivityview.RecordButton.SetListenForRecord(false);
+                VoiceSeekBar = view.FindViewById<SeekBar>(Resource.Id.voiceseekbar);
+                VoiceSeekBar.Max = 10000;
+                VoiceSeekBar.Progress = 0;
 
-                RecourdPlaybutton = view.FindViewById<CircleButton>(Resource.Id.playButton);
-                Recourdclosebutton = view.FindViewById<CircleButton>(Resource.Id.closeRecourdButton);
+                RecordPlayButton = view.FindViewById<CircleButton>(Resource.Id.playButton);
+                RecordPlayButton.Click += RecordPlayButton_Click;
 
-                VoiceSeekbar = view.FindViewById<SeekBar>(Resource.Id.voiceseekbar);
-                VoiceSeekbar.Progress = 0;
-                Recourdclosebutton.Click += Recourdclosebutton_Click;
-                RecourdPlaybutton.Click += RecourdPlaybutton_Click;
-                RecourdPlaybutton.Tag = "Stop";
+                RecordCloseButton = view.FindViewById<CircleButton>(Resource.Id.closeRecourdButton);
+                RecordCloseButton.Click += RecordCloseButton_Click;
 
-                AudioPlayerClass = new Methods.AudioRecorderAndPlayer(MainActivityview.PageId);
+                MainActivity = (PageChatWindowActivity)Activity;
+                MainActivity.RecordButton.SetImageResource(Resource.Drawable.SendLetter);
+                MainActivity.RecordButton.Tag = "Audio";
+                MainActivity.RecordButton.SetListenForRecord(false);
+
+                AudioPlayerClass = new Methods.AudioRecorderAndPlayer(MainActivity.PageId);
                 TimerSound = new Timer();
             }
             catch (Exception e)
@@ -66,12 +71,25 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
             }
         }
 
-        private void Recourdclosebutton_Click(object sender, EventArgs e)
+        private void RecordCloseButton_Click(object sender, EventArgs e)
         {
             try
             {
-                if (!string.IsNullOrEmpty(RecourdFilePath))
-                    AudioPlayerClass.StopAudioPlay();
+                StopAudioPlay();
+
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("Error.mp3");
+                        break;
+                }
+
+                AudioPlayerClass.Delete_Sound_Path(RecordFilePath);
+
+                RecordFilePath = "";
+
+                if (!string.IsNullOrEmpty(RecordFilePath))
+                    Methods.AudioRecorderAndPlayer.StopAudioFromAsset();
 
                 if (UserDetails.SoundControl)
                 {
@@ -80,14 +98,15 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
 
                 var fragmentHolder = Activity.FindViewById<FrameLayout>(Resource.Id.TopFragmentHolder);
 
-                AudioPlayerClass.Delete_Sound_Path(RecourdFilePath);
+                AudioPlayerClass.Delete_Sound_Path(RecordFilePath);
                 var interplator = new FastOutSlowInInterpolator();
                 fragmentHolder.Animate().SetInterpolator(interplator).TranslationY(1200).SetDuration(300);
                 Activity.SupportFragmentManager.BeginTransaction().Remove(this)?.Commit();
 
-                MainActivityview.RecordButton.Tag = "Free";
-                MainActivityview.RecordButton.SetTheImageResource(Resource.Drawable.icon_mic_vector);
-                MainActivityview.RecordButton.SetListenForRecord(true);
+                MainActivity.RecordButton.Tag = "Free";
+                MainActivity.RecordButton.SetTheImageResource(Resource.Drawable.icon_mic_vector);
+                MainActivity.RecordButton.SetListenForRecord(true);
+
             }
             catch (Exception exception)
             {
@@ -95,28 +114,147 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
             }
         }
 
-        private void RecourdPlaybutton_Click(object sender, EventArgs e)
+        private void RecordPlayButton_Click(object sender, EventArgs e)
         {
             try
             {
-                if (!string.IsNullOrEmpty(RecourdFilePath))
+                switch (MediaPlayer)
                 {
-                    if (RecourdPlaybutton?.Tag?.ToString() == "Stop")
-                    {
-                        RecourdPlaybutton.Tag = "Playing";
-                        RecourdPlaybutton.SetColor(Color.ParseColor("#efefef"));
-                        RecourdPlaybutton.SetImageResource(Resource.Drawable.ic_stop_dark_arrow);
+                    case null:
+                        {
+                            MediaPlayer = new MediaPlayer();
+                            MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()?.SetUsage(AudioUsageKind.Media)?.SetContentType(AudioContentType.Music)?.Build());
 
-                        AudioPlayerClass.PlayAudioFromPath(RecourdFilePath);
-                        VoiceSeekbar.Max = AudioPlayerClass.Player.Duration;
-                        TimerSound.Interval = 1000;
-                        TimerSound.Elapsed += TimerSound_Elapsed;
-                        TimerSound.Start();
-                    }
-                    else
-                    {
-                        RestPlayButton();
-                    }
+                            MediaPlayer.Completion += (sender, e) =>
+                            {
+                                try
+                                {
+                                    RecordPlayButton.Tag = "Play";
+                                    RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+
+                                    MediaPlayer.Stop();
+                                    MediaPlayer.Reset();
+                                    MediaPlayer = null!;
+
+                                    TimerSound.Enabled = false;
+                                    TimerSound.Stop();
+                                    TimerSound = null!;
+
+                                    VoiceSeekBar.Progress = 0;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Methods.DisplayReportResultTrack(exception);
+                                }
+                            };
+
+                            MediaPlayer.Prepared += (s, ee) =>
+                            {
+                                try
+                                {
+                                    RecordPlayButton.Tag = "Pause";
+                                    RecordPlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+
+                                    TimerSound ??= new Timer { Interval = 1000 };
+
+                                    MediaPlayer.Start();
+
+                                    TimerSound.Elapsed += (sender, eventArgs) =>
+                                    {
+                                        Activity?.RunOnUiThread(() =>
+                                        {
+                                            try
+                                            {
+                                                if (TimerSound != null && TimerSound.Enabled)
+                                                {
+                                                    if (MediaPlayer != null)
+                                                    {
+                                                        int totalDuration = MediaPlayer.Duration;
+                                                        int currentDuration = MediaPlayer.CurrentPosition;
+
+                                                        // Updating progress bar
+                                                        int progress = WoWonderTools.GetProgressSeekBar(currentDuration, totalDuration);
+
+                                                        switch (Build.VERSION.SdkInt)
+                                                        {
+                                                            case >= BuildVersionCodes.N:
+                                                                VoiceSeekBar.SetProgress(progress, true);
+                                                                break;
+                                                            default:
+                                                                // For API < 24 
+                                                                VoiceSeekBar.Progress = progress;
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Methods.DisplayReportResultTrack(e);
+                                                RecordPlayButton.Tag = "Play";
+                                            }
+                                        });
+                                    };
+                                    TimerSound.Start();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
+
+                            if (RecordFilePath.Contains("http"))
+                            {
+                                MediaPlayer.SetDataSource(Activity, Uri.Parse(RecordFilePath));
+                                MediaPlayer.PrepareAsync();
+                            }
+                            else
+                            {
+                                Java.IO.File file2 = new Java.IO.File(RecordFilePath);
+                                var photoUri = FileProvider.GetUriForFile(Activity, Activity.PackageName + ".fileprovider", file2);
+
+                                MediaPlayer.SetDataSource(Activity, photoUri);
+                                MediaPlayer.PrepareAsync();
+                            }
+
+                            break;
+                        }
+                    default:
+                        switch (RecordPlayButton?.Tag?.ToString())
+                        {
+                            case "Play":
+                                {
+                                    RecordPlayButton.Tag = "Pause";
+                                    RecordPlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+
+                                    MediaPlayer?.Start();
+
+                                    if (TimerSound != null)
+                                    {
+                                        TimerSound.Enabled = true;
+                                        TimerSound.Start();
+                                    }
+
+                                    break;
+                                }
+                            case "Pause":
+                                {
+                                    RecordPlayButton.Tag = "Play";
+                                    RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+
+                                    MediaPlayer?.Pause();
+
+                                    if (TimerSound != null)
+                                    {
+                                        TimerSound.Enabled = false;
+                                        TimerSound.Stop();
+                                    }
+
+                                    break;
+                                }
+                        }
+
+                        break;
                 }
             }
             catch (Exception exception)
@@ -125,47 +263,31 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
             }
         }
 
-        private void TimerSound_Elapsed(object sender, ElapsedEventArgs e)
+        private void StopAudioPlay()
         {
             try
             {
-                if (AudioPlayerClass.Player.CurrentPosition + 50 >= AudioPlayerClass.Player.Duration &&
-                    AudioPlayerClass.Player.CurrentPosition + 50 <= AudioPlayerClass.Player.Duration + 20)
+                RecordPlayButton.Tag = "Play";
+                RecordPlayButton.SetColor(Color.White);
+                RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+
+                if (MediaPlayer != null)
                 {
-                    VoiceSeekbar.Progress = AudioPlayerClass.Player.Duration;
-                    RestPlayButton();
+                    MediaPlayer.Stop();
+                    MediaPlayer.Reset();
+                }
+                MediaPlayer = null!;
+
+
+                if (TimerSound != null)
+                {
+                    TimerSound.Enabled = false;
                     TimerSound.Stop();
                 }
-                else if (VoiceSeekbar.Max != AudioPlayerClass.Player.Duration && AudioPlayerClass.Player.Duration == 0)
-                {
-                    RestPlayButton();
-                    VoiceSeekbar.Max = AudioPlayerClass.Player.Duration;
-                }
-                else
-                {
-                    VoiceSeekbar.Progress = AudioPlayerClass.Player.CurrentPosition;
-                }
-            }
-            catch (Exception ex)
-            {
-                Methods.DisplayReportResultTrack(ex);
-            }
-        }
 
-        public void RestPlayButton()
-        {
-            try
-            {
-                MainActivityview?.RunOnUiThread(() =>
-                {
-                    RecourdPlaybutton.Tag = "Stop";
-                    RecourdPlaybutton.SetColor(Color.White);
-                    RecourdPlaybutton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
-                    AudioPlayerClass.Player.Stop();
-                    VoiceSeekbar.Progress = 0;
-                });
+                TimerSound = null!;
 
-                TimerSound.Stop();
+                VoiceSeekBar.Progress = 0;
             }
             catch (Exception e)
             {
@@ -186,5 +308,17 @@ namespace WoWonder.Activities.Chat.PageChat.Fragment
             }
         }
 
+        public override void OnDestroy()
+        {
+            try
+            {
+                StopAudioPlay();
+                base.OnDestroy();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
     }
 }

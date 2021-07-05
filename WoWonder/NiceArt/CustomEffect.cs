@@ -7,8 +7,8 @@ namespace WoWonder.NiceArt
 {
     public class CustomEffect
     {
-        private readonly string MEffectName;
-        private readonly Dictionary<string, Object> ParametersMap;
+        public string MEffectName;
+        public Dictionary<string, Java.Lang.Object> ParametersMap;
 
         /// <summary>
         /// 
@@ -47,7 +47,7 @@ namespace WoWonder.NiceArt
         /// Get Parameters
         /// </summary>
         /// <returns>map of key and value of parameters for {@link android.media.effect.Effect#setParameter(String, Object)}</returns>
-        public Dictionary<string, Object> GetParameters()
+        public Dictionary<string, Java.Lang.Object> GetParameters()
         {
             try
             {
@@ -68,7 +68,7 @@ namespace WoWonder.NiceArt
         public class Builder
         {
             public string MEffectName;
-            public Dictionary<string, Object> ParametersMap = new Dictionary<string, Object>();
+            public Dictionary<string, Java.Lang.Object> ParametersMap = new Dictionary<string, Java.Lang.Object>();
 
             /// <summary>
             /// Initiate your custom effect
@@ -100,7 +100,7 @@ namespace WoWonder.NiceArt
             /// <param name="paramKey">attribute key for {@link android.media.effect.Effect#setParameter(String, Object)}</param>
             /// <param name="paramValue">value for {@link android.media.effect.Effect#setParameter(String, Object)}</param>
             /// <returns>builder instance to setup multiple parameters</returns>
-            public Builder SetParameter(string paramKey, Object paramValue)
+            public Builder SetParameter(string paramKey, Java.Lang.Object paramValue)
             {
                 try
                 {

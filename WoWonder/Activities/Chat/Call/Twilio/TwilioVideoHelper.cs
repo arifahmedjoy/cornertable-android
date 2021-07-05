@@ -37,7 +37,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         protected Room CurrentRoom { get; private set; }
         protected Stopwatch Timer { get; private set; } = new Stopwatch();
 
-        public bool ClientIsReady => AccessToken != null;
+        public bool ClientIsReady => AccessToken != null!;
 
         private string AccessToken;
 
@@ -94,12 +94,12 @@ namespace WoWonder.Activities.Chat.Call.Twilio
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
-        private string FrontCameraId = null;
-        private string BackCameraId = null;
+        private string FrontCameraId = null!;
+        private string BackCameraId = null!;
         private readonly Camera1Enumerator Camera1Enumerator = new Camera1Enumerator();
         private string GetFrontCameraId()
         {
@@ -211,7 +211,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                 if (CurrentRoom == null)
                     return;
                 CurrentRoom.Disconnect();
-                CurrentRoom = null;
+                CurrentRoom = null!;
             }
             catch (Exception e)
             {
@@ -311,7 +311,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
             }
             finally
             {
-                CurrentRoom = null;
+                CurrentRoom = null!;
             }
         }
 
@@ -322,13 +322,13 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                 if (VideoCapturer != null)
                 {
                     VideoCapturer.StopCapture();
-                    VideoCapturer = null;
+                    VideoCapturer = null!;
                 }
 
                 if (CurrentVideoTrack != null)
                 {
                     var videoTrack = CurrentVideoTrack;
-                    CurrentVideoTrack = null;
+                    CurrentVideoTrack = null!;
                     CurrentRoom?.LocalParticipant.UnpublishTrack(videoTrack);
                     DropRenderings(videoTrack);
                     videoTrack.Release();
@@ -337,7 +337,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                 if (CurrentAudioTrack != null)
                 {
                     var audioTrack = CurrentAudioTrack;
-                    CurrentAudioTrack = null;
+                    CurrentAudioTrack = null!;
                     CurrentRoom?.LocalParticipant.UnpublishTrack(audioTrack);
                     audioTrack.Enable(false);
                     audioTrack.Release();
@@ -430,20 +430,20 @@ namespace WoWonder.Activities.Chat.Call.Twilio
 
             try
             {
-                Listener = null;
+                Listener = null!;
 
                 ReleaseRoom();
 
-                Participant = null;
-                RemoteVideoTrack = null;
-                RemoteAudioTrack = null;
+                Participant = null!;
+                RemoteVideoTrack = null!;
+                RemoteAudioTrack = null!;
 
                 ReleaseMedia();
 
                 if (AudioManager != null)
                 {
                     SetAudioFocus(false);
-                    AudioManager = null;
+                    AudioManager = null!;
                 }
 
                 Timer.Stop();
@@ -515,7 +515,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
             try
             {
                 if (RemoteAudioTrack?.Name == p1.TrackName)
-                    RemoteAudioTrack = null;
+                    RemoteAudioTrack = null!;
             }
             catch (Exception e)
             {
@@ -528,7 +528,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
             try
             {
                 if (RemoteAudioTrack?.Name == p1.TrackName)
-                    RemoteAudioTrack = null;
+                    RemoteAudioTrack = null!;
             }
             catch (Exception e)
             {
@@ -615,7 +615,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                     return;
 
                 Listener?.RemoveRemoteVideoTrack(RemoteVideoTrack);
-                RemoteVideoTrack = null;
+                RemoteVideoTrack = null!;
             }
             catch (Exception e)
             {
@@ -631,7 +631,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                     return;
 
                 Listener?.RemoveRemoteVideoTrack(RemoteVideoTrack);
-                RemoteVideoTrack = null;
+                RemoteVideoTrack = null!;
             }
             catch (Exception e)
             {

@@ -206,7 +206,7 @@ namespace WoWonder.Activities.Articles
                 if (!Methods.CheckConnectivity())
                 {
                     SwipeRefreshLayout.Refreshing = false;
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
                 else
                 {
@@ -234,7 +234,7 @@ namespace WoWonder.Activities.Articles
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -247,7 +247,7 @@ namespace WoWonder.Activities.Articles
                 {
                     SwipeRefreshLayout.Refreshing = false;
 
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
                 else
                 {                            
@@ -276,9 +276,9 @@ namespace WoWonder.Activities.Articles
                     Url = AppSettings.SetTabDarkTheme switch
                     {
                         //Load url to be rendered on WebView
-                        true => Client.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" +
+                        true => InitializeWoWonder.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" +
                                 UserDetails.UserId + "&application=phone&mode=night",
-                        _ => Client.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" +
+                        _ => InitializeWoWonder.WebsiteUrl + "/create-blog?c_id=" + UserDetails.AccessToken + "&user_id=" +
                              UserDetails.UserId + "&application=phone"
                     };
 
@@ -478,14 +478,14 @@ namespace WoWonder.Activities.Articles
                         LoadWebView();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         Finish();
                         break;
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -526,7 +526,7 @@ namespace WoWonder.Activities.Articles
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Methods.DisplayReportResultTrack(e);
                 }
                 return false;
             }
@@ -544,7 +544,7 @@ namespace WoWonder.Activities.Articles
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
 
@@ -573,11 +573,8 @@ namespace WoWonder.Activities.Articles
                     }
                 }
                 catch (Exception e)
-                {
-                    MActivity.SwipeRefreshLayout.Refreshing = false;
-                    MActivity.SwipeRefreshLayout.Enabled = false;
-
-                    Console.WriteLine(e);
+                { 
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
 
@@ -607,10 +604,7 @@ namespace WoWonder.Activities.Articles
                 }
                 catch (Exception e)
                 {
-                    MActivity.SwipeRefreshLayout.Refreshing = false;
-                    MActivity.SwipeRefreshLayout.Enabled = false;
-
-                    Console.WriteLine(e);
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
 
@@ -622,7 +616,7 @@ namespace WoWonder.Activities.Articles
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
         }

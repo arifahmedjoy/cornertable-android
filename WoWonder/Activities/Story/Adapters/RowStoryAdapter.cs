@@ -196,8 +196,8 @@ namespace WoWonder.Activities.Story.Adapters
                 ImageLastSeen = (CircleImageView)MainView.FindViewById(Resource.Id.ImageLastseen);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new RowStoryAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new RowStoryAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new RowStoryAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new RowStoryAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
                 if (Button != null) Button.Visibility = ViewStates.Gone;
                 if (ImageLastSeen != null) ImageLastSeen.Visibility = ViewStates.Gone;

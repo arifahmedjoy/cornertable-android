@@ -8,9 +8,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
-using Android.OS;
-
-
+using Android.OS; 
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
@@ -393,7 +391,7 @@ namespace WoWonder.Activities.MyVideo
             };
 
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadMyVideo(offset) });
         }
@@ -450,7 +448,7 @@ namespace WoWonder.Activities.MyVideo
                             switch (MAdapter.MyVideoList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreVideo), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreVideo), ToastLength.Short);
                                     break;
                             }
 
@@ -474,7 +472,7 @@ namespace WoWonder.Activities.MyVideo
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

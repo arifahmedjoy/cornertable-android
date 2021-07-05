@@ -8,9 +8,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
-using Android.OS;
-
-
+using Android.OS; 
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
@@ -352,7 +350,7 @@ namespace WoWonder.Activities.Communities.Pages
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadReviewsAsync(offset) });
         }
@@ -406,7 +404,7 @@ namespace WoWonder.Activities.Communities.Pages
                                         switch (MAdapter.UserList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreReviews), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreReviews), ToastLength.Short);
                                                 break;
                                         }
 
@@ -441,7 +439,7 @@ namespace WoWonder.Activities.Communities.Pages
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

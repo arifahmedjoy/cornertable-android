@@ -127,8 +127,8 @@ namespace WoWonder.Adapters
                 TxtCategoryName = MainView.FindViewById<TextView>(Resource.Id.name);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new CategoryIconAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new CategoryIconAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new CategoryIconAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new CategoryIconAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

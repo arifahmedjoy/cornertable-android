@@ -206,8 +206,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                 CheckBox = MainView.FindViewById<CheckBox>(Resource.Id.cont);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new MentionAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new MentionAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new MentionAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new MentionAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
             }
             catch (Exception e)

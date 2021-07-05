@@ -8,9 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using AndroidX.Preference;
-using Java.Lang;
+using WoWonder.Activities.SettingsPreferences.Custom;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
@@ -24,9 +24,9 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
     {
         #region  Variables Basic
 
-        private Preference PrivacyCanFollowPref, PrivacyCanMessagePref, PrivacyCanSeeMyFriendsPref, PrivacyCanPostOnMyTimelinePref, PrivacyCanSeeMyBirthdayPref;
+        private CustomPreference PrivacyCanFollowPref, PrivacyCanMessagePref, PrivacyCanSeeMyFriendsPref, PrivacyCanPostOnMyTimelinePref, PrivacyCanSeeMyBirthdayPref;
 
-        private SwitchPreferenceCompat PrivacyConfirmRequestFollowsPref, PrivacyShowMyActivitiesPref, PrivacyShareMyLocationPref, PrivacyOnlineUserPref;
+        private CustomSwitchPreference PrivacyConfirmRequestFollowsPref, PrivacyShowMyActivitiesPref, PrivacyShareMyLocationPref, PrivacyOnlineUserPref;
         private string SCanFollowPref = "0", SCanMessagePref = "0",SCanSeeMyFriendsPref = "0", SCanPostOnMyTimelinePref = "0", SCanSeeMyBirthdayPref = "0", SConfirmRequestFollowsPref = "0", SShowMyActivitiesPref = "0", SOnlineUsersPref = "0", SShareMyLocationPref = "0" , TypeDialog;
          
         private readonly Activity ActivityContext;
@@ -138,15 +138,15 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                 MainSettings.SharedData = PreferenceManager.SharedPreferences;
                 PreferenceManager.SharedPreferences.RegisterOnSharedPreferenceChangeListener(this);
 
-                PrivacyCanFollowPref = FindPreference("whocanfollow_key");
-                PrivacyCanMessagePref = FindPreference("whocanMessage_key");
-                PrivacyCanSeeMyFriendsPref = FindPreference("whoCanSeeMyfriends_key");
-                PrivacyCanPostOnMyTimelinePref = FindPreference("whoCanPostOnMyTimeline_key");
-                PrivacyCanSeeMyBirthdayPref = FindPreference("whoCanSeeMyBirthday_key");
-                PrivacyConfirmRequestFollowsPref = (SwitchPreferenceCompat)FindPreference("ConfirmRequestFollows_key");
-                PrivacyShowMyActivitiesPref = (SwitchPreferenceCompat)FindPreference("ShowMyActivities_key");
-                PrivacyOnlineUserPref = (SwitchPreferenceCompat)FindPreference("onlineUser_key");
-                PrivacyShareMyLocationPref = (SwitchPreferenceCompat)FindPreference("ShareMyLocation_key");
+                PrivacyCanFollowPref = (CustomPreference)FindPreference("whocanfollow_key");
+                PrivacyCanMessagePref = (CustomPreference)FindPreference("whocanMessage_key");
+                PrivacyCanSeeMyFriendsPref = (CustomPreference)FindPreference("whoCanSeeMyfriends_key");
+                PrivacyCanPostOnMyTimelinePref = (CustomPreference)FindPreference("whoCanPostOnMyTimeline_key");
+                PrivacyCanSeeMyBirthdayPref = (CustomPreference)FindPreference("whoCanSeeMyBirthday_key");
+                PrivacyConfirmRequestFollowsPref = (CustomSwitchPreference)FindPreference("ConfirmRequestFollows_key");
+                PrivacyShowMyActivitiesPref = (CustomSwitchPreference)FindPreference("ShowMyActivities_key");
+                PrivacyOnlineUserPref = (CustomSwitchPreference)FindPreference("onlineUser_key");
+                PrivacyShareMyLocationPref = (CustomSwitchPreference)FindPreference("ShareMyLocation_key");
 
                 //Update Preferences data on Load 
                 OnSharedPreferenceChanged(MainSettings.SharedData, "whocanfollow_key");
@@ -212,7 +212,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                     {
                         var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
 
-                        var etp = (SwitchPreferenceCompat)sender;
+                        var etp = (CustomSwitchPreference)sender;
                         var value = eventArgs.NewValue.ToString();
                         etp.Checked = bool.Parse(value);
                         switch (etp.Checked)
@@ -249,14 +249,26 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"confirm_followers", SConfirmRequestFollowsPref}
+                                {"confirm_followers", SConfirmRequestFollowsPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
 
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -280,7 +292,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                     case true:
                     {
                         var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                        var etp = (SwitchPreferenceCompat)sender;
+                        var etp = (CustomSwitchPreference)sender;
                         var value = eventArgs.NewValue.ToString();
                         etp.Checked = bool.Parse(value);
                         switch (etp.Checked)
@@ -317,14 +329,26 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"show_activities_privacy", SShowMyActivitiesPref}
+                                {"show_activities_privacy", SShowMyActivitiesPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
 
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -347,7 +371,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                     case true:
                     {
                         var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                        var etp = (SwitchPreferenceCompat)sender;
+                        var etp = (CustomSwitchPreference)sender;
                         var value = eventArgs.NewValue.ToString();
                         etp.Checked = bool.Parse(value);
                         switch (etp.Checked)
@@ -388,14 +412,26 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"status", SOnlineUsersPref}
+                                {"status", SOnlineUsersPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
 
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -418,7 +454,7 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                     case true:
                     {
                         var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                        var etp = (SwitchPreferenceCompat)sender;
+                        var etp = (CustomSwitchPreference)sender;
                         var value = eventArgs.NewValue.ToString();
                         etp.Checked = bool.Parse(value);
                         switch (etp.Checked)
@@ -457,14 +493,26 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"share_my_location", SShareMyLocationPref}
+                                {"share_my_location", SShareMyLocationPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
 
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -788,11 +836,11 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
             }
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
 
                  
@@ -822,13 +870,25 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"follow_privacy", SCanFollowPref}
+                                {"follow_privacy", SCanFollowPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -863,13 +923,25 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"message_privacy", SCanMessagePref}
+                                {"message_privacy", SCanMessagePref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -910,13 +982,25 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"friend_privacy", SCanSeeMyFriendsPref}
+                                {"friend_privacy", SCanSeeMyFriendsPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -951,13 +1035,25 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"post_privacy", SCanPostOnMyTimelinePref}
+                                {"post_privacy", SCanPostOnMyTimelinePref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;
@@ -992,13 +1088,25 @@ namespace WoWonder.Activities.SettingsPreferences.Privacy
                         {
                             var dataPrivacy = new Dictionary<string, string>
                             {
-                                {"birth_privacy", SCanSeeMyBirthdayPref}
+                                {"birth_privacy", SCanSeeMyBirthdayPref},
+
+                                 {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                             };
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         }
                         else
                         {
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
 
                         break;

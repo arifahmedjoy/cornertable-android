@@ -465,7 +465,7 @@ namespace WoWonder.Activities.Default
                         Methods.DisplayReportResultTrack(ex);
                     }
                 //else
-                //    Toast.MakeText(this, GetString(Resource.String.Lbl_Null_Data_User), ToastLength.Short)?.Show();
+                //    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Null_Data_User), ToastLength.Short);
             }
             catch (Exception exception)
             {

@@ -8,7 +8,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
-using Android.OS; 
+using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
@@ -16,7 +16,6 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
-using Google.Android.Material.FloatingActionButton;
 using Newtonsoft.Json;
 using WoWonder.Activities.Album.Adapters;
 using WoWonder.Activities.Base;
@@ -43,8 +42,8 @@ namespace WoWonder.Activities.Album
         private ViewStub EmptyStateLayout;
         private View Inflated;
         private RecyclerViewOnScrollListener MainScrollEvent;
-        private FloatingActionButton ActionButton;
         private AdView MAdView;
+        private TextView CreateAlbum;
 
         #endregion
 
@@ -129,7 +128,7 @@ namespace WoWonder.Activities.Album
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        } 
+        }
 
         protected override void OnDestroy()
         {
@@ -177,17 +176,15 @@ namespace WoWonder.Activities.Album
             {
                 MRecycler = (RecyclerView)FindViewById(Resource.Id.recyler);
                 EmptyStateLayout = FindViewById<ViewStub>(Resource.Id.viewStub);
+                CreateAlbum = FindViewById<TextView>(Resource.Id.toolbar_title);
+                CreateAlbum.Visibility = ViewStates.Visible;
+                CreateAlbum.Text = GetString(Resource.String.Lbl_Create);
 
                 SwipeRefreshLayout = (SwipeRefreshLayout)FindViewById(Resource.Id.swipeRefreshLayout);
                 SwipeRefreshLayout.SetColorSchemeResources(Android.Resource.Color.HoloBlueLight, Android.Resource.Color.HoloGreenLight, Android.Resource.Color.HoloOrangeLight, Android.Resource.Color.HoloRedLight);
                 SwipeRefreshLayout.Refreshing = true;
                 SwipeRefreshLayout.Enabled = true;
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
-
-
-                ActionButton = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                ActionButton.Visibility = ViewStates.Visible;
-                ActionButton.SetImageResource(Resource.Drawable.ic_add);
 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, MRecycler);
@@ -215,7 +212,7 @@ namespace WoWonder.Activities.Album
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
-                    
+
                 }
             }
             catch (Exception e)
@@ -234,7 +231,7 @@ namespace WoWonder.Activities.Album
                 };
                 LayoutManager = new GridLayoutManager(this, 2);
                 LayoutManager.SetSpanSizeLookup(new MySpanSizeLookup(4, 1, 1)); //5, 1, 2 
-                MRecycler.SetLayoutManager(LayoutManager); 
+                MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
@@ -265,12 +262,12 @@ namespace WoWonder.Activities.Album
                     case true:
                         MAdapter.OnItemClick += MAdapterOnOnItemClick;
                         SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
-                        ActionButton.Click += ActionButtonOnClick;
+                        CreateAlbum.Click += ActionButtonOnClick;
                         break;
                     default:
                         MAdapter.OnItemClick -= MAdapterOnOnItemClick;
                         SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
-                        ActionButton.Click -= ActionButtonOnClick;
+                        CreateAlbum.Click -= ActionButtonOnClick;
                         break;
                 }
             }
@@ -292,7 +289,7 @@ namespace WoWonder.Activities.Album
                 EmptyStateLayout = null!;
                 Inflated = null!;
                 MainScrollEvent = null!;
-                ActionButton = null!;
+                CreateAlbum = null!;
                 MAdView = null!;
             }
             catch (Exception e)
@@ -356,7 +353,7 @@ namespace WoWonder.Activities.Album
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         private void ActionButtonOnClick(object sender, EventArgs e)
         {
             try
@@ -369,9 +366,9 @@ namespace WoWonder.Activities.Album
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         #endregion
-         
+
         #region Permissions && Result
 
         //Result
@@ -383,19 +380,19 @@ namespace WoWonder.Activities.Album
                 switch (requestCode)
                 {
                     case 2020 when resultCode == Result.Ok:
-                    {
-                        string result = data.GetStringExtra("AlbumItem"); 
-                        var item = JsonConvert.DeserializeObject<PostDataObject>(result);
-                        if (item != null)
                         {
-                            MAdapter.AlbumList.Add(item);
-                            MAdapter.NotifyDataSetChanged();
+                            string result = data.GetStringExtra("AlbumItem");
+                            var item = JsonConvert.DeserializeObject<PostDataObject>(result);
+                            if (item != null)
+                            {
+                                MAdapter.AlbumList.Add(item);
+                                MAdapter.NotifyDataSetChanged();
 
-                            RunOnUiThread(ShowEmptyPage); 
+                                RunOnUiThread(ShowEmptyPage);
+                            }
+
+                            break;
                         }
-
-                        break;
-                    }
                 }
             }
             catch (Exception e)
@@ -415,14 +412,14 @@ namespace WoWonder.Activities.Album
                 switch (ListUtils.ListCachedDataAlbum.Count)
                 {
                     case > 0:
-                    {
-                        MAdapter.AlbumList = ListUtils.ListCachedDataAlbum;
-                        MAdapter.NotifyDataSetChanged();
+                        {
+                            MAdapter.AlbumList = ListUtils.ListCachedDataAlbum;
+                            MAdapter.NotifyDataSetChanged();
 
-                        var item = MAdapter.AlbumList.LastOrDefault()?.Id ?? "0";
-                        StartApiService(item);
-                        break;
-                    }
+                            var item = MAdapter.AlbumList.LastOrDefault()?.Id ?? "0";
+                            StartApiService(item);
+                            break;
+                        }
                     default:
                         StartApiService();
                         break;
@@ -444,7 +441,7 @@ namespace WoWonder.Activities.Album
             };
 
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadAlbum(offset) });
         }
@@ -474,30 +471,30 @@ namespace WoWonder.Activities.Album
                     switch (respondList)
                     {
                         case > 0 when countList > 0:
-                        {
-                            foreach (var item in from item in result.Albums let check = MAdapter.AlbumList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
                             {
-                                MAdapter.AlbumList.Add(item);
-                            }
+                                foreach (var item in from item in result.Albums let check = MAdapter.AlbumList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                {
+                                    MAdapter.AlbumList.Add(item);
+                                }
 
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.AlbumList.Count - countList); });
-                            break;
-                        }
+                                RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.AlbumList.Count - countList); });
+                                break;
+                            }
                         case > 0:
                             MAdapter.AlbumList = new ObservableCollection<PostDataObject>(result.Albums);
                             RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
                             break;
                         default:
-                        {
-                            switch (MAdapter.AlbumList.Count)
                             {
-                                case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreAlbums), ToastLength.Short)?.Show();
-                                    break;
-                            }
+                                switch (MAdapter.AlbumList.Count)
+                                {
+                                    case > 10 when !MRecycler.CanScrollVertically(1):
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreAlbums), ToastLength.Short);
+                                        break;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                     }
                 }
 
@@ -516,7 +513,7 @@ namespace WoWonder.Activities.Album
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
@@ -525,7 +522,7 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                MainScrollEvent.IsLoading = false; 
+                MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
                 switch (MAdapter.AlbumList.Count)
@@ -535,22 +532,22 @@ namespace WoWonder.Activities.Album
                         EmptyStateLayout.Visibility = ViewStates.Gone;
                         break;
                     default:
-                    {
-                        MRecycler.Visibility = ViewStates.Gone;
-
-                        Inflated ??= EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoAlbum);
-                        switch (x.EmptyStateButton.HasOnClickListeners)
                         {
-                            case false:
-                                x.EmptyStateButton.Click += null!;
-                                break;
+                            MRecycler.Visibility = ViewStates.Gone;
+
+                            Inflated ??= EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(Inflated, EmptyStateInflater.Type.NoAlbum);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    break;
+                            }
+                            EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        EmptyStateLayout.Visibility = ViewStates.Visible;
-                        break;
-                    }
                 }
             }
             catch (Exception e)
@@ -575,6 +572,6 @@ namespace WoWonder.Activities.Album
         }
 
         #endregion
-         
+
     }
 }

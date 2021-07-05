@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -17,6 +16,7 @@ using AndroidX.AppCompat.App;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using AT.Markushi.UI;
+using Newtonsoft.Json;
 using TwilioVideo;
 using WoWonder.Activities.Chat.MsgTabbes;
 using WoWonder.Helpers.CacheLoaders;
@@ -25,7 +25,9 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Call;
+using WoWonderClient.Classes.Message;
 using WoWonderClient.Requests;
+using Manifest = Android.Manifest;
 using VideoView = TwilioVideo.VideoView;
 
 namespace WoWonder.Activities.Chat.Call.Twilio
@@ -37,8 +39,9 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         #region Variables Basic
 
         private TwilioVideoHelper TwilioVideo { get; set; }
-        private string TwilioAccessToken = "YOUR_TOKEN", TwilioAccessTokenUser2 = "YOUR_TOKEN", RoomName = "TestRoom";
-        private string CallId = "0", CallType = "0", UserId = "", Avatar = "0", Name = "0", FromId = "0", Active = "0", Time = "0", Status = "0";
+        private string CallType = "0"; 
+        private CallUserObject CallUserObject;
+
 
         private RelativeLayout MainUserViewProfile;
         private Button SwitchCamButton;
@@ -76,7 +79,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
 
                 SensorManager = (SensorManager)GetSystemService(SensorService);
                 Proximity = SensorManager.GetDefaultSensor(SensorType.Proximity);
-
+                 
                 GlobalContext = MsgTabbedMainActivity.GetInstance();
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -333,7 +336,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         {
             try
             {
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Call.DeclineCallAsync(UserDetails.UserId, CallId, TypeCall.Video) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Call.DeclineCallAsync(UserDetails.UserId, CallUserObject.Data.Id, TypeCall.Video) });
                 FinishCall();
             }
             catch (Exception exception)
@@ -398,57 +401,43 @@ namespace WoWonder.Activities.Chat.Call.Twilio
 
                 CheckVideoCallPermissions(granted);
 
-                UserId = Intent?.GetStringExtra("UserID");
-                Avatar = Intent?.GetStringExtra("avatar");
-                Name = Intent?.GetStringExtra("name");
+                CallType = Intent?.GetStringExtra("type") ?? ""; // Twilio_video_call , Twilio_audio_call,Agora_video_call_recieve,Agora_audio_call_recieve
 
-                var dataCallId = Intent?.GetStringExtra("CallID") ?? "Data not available";
-                if (dataCallId != "Data not available" && !string.IsNullOrEmpty(dataCallId))
-                {
-                    CallId = dataCallId;
-
-                    TwilioAccessToken = Intent?.GetStringExtra("access_token");
-                    TwilioAccessTokenUser2 = Intent?.GetStringExtra("access_token_2");
-                    FromId = Intent?.GetStringExtra("from_id");
-                    Active = Intent?.GetStringExtra("active");
-                    Time = Intent?.GetStringExtra("time");
-                    Status = Intent?.GetStringExtra("status");
-                    RoomName = Intent?.GetStringExtra("room_name");
-                    CallType = Intent?.GetStringExtra("type");
-                }
-
+                if (!string.IsNullOrEmpty(Intent?.GetStringExtra("callUserObject")))
+                    CallUserObject = JsonConvert.DeserializeObject<CallUserObject>(Intent?.GetStringExtra("callUserObject") ?? "");
+                   
                 switch (CallType)
                 {
                     case "Twilio_video_call":
                         {
-                            if (!string.IsNullOrEmpty(TwilioAccessToken))
+                            if (!string.IsNullOrEmpty(CallUserObject.Data.AccessToken))
                             {
-                                if (!string.IsNullOrEmpty(UserId))
+                                if (!string.IsNullOrEmpty(CallUserObject.UserId))
                                     Load_userWhenCall();
 
                                 TwilioVideo = TwilioVideoHelper.GetOrCreate(this, TypeCall.Video);
                                 UpdateState();
                                 NoteTextView.Text = GetText(Resource.String.Lbl_Waiting_for_answer);
 
-                                var (apiStatus, respond) = await RequestsAsync.Call.AnswerCallAsync(UserDetails.UserId, CallId, TypeCall.Video);
+                                var (apiStatus, respond) = await RequestsAsync.Call.AnswerCallAsync(UserDetails.UserId, CallUserObject.Data.Id, TypeCall.Video);
                                 if (apiStatus == 200)
                                 {
                                     ConnectToRoom();
 
-                                    var ckd = GlobalContext?.LastCallsTab?.MAdapter?.MCallUser?.FirstOrDefault(a => a.Id == CallId); // id >> Call_Id
+                                    var ckd = GlobalContext?.LastCallsTab?.MAdapter?.MCallUser?.FirstOrDefault(a => a.Id == CallUserObject.Data.Id); // id >> Call_Id
                                     if (ckd == null)
                                     {
                                         Classes.CallUser cv = new Classes.CallUser
                                         {
-                                            Id = CallId,
-                                            UserId = UserId,
-                                            Avatar = Avatar,
-                                            Name = Name,
-                                            FromId = FromId,
-                                            Active = Active,
+                                            Id = CallUserObject.Data.Id,
+                                            UserId = CallUserObject.UserId,
+                                            Avatar = CallUserObject.Avatar,
+                                            Name = CallUserObject.Name,
+                                            FromId = CallUserObject.Data.FromId,
+                                            Active = CallUserObject.Data.Active,
                                             Time = "Answered call",
-                                            Status = Status,
-                                            RoomName = RoomName,
+                                            Status = CallUserObject.Data.Status,
+                                            RoomName = CallUserObject.Data.RoomName,
                                             Type = CallType,
                                             TypeIcon = "Accept",
                                             TypeColor = "#008000"
@@ -470,7 +459,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                         NoteTextView.Text = GetText(Resource.String.Lbl_Calling_video);
                         TwilioVideo = TwilioVideoHelper.GetOrCreate(this, TypeCall.Video);
 
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("mystic_call.mp3", "left");
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("outgoin_call.mp3");
 
                         StartApiService();
 
@@ -489,10 +478,10 @@ namespace WoWonder.Activities.Chat.Call.Twilio
             try
             {
                 MainUserViewProfile.Visibility = ViewStates.Visible;
-                UserNameTextView.Text = Name;
+                UserNameTextView.Text = CallUserObject.Name;
 
                 //profile_picture
-                GlideImageLoader.LoadImage(this, Avatar, UserImageView, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                GlideImageLoader.LoadImage(this, CallUserObject.Avatar, UserImageView, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
             }
             catch (Exception e)
             {
@@ -503,7 +492,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadProfileFromUserId });
         }
@@ -511,15 +500,15 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         private async Task LoadProfileFromUserId()
         {
             Load_userWhenCall();
-            var (apiStatus, respond) = await RequestsAsync.Call.CreateNewCallAsync(UserDetails.UserId, UserId, TypeCall.Video);
+            var (apiStatus, respond) = await RequestsAsync.Call.CreateNewCallAsync(UserDetails.UserId, CallUserObject.UserId, TypeCall.Video);
             if (apiStatus == 200)
             {
-                if (respond is CreateNewCallObject result)
+                if (respond is CallUserObject.DataCallUser result)
                 {
-                    CallId = result.Id.ToString();
-                    TwilioAccessToken = result.AccessToken;
-                    TwilioAccessTokenUser2 = result.AccessToken2;
-                    RoomName = result.RoomName;
+                    CallUserObject.Data.Id = result.Id.ToString();
+                    CallUserObject.Data.AccessToken = result.AccessToken;
+                    CallUserObject.Data.AccessToken2 = result.AccessToken2;
+                    CallUserObject.Data.RoomName = result.RoomName;
 
                     TimerRequestWaiter = new Timer { Interval = 5000 };
                     TimerRequestWaiter.Elapsed += TimerCallRequestAnswer_Waiter_Elapsed;
@@ -538,14 +527,14 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         {
             try
             {
-                var (apiStatus, respond) = await RequestsAsync.Call.CheckForAnswerAsync(UserDetails.UserId, CallId, TypeCall.Video);
+                var (apiStatus, respond) = await RequestsAsync.Call.CheckForAnswerAsync(UserDetails.UserId, CallUserObject.Data.Id, TypeCall.Video);
                 switch (apiStatus)
                 {
                     case 200:
                         {
                             Methods.AudioRecorderAndPlayer.StopAudioFromAsset();
 
-                            if (!string.IsNullOrEmpty(TwilioAccessToken))
+                            if (!string.IsNullOrEmpty(CallUserObject.Data.AccessToken))
                             {
                                 TimerRequestWaiter.Enabled = false;
                                 TimerRequestWaiter.Stop();
@@ -555,20 +544,20 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                                 {
                                     await Task.Delay(1000);
 
-                                    TwilioVideo?.UpdateToken(TwilioAccessTokenUser2);
-                                    TwilioVideo?.JoinRoom(ApplicationContext, RoomName);
+                                    TwilioVideo?.UpdateToken(CallUserObject.Data.AccessToken2);
+                                    TwilioVideo?.JoinRoom(ApplicationContext, CallUserObject.Data.RoomName);
 
                                     Classes.CallUser cv = new Classes.CallUser
                                     {
-                                        Id = CallId,
-                                        UserId = UserId,
-                                        Avatar = Avatar,
-                                        Name = Name,
-                                        FromId = FromId,
-                                        Active = Active,
+                                        Id = CallUserObject.Data.Id,
+                                        UserId = CallUserObject.UserId,
+                                        Avatar = CallUserObject.Avatar,
+                                        Name = CallUserObject.Name,
+                                        FromId = CallUserObject.Data.FromId,
+                                        Active = CallUserObject.Data.Active,
                                         Time = "Answered call",
-                                        Status = Status,
-                                        RoomName = RoomName,
+                                        Status = CallUserObject.Data.Status,
+                                        RoomName = CallUserObject.Data.RoomName,
                                         Type = CallType,
                                         TypeIcon = "Accept",
                                         TypeColor = "#008000"
@@ -600,20 +589,20 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                                     TimerRequestWaiter.Stop();
                                     TimerRequestWaiter.Close();
 
-                                    var ckd = GlobalContext?.LastCallsTab?.MAdapter?.MCallUser?.FirstOrDefault(a => a.Id == CallId); // id >> Call_Id
+                                    var ckd = GlobalContext?.LastCallsTab?.MAdapter?.MCallUser?.FirstOrDefault(a => a.Id == CallUserObject.Data.Id); // id >> Call_Id
                                     if (ckd == null)
                                     {
                                         Classes.CallUser cv = new Classes.CallUser
                                         {
-                                            Id = CallId,
-                                            UserId = UserId,
-                                            Avatar = Avatar,
-                                            Name = Name,
-                                            FromId = FromId,
-                                            Active = Active,
+                                            Id = CallUserObject.Data.Id,
+                                            UserId = CallUserObject.UserId,
+                                            Avatar = CallUserObject.Avatar,
+                                            Name = CallUserObject.Name,
+                                            FromId = CallUserObject.Data.FromId,
+                                            Active = CallUserObject.Data.Active,
                                             Time = "Missed call",
-                                            Status = Status,
-                                            RoomName = RoomName,
+                                            Status = CallUserObject.Data.Status,
+                                            RoomName = CallUserObject.Data.RoomName,
                                             Type = CallType,
                                             TypeIcon = "Cancel",
                                             TypeColor = "#FF0000"
@@ -645,21 +634,20 @@ namespace WoWonder.Activities.Chat.Call.Twilio
                                 TimerRequestWaiter.Stop();
                                 TimerRequestWaiter.Close();
 
-                                var ckd = GlobalContext?.LastCallsTab?.MAdapter?.MCallUser?.FirstOrDefault(a =>
-                                    a.Id == CallId); // id >> Call_Id
+                                var ckd = GlobalContext?.LastCallsTab?.MAdapter?.MCallUser?.FirstOrDefault(a => a.Id == CallUserObject.Data.Id); // id >> Call_Id
                                 if (ckd == null)
                                 {
                                     Classes.CallUser cv = new Classes.CallUser
                                     {
-                                        Id = CallId,
-                                        UserId = UserId,
-                                        Avatar = Avatar,
-                                        Name = Name,
-                                        FromId = FromId,
-                                        Active = Active,
+                                        Id = CallUserObject.Data.Id,
+                                        UserId = CallUserObject.UserId,
+                                        Avatar = CallUserObject.Avatar,
+                                        Name = CallUserObject.Name,
+                                        FromId = CallUserObject.Data.FromId,
+                                        Active = CallUserObject.Data.Active,
                                         Time = "Declined call",
-                                        Status = Status,
-                                        RoomName = RoomName,
+                                        Status = CallUserObject.Data.Status,
+                                        RoomName = CallUserObject.Data.RoomName,
                                         Type = CallType,
                                         TypeIcon = "Declined",
                                         TypeColor = "#FF8000"
@@ -775,7 +763,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         {
             try
             {
-                Toast.MakeText(this, GetText(Resource.String.Lbl_Room_Disconnected), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Room_Disconnected), ToastLength.Short);
             }
             catch (Exception e)
             {
@@ -813,7 +801,7 @@ namespace WoWonder.Activities.Chat.Call.Twilio
         {
             if (ActivityCompat.ShouldShowRequestPermissionRationale(this, Manifest.Permission.Camera) ||
                 ActivityCompat.ShouldShowRequestPermissionRationale(this, Manifest.Permission.RecordAudio))
-                Toast.MakeText(this, GetText(Resource.String.Lbl_Need_Camera), ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Need_Camera), ToastLength.Long);
             else
                 ActivityCompat.RequestPermissions(this,
                     new[] { Manifest.Permission.Camera, Manifest.Permission.RecordAudio, Manifest.Permission.ModifyAudioSettings }, 1);
@@ -837,8 +825,8 @@ namespace WoWonder.Activities.Chat.Call.Twilio
 
         private void ConnectToRoom()
         {
-            TwilioVideo?.UpdateToken(TwilioAccessToken);
-            TwilioVideo?.JoinRoom(this, RoomName);
+            TwilioVideo?.UpdateToken(CallUserObject.Data.AccessToken);
+            TwilioVideo?.JoinRoom(this, CallUserObject.Data.RoomName);
         }
 
         private void UpdateState()

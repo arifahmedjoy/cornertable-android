@@ -75,7 +75,10 @@ namespace WoWonder.Activities.AddPost
 
                 LoadContacts();
 
-                InterstitialAd = AdsFacebook.InitInterstitial(this);
+                if (AppSettings.ShowFbInterstitialAds)
+                    InterstitialAd = AdsFacebook.InitInterstitial(this);
+                else
+                    AdsColony.Ad_Interstitial(this);
             }
             catch (Exception e)
             {
@@ -470,7 +473,7 @@ namespace WoWonder.Activities.AddPost
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadContactsAsync(offset) });
         }
@@ -517,7 +520,7 @@ namespace WoWonder.Activities.AddPost
                             switch (MAdapter.MentionList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -541,7 +544,7 @@ namespace WoWonder.Activities.AddPost
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
             MainScrollEvent.IsLoading = false;
         }
@@ -720,7 +723,7 @@ namespace WoWonder.Activities.AddPost
                                         switch (MAdapter.MentionList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 

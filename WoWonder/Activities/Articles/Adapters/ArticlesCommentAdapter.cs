@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel; 
+using System.Collections.ObjectModel;
+using System.Linq;
 using Android.App;
 using Android.Graphics;
 using Android.Views;
@@ -10,14 +11,17 @@ using Bumptech.Glide;
 using Com.Tuyenmonkey.Textdecorator;
 using Java.Util;
 using Refractored.Controls;
+using WoWonder.Activities.Articles.Fragment;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo;
 using WoWonder.Library.Anjo.SuperTextLibrary;
 using WoWonderClient.Classes.Articles;
 using IList = System.Collections.IList;
+using Reaction = WoWonderClient.Classes.Posts.Reaction;
 
 namespace WoWonder.Activities.Articles.Adapters
 {
@@ -62,17 +66,15 @@ namespace WoWonder.Activities.Articles.Adapters
         {
             try
             {
-                return viewType switch
+                switch (viewType)
                 {
-                    0 => new ArticlesCommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
-                        this, PostEventListener),
-                    666 => new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)
-                        ?.Inflate(Resource.Layout.Style_EmptyState, parent, false)),
-                    _ => new ArticlesCommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
-                        this, PostEventListener)
-                };
+                    case 0:
+                        return new ArticlesCommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
+                    case 666:
+                        return new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_EmptyState, parent, false));
+                    default:
+                        return new ArticlesCommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener);
+                }
             }
             catch (Exception exception)
             {
@@ -144,9 +146,103 @@ namespace WoWonder.Activities.Articles.Adapters
 
                 switch (AppSettings.PostButton)
                 {
+                    case PostButtonSystem.ReactionDefault:
+                    case PostButtonSystem.ReactionSubShine:
+                        {
+                            item.Reaction ??= new Reaction();
+
+                            switch (item.Reaction.Count)
+                            {
+                                case > 0:
+                                    holder.CountLikeSection.Visibility = ViewStates.Visible;
+                                    holder.CountLike.Text = Methods.FunString.FormatPriceValue(item.Reaction.Count);
+                                    break;
+                                default:
+                                    holder.CountLikeSection.Visibility = ViewStates.Gone;
+                                    break;
+                            }
+
+                            if (item.Reaction.IsReacted != null && item.Reaction.IsReacted.Value)
+                            {
+                                switch (string.IsNullOrEmpty(item.Reaction.Type))
+                                {
+                                    case false:
+                                        {
+                                            var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == item.Reaction.Type).Value?.Id ?? "";
+                                            switch (react)
+                                            {
+                                                case "1":
+                                                    ArticlesReactionComment.SetReactionPack(holder, ReactConstants.Like);
+                                                    holder.LikeTextView.Tag = "Liked";
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                                    break;
+                                                case "2":
+                                                    ArticlesReactionComment.SetReactionPack(holder, ReactConstants.Love);
+                                                    holder.LikeTextView.Tag = "Liked";
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_love);
+                                                    break;
+                                                case "3":
+                                                    ArticlesReactionComment.SetReactionPack(holder, ReactConstants.HaHa);
+                                                    holder.LikeTextView.Tag = "Liked";
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_haha);
+                                                    break;
+                                                case "4":
+                                                    ArticlesReactionComment.SetReactionPack(holder, ReactConstants.Wow);
+                                                    holder.LikeTextView.Tag = "Liked";
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_wow);
+                                                    break;
+                                                case "5":
+                                                    ArticlesReactionComment.SetReactionPack(holder, ReactConstants.Sad);
+                                                    holder.LikeTextView.Tag = "Liked";
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_sad);
+                                                    break;
+                                                case "6":
+                                                    ArticlesReactionComment.SetReactionPack(holder, ReactConstants.Angry);
+                                                    holder.LikeTextView.Tag = "Liked";
+                                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_angry);
+                                                    break;
+                                                default:
+                                                    holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
+                                                    //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                                    holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                                                    holder.LikeTextView.Tag = "Like";
+
+                                                    switch (item.Reaction.Count)
+                                                    {
+                                                        case > 0:
+                                                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                                            break;
+                                                    }
+
+                                                    break;
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                holder.LikeTextView.Text = ActivityContext.GetText(Resource.String.Btn_Like);
+                                //holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                                holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                                holder.LikeTextView.Tag = "Like";
+                                switch (item.Reaction.Count)
+                                {
+                                    case > 0:
+                                        holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                        break;
+                                }
+                            }
+
+                            break;
+                        }
                     case PostButtonSystem.Wonder:
                     case PostButtonSystem.DisLike:
                     {
+                        if (item.Reaction?.IsReacted != null && !item.Reaction.IsReacted.Value)
+                            ArticlesReactionComment.SetReactionPack(holder, ReactConstants.Default);
+
                         switch (item.IsCommentLiked)
                         {
                             case true:
@@ -231,6 +327,7 @@ namespace WoWonder.Activities.Articles.Adapters
                         if (viewHolder is not AdapterHolders.EmptyStateAdapterViewHolder emptyHolder)
                             return;
 
+                        emptyHolder.EmptyImage.SetImageResource(Resource.Drawable.comment_emptstate);
                         emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoComments);
 
                         return;
@@ -418,7 +515,8 @@ namespace WoWonder.Activities.Articles.Adapters
                 Image.SetOnClickListener(this);
                 LikeTextView.SetOnClickListener(this);
                 DislikeTextView.SetOnClickListener(this);
-                ReplyTextView.SetOnClickListener(this);  
+                ReplyTextView.SetOnClickListener(this);
+                CountLikeSection.SetOnClickListener(this);  
             }
             catch (Exception e)
             {
@@ -430,23 +528,25 @@ namespace WoWonder.Activities.Articles.Adapters
         {
             try
             {
-                if (AdapterPosition != RecyclerView.NoPosition)
+                if (BindingAdapterPosition != RecyclerView.NoPosition)
                 {
                     CommentsArticlesObject item = TypeClass switch
                     {
-                        "Comment" => CommentAdapter.CommentList[AdapterPosition],
-                        "Reply" => CommentAdapter.CommentList[AdapterPosition],
+                        "Comment" => CommentAdapter.CommentList[BindingAdapterPosition],
+                        "Reply" => CommentAdapter.CommentList[BindingAdapterPosition],
                         _ => null!
                     };
 
                     if (v.Id == Image.Id)
-                        PostClickListener.ProfileClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.ProfileClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == LikeTextView.Id)
-                        PostClickListener.LikeCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.LikeCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == DislikeTextView.Id)
-                        PostClickListener.DislikeCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.DislikeCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == ReplyTextView.Id)
-                        PostClickListener.CommentReplyClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.CommentReplyClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
+                    else if (v.Id == CountLikeSection?.Id)//wael check this page
+                        PostClickListener.CountLikeCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                 }
             }
             catch (Exception e)
@@ -458,17 +558,17 @@ namespace WoWonder.Activities.Articles.Adapters
         public bool OnLongClick(View v)
         {
             //add event if System = ReactButton 
-            if (AdapterPosition != RecyclerView.NoPosition)
+            if (BindingAdapterPosition != RecyclerView.NoPosition)
             {
                 CommentsArticlesObject item = TypeClass switch
                 {
-                    "Comment" => CommentAdapter.CommentList[AdapterPosition],
-                    "Reply" => CommentAdapter.CommentList[AdapterPosition],
+                    "Comment" => CommentAdapter.CommentList[BindingAdapterPosition],
+                    "Reply" => CommentAdapter.CommentList[BindingAdapterPosition],
                     _ => null!
                 };
 
                 if (v.Id == MainView.Id)
-                    PostClickListener.MoreCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                    PostClickListener.MoreCommentReplyPostClick(new CommentReplyArticlesClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
             }
 
             return true;

@@ -22,14 +22,14 @@ using MessageData = WoWonderClient.Classes.Message.MessageData;
 namespace WoWonder.Helpers.Controller
 {
     public static class GroupMessageController
-    {  
+    {
         //############# DONT'T MODIFY HERE ############# 
-        private static ChatObject GroupData; 
+        private static ChatObject GroupData;
         private static GroupChatWindowActivity MainWindowActivity;
         private static MsgTabbedMainActivity GlobalContext;
 
         //========================= Functions ========================= 
-        public static async Task SendMessageTask(GroupChatWindowActivity windowActivity, string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
+        public static async Task SendMessageTask(GroupChatWindowActivity windowActivity, string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "", string replyId = "")
         {
             try
             {
@@ -50,28 +50,28 @@ namespace WoWonder.Helpers.Controller
                 }
                 else
                 {
-                    StartApiService(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+                    StartApiService(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng, replyId);
                 }
-                 
+
                 await Task.Delay(0);
             }
             catch (Exception ex)
             {
-               Methods.DisplayReportResultTrack(ex);
+                Methods.DisplayReportResultTrack(ex);
             }
         }
 
-        private static void StartApiService(string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
+        private static void StartApiService(string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "", string replyId = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(MainWindowActivity, MainWindowActivity.GetString(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(MainWindowActivity, MainWindowActivity.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => SendMessage(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => SendMessage(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng, replyId) });
         }
 
-        private static async Task SendMessage(string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
+        private static async Task SendMessage(string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "", string replyId = "")
         {
-            var (apiStatus, respond) = await RequestsAsync.GroupChat.Send_MessageToGroupChatAsync(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+            var (apiStatus, respond) = await RequestsAsync.GroupChat.Send_MessageToGroupChatAsync(id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng, replyId);
             if (apiStatus == 200)
             {
                 if (respond is GroupSendMessageObject result)
@@ -81,62 +81,28 @@ namespace WoWonder.Helpers.Controller
             }
             else Methods.DisplayReportResult(MainWindowActivity, respond);
         }
-         
+
         private static void UpdateLastIdMessage(List<MessageData> chatMessages)
         {
             try
             {
-                foreach (var messageInfo in chatMessages)
+                MessageData messageInfo = chatMessages?.FirstOrDefault();
+                if (messageInfo != null)
                 {
                     var typeModel = Holders.GetTypeModel(messageInfo);
                     if (typeModel == MessageModelType.None)
-                        continue;
+                        return;
 
-                    var message = WoWonderTools.MessageFilter(messageInfo.GroupId, messageInfo, typeModel);
-                  
-                    message.ModelType = typeModel;
-                    message.SendFile = false;
-
-                    var checker = MainWindowActivity?.MAdapter.DifferList?.FirstOrDefault(a => a.MesData.Id == message.MessageHashId);
+                    var checker = MainWindowActivity?.MAdapter.DifferList?.FirstOrDefault(a => a.MesData.Id == messageInfo.MessageHashId);
                     if (checker != null)
                     {
-                        //checker.TypeView = typeModel;
+                        var message = WoWonderTools.MessageFilter(messageInfo.ToId, messageInfo, typeModel, true);
+                        message.ModelType = typeModel;
+
                         checker.MesData = message;
                         checker.Id = Java.Lang.Long.ParseLong(message.Id);
                         checker.TypeView = typeModel;
-
-                        checker.MesData.Id = message.Id;
-                        checker.MesData.FromId = message.FromId;
-                        checker.MesData.GroupId = message.GroupId;
-                        checker.MesData.ToId = message.ToId;
-                        checker.MesData.Text = message.Text;
-                        checker.MesData.Media = message.Media;
-                        checker.MesData.MediaFileName = message.MediaFileName;
-                        checker.MesData.MediaFileNames = message.MediaFileNames;
-                        checker.MesData.Time = message.Time;
-                        checker.MesData.Seen = message.Seen;
-                        checker.MesData.DeletedOne = message.DeletedOne;
-                        checker.MesData.DeletedTwo = message.DeletedTwo;
-                        checker.MesData.SentPush = message.SentPush;
-                        checker.MesData.NotificationId = message.NotificationId;
-                        checker.MesData.TypeTwo = message.TypeTwo;
-                        checker.MesData.Stickers = message.Stickers;
-                        checker.MesData.TimeText = message.TimeText;
-                        checker.MesData.Position = message.Position;
-                        checker.MesData.ModelType = message.ModelType;
-                        checker.MesData.FileSize = message.FileSize;
-                        checker.MesData.MediaDuration = message.MediaDuration;
-                        checker.MesData.MediaIsPlaying = message.MediaIsPlaying;
-                        checker.MesData.ContactNumber = message.ContactNumber;
-                        checker.MesData.ContactName = message.ContactName;
-                        checker.MesData.ProductId = message.ProductId;
-                        checker.MesData.MessageUser = message.MessageUser;
-                        checker.MesData.Product = message.Product;
-                        checker.MesData.MessageHashId = message.MessageHashId;
-                        checker.MesData.Lat = message.Lat;
-                        checker.MesData.Lng = message.Lng;
-                        checker.MesData.SendFile = false;
-
+                         
                         #region LastChat
 
                         //if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
@@ -313,10 +279,10 @@ namespace WoWonder.Helpers.Controller
                         //        //});
                         //    }
                         //}
-                         
+
                         #endregion
 
-                        GlobalContext.Activity?.RunOnUiThread(() =>
+                        GlobalContext?.RunOnUiThread(() =>
                         {
                             try
                             {
@@ -331,10 +297,10 @@ namespace WoWonder.Helpers.Controller
                             {
                                 Methods.DisplayReportResultTrack(e);
                             }
-                        }); 
+                        });
                     }
 
-                    GroupData = null;
+                    GroupData = null!;
                 }
             }
             catch (Exception e)

@@ -276,7 +276,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -289,7 +289,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         {"company", TxtCompany.Text},
                         {"phone", TxtPhone.Text},
                         {"address", TxtLocation.Text},
-                        {"Website", TxtWebsite.Text},
+                        {"website", TxtWebsite.Text},
                     };
 
                     var (apiStatus, respond) = await RequestsAsync.Page.UpdatePageDataAsync(PagesId, dictionary);
@@ -312,7 +312,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
                                     PageProfileActivity.PageData = PageData;
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short);
 
                                     Intent returnIntent = new Intent();
                                     returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
@@ -408,7 +408,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -425,7 +425,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData"));
+                PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData") ?? "");
                 if (PageData != null)
                 {
                     TxtAbout.Text = Methods.FunString.DecodeString(PageData.About);

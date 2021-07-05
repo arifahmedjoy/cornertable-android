@@ -1,36 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
 	<declare-styleable name="ExtraTheme">
-		<attr name="colorbackground" format="reference|color"/>
-		<attr name="colorDarkBackground" format="reference|color"/>
-		<attr name="colorFill" format="reference|color"/>
+    <attr name="colorFill" format="reference|color"/>
 		<attr name="colorReact" format="reference|color"/>
-		<attr name="colorHint" format="reference|color"/>
-		<attr name="colorDivider" format="reference|color"/>
 		<attr name="colorBubble" format="reference|color"/>
-		<attr name="ShapeCircleColor1" format="reference|color"/>
-		<attr name="ShapeCircleColor2" format="reference|color"/>
-		<attr name="ShapeCircleColor3" format="reference|color"/>
-		<attr name="ShapeCircleColor4" format="reference|color"/>
-		<attr name="ShapeCircleColor5" format="reference|color"/>
-		<attr name="ShapeCircleColor6" format="reference|color"/>
-	</declare-styleable>
-
-	<declare-styleable name="DiagonalLayout">
-		<!--<attr name="diagonal_angle" format="integer" />
-    <attr name="diagonal_handleMargins" format="boolean"/>-->
-		<attr name="diagonal_position" format="enum">
-			<enum name="left" value="1" />
-			<enum name="right" value="2" />
-			<enum name="bottom" value="4" />
-			<enum name="top" value="8"/>
-		</attr>
-
-		<attr name="diagonal_direction" format="enum">
-			<enum name="left" value="1" />
-			<enum name="right" value="2" />
-		</attr>
+		<attr name="colorDivider" format="reference|color"/>
+		<attr name="colorBgApp" format="reference|color"/>
+    <attr name="colorHint" format="reference|color"/>
+    <attr name="ShapeCircleColor1" format="reference|color"/>
+    <attr name="ShapeCircleColor2" format="reference|color"/>
+    <attr name="ShapeCircleColor3" format="reference|color"/>
+    <attr name="ShapeCircleColor4" format="reference|color"/>
+    <attr name="ShapeCircleColor5" format="reference|color"/>
+    <attr name="ShapeCircleColor6" format="reference|color"/>
 	</declare-styleable>
 
 	<!--Range seeker-->
@@ -78,19 +60,19 @@
 		<attr name="materialUI" format="boolean" />
 	</declare-styleable>
 
-	<!--MusicBar-->
-	<declare-styleable name="MusicBar">
-		<attr name="LoadedBarPrimeColor" format="color"/>
-		<attr name="LoadedBarSecondaryColor" format="color"/>
-		<attr name="backgroundBarPrimeColor" format="color"/>
-		<attr name="backgroundBarSecondaryColor" format="color"/>
-		<attr name="spaceBetweenBar" format="integer" />
-		<attr name="barWidth" format="float"/>
-		<attr name="divided" format="boolean"/>
-		<attr name="dividerSize" format="float"/>
-	</declare-styleable>
+  <!--MusicBar-->
+  <declare-styleable name="MusicBar">
+    <attr name="LoadedBarPrimeColor" format="color"/>
+    <attr name="LoadedBarSecondaryColor" format="color"/>
+    <attr name="backgroundBarPrimeColor" format="color"/>
+    <attr name="backgroundBarSecondaryColor" format="color"/>
+    <attr name="spaceBetweenBar" format="integer" />
+    <attr name="barWidth" format="float"/>
+    <attr name="divided" format="boolean"/>
+    <attr name="dividerSize" format="float"/>
+  </declare-styleable>
 
-	<declare-styleable name="TemplateView">
+  <declare-styleable name="TemplateView">
 		<attr name="gnt_template_type" format="reference"/>
 	</declare-styleable>
 
@@ -98,26 +80,31 @@
 		<attr name="progressCount" format="integer|reference" />
 	</declare-styleable>
 
+  <declare-styleable name="SpannedGridLayoutManager">
+    <attr name="android:orientation" />
+    <attr name="spanCount" />
+    <attr name="aspectRatio" format="string" />
+  </declare-styleable>
 
-	<declare-styleable name="RecordView">
-		<attr name="slide_to_cancel_text" format="string" />
-		<attr name="slide_to_cancel_arrow" format="reference" />
-		<attr name="slide_to_cancel_margin_right" format="dimension" />
-		<attr name="slide_to_cancel_bounds" format="dimension" />
-		<attr name="slide_to_cancel_arrow_color" format="color" />
-		<attr name="counter_time_color" format="color" />
+  <declare-styleable name="RecordView">
+    <attr name="slide_to_cancel_text" format="string" />
+    <attr name="slide_to_cancel_arrow" format="reference" />
+    <attr name="slide_to_cancel_margin_right" format="dimension" />
+    <attr name="slide_to_cancel_bounds" format="dimension" />
+    <attr name="slide_to_cancel_arrow_color" format="color" />
+    <attr name="counter_time_color" format="color" />
 
-	</declare-styleable>
+  </declare-styleable>
 
-	<declare-styleable name="RecordButton">
-		<attr name="mic_icon" format="reference" />
-	</declare-styleable>
-
-	<declare-styleable name="DragToClose">
-		<attr name="draggableView" format="reference" />
-		<attr name="draggableContainer" format="reference" />
-		<attr name="finishActivity" format="boolean" />
-		<attr name="closeOnClick" format="boolean" />
-	</declare-styleable>
-
+  <declare-styleable name="RecordButton">
+    <attr name="mic_icon" format="reference" />
+  </declare-styleable>
+  
+  <declare-styleable name="DragToClose">
+    <attr name="draggableView" format="reference" />
+    <attr name="draggableContainer" format="reference" />
+    <attr name="finishActivity" format="boolean" />
+    <attr name="closeOnClick" format="boolean" />
+  </declare-styleable>
+ 
 </resources>

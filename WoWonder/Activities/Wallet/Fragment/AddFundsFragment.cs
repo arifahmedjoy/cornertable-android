@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
@@ -10,7 +10,7 @@ using Android.Text;
 using Android.Views;
 using Android.Widget;
 using Com.Razorpay;
-using Java.Lang;
+using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonder.Payment;
@@ -20,20 +20,21 @@ using Exception = System.Exception;
 
 namespace WoWonder.Activities.Wallet.Fragment
 {
-    public class AddFundsFragment : AndroidX.Fragment.App.Fragment, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback 
+    public class AddFundsFragment : AndroidX.Fragment.App.Fragment, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, IPaymentResultListener
     {
         #region  Variables Basic
+        private ImageView Avatar;
+        private TextView TxtProfileName, TxtUsername;
 
         private TextView TxtMyBalance;
-        private TextView IconAmount;
         public EditText TxtAmount;
         private Button BtnContinue;
         public InitPayPalPayment InitPayPalPayment;
         public InitPayStackPayment PayStackPayment;
-        public InitCashFreePayment CashFreePayment; 
+        public InitCashFreePayment CashFreePayment;
         public InitRazorPayPayment InitRazorPay;
         public InitPaySeraPayment PaySeraPayment;
-        public string Price; 
+        public string Price;
         private TabbedWalletActivity GlobalContext;
 
         #endregion
@@ -51,7 +52,7 @@ namespace WoWonder.Activities.Wallet.Fragment
         {
             try
             {
-                View view = inflater.Inflate(Resource.Layout.AddFundsLayout, container, false); 
+                View view = inflater.Inflate(Resource.Layout.AddFundsLayout, container, false);
                 return view;
             }
             catch (Exception exception)
@@ -93,7 +94,7 @@ namespace WoWonder.Activities.Wallet.Fragment
         #endregion
 
         #region Functions
-         
+
         private void InitBuy()
         {
             try
@@ -138,19 +139,24 @@ namespace WoWonder.Activities.Wallet.Fragment
         {
             try
             {
+                Avatar = view.FindViewById<ImageView>(Resource.Id.avatar);
+                TxtProfileName = view.FindViewById<TextView>(Resource.Id.name);
+                TxtUsername = view.FindViewById<TextView>(Resource.Id.tv_subname);
+
                 TxtMyBalance = view.FindViewById<TextView>(Resource.Id.myBalance);
 
-                IconAmount = view.FindViewById<TextView>(Resource.Id.IconAmount);
                 TxtAmount = view.FindViewById<EditText>(Resource.Id.AmountEditText);
-                BtnContinue  = view.FindViewById<Button>(Resource.Id.ContinueButton);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, IconAmount, FontAwesomeIcon.MoneyBillWave);
+                BtnContinue = view.FindViewById<Button>(Resource.Id.ContinueButton);
 
                 Methods.SetColorEditText(TxtAmount, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                 
+
                 var userData = ListUtils.MyProfileList?.FirstOrDefault();
                 if (userData != null)
                 {
+                    GlideImageLoader.LoadImage(GlobalContext, userData.Avatar, Avatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    TxtProfileName.Text = WoWonderTools.GetNameFinal(userData);
+                    TxtUsername.Text = "@" + userData.Username;
+
                     TxtMyBalance.Text = userData.Wallet;
                 }
             }
@@ -159,7 +165,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -191,13 +197,13 @@ namespace WoWonder.Activities.Wallet.Fragment
             {
                 if (string.IsNullOrEmpty(TxtAmount.Text) || string.IsNullOrWhiteSpace(TxtAmount.Text) || Convert.ToInt32(TxtAmount.Text) == 0)
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short);
                     return;
                 }
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                     return;
                 }
 
@@ -206,7 +212,7 @@ namespace WoWonder.Activities.Wallet.Fragment
 
                 var arrayAdapter = new List<string>();
                 var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                 
+
                 switch (AppSettings.ShowPaypal)
                 {
                     case true:
@@ -271,11 +277,11 @@ namespace WoWonder.Activities.Wallet.Fragment
 
         #region MaterialDialog
 
-        public async void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public async void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetString(Resource.String.Btn_Paypal))
                 {
                     InitPayPalPayment.BtnPaypalOnClick(Price, "AddFunds");
@@ -293,10 +299,10 @@ namespace WoWonder.Activities.Wallet.Fragment
                     InitRazorPay?.BtnRazorPayOnClick(Price, "AddFunds", "");
                 }
                 else if (text == GetString(Resource.String.Lbl_PayStack))
-                { 
-                    var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
-                    dialog.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
-                    dialog.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
+                {
+                    var dialogBuilder = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
+                    dialogBuilder.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
+                    dialogBuilder.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
                     {
                         try
                         {
@@ -313,7 +319,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                                     Methods.DialogPopup.InvokeAndShowDialog(Activity, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
                                     return;
                                 default:
-                                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                                     await PayStack(s.ToString());
                                     break;
@@ -324,11 +330,11 @@ namespace WoWonder.Activities.Wallet.Fragment
                             Methods.DisplayReportResultTrack(e);
                         }
                     });
-                    dialog.InputType(InputTypes.TextVariationEmailAddress);
-                    dialog.PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(this);
-                    dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                    dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.Build().Show();
+                    dialogBuilder.InputType(InputTypes.TextVariationEmailAddress);
+                    dialogBuilder.PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(this);
+                    dialogBuilder.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                    dialogBuilder.AlwaysCallSingleChoiceCallback();
+                    dialogBuilder.Build().Show();
                 }
                 else if (text == GetString(Resource.String.Lbl_CashFree))
                 {
@@ -336,7 +342,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 }
                 else if (text == GetString(Resource.String.Lbl_PaySera))
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                     await PaySera();
                 }
@@ -397,13 +403,13 @@ namespace WoWonder.Activities.Wallet.Fragment
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
-        public void OnPaymentError(int code, string response, PaymentData p2)
+
+        public void OnPaymentError(int code, string response)
         {
             try
             {
                 Console.WriteLine("razorpay : Payment failed: " + code + " " + response);
-                Toast.MakeText(Context, "Payment failed: " + response, ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_PaymentFailed) + ": " + response, ToastLength.Long);
             }
             catch (Exception e)
             {
@@ -411,47 +417,47 @@ namespace WoWonder.Activities.Wallet.Fragment
             }
         }
 
-        public async void OnPaymentSuccess(string razorpayPaymentId, PaymentData p1)
+        public async void OnPaymentSuccess(string razorpayPaymentId)
         {
             try
             {
                 Console.WriteLine("razorpay : Payment Successful:" + razorpayPaymentId);
 
-                switch (string.IsNullOrEmpty(p1?.PaymentId))
+                switch (string.IsNullOrEmpty(razorpayPaymentId))
                 {
                     case false when Methods.CheckConnectivity():
-                    {
-                        var keyValues = new Dictionary<string, string>
                         {
-                            {"merchant_amount", Price}, 
+                            var keyValues = new Dictionary<string, string>
+                        {
+                            {"merchant_amount", Price},
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(p1.PaymentId, "wallet", keyValues).ConfigureAwait(false);
-                        switch (apiStatus)
-                        {
-                            case 200:
-                                Activity?.RunOnUiThread(() =>
-                                {
-                                    try
+                            var (apiStatus, respond) = await RequestsAsync.Payments.RazorPayAsync(razorpayPaymentId, "wallet", keyValues).ConfigureAwait(false);
+                            switch (apiStatus)
+                            {
+                                case 200:
+                                    Activity?.RunOnUiThread(() =>
                                     {
-                                        TxtAmount.Text = string.Empty; 
-                                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Methods.DisplayReportResultTrack(e);
-                                    }
-                                });
-                                break;
-                            default:
-                                Methods.DisplayReportResult(Activity, respond);
-                                break;
-                        }
+                                        try
+                                        {
+                                            TxtAmount.Text = string.Empty;
+                                            ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Methods.DisplayReportResultTrack(e);
+                                        }
+                                    });
+                                    break;
+                                default:
+                                    Methods.DisplayReportResult(Activity, respond);
+                                    break;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case false:
-                        Toast.MakeText(Context, Context. GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         break;
                 }
             }
@@ -472,24 +478,24 @@ namespace WoWonder.Activities.Wallet.Fragment
                     var keyValues = new Dictionary<string, string>
                     {
                         {"email", email},
-                        {"amount", priceInt.ToString()}, 
+                        {"amount", priceInt.ToString()},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStackAsync("wallet", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializePayStackAsync("wallet", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
-                        {
-                            switch (respond)
                             {
-                                case InitializePaymentObject result:
-                                    PayStackPayment ??= new InitPayStackPayment(Activity);
-                                    PayStackPayment.DisplayPayStackPayment(result.Url, "AddFunds", priceInt.ToString(), "");
-                                    break;
-                            }
+                                switch (respond)
+                                {
+                                    case InitializePaymentObject result:
+                                        PayStackPayment ??= new InitPayStackPayment(Activity);
+                                        PayStackPayment.DisplayPayStackPayment(result.Url, "AddFunds", priceInt.ToString(), "");
+                                        break;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         default:
                             Methods.DisplayReportResult(Activity, respond);
                             break;
@@ -497,7 +503,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 }
                 else
                 {
-                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -521,7 +527,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                         {
                             if (string.IsNullOrEmpty(TxtName.Text) || string.IsNullOrWhiteSpace(TxtName.Text))
                             {
-                                Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                                 return;
                             }
 
@@ -535,11 +541,11 @@ namespace WoWonder.Activities.Wallet.Fragment
 
                             if (string.IsNullOrEmpty(TxtPhone.Text) || string.IsNullOrWhiteSpace(TxtPhone.Text))
                             {
-                                Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                                 return;
                             }
 
-                            Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                             await CashFree(TxtName.Text, TxtEmail.Text, TxtPhone.Text);
                         }
@@ -598,21 +604,21 @@ namespace WoWonder.Activities.Wallet.Fragment
                         {"amount", Price},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFreeAsync("wallet", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializeCashFreeAsync("wallet", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
-                        {
-                            switch (respond)
                             {
-                                case CashFreeObject result:
-                                    CashFreePayment ??= new InitCashFreePayment(Activity);
-                                    CashFreePayment.DisplayCashFreePayment(result,"AddFunds" , Price, "");
-                                    break;
-                            }
+                                switch (respond)
+                                {
+                                    case CashFreeObject result:
+                                        CashFreePayment ??= new InitCashFreePayment(Activity);
+                                        CashFreePayment.DisplayCashFreePayment(result, "AddFunds", Price, "");
+                                        break;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         default:
                             Methods.DisplayReportResult(Activity, respond);
                             break;
@@ -620,7 +626,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 }
                 else
                 {
-                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -628,7 +634,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private async Task PaySera()
         {
             try
@@ -640,21 +646,21 @@ namespace WoWonder.Activities.Wallet.Fragment
                         {"amount", Price},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySeraAsync("wallet", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializePaySeraAsync("wallet", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
-                        {
-                            switch (respond)
                             {
-                                case InitializePaymentObject result:
-                                    PaySeraPayment ??= new InitPaySeraPayment(Activity);
-                                    PaySeraPayment.DisplayPaySeraPayment(result.Url, "AddFunds", Price, "");
-                                    break;
-                            }
+                                switch (respond)
+                                {
+                                    case InitializePaymentObject result:
+                                        PaySeraPayment ??= new InitPaySeraPayment(Activity);
+                                        PaySeraPayment.DisplayPaySeraPayment(result.Url, "AddFunds", Price, "");
+                                        break;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         default:
                             Methods.DisplayReportResult(Activity, respond);
                             break;
@@ -662,7 +668,7 @@ namespace WoWonder.Activities.Wallet.Fragment
                 }
                 else
                 {
-                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)

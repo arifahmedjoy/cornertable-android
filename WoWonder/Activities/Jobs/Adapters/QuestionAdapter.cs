@@ -250,8 +250,8 @@ namespace WoWonder.Activities.Jobs.Adapters
                 Methods.SetFocusable(EdtQuestionType);
 
                 //Event  
-                itemView.Click += (sender, e) => clickListener(new QuestionAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new QuestionAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new QuestionAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new QuestionAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
               
             }

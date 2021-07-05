@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activityRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_alignParentTop="true"
@@ -23,6 +24,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/Lbl_Post"
+                android:textColor="#C6CBC7"
                 android:layout_gravity="end"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -42,14 +44,9 @@
         app:umanoDragView="@+id/root"
         app:umanoScrollableView="@+id/Recyler"
         app:umanoOverlay="true">
-        <FrameLayout
-            android:id="@+id/video_container"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentTop="true"
-            android:layout_marginBottom="6dp"
-            android:focusable="false"
-            android:fitsSystemWindows="true">
+            android:layout_height="match_parent">
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/scroll_View"
                 android:layout_width="match_parent"
@@ -60,7 +57,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" 
-					android:orientation="vertical" >
+                    android:orientation="vertical" >
                     <LinearLayout
                         android:id="@+id/main"
                         android:layout_width="match_parent"
@@ -77,8 +74,8 @@
                             <ImageView
                                 android:id="@+id/postsectionimage"
                                 android:scaleType="centerCrop"
-                                android:layout_width="60dp"
-                                android:layout_height="60dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
                                 android:layout_marginBottom="13dp"
                                 android:layout_marginStart="15dp"
                                 android:layout_marginTop="15dp"
@@ -89,10 +86,45 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="15dp"
                                 android:layout_marginEnd="20dp"
-                                android:layout_marginTop="17dp"
+                                android:layout_marginTop="20dp"
                                 android:layout_toEndOf="@id/postsectionimage"
                                 android:textStyle="bold"
                                 android:textSize="15sp" />
+                            <LinearLayout
+                                android:id="@+id/llPostState"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:background="@drawable/follow_button_profile_friends"
+                                android:backgroundTint="#C6CBC7"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginTop="20dp"
+                                android:layout_marginEnd="15dp"
+                                android:paddingStart="10dp"
+                                android:paddingEnd="10dp"
+                                android:paddingTop="5dp"
+                                android:paddingBottom="5dp">
+                                <ImageView
+                                    android:id="@+id/ImagePostState"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:src="@drawable/ic_world_vector"
+                                    android:tint="#C6CBC7"/>
+                                <TextView
+                                    android:id="@+id/PostStateText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="5dp"
+                                    android:textColor="#C6CBC7"
+                                    android:text="@string/Lbl_Everyone"
+                                    android:textSize="10sp"/>
+                                <ImageView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="5dp"
+                                    android:src="@drawable/ic_combo"/>
+                            </LinearLayout>
                             <Button
                                 android:layout_toEndOf="@id/postsectionimage"
                                 android:layout_below="@id/card_name"
@@ -111,28 +143,29 @@
                                 android:textAlignment="center"
                                 android:textAllCaps="false"
                                 android:text="@string/Lbl_Everyone"
-                                android:textColor="@color/accent" />
+                                android:textColor="@color/accent"
+                                android:visibility="gone"/>
                             <Button
-                              android:layout_toEndOf="@id/cont"
-                              android:layout_below="@id/card_name"
-                              android:layout_width="wrap_content"
-                              android:layout_height="25dp"
-                              android:id="@+id/nameAlbumButton"
-                              android:textSize="13sp"
-                              android:layout_marginStart="5dp"
-                              android:layout_marginEnd="5dp"
-                              android:layout_marginTop="10dp"
-                              android:background="@drawable/follow_button_profile_friends"
-                              android:backgroundTint="#558B2F"
-                              android:tag="false"
-                              android:paddingTop="1dp"
-                              android:paddingStart="17dp"
-                              android:paddingEnd="17dp"
-                              android:textAlignment="center"
-                              android:textAllCaps="false"
-                              android:visibility="gone"
-                              android:text="@string/Lbl_CreateAsAlbum"
-                              android:textColor="#558B2F" /> 
+                                android:layout_toEndOf="@id/cont"
+                                android:layout_below="@id/card_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="25dp"
+                                android:id="@+id/nameAlbumButton"
+                                android:textSize="13sp"
+                                android:layout_marginStart="5dp"
+                                android:layout_marginEnd="5dp"
+                                android:layout_marginTop="10dp"
+                                android:background="@drawable/follow_button_profile_friends"
+                                android:backgroundTint="#558B2F"
+                                android:tag="false"
+                                android:paddingTop="1dp"
+                                android:paddingStart="17dp"
+                                android:paddingEnd="17dp"
+                                android:textAlignment="center"
+                                android:textAllCaps="false"
+                                android:visibility="gone"
+                                android:text="@string/Lbl_CreateAsAlbum"
+                                android:textColor="#558B2F" /> 
                             <View
                                 android:layout_width="match_parent"
                                 android:layout_height="0.3dp"
@@ -154,31 +187,24 @@
                                 android:adjustViewBounds="true"
                                 android:scaleType="fitXY"
                                 android:layout_marginStart="0dp"
-                                android:layout_marginEnd="0dp" />
+                                android:layout_marginEnd="0dp" /> 
                             <EditText
-                                android:id="@+id/editTxtEmail"
-                                android:singleLine="false"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:layout_marginEnd="10dp"
-                                android:layout_marginTop="5dp"
-                                android:background="@android:color/transparent"
-                                android:paddingBottom="5dp"
-                                android:paddingStart="5dp"
-                                android:paddingEnd="5dp"
-                                android:paddingTop="2dp"
-                                android:maxLength="5000"
-                                android:inputType="textCapSentences|textMultiLine"
-                                android:hint="@string/Lbl_Whats_Going_On"
-                                android:textColorHint="@color/text_color_in_between"
-                                android:textColor="?attr/colorReact" 
-                                android:scrollbars="vertical"
-                                android:textSize="19sp"
-                                android:scrollHorizontally="false"
-                                android:maxLines="20"
-                                android:textAllCaps="false"
-                                android:gravity="top" />
+                              android:id="@+id/editTxtEmail"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:background="@android:color/transparent"
+                              android:textColorHint="?attr/colorReact"
+                              android:maxLength="5000" 
+                              android:inputType="textCapSentences|textMultiLine"
+                              android:layout_marginStart="15dp"
+                              android:layout_marginEnd="15dp"
+                              android:hint="@string/Lbl_Whats_Going_On"
+                              android:gravity="top"
+                              android:layout_centerInParent="true"
+                              android:scrollbars="vertical"
+                              android:textSize="23sp"
+                              android:scrollHorizontally="false" 
+                              android:textAllCaps="false" />  
                         </RelativeLayout>
                         <com.luseen.autolinklibrary.AutoLinkTextView
                             android:id="@+id/MentionTextview"
@@ -203,24 +229,29 @@
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
                         android:scrollbars="vertical"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
                         android:layout_marginTop="5dp"
                         android:layout_marginBottom="5dp"
                         android:layout_alignParentBottom="true"
                         android:foregroundGravity="bottom" />
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/ColorboxRecyler"
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:nestedScrollingEnabled="false"
-                        android:scrollbars="horizontal"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginBottom="60dp"
-                        android:layout_alignParentBottom="true"
-                        android:layout_gravity="bottom"
-                        android:foregroundGravity="bottom"/>
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
-        </FrameLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="60dp">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/ColorboxRecyler"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:nestedScrollingEnabled="false"
+                    android:scrollbars="horizontal"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginStart="15dp"/>
+            </LinearLayout>
+        </RelativeLayout>
         <LinearLayout
             android:orientation="vertical"
             android:clickable="true"
@@ -272,7 +303,7 @@
                 <ImageView
                     android:layout_width="25dp"
                     android:layout_height="25dp"
-                    android:src="@drawable/icon_photos_vector"
+                    android:src="@drawable/ic_post_img_gallery"
                     android:id="@+id/ImageIcon"
                     android:drawingCacheQuality="auto"
                     android:layout_gravity="end"

@@ -340,6 +340,7 @@ namespace WoWonder.Activities.MyPhoto
                     var intent = new Intent(this, typeof(MyPhotoViewActivity));
                     intent.PutExtra("itemIndex", e.Position.ToString()); 
                     intent.PutExtra("AlbumObject", JsonConvert.SerializeObject(item)); // PostDataObject
+                    intent.PutExtra("PostList", JsonConvert.SerializeObject(ListUtils.ListCachedDataMyPhotos)); // List<PostDataObject>
                     OverridePendingTransition(Resource.Animation.abc_popup_enter, Resource.Animation.popup_exit);
                     StartActivity(intent);
                 }
@@ -389,7 +390,7 @@ namespace WoWonder.Activities.MyPhoto
             };
 
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadMyImage(offset) });
         }
@@ -446,7 +447,7 @@ namespace WoWonder.Activities.MyPhoto
                             switch (MAdapter.MyPhotosList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMorePhoto), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMorePhoto), ToastLength.Short);
                                     break;
                             }
 
@@ -470,7 +471,7 @@ namespace WoWonder.Activities.MyPhoto
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

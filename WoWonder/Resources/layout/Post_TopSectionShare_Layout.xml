@@ -20,7 +20,7 @@
         android:maxWidth="260dp"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="10dp"
-        android:layout_toEndOf="@id/userAvatar"
+        android:layout_toEndOf="@+id/userAvatar"
         android:textSize="14sp"
         android:maxLines="1"
         android:textStyle="bold"
@@ -47,7 +47,7 @@
 	    android:textAlignment="center"
 	    android:textAllCaps="false"
 	    android:textColor="#a5a5a5"
-	    android:layout_toEndOf="@id/userAvatar"
+	    android:layout_toEndOf="@+id/userAvatar"
 	    android:layout_below="@+id/username" />
     <ImageView
 	    android:layout_width="13dp"
@@ -62,7 +62,7 @@
 	    android:paddingEnd="1dp"
 	    android:textAlignment="center"
 	    android:textAllCaps="false"
-	    android:layout_toEndOf="@id/time_text"
+	    android:layout_toEndOf="@+id/time_text"
 	    android:layout_below="@+id/username" />
     <ImageView
       android:layout_width="25dp"

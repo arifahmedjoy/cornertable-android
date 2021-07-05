@@ -11,7 +11,7 @@ namespace WoWonder.Activities.NativePost.Post
 {
     public enum NativeFeedType
     {
-        Global, Event, Group, Page, Popular, User, Saved, HashTag, SearchForPosts, Memories, Share
+        Global, Event, Group, Page, Popular, User, Saved, HashTag, SearchForPosts, Memories, Share, Boosted, Video
     }
 
     public class AdapterModelsClass
@@ -27,8 +27,7 @@ namespace WoWonder.Activities.NativePost.Post
         public SpannableString PostDataDecoratedContent { get; set; }
         public AboutModelClass AboutModel { get; set; }
         public InfoUserModelClass InfoUserModel { get; set; }
-        // ardev
-        public InfoUserModelClass headerSectionClass { get; set; }
+       
         public SocialLinksModelClass SocialLinksModel { get; set; }
         public FollowersModelClass FollowersModel { get; set; }
         public GroupsModelClass GroupsModel { get; set; }
@@ -55,9 +54,9 @@ namespace WoWonder.Activities.NativePost.Post
         NormalPost = 1, AboutBox = 2, PagesBox = 3, GroupsBox = 4, FollowersBox = 5, ImagesBox = 6, Story = 7, AddPostBox = 8, EmptyState = 9, AlertBox = 10, VideoPost = 11, ImagePost = 12, VoicePost = 13,
         StickerPost = 14, YoutubePost = 15, DeepSoundPost = 16, PlayTubePost = 17, LinkPost = 18, ProductPost = 19, BlogPost = 20, FilePost = 21, AlertJoinBox = 22, SharedPost = 23, EventPost = 24, ColorPost = 25,
         FacebookPost = 26, MultiImage2 = 27, MultiImage3 = 28, MultiImage4 = 29, MultiImages = 30, PollPost = 31, AdsPost = 32, AdMob1 = 33, AdMob2 = 34,AdMob3 = 35, JobPost =36, AlertBoxAnnouncement = 37, FundingPost = 38 , PurpleFundPost = 39 ,
-        SocialLinks = 40 , SuggestedGroupsBox = 41, VimeoPost = 42 , MapPost = 43, OfferPost = 44 , SearchForPosts  = 45, LivePost = 46, AgoraLivePost = 47, Section = 48 , SuggestedUsersBox = 49 , FbAdNative = 50, JobPostSection2 = 51, JobPostSection1 = 52,
-        SharedHeaderPost = 53, HeaderPost = 54, TextSectionPostPart = 55, PrevBottomPostPart = 56, BottomPostPart = 57 , Divider = 58, ViewProgress = 59, PromotePost = 60,AddCommentSection = 61, CommentSection = 62, FilterSection = 63,
-        InfoUserBox = 64 , InfoPageBox = 65 , InfoGroupBox = 67, TikTokPost = 68 , ProfileHeaderSection = 69
+        SocialLinks = 40 , SuggestedGroupsBox = 41, VimeoPost = 42 , MapPost = 43, OfferPost = 44 , LivePost = 46, AgoraLivePost = 47, Section = 48 , SuggestedUsersBox = 49 , FbAdNative = 50, JobPostSection2 = 51, JobPostSection1 = 52,
+        SharedHeaderPost = 53, HeaderPost = 54, TextSectionPostPart = 55, PrevBottomPostPart = 56, BottomPostPart = 57 , Divider = 58, ViewProgress = 59, PromotePost = 60,AddCommentSection = 61, CommentSection = 62,
+        InfoUserBox = 63 , InfoPageBox = 64 , InfoGroupBox = 65, TikTokPost = 66 , ProfileDetailsSection = 67, MyProfileInfoHeaderSection = 68, UserProfileInfoHeaderSection = 69,SuggestedPagesBox = 470
     }
       
     public class AboutModelClass
@@ -65,10 +64,16 @@ namespace WoWonder.Activities.NativePost.Post
         public string TitleHead { get; set; }
         public string Description { get; set; }
     }
-     
+
     public class InfoUserModelClass
     {
         public UserDataObject UserData { get; set; }
+        public bool IsLive { get; set; }
+        public string SCanFollow { get; set; }
+        public string SPrivacyFriend { get; set; }
+        public string SPrivacyBirth { get; set; }
+        public string SPrivacyFollow { get; set; }
+        public string SPrivacyMessage { get; set; }
     }
 
     public class SocialLinksModelClass
@@ -131,14 +136,5 @@ namespace WoWonder.Activities.NativePost.Post
 
         public string TypeAlert { get; set; }
         public int IconImage { get; set; }
-    } 
-
-    public class HeaderSectionClass
-    {
-        public string CountFollowers { get; set; }
-        public string CountFollowing { get; set; }
-        public string CountLikes { get; set; }
-        public string CountPoints { get; set; }
-
-    }
+    }  
 }

@@ -15,12 +15,5 @@
         app:fastforward_increment="10000"
         app:surface_type="surface_view"
         app:use_controller="true"
-        app:controller_layout_id="@layout/custom_controller"/>
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:layout_centerInParent="true" />
+        app:controller_layout_id="@layout/custom_controller"/> 
 </RelativeLayout>

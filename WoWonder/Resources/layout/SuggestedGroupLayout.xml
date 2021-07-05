@@ -47,23 +47,38 @@
 					android:inflatedId="@+id/stubViewSuggestedGroup"
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
-					android:layout_marginBottom="10dp"
-					android:layout="@layout/TemplateRecyclerViewLayout" />
+					android:layout="@layout/TemplateRecyclerViewLayout">
+				</ViewStub>
+				<LinearLayout
+					android:id="@+id/linearLayout1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+					android:visibility="gone">
+					<include 
+						layout="@layout/post_devider"/>
+				</LinearLayout>
 				<ViewStub
 					android:id="@+id/viewStubCatGroup"
 					android:inflatedId="@+id/stubViewCatGroup"
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
-					android:layout_marginBottom="10dp"
-					android:layout="@layout/TemplateRecyclerViewLayout" />
+					android:layout="@layout/TemplateRecyclerViewLayout">
+				</ViewStub>
+				<LinearLayout
+					android:id="@+id/linearLayout2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+					android:visibility="gone">
+					<include 
+						layout="@layout/post_devider"/>
+				</LinearLayout>
 				<ViewStub
 					android:id="@+id/viewStubRandomGroup"
 					android:inflatedId="@+id/stubViewRandomGroup"
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
-					android:layout_marginBottom="10dp"
 					android:layout="@layout/TemplateRecyclerViewLayout" />
-					<ViewStub
+				<ViewStub
 					android:id="@+id/viewStub"
 					android:inflatedId="@+id/subView"
 					android:layout_marginTop="35dp"

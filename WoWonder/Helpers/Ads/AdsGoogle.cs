@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Android.App;
 using Android.Content;
 using Android.Content.Res;
@@ -43,9 +44,6 @@ namespace WoWonder.Helpers.Ads
                     Ad.AdListener = listener;
 
                     var requestBuilder = new AdRequest.Builder();
-#pragma warning disable 618
-                    requestBuilder.AddTestDevice(UserDetails.AndroidId);
-#pragma warning restore 618
                     Ad.LoadAd(requestBuilder.Build());
                 }
                 catch (Exception exception)
@@ -88,21 +86,21 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobInterstitial)
                 {
                     case true:
-                    {
-                        if (CountInterstitial == AppSettings.ShowAdMobInterstitialCount)
                         {
-                            CountInterstitial = 0;
-                            AdMobInterstitial ads = new AdMobInterstitial();
-                            ads.ShowAd(context);
-                        }
-                        else
-                        {
-                            Ad_AppOpenManager(context);
-                        }
+                            if (CountInterstitial == AppSettings.ShowAdMobInterstitialCount)
+                            {
+                                CountInterstitial = 0;
+                                AdMobInterstitial ads = new AdMobInterstitial();
+                                ads.ShowAd(context);
+                            }
+                            else
+                            {
+                                Ad_AppOpenManager(context);
+                            }
 
-                        CountInterstitial++;
-                        break;
-                    }
+                            CountInterstitial++;
+                            break;
+                        }
                     default:
                         Ad_AppOpenManager(context);
                         break;
@@ -136,22 +134,22 @@ namespace WoWonder.Helpers.Ads
                         switch (AppSettings.ShowAdMobNative)
                         {
                             case true:
-                            {
-                                AdLoader.Builder builder = new AdLoader.Builder(Context, AppSettings.AdAdMobNativeKey);
-                                builder.ForUnifiedNativeAd(this);
-                                VideoOptions videoOptions = new VideoOptions.Builder()
-                                    .SetStartMuted(true)
-                                    .Build();
-                                NativeAdOptions adOptions = new NativeAdOptions.Builder()
-                                    .SetVideoOptions(videoOptions)
-                                    .Build();
+                                {
+                                    AdLoader.Builder builder = new AdLoader.Builder(Context, AppSettings.AdAdMobNativeKey);
+                                    builder.ForUnifiedNativeAd(this);
+                                    VideoOptions videoOptions = new VideoOptions.Builder()
+                                        .SetStartMuted(true)
+                                        .Build();
+                                    NativeAdOptions adOptions = new NativeAdOptions.Builder()
+                                        .SetVideoOptions(videoOptions)
+                                        .Build();
 
-                                builder.WithNativeAdOptions(adOptions);
+                                    builder.WithNativeAdOptions(adOptions);
 
-                                AdLoader adLoader = builder.WithAdListener(new AdListener()).Build();
-                                adLoader.LoadAd(new AdRequest.Builder().Build());
-                                break;
-                            }
+                                    AdLoader adLoader = builder.WithAdListener(new AdListener()).Build();
+                                    adLoader.LoadAd(new AdRequest.Builder().Build());
+                                    break;
+                                }
                             default:
                                 Template.Visibility = ViewStates.Gone;
                                 break;
@@ -196,11 +194,11 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobNative)
                 {
                     case true:
-                    {
-                        AdMobNative ads = new AdMobNative();
-                        ads.ShowAd(context, template);
-                        break;
-                    }
+                        {
+                            AdMobNative ads = new AdMobNative();
+                            ads.ShowAd(context, template);
+                            break;
+                        }
                 }
             }
             catch (Exception exception)
@@ -327,12 +325,12 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobRewardVideo)
                 {
                     case true when CountRewarded == AppSettings.ShowAdMobRewardedVideoCount:
-                    {
-                        CountRewarded = 0;
-                        AdMobRewardedVideo ads = new AdMobRewardedVideo();
-                        ads.ShowAd(context);
-                        return ads;
-                    }
+                        {
+                            CountRewarded = 0;
+                            AdMobRewardedVideo ads = new AdMobRewardedVideo();
+                            ads.ShowAd(context);
+                            return ads;
+                        }
                     case true:
                         Ad_RewardedInterstitial(context);
                         break;
@@ -367,23 +365,20 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobBanner)
                 {
                     case true:
-                    {
-                        mAdView.Visibility = ViewStates.Visible;
-                        var adRequest = new AdRequest.Builder();
-#pragma warning disable 618
-                        adRequest.AddTestDevice(UserDetails.AndroidId);
-#pragma warning restore 618
-                        mAdView.LoadAd(adRequest.Build());
-                        mAdView.AdListener = new MyAdListener(mAdView, mRecycler);
-                        break;
-                    }
+                        {
+                            mAdView.Visibility = ViewStates.Visible;
+                            var adRequest = new AdRequest.Builder();
+                            mAdView.LoadAd(adRequest.Build());
+                            mAdView.AdListener = new MyAdListener(mAdView, mRecycler);
+                            break;
+                        }
                     default:
-                    {
-                        mAdView.Pause();
-                        mAdView.Visibility = ViewStates.Gone;
-                        if (mRecycler != null) Methods.SetMargin(mRecycler, 0, 0, 0, 0);
-                        break;
-                    }
+                        {
+                            mAdView.Pause();
+                            mAdView.Visibility = ViewStates.Gone;
+                            if (mRecycler != null) Methods.SetMargin(mRecycler, 0, 0, 0, 0);
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -453,16 +448,13 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobBanner)
                 {
                     case true:
-                    {
-                        mAdView.Visibility = ViewStates.Visible;
-                        var adRequest = new PublisherAdRequest.Builder();
-#pragma warning disable 618
-                        adRequest.AddTestDevice(UserDetails.AndroidId);
-#pragma warning restore 618
-                        mAdView.AdListener = new MyPublisherAdViewListener(mAdView);
-                        mAdView.LoadAd(adRequest.Build());
-                        break;
-                    }
+                        {
+                            mAdView.Visibility = ViewStates.Visible;
+                            var adRequest = new PublisherAdRequest.Builder();
+                            mAdView.AdListener = new MyPublisherAdViewListener(mAdView);
+                            mAdView.LoadAd(adRequest.Build());
+                            break;
+                        }
                     default:
                         mAdView.Pause();
                         mAdView.Visibility = ViewStates.Gone;
@@ -521,24 +513,30 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobAppOpen)
                 {
                     case true:
-                    {
-                        if (CountAppOpen == AppSettings.ShowAdMobAppOpenCount)
                         {
-                            CountAppOpen = 0;
+                            if (CountAppOpen == AppSettings.ShowAdMobAppOpenCount)
+                            {
+                                CountAppOpen = 0;
 
-                            AppOpenManager appOpenManager = new AppOpenManager(context);
-                            appOpenManager.ShowAdIfAvailable();
-                        }
-                        else
-                        {
-                            AdsFacebook.InitInterstitial(context);
-                        }
+                                AppOpenManager appOpenManager = new AppOpenManager(context);
+                                appOpenManager.ShowAdIfAvailable();
+                            }
+                            else
+                            {
+                                if (AppSettings.ShowFbInterstitialAds)
+                                    AdsFacebook.InitInterstitial(context);
+                                else
+                                    AdsColony.Ad_Interstitial(context);
+                            }
 
-                        CountAppOpen++;
-                        break;
-                    }
+                            CountAppOpen++;
+                            break;
+                        }
                     default:
-                        AdsFacebook.InitInterstitial(context);
+                        if (AppSettings.ShowFbInterstitialAds)
+                            AdsFacebook.InitInterstitial(context);
+                        else
+                            AdsColony.Ad_Interstitial(context);
                         break;
                 }
             }
@@ -860,17 +858,23 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowAdMobRewardedInterstitial)
                 {
                     case true when CountRewardedInterstitial == AppSettings.ShowAdMobRewardedInterstitialCount:
-                    {
-                        CountRewardedInterstitial = 0;
-                        AdMobRewardedInterstitial ads = new AdMobRewardedInterstitial();
-                        ads.ShowAd(context);
-                        return ads;
-                    }
+                        {
+                            CountRewardedInterstitial = 0;
+                            AdMobRewardedInterstitial ads = new AdMobRewardedInterstitial();
+                            ads.ShowAd(context);
+                            return ads;
+                        }
                     case true:
-                        AdsFacebook.InitRewardVideo(context);
+                        if (AppSettings.ShowFbRewardVideoAds)
+                            AdsFacebook.InitRewardVideo(context);
+                        else
+                            AdsColony.Ad_Rewarded(context);
                         break;
                     default:
-                        AdsFacebook.InitRewardVideo(context);
+                        if (AppSettings.ShowFbRewardVideoAds)
+                            AdsFacebook.InitRewardVideo(context);
+                        else
+                            AdsColony.Ad_Rewarded(context);
                         break;
                 }
 
@@ -892,7 +896,12 @@ namespace WoWonder.Helpers.Ads
                 try
                 {
                     if (AppSettings.ShowAdMobBanner || AppSettings.ShowAdMobInterstitial || AppSettings.ShowAdMobRewardVideo || AppSettings.ShowAdMobNative || AppSettings.ShowAdMobAppOpen || AppSettings.ShowAdMobRewardedInterstitial)
+                    {
+                        RequestConfiguration configuration = new RequestConfiguration.Builder().SetTestDeviceIds(new List<string> { UserDetails.AndroidId }).Build();
+                        MobileAds.RequestConfiguration = configuration;
+
                         MobileAds.Initialize(context, new MyInitializationCompleteListener());
+                    }
                 }
                 catch (Exception e)
                 {

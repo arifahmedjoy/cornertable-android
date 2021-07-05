@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -8,15 +8,16 @@ using Android.Gms.Ads.DoubleClick;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
+using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
+using Google.Android.Flexbox;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Page;
 using WoWonderClient.Requests;
@@ -26,14 +27,20 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Communities.Pages
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class CreatePageActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
+    public class CreatePageActivity : BaseActivity
     {
         #region Variables Basic
 
-        private TextView TxtSave, IconTitle, IconUrl, IconCategories, IconAbout;
-        private EditText TxtTitle, TxtUrl, TxtCategories, TxtAbout;
-        private string CategoryId = "";
         private PublisherAdView PublisherAdView;
+
+        private TextView TvStep, TvStepTitle;
+        private View ViewStep1, ViewStep2, ViewStep3, ViewStep4;
+        private EditText EtStep1, EtStep4;
+        private FlexboxLayout RgStep3;
+        private Button BtnNext, BtnPrev;
+        private int NStep;
+        private string PageTitle, PageUsername, PageAbout, Category, CategoryId;
+        private List<string> ArrayAdapter;
 
         #endregion
 
@@ -49,11 +56,11 @@ namespace WoWonder.Activities.Communities.Pages
                 Methods.App.FullScreenApp(this);
 
                 // Create your application here
-                SetContentView(Resource.Layout.CreatePage_Layout);
+                SetContentView(Resource.Layout.create_page_layout);
 
                 //Get Value And Set Toolbar
                 InitComponent();
-                InitToolbar(); 
+                InitToolbar();
             }
             catch (Exception e)
             {
@@ -149,34 +156,156 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                TxtSave = FindViewById<TextView>(Resource.Id.toolbar_title);
+                //
+                NStep = 1;
+                TvStep = FindViewById<TextView>(Resource.Id.tv_step);
+                TvStepTitle = FindViewById<TextView>(Resource.Id.tv_step_title);
+                ViewStep1 = FindViewById<View>(Resource.Id.view_step1);
+                ViewStep2 = FindViewById<View>(Resource.Id.view_step2);
+                ViewStep3 = FindViewById<View>(Resource.Id.view_step3);
+                ViewStep4 = FindViewById<View>(Resource.Id.view_step4);
 
-                IconTitle = FindViewById<TextView>(Resource.Id.IconTitle);
-                TxtTitle = FindViewById<EditText>(Resource.Id.TitleEditText);
+                EtStep1 = FindViewById<EditText>(Resource.Id.et_step12);
+                EtStep4 = FindViewById<EditText>(Resource.Id.et_step4);
+                RgStep3 = FindViewById<FlexboxLayout>(Resource.Id.rg_step3);
+                BtnNext = FindViewById<Button>(Resource.Id.btn_next);
 
-                IconUrl = FindViewById<TextView>(Resource.Id.IconUrl);
-                TxtUrl = FindViewById<EditText>(Resource.Id.UrlEditText);
+                Methods.SetColorEditText(EtStep1, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                Methods.SetColorEditText(EtStep4, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
-                IconCategories = FindViewById<TextView>(Resource.Id.IconCategories);
-                TxtCategories = FindViewById<EditText>(Resource.Id.CategoriesEditText);
+                // Create category buttons
+                CreateCategoryButtons();
 
-                IconAbout = FindViewById<TextView>(Resource.Id.IconAbout);
-                TxtAbout = FindViewById<EditText>(Resource.Id.AboutEditText);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTitle, FontAwesomeIcon.UserFriends);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconUrl, FontAwesomeIcon.Link);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeBrands, IconCategories, FontAwesomeIcon.Buromobelexperte);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAbout, FontAwesomeIcon.Paragraph);
-
-                Methods.SetColorEditText(TxtTitle, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtUrl, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtCategories, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtAbout, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                
-                Methods.SetFocusable(TxtCategories);
-
-                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view); 
+                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view);
                 AdsGoogle.InitPublisherAdView(PublisherAdView);
+
+                SetStepChild();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void CreateCategoryButtons()
+        {
+            try
+            {
+                int count = CategoriesController.ListCategoriesPage.Count;
+                if (count == 0)
+                {
+                    Methods.DisplayReportResult(this, "Not have List Categories Page");
+                    return;
+                }
+
+                foreach (Classes.Categories category in CategoriesController.ListCategoriesPage)
+                {
+                    Button button = new Button(this);
+                    var ll = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+                    ll.SetMargins(10, 10, 10, 10);
+                    button.LayoutParameters = ll;
+
+                    button.Text = category.CategoriesName;
+                    button.SetBackgroundResource(Resource.Drawable.liked_button_normal);
+                    button.SetTextColor(Color.ParseColor("#b0b0b0"));
+                    button.TextSize = 14;
+                    button.SetAllCaps(false);
+                    button.SetPadding(10, 0, 10, 0); 
+                    button.Click += CategoryOnClick;
+                    RgStep3.AddView(button);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void CategoryOnClick(object sender, EventArgs e)
+        {
+            if (BtnPrev != null)
+            {
+                BtnPrev.SetTextColor(Color.ParseColor("#b0b0b0"));
+                BtnPrev.SetBackgroundResource(Resource.Drawable.liked_button_normal);
+            }
+            Button BtnCurrent = sender as Button;
+            BtnCurrent.SetTextColor(Color.ParseColor("#ffffff"));
+            BtnCurrent.SetBackgroundResource(Resource.Drawable.liked_button_pressed);
+            Category = BtnCurrent.Text;
+
+            BtnPrev = BtnCurrent;
+        }
+
+        private void HideKeyboard()
+        {
+            try
+            {
+                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+                inputManager?.HideSoftInputFromWindow(CurrentFocus?.WindowToken, HideSoftInputFlags.None);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void SetStepChild()
+        {
+            try
+            {
+                TvStep.Text = GetText(Resource.String.Lbl_Step) + " " + NStep + "/4";
+
+                switch (NStep)
+                {
+                    case 1:
+                        EtStep1.Visibility = ViewStates.Visible;
+                        EtStep4.Visibility = ViewStates.Gone;
+                        RgStep3.Visibility = ViewStates.Gone;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SetPageTitle);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                    case 2:
+                        EtStep1.Hint = GetString(Resource.String.Lbl_PageUsername);
+                        EtStep1.Visibility = ViewStates.Visible;
+                        EtStep4.Visibility = ViewStates.Gone;
+                        RgStep3.Visibility = ViewStates.Gone;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SetPageUserName);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                    case 4:
+                        EtStep1.Visibility = ViewStates.Gone;
+                        EtStep4.Visibility = ViewStates.Visible;
+                        RgStep3.Visibility = ViewStates.Gone;
+                        PublisherAdView.Visibility = ViewStates.Gone;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_Describe_Page);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#4E586E"));
+                        BtnNext.Text = GetString(Resource.String.Lbl_Save);
+                        break;
+                    case 3:
+                        HideKeyboard();
+                        ArrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
+                        EtStep1.Visibility = ViewStates.Gone;
+                        EtStep4.Visibility = ViewStates.Gone;
+                        RgStep3.Visibility = ViewStates.Visible;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SelectCategory);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -216,12 +345,10 @@ namespace WoWonder.Activities.Communities.Pages
                 {
                     // true +=  // false -=
                     case true:
-                        TxtSave.Click += TxtCreateOnClick;
-                        TxtCategories.Touch += TxtCategoryOnClick;
+                        BtnNext.Click += BtnNext_Click;
                         break;
                     default:
-                        TxtSave.Click -= TxtCreateOnClick;
-                        TxtCategories.Touch -= TxtCategoryOnClick;
+                        BtnNext.Click -= BtnNext_Click;
                         break;
                 }
             }
@@ -231,22 +358,87 @@ namespace WoWonder.Activities.Communities.Pages
             }
         }
 
+        public override void OnBackPressed()
+        {
+            if (NStep > 1)
+            {
+                NStep -= 1;
+                SetStepChild();
+                return;
+            }
+            base.OnBackPressed();
+        }
+
+        private void BtnNext_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                switch (NStep)
+                {
+                    case 1:
+                        PageTitle = EtStep1.Text;
+                        if (PageTitle.Length > 0)
+                        {
+                            NStep += 1;
+                            SetStepChild();
+                            EtStep1.Text = "";
+                        }
+                        break;
+                    case 2:
+                        PageUsername = EtStep1.Text;
+                        if (PageUsername.Length > 0)
+                        {
+                            NStep += 1;
+                            SetStepChild();
+                        }
+                        break;
+                    case 4:
+                        PageAbout = EtStep4.Text;
+                        if (PageAbout.Length > 0)
+                        {
+                            OnSave();
+                        }
+                        break;
+                    case 3:
+                        if (Category.Length > 0)
+                        {
+                            CategoryId = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesName == Category)?.CategoriesId;
+
+                            NStep += 1;
+                            SetStepChild();
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Methods.DisplayReportResultTrack(ex);
+            }
+        }
+
         private void DestroyBasic()
         {
             try
             {
                 PublisherAdView?.Destroy();
 
-                TxtSave = null!;
-                IconTitle = null!;
-                IconUrl = null!;
-                IconCategories = null!;
-                IconAbout = null!;
-                TxtTitle = null!;
-                TxtUrl = null!;
-                TxtCategories = null!;
-                TxtAbout = null!;
-                CategoryId = null!;
+                TvStep = null!;
+                TvStepTitle = null!;
+                ViewStep1 = null!;
+                ViewStep2 = null!;
+                ViewStep3 = null!;
+                ViewStep4 = null!;
+                EtStep1 = null!;
+                EtStep4 = null!;
+                RgStep3 = null!;
+                BtnNext = null!;
+
+                PageTitle = "";
+                PageUsername = "";
+                PageAbout = "";
+                Category = "";
+                NStep = 1;
+
                 PublisherAdView = null!;
             }
             catch (Exception e)
@@ -259,94 +451,41 @@ namespace WoWonder.Activities.Communities.Pages
 
         #region Events
 
-        private void TxtCategoryOnClick(object sender, View.TouchEventArgs e)
-        {
-            try
-            {
-                if (e?.Event?.Action != MotionEventActions.Down) return;
-
-                switch (CategoriesController.ListCategoriesPage.Count)
-                {
-                    case > 0:
-                    {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        var arrayAdapter = CategoriesController.ListCategoriesPage.Select(item => item.CategoriesName).ToList();
-
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
-                        break;
-                    }
-                    default:
-                        Methods.DisplayReportResult(this, "Not have List Categories Page");
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private async void TxtCreateOnClick(object sender, EventArgs e)
+        private async void OnSave()
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    return;
-                } 
-                if (string.IsNullOrEmpty(TxtUrl.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
-                    return;
-                } 
-                if (string.IsNullOrEmpty(TxtTitle.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
-                if (string.IsNullOrEmpty(TxtAbout.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_about), ToastLength.Short)?.Show();
-                    return;
-                }
-                if (string.IsNullOrEmpty(CategoryId))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_category), ToastLength.Short)?.Show();
-                    return;
-                }
-
                 //Show a progress
                 AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
-                var (apiStatus, respond) = await RequestsAsync.Page.CreatePageAsync(TxtUrl.Text.Replace(" ", ""), TxtTitle.Text, CategoryId, TxtAbout.Text);
+                var (apiStatus, respond) = await RequestsAsync.Page.CreatePageAsync(PageUsername.Replace(" ", ""), PageTitle, CategoryId, PageAbout);
                 switch (apiStatus)
                 {
                     case 200:
-                    {
-                        switch (respond)
                         {
-                            case CreatePageObject result:
+                            switch (respond)
                             {
-                                AndHUD.Shared.Dismiss(this);
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                                case CreatePageObject result:
+                                    {
+                                        AndHUD.Shared.Dismiss(this);
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short);
 
-                                Intent returnIntent = new Intent();
-                                if (result.PageData != null)
-                                    returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(result.PageData));
-                                SetResult(Result.Ok, returnIntent);
-                                Finish();
-                                break;
+                                        Intent returnIntent = new Intent();
+                                        if (result.PageData != null)
+                                            returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(result.PageData));
+                                        SetResult(Result.Ok, returnIntent);
+                                        Finish();
+                                        break;
+                                    }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
                         Methods.DisplayAndHudErrorResult(this, respond);
                         break;
@@ -354,45 +493,14 @@ namespace WoWonder.Activities.Communities.Pages
             }
             catch (Exception exception)
             {
-                AndHUD.Shared.Dismiss(this); 
+                AndHUD.Shared.Dismiss(this);
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         #endregion
 
         #region MaterialDialog
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
-        {
-            try
-            {
-                CategoryId = CategoriesController.ListCategoriesPage.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
-                TxtCategories.Text = itemString.ToString();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
 
         #endregion
     }

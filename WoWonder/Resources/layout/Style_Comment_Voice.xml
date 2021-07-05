@@ -17,7 +17,7 @@
         android:layout_marginBottom="2dp"
         android:layout_marginTop="10dp"
         android:background="@drawable/comment_rounded_left_layout"
-        android:layout_toEndOf="@id/card_pro_pic"
+        android:layout_toEndOf="@+id/card_pro_pic"
         android:id="@+id/bubble_layout"
         android:layout_marginEnd="15dp"
         android:layout_marginStart="4dp"
@@ -25,11 +25,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
-            android:layout_height="match_parent"
+           android:layout_height="wrap_content"
             android:id="@+id/username"
             android:textSize="13dp"
-            android:gravity="top"
             android:textStyle="bold"
+            android:drawablePadding="4dp"
             android:layout_marginTop="6dp"
             android:layout_marginEnd="10dp"
             android:layout_marginStart="18dp"
@@ -101,7 +101,7 @@
     </LinearLayout>
     <TextView
         android:layout_below="@+id/bubble_layout"
-        android:layout_toEndOf="@id/card_pro_pic"
+        android:layout_toEndOf="@+id/card_pro_pic"
         android:layout_height="wrap_content"
         android:id="@+id/Like"
         android:textSize="12dp"
@@ -115,7 +115,7 @@
         android:layout_width="wrap_content" />
     <TextView
         android:layout_below="@+id/bubble_layout"
-        android:layout_toEndOf="@id/Like"
+        android:layout_toEndOf="@+id/Like"
         android:layout_height="wrap_content"
         android:id="@+id/dislike"
         android:translationX="7dp"
@@ -146,7 +146,7 @@
     <LinearLayout
 	    android:orientation="horizontal"
 	    android:id="@+id/countLikeSection"
-	    android:layout_alignEnd="@id/bubble_layout"
+	    android:layout_alignEnd="@+id/bubble_layout"
 	    android:layout_below="@+id/bubble_layout"
 	    android:layout_width="wrap_content"
 	    android:layout_gravity="end"

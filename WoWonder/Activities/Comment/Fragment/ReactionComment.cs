@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.Views;
+using Android.Views.Animations;
 using Android.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
@@ -15,16 +17,15 @@ using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.Anjo;
-using WoWonderClient.Requests;
-using AlertDialog = AndroidX.AppCompat.App.AlertDialog;
+using WoWonderClient.Requests; 
 
 namespace WoWonder.Activities.Comment.Fragment
 {
-    public class ReactionComment 
+    public class ReactionComment : Java.Lang.Object, PopupWindow.IOnDismissListener
     {
         private readonly Activity MainContext;
         private readonly string TypeClass;
-        private AlertDialog MReactAlertDialog;
+        private PopupWindow PopupWindow;
 
         //ImagesButton one for every Reaction
         private ImageView MImgButtonOne;
@@ -34,9 +35,8 @@ namespace WoWonder.Activities.Comment.Fragment
         private ImageView MImgButtonFive;
         private ImageView MImgButtonSix;
 
-        //Integer variable to change react dialog shape Default value is react_dialog_shape
-        private readonly int MReactDialogShape = Resource.Xml.react_dialog_shape;
-
+        private TextView ReactionLabel;
+        
         //Array of six Reaction one for every ImageButton Icon
         private readonly List<Reaction> MReactionPack = XReactions.GetReactions();
 
@@ -57,24 +57,36 @@ namespace WoWonder.Activities.Comment.Fragment
             {
                 PostData = postData;
 
-                //Show Dialog With 6 React
-                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MainContext);
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("appear.mp3");
+                        break;
+                }
 
-                //Irrelevant code for customizing the buttons and title
-                LayoutInflater inflater = (LayoutInflater)MainContext.GetSystemService(Context.LayoutInflaterService);
-                View dialogView = inflater?.Inflate(Resource.Layout.XReactDialogLayout, null);
-                
-                InitializingReactImages(dialogView);
+                LayoutInflater layoutInflater = (LayoutInflater)MainContext?.GetSystemService(Context.LayoutInflaterService);
+                View popupView = layoutInflater?.Inflate(Resource.Layout.XReactDialogLayout, null);
+                popupView?.Measure((int)MeasureSpecMode.Unspecified, (int)MeasureSpecMode.Unspecified);
+
+                PopupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent, true);
+
+                InitializingReactImages(popupView);
                 ClickImageButtons();
 
-                dialogBuilder.SetView(dialogView);
-                MReactAlertDialog = dialogBuilder.Create();
-                MReactAlertDialog.Window?.SetBackgroundDrawableResource(MReactDialogShape);
+                PopupWindow.SetBackgroundDrawable(new ColorDrawable());
+                PopupWindow.AnimationStyle = Resource.Style.Animation;
+                PopupWindow.Focusable = true;
+                PopupWindow.ClippingEnabled = true;
+                PopupWindow.OutsideTouchable = false;
+                PopupWindow.SetOnDismissListener(this);
 
-                Window window = MReactAlertDialog.Window;
-                window?.SetLayout(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+                int[] location = new int[2];
+                PostData.Holder.LikeTextView.GetLocationInWindow(location);
 
-                MReactAlertDialog.Show();
+                int offsetX = 0;
+                int offsetY = -400;
+
+                PopupWindow.ShowAtLocation(PostData.Holder.LikeTextView, GravityFlags.NoGravity, location[0] + offsetX, location[1] + offsetY);
             }
             catch (Exception e)
             {
@@ -97,6 +109,16 @@ namespace WoWonder.Activities.Comment.Fragment
                 MImgButtonFive = view.FindViewById<ImageView>(Resource.Id.imgButtonFive);
                 MImgButtonSix = view.FindViewById<ImageView>(Resource.Id.imgButtonSix);
 
+                ReactionLabel = view.FindViewById<TextView>(Resource.Id.reactLabel);
+                ReactionLabel.Visibility = ViewStates.Invisible;
+
+                MImgButtonOne.Visibility = ViewStates.Gone;
+                MImgButtonTwo.Visibility = ViewStates.Gone;
+                MImgButtonThree.Visibility = ViewStates.Gone;
+                MImgButtonFour.Visibility = ViewStates.Gone;
+                MImgButtonFive.Visibility = ViewStates.Gone;
+                MImgButtonSix.Visibility = ViewStates.Gone;
+
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.ReactionDefault:
@@ -116,12 +138,44 @@ namespace WoWonder.Activities.Comment.Fragment
                         Glide.With(MainContext).Load(Resource.Drawable.angry).Apply(new RequestOptions().FitCenter()).Into(MImgButtonSix);
                         break;
                 }
+
+                SetTranslateAnimation(MImgButtonOne);
+                SetTranslateAnimation(MImgButtonTwo);
+                SetTranslateAnimation(MImgButtonThree);
+                SetTranslateAnimation(MImgButtonFour);
+                SetTranslateAnimation(MImgButtonFive);
+                SetTranslateAnimation(MImgButtonSix);
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        } 
+        }
+
+        private async void SetTranslateAnimation(View view)
+        {
+            try
+            {
+                var animation = new TranslateAnimation(0, 0, view.Height, 0) { Duration = 400 };
+                animation.AnimationEnd += (sender, args) =>
+                {
+                    try
+                    {
+                        view.Visibility = ViewStates.Visible;
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+                };
+                view.StartAnimation(animation);
+                await Task.Delay(300);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
 
         /// <summary>
         /// Set onClickListener For every Image Buttons on Reaction Dialog
@@ -143,6 +197,25 @@ namespace WoWonder.Activities.Comment.Fragment
             }
         }
 
+        public void OnDismiss()
+        {
+            try
+            {
+                PopupWindow?.Dismiss();
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("leave.mp3");
+                        break;
+                }
+
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -153,8 +226,12 @@ namespace WoWonder.Activities.Comment.Fragment
         {
             try
             {
+                //if (imgButton != null && !imgButton.HasOnClickListeners)
+                //    imgButton.Click += (sender, e) => ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = imgButton, Position = reactIndex, React = reactName });
+
                 if (imgButton != null && !imgButton.HasOnClickListeners)
-                    imgButton.Click += (sender, e) => ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = imgButton, Position = reactIndex, React = reactName });
+                    imgButton.Touch += (sender, e) => ImgButtonOnTouch(new ReactionsTouchEventArgs(e.Handled, e.Event) { ImgButton = imgButton, Position = reactIndex });
+
             }
             catch (Exception e)
             {
@@ -162,20 +239,113 @@ namespace WoWonder.Activities.Comment.Fragment
             }
         }
 
+
+        private long Then;
+        private readonly int LongClickDuration = 500; //for long click to trigger after 0.5 seconds
+        private int PositionSelect = -1;
+
+        private void ImgButtonOnTouch(ReactionsTouchEventArgs e)
+        {
+            try
+            {
+                switch (e.Event.Action)
+                {
+                    case MotionEventActions.Down:
+                        {
+                            Then = Methods.Time.CurrentTimeMillis();
+                            //ImgButtonOnLongClick(new ReactionsClickLongClickEventArgs(e.Handled) { ImgButton = e.ImgButton, Position = e.Position });
+
+                            if (ReactionLabel != null)
+                            {
+                                PositionSelect = e.Position;
+                                Reaction data = MReactionPack[e.Position];
+                                ReactionLabel.Text = data.GetReactText();
+                                ReactionLabel.Visibility = ViewStates.Visible;
+                            }
+
+                            switch (UserDetails.SoundControl)
+                            {
+                                case true:
+                                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("down.mp3");
+                                    break;
+                            }
+                            break;
+                        }
+
+                    case MotionEventActions.Up:
+                        if (Methods.Time.CurrentTimeMillis() - Then > LongClickDuration)
+                        {
+                            /* Implement long click behavior here */
+                            //ImgButtonOnLongClick(new ReactionsClickLongClickEventArgs(e.Handled) { ImgButton = e.ImgButton, Position = e.Position });
+
+                            if (ReactionLabel != null)
+                                ReactionLabel.Visibility = ViewStates.Invisible;
+                        }
+                        else
+                        {
+                            /* Implement short click behavior here or do nothing */
+                            ImgButtonOnClick(new ReactionsClickEventArgs {ImgButton = e.ImgButton, Position = e.Position, React = ReactionLabel.Text});
+                        }
+                        break;
+                    case MotionEventActions.Move when PositionSelect != e.Position:
+                        {
+                            Then = Methods.Time.CurrentTimeMillis();
+                            //ImgButtonOnLongClick(new ReactionsClickLongClickEventArgs(e.Handled) { ImgButton = e.ImgButton, Position = e.Position });
+
+                            if (ReactionLabel != null)
+                            {
+                                PositionSelect = e.Position;
+                                Reaction data = MReactionPack[e.Position];
+                                ReactionLabel.Text = data.GetReactText();
+                                ReactionLabel.Visibility = ViewStates.Visible;
+                            }
+
+                            switch (UserDetails.SoundControl)
+                            {
+                                case true:
+                                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("select.mp3");
+                                    break;
+                            }
+                            break;
+                        }
+                    case MotionEventActions.Cancel:
+
+                        PositionSelect = -1;
+
+                        if (ReactionLabel != null)
+                            ReactionLabel.Visibility = ViewStates.Invisible;
+
+                        switch (UserDetails.SoundControl)
+                        {
+                            case true:
+                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("cancel.mp3");
+                                break;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        }
+         
         private void ImgButtonOnClick(ReactionsClickEventArgs e)
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 switch (UserDetails.SoundControl)
                 {
                     case true:
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("reaction.mp3");
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("select.mp3");
                         break;
                 }
                  
@@ -258,8 +428,8 @@ namespace WoWonder.Activities.Comment.Fragment
                     string react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Angry").Value?.Id ?? "6";
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Comment.ReactionCommentAsync(PostData.CommentObject.Id, react, reactionType) });
                 }
-                 
-                MReactAlertDialog.Dismiss(); 
+
+                PopupWindow?.Dismiss(); 
             }
             catch (Exception exception)
             {

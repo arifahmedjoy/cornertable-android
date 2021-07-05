@@ -5,11 +5,11 @@
   <PreferenceCategory android:layout="@xml/divider" />
   <PreferenceCategory android:key="SectionSupport_key" android:title="@string/Lbl_Support">
 
-    <Preference
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="help_key"
       android:title="@string/Lbl_Help" />
 
-    <Preference
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="Report_key"
       android:title="@string/Lbl_Report_Problem" />
 
@@ -18,21 +18,21 @@
   <!--About SECTION-->
   <PreferenceCategory android:key="SectionAbout_key" android:title="@string/Lbl_Legal_and_Policies" android:layout="@xml/divider" />
   <PreferenceCategory android:key="SectionSupport_key" android:title="@string/Lbl_About">
-    
-    <Preference
+
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="About_key"
       android:title="@string/Lbl_About_App" />
 
-    <Preference
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
 	    android:key="RateApp_key"
 	    android:title="@string/Lbl_RateOurApp" />
- 
 
-	  <Preference
+
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="PrivacyPolicy_key"
       android:title="@string/Lbl_PrivacyPolicy" />
 
-    <Preference
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="TermsOfUse_key"
       android:title="@string/Lbl_TermsOfUse" />
 

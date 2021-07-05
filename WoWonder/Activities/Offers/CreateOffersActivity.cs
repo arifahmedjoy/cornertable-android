@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -21,7 +21,6 @@ using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.IO;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Offers.Adapters;
 using WoWonder.Helpers.Controller;
@@ -343,7 +342,7 @@ namespace WoWonder.Activities.Offers
                     {
                         case > 0:
                         {
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency)).TitleColorRes(Resource.Color.primary);
                             dialogList.Items(arrayAdapter);
@@ -373,7 +372,7 @@ namespace WoWonder.Activities.Offers
 
                 TypeDialog = "DiscountOffersAdapter";
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 var arrayAdapter = WoWonderTools.GetAddDiscountList(this).Select(pair => pair.Value).ToList();
                 dialogList.Title(GetText(Resource.String.Lbl_DiscountType)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
@@ -396,13 +395,13 @@ namespace WoWonder.Activities.Offers
                     if (string.IsNullOrEmpty(TxtDiscountType.Text) || string.IsNullOrEmpty(TxtDiscountItems.Text) || string.IsNullOrEmpty(TxtCurrency.Text)
                         || string.IsNullOrEmpty(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(ImagePath))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                         return;
                     }
 
@@ -415,49 +414,36 @@ namespace WoWonder.Activities.Offers
                         {"currency", CurrencyId},
                         {"page_id", PageId},
                         {"expire_date", TxtDate.Text},
-                        {"expire_time", TxtTime.Text},
+                        {"expire_time", TxtTime.Text.Replace("PM" , "").Replace("AM" , "").Replace(" " , "")},
                         {"description", TxtDescription.Text},
                         {"discounted_items", TxtDiscountItems.Text},
                     };
 
-                    switch (MAdapter.DiscountList.Count)
+                    if (MAdapter.DiscountList.Count > 0)
                     {
-                        case > 0:
+                        foreach (var discount in MAdapter.DiscountList)
                         {
-                            foreach (var discount in MAdapter.DiscountList)
+                            switch (discount.DiscountType)
                             {
-                                switch (discount)
-                                {
-                                    case null:
-                                        continue;
-                                    default:
-                                        switch (discount.DiscountType)
-                                        {
-                                            case "discount_percent":
-                                                dictionary.Add("discount_percent", discount.DiscountFirst);
-                                                break;
-                                            case "discount_amount":
-                                                dictionary.Add("discount_amount", discount.DiscountFirst);
-                                                break;
-                                            case "buy_get_discount":
-                                                dictionary.Add("discount_percent", discount.DiscountFirst);
-                                                dictionary.Add("buy", discount.DiscountSec);
-                                                dictionary.Add("get", discount.DiscountThr);
-                                                break;
-                                            case "spend_get_off":
-                                                dictionary.Add("spend", discount.DiscountSec);
-                                                dictionary.Add("amount_off", discount.DiscountThr);
-                                                break;
-                                            case "free_shipping": //Not have tag
-                                                break;
-                                        }
-
-                                        break;
-                                }
+                                case "discount_percent":
+                                    dictionary.Add("discount_percent", discount.DiscountFirst);
+                                    break;
+                                case "discount_amount":
+                                    dictionary.Add("discount_amount", discount.DiscountFirst);
+                                    break;
+                                case "buy_get_discount":
+                                    dictionary.Add("discount_percent", discount.DiscountFirst);
+                                    dictionary.Add("buy", discount.DiscountSec);
+                                    dictionary.Add("get", discount.DiscountThr);
+                                    break;
+                                case "spend_get_off":
+                                    dictionary.Add("spend", discount.DiscountSec);
+                                    dictionary.Add("amount_off", discount.DiscountThr);
+                                    break;
+                                case "free_shipping": //Not have tag
+                                    break;
                             }
-
-                            break;
-                        }
+                        } 
                     }
 
                     var (apiStatus, respond) = await RequestsAsync.Offers.CreateOfferAsync(dictionary, ImagePath);
@@ -469,7 +455,7 @@ namespace WoWonder.Activities.Offers
                             {
                                 case CreateOfferObject result:
                                     Console.WriteLine(result.Data);
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_OfferSuccessfullyAdded), ToastLength.Short);
 
                                     AndHUD.Shared.Dismiss(this);
                                     Finish();
@@ -485,7 +471,7 @@ namespace WoWonder.Activities.Offers
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
 
             }
@@ -531,7 +517,7 @@ namespace WoWonder.Activities.Offers
                                         break;
                                     }
                                     default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                         break;
                                 }
 
@@ -562,7 +548,7 @@ namespace WoWonder.Activities.Offers
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -595,24 +581,24 @@ namespace WoWonder.Activities.Offers
             }
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "Currency":
-                        TxtCurrency.Text = itemString.ToString(); 
+                        TxtCurrency.Text = itemString; 
 
-                        var (currency, currencyIcon) = WoWonderTools.GetCurrency(itemId.ToString());
-                        CurrencyId = currency;
-                        Console.WriteLine(currencyIcon);
+                        //var (currency, currencyIcon) = WoWonderTools.GetCurrency(itemId.ToString());
+                        CurrencyId = position.ToString();
+                        //Console.WriteLine(currencyIcon);
                         break;
                     case "DiscountOffersAdapter":
                     {
-                        AddDiscountId = WoWonderTools.GetAddDiscountList(this)?.FirstOrDefault(a => a.Value == itemString.ToString()).Key.ToString();
+                        AddDiscountId = WoWonderTools.GetAddDiscountList(this)?.FirstOrDefault(a => a.Value == itemString).Key.ToString();
 
-                        TxtDiscountType.Text = itemString.ToString();
+                        TxtDiscountType.Text = itemString;
 
                         switch (AddDiscountId)
                         {
@@ -652,6 +638,12 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher

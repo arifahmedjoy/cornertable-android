@@ -190,7 +190,7 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 Image = MainView.FindViewById<ImageView>(Resource.Id.ImageUserAlbums);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new UserPhotosAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new UserPhotosAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
                 Console.WriteLine(longClickListener);
             }
             catch (Exception exception)

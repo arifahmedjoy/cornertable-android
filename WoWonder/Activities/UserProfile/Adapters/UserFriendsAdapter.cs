@@ -190,8 +190,8 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 Image = MainView.FindViewById<ImageView>(Resource.Id.ImageUsers);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new UserFriendsAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new UserFriendsAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new UserFriendsAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new UserFriendsAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception exception)
             {

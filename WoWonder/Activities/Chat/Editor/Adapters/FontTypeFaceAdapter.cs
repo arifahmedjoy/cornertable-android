@@ -169,9 +169,9 @@ namespace WoWonder.Activities.Chat.Editor.Adapters
                 TxtFontTypeFace = itemView.FindViewById<TextView>(Resource.Id.txt_Font);
 
                 itemView.Click += (sender, e) => clickListener(new FontTypeFaceAdapterClickEventArgs
-                { View = itemView, Position = AdapterPosition });
+                { View = itemView, Position = BindingAdapterPosition });
                 itemView.LongClick += (sender, e) => longClickListener(new FontTypeFaceAdapterClickEventArgs
-                { View = itemView, Position = AdapterPosition });
+                { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

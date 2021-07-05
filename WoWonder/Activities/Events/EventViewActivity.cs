@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -14,12 +14,11 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
+using AndroidX.Core.View;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using Google.Android.Material.AppBar;
-using Google.Android.Material.FloatingActionButton;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
@@ -52,8 +51,7 @@ namespace WoWonder.Activities.Events
         private double CurrentLongitude, CurrentLatitude;
         private TextView TxtName, TxtGoing, TxtInterested, TxtStartDate, TxtEndDate, TxtLocation, TxtDescription;
         private SuperTextView TxtDescriptionText;
-        private FloatingActionButton FloatingActionButtonView;
-        private ImageView ImageEventCover;
+        private ImageView ImageEventCover, ImageBack;
         private Button BtnGo, BtnInterested;
         public WRecyclerView MainRecyclerView;
         public NativePostAdapter PostFeedAdapter;
@@ -75,9 +73,11 @@ namespace WoWonder.Activities.Events
             try
             {
                 base.OnCreate(savedInstanceState);
-                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
+                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.Overlap_Dark : Resource.Style.Overlap_Light);
 
                 Methods.App.FullScreenApp(this);
+
+                Overlap();
 
                 // Create your application here
                 SetContentView(Resource.Layout.EventView_Layout);
@@ -100,6 +100,25 @@ namespace WoWonder.Activities.Events
             }
         }
 
+        private void Overlap()
+        {
+            try
+            { 
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+                {
+                    Window.ClearFlags(WindowManagerFlags.TranslucentStatus);
+                    Window.AddFlags(WindowManagerFlags.DrawsSystemBarBackgrounds);
+                    Window.SetStatusBarColor(Color.Transparent);
+#pragma warning disable 618
+                    Window.DecorView.SystemUiVisibility = (StatusBarVisibility)SystemUiFlags.LayoutFullscreen | (StatusBarVisibility)SystemUiFlags.LayoutStable;
+#pragma warning restore 618
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
         protected override void OnResume()
         {
             try
@@ -166,7 +185,7 @@ namespace WoWonder.Activities.Events
         {
             try
             {
-                MainRecyclerView.ReleasePlayer();
+                MainRecyclerView?.ReleasePlayer();
                 DestroyBasic();
                 base.OnDestroy();
             }
@@ -201,7 +220,12 @@ namespace WoWonder.Activities.Events
             {
                 ToolbarLayout = FindViewById<CollapsingToolbarLayout>(Resource.Id.collapsingToolbar);
                 ToolbarLayout.Title = "";
+
                 AppBarLayout = FindViewById<AppBarLayout>(Resource.Id.appbar_ptwo);
+                AppBarLayout.AddOnOffsetChangedListener(this);
+
+                ImageBack = FindViewById<ImageView>(Resource.Id.back);
+                
                 TxtName = FindViewById<TextView>(Resource.Id.tvName_ptwo);
 
                 TxtGoing = FindViewById<TextView>(Resource.Id.GoingTextview);
@@ -214,14 +238,12 @@ namespace WoWonder.Activities.Events
                 TxtLocation = FindViewById<TextView>(Resource.Id.LocationTextview);
                 TxtDescription = FindViewById<TextView>(Resource.Id.tv_about);
                 TxtDescriptionText = FindViewById<SuperTextView>(Resource.Id.tv_aboutdescUser);
-                 
+
+
                 ImageEventCover = FindViewById<ImageView>(Resource.Id.EventCover);
 
                 BtnGo = FindViewById<Button>(Resource.Id.ButtonGoing);
                 BtnInterested = FindViewById<Button>(Resource.Id.ButtonIntersted);
-
-                FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                FloatingActionButtonView.Visibility = ViewStates.Visible;
 
                 MainRecyclerView = FindViewById<WRecyclerView>(Resource.Id.newsfeedRecyler);
                 BtnMore = (ImageButton)FindViewById(Resource.Id.morebutton);
@@ -232,7 +254,6 @@ namespace WoWonder.Activities.Events
                 SwipeRefreshLayout.Enabled = false;
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
 
-                AppBarLayout.AddOnOffsetChangedListener(this);
 
                 var mapFrag = SupportMapFragment.NewInstance();
                 SupportFragmentManager.BeginTransaction().Add(Resource.Id.map, mapFrag, mapFrag.Tag)?.Commit();
@@ -250,7 +271,7 @@ namespace WoWonder.Activities.Events
             {
                 PostFeedAdapter = new NativePostAdapter(this, EventId, MainRecyclerView, NativeFeedType.Event);
                 MainRecyclerView.SetXAdapter(PostFeedAdapter, null);
-                Combiner = new FeedCombiner(null, PostFeedAdapter.ListDiffer, this);
+                Combiner = new FeedCombiner(null, PostFeedAdapter?.ListDiffer, this);
             }
             catch (Exception e)
             {
@@ -268,10 +289,10 @@ namespace WoWonder.Activities.Events
                     toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
-                    SupportActionBar.SetDisplayHomeAsUpEnabled(true);
+                    SupportActionBar.SetDisplayHomeAsUpEnabled(false);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
-                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow2));
 
                 }
             }
@@ -289,13 +310,13 @@ namespace WoWonder.Activities.Events
                 {
                     // true +=  // false -=
                     case true:
-                        FloatingActionButtonView.Click += AddPostOnClick;
+                        ImageBack.Click += ImageBackOnClick;
                         BtnGo.Click += BtnGoOnClick;
                         BtnInterested.Click += BtnInterestedOnClick;
                         BtnMore.Click += BtnMoreOnClick;
                         break;
                     default:
-                        FloatingActionButtonView.Click -= AddPostOnClick;
+                        ImageBack.Click -= ImageBackOnClick;
                         BtnGo.Click -= BtnGoOnClick;
                         BtnInterested.Click -= BtnInterestedOnClick;
                         BtnMore.Click -= BtnMoreOnClick;
@@ -307,7 +328,7 @@ namespace WoWonder.Activities.Events
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         public static EventViewActivity GetInstance()
         {
             try
@@ -339,7 +360,6 @@ namespace WoWonder.Activities.Events
                 ImageEventCover = null!;
                 BtnGo = null!;
                 BtnInterested = null!;
-                FloatingActionButtonView = null!;
                 MainRecyclerView = null!;
                 BtnMore = null!;
                 SwipeRefreshLayout = null!;
@@ -353,13 +373,18 @@ namespace WoWonder.Activities.Events
 
         #region Events
 
+        private void ImageBackOnClick(object sender, EventArgs e)
+        {
+            Finish();
+        }
+
         //Event Show More : Copy Link , Share , Edit (If user isOwner_Event)
         private void BtnMoreOnClick(object sender, EventArgs e)
         {
             try
             {
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetString(Resource.String.Lbl_CopeLink));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_Share));
@@ -388,7 +413,7 @@ namespace WoWonder.Activities.Events
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -428,7 +453,7 @@ namespace WoWonder.Activities.Events
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -448,12 +473,12 @@ namespace WoWonder.Activities.Events
                         break;
                 }
 
-                var list = EventMainActivity.GetInstance()?.EventTab.MAdapter?.EventList;
+                var list = EventMainActivity.GetInstance()?.MAdapter?.EventList;
                 var dataEvent = list?.FirstOrDefault(a => a.Id == EventData.Id);
                 if (dataEvent != null)
                 {
                     dataEvent.IsGoing = Convert.ToBoolean(BtnGo?.Tag?.ToString());
-                    EventMainActivity.GetInstance()?.EventTab.MAdapter.NotifyItemChanged(list.IndexOf(dataEvent));
+                    EventMainActivity.GetInstance()?.MAdapter.NotifyItemChanged(list.IndexOf(dataEvent));
                 }
 
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Event.GoToEventAsync(EventData.Id) });
@@ -472,7 +497,7 @@ namespace WoWonder.Activities.Events
                 intent.PutExtra("Type", "SocialEvent");
                 intent.PutExtra("PostId", EventData.Id);
                 intent.PutExtra("itemObject", JsonConvert.SerializeObject(EventData));
-                StartActivityForResult(intent, 2500);
+                StartActivity(intent);
             }
             catch (Exception exception)
             {
@@ -572,7 +597,10 @@ namespace WoWonder.Activities.Events
                         return null!;
                 }
 
-                Address location = address[0];
+                if (address?.Count == 0)
+                    return null!;
+
+                Address location = address?[0];
                 var lat = location.Latitude;
                 var lng = location.Longitude;
 
@@ -599,52 +627,12 @@ namespace WoWonder.Activities.Events
 
                 switch (requestCode)
                 {
-                    //add post
-                    case 2500 when resultCode == Result.Ok:
-                    {
-                        if (!string.IsNullOrEmpty(data.GetStringExtra("itemObject")))
-                        {
-                            var postData = JsonConvert.DeserializeObject<PostDataObject>(data.GetStringExtra("itemObject"));
-                            if (postData != null)
-                            {
-                                var countList = PostFeedAdapter.ItemCount;
-
-                                var combine = new FeedCombiner(postData, PostFeedAdapter.ListDiffer, this);
-                                combine.CombineDefaultPostSections("Top");
-
-                                int countIndex = 1;
-                                var model1 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                var model2 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                var model3 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                var model4 = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                                if (model4 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
-                                else if (model3 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
-                                else if (model2 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
-                                else if (model1 != null)
-                                    countIndex += PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
-                                else
-                                    countIndex = 0;
-
-                                PostFeedAdapter.NotifyItemRangeInserted(countIndex, PostFeedAdapter.ListDiffer.Count - countList);
-                            }
-                        }
-                        else
-                        {
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts() });
-                        }
-
-                        break;
-                    }
                     //Edit post
                     case 3950 when resultCode == Result.Ok:
                     {
                         var postId = data.GetStringExtra("PostId") ?? "";
                         var postText = data.GetStringExtra("PostText") ?? "";
-                        var diff = PostFeedAdapter.ListDiffer;
+                        var diff = PostFeedAdapter?.ListDiffer;
                         List<AdapterModelsClass> dataGlobal = diff.Where(a => a.PostData?.Id == postId).ToList();
                         switch (dataGlobal.Count)
                         {
@@ -657,7 +645,7 @@ namespace WoWonder.Activities.Events
                                     switch (index)
                                     {
                                         case > -1:
-                                            PostFeedAdapter.NotifyItemChanged(index);
+                                            PostFeedAdapter?.NotifyItemChanged(index);
                                             break;
                                     }
                                 }
@@ -681,7 +669,7 @@ namespace WoWonder.Activities.Events
                                         {
                                             case > -1:
                                                 diff.Insert(headerPostIndex + 1, item);
-                                                PostFeedAdapter.NotifyItemInserted(headerPostIndex + 1);
+                                                PostFeedAdapter?.NotifyItemInserted(headerPostIndex + 1);
                                                 break;
                                         }
 
@@ -702,7 +690,7 @@ namespace WoWonder.Activities.Events
                         var item = JsonConvert.DeserializeObject<ProductDataObject>(data.GetStringExtra("itemData"));
                         if (item != null)
                         {
-                            var diff = PostFeedAdapter.ListDiffer;
+                            var diff = PostFeedAdapter?.ListDiffer;
                             var dataGlobal = diff.Where(a => a.PostData?.Id == item.PostId).ToList();
                             switch (dataGlobal.Count)
                             {
@@ -720,7 +708,7 @@ namespace WoWonder.Activities.Events
                                                 productUnion = item;
                                                 Console.WriteLine(productUnion);
 
-                                                PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
+                                                PostFeedAdapter?.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(postData));
                                                 break;
                                             }
                                         }
@@ -753,7 +741,7 @@ namespace WoWonder.Activities.Events
                         new LiveUtil(this).OpenDialogLive();
                         break;
                     case 235:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -767,11 +755,11 @@ namespace WoWonder.Activities.Events
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetString(Resource.String.Lbl_CopeLink))
                 {
                     CopyLinkEvent();
@@ -885,7 +873,7 @@ namespace WoWonder.Activities.Events
                 }
 
                 if (!Methods.CheckConnectivity())
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 else
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetEventById }); 
             }
@@ -910,13 +898,23 @@ namespace WoWonder.Activities.Events
                     SupportActionBar.Title = Name;
 
                     if (string.IsNullOrEmpty(eventData.GoingCount))
-                        eventData.GoingCount = "0";
+                    {
+                        //eventData.GoingCount = "0";
+                    }
+                    else
+                    {
+                        TxtGoing.Text = eventData.GoingCount;
+                    }
 
                     if (string.IsNullOrEmpty(eventData.InterestedCount))
-                        eventData.InterestedCount = "0";
+                    {
+                        //eventData.InterestedCount = "0";
+                    }
+                    else
+                    {
+                        TxtInterested.Text = eventData.InterestedCount;
+                    }
 
-                    TxtGoing.Text = eventData.GoingCount + " " + GetText(Resource.String.Lbl_GoingPeople);
-                    TxtInterested.Text = eventData.InterestedCount + " " + GetText(Resource.String.Lbl_InterestedPeople);
                     TxtLocation.Text = eventData.Location;
 
                     TxtStartDate.Text = eventData.StartDate;
@@ -999,14 +997,14 @@ namespace WoWonder.Activities.Events
                     }
                      
                     //add post  
-                    var checkSection = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                    var checkSection = PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
                     switch (checkSection)
                     {
                         case null:
                             Combiner.AddPostDivider();
                             Combiner.AddPostBoxPostView("Event", -1, new PostDataObject { Event = new EventUnion { EventClass = eventData } });
                          
-                            PostFeedAdapter.NotifyItemInserted(PostFeedAdapter.ListDiffer.Count -1);
+                            PostFeedAdapter?.NotifyItemInserted(PostFeedAdapter.ListDiffer.Count -1);
                             break;
                     }
 
@@ -1022,7 +1020,7 @@ namespace WoWonder.Activities.Events
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts() });
         }
@@ -1054,7 +1052,7 @@ namespace WoWonder.Activities.Events
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -1062,34 +1060,60 @@ namespace WoWonder.Activities.Events
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
+        #region appBarLayout
+
         public void OnOffsetChanged(AppBarLayout appBarLayout, int verticalOffset)
         {
-            ScrollRange = ScrollRange switch
+            try
             {
-                -1 => appBarLayout.TotalScrollRange,
-                _ => ScrollRange
-            };
-
-            switch (ScrollRange + verticalOffset)
-            {
-                case 0:
-                    ToolbarLayout.Title = Name;
-                    IsShow = true;
-                    break;
-                default:
+                ScrollRange = ScrollRange switch
                 {
-                    switch (IsShow)
-                    {
-                        case true:
-                            ToolbarLayout.Title = " ";
-                            IsShow = false;
-                            break;
-                    }
+                    -1 => appBarLayout.TotalScrollRange,
+                    _ => ScrollRange
+                };
 
-                    break;
+                switch (ScrollRange + verticalOffset)
+                {
+                    case 0:
+                        ToolbarLayout.Title = Name;
+                        IsShow = true;
+                        break;
+                    default:
+                    {
+                        switch (IsShow)
+                        {
+                            case true:
+                                ToolbarLayout.Title = " ";
+                                IsShow = false;
+                                break;
+                        }
+
+                        break;
+                    }
+                }
+
+                int minHeight = ViewCompat.GetMinimumHeight(ToolbarLayout) * 2;
+                float scale = (float)(minHeight + verticalOffset) / minHeight;
+
+                if (scale >= 0)
+                {
+                    ImageBack.SetColorFilter(Color.White);
+                    BtnMore.SetColorFilter(Color.White);
+                }
+                else
+                {
+                    ImageBack.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                    BtnMore.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
                 }
             }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
         }
+
+        #endregion
+         
     }
 }

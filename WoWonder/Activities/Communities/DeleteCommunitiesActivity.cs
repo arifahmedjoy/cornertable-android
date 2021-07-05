@@ -253,7 +253,7 @@ namespace WoWonder.Activities.Communities
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short);
                     return;
                 }
 
@@ -266,11 +266,11 @@ namespace WoWonder.Activities.Communities
                         {
                             case "Page":
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.DeletePageAsync(CommunitiesId, TxtPassword.Text) });
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_PageSuccessfullyDeleted),ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PageSuccessfullyDeleted),ToastLength.Short);
                                 break;
                             case "Group":
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.DeleteGroupAsync(CommunitiesId, TxtPassword.Text) });
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_GroupSuccessfullyDeleted), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_GroupSuccessfullyDeleted), ToastLength.Short);
                                 break;
                         }
                          

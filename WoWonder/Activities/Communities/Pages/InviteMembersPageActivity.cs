@@ -43,7 +43,6 @@ namespace WoWonder.Activities.Communities.Pages
         private ViewStub EmptyStateLayout;
         private View Inflated;
         private AdView MAdView;
-        private UserDataObject ItemUser;
         private string PageId;
 
         #endregion
@@ -270,7 +269,6 @@ namespace WoWonder.Activities.Communities.Pages
                 MRecycler = null!;
                 EmptyStateLayout = null!;
                 Inflated = null!;
-                ItemUser = null!;
                 PageId = null!;
                 MAdView = null!;
             }
@@ -306,22 +304,22 @@ namespace WoWonder.Activities.Communities.Pages
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
-                ItemUser = MAdapter.GetItem(e.Position);
-                if (ItemUser != null)
+                var itemUser = MAdapter.GetItem(e.Position);
+                if (itemUser != null)
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.PageAddAsync(PageId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.PageAddAsync(PageId, itemUser.UserId) });
 
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_Added), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Added), ToastLength.Short);
 
-                    var local = MAdapter.UserList.FirstOrDefault(a => a.UserId == ItemUser.UserId);
+                    var local = MAdapter.UserList.FirstOrDefault(a => a.UserId == itemUser.UserId);
                     if (local != null)
                     {
                         MAdapter.UserList.Remove(local);
-                        MAdapter.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
+                        MAdapter.NotifyDataSetChanged();
                     }
 
                     switch (MAdapter.UserList.Count)
@@ -345,7 +343,7 @@ namespace WoWonder.Activities.Communities.Pages
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadMembersAsync });
         }
@@ -384,7 +382,7 @@ namespace WoWonder.Activities.Communities.Pages
                             switch (MAdapter.UserList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -408,7 +406,7 @@ namespace WoWonder.Activities.Communities.Pages
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 

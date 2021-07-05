@@ -190,8 +190,8 @@ namespace WoWonder.Activities.Live.Adapters
                 TxtMessage = itemView.FindViewById<TextView>(Resource.Id.displayMessage);
                   
                 //Event
-                itemView.Click += (sender, e) => clickListener(new LiveMessageAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new LiveMessageAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new LiveMessageAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new LiveMessageAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

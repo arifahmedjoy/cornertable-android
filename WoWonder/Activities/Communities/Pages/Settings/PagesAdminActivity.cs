@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -20,7 +20,6 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Adapters;
@@ -72,7 +71,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 PageId = Intent?.GetStringExtra("PageId");
 
                 if (!string.IsNullOrEmpty(Intent?.GetStringExtra("PageData")))
-                    PageDataClass = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData"));
+                    PageDataClass = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData") ?? "");
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -341,7 +340,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -349,7 +348,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 if (ItemUser != null)
                 {
                     var arrayAdapter = new List<string>();
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                     if (PageDataClass.IsPageOnwer != null && PageDataClass.IsPageOnwer.Value)
                     {
@@ -390,7 +389,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadMembersAsync });
         }
@@ -429,7 +428,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                             switch (MAdapter.UserList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -453,7 +452,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -512,17 +511,17 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
-                if (itemString.ToString() == GetText(Resource.String.Lbl_MakeAdmin))
+                if (itemString == GetText(Resource.String.Lbl_MakeAdmin))
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.MakePageAdminAsync(PageId, ItemUser.UserId) });
 
@@ -533,7 +532,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         MAdapter?.NotifyItemChanged(MAdapter.UserList.IndexOf(local));
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_RemoveAdmin))
+                else if (itemString == GetText(Resource.String.Lbl_RemoveAdmin))
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.MakePageAdminAsync(PageId, ItemUser.UserId) });
 
@@ -544,7 +543,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_BlockMember))
+                else if (itemString == GetText(Resource.String.Lbl_BlockMember))
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.BlockUserAsync(PageId, true) });
 
@@ -555,7 +554,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_ViewProfile))
+                else if (itemString == GetText(Resource.String.Lbl_ViewProfile))
                 {
                     WoWonderTools.OpenProfile(this, ItemUser.UserId, ItemUser);
                 }

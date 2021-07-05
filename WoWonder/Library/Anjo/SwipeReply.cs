@@ -49,7 +49,7 @@ namespace WoWonder.Library.Anjo
             MView = viewHolder.ItemView;
             ImageDrawable = Context.GetDrawable(Resource.Drawable.icon_chat_reply);
             ShareRound = Context.GetDrawable(Resource.Drawable.recv_bg_mic); 
-            return MakeMovementFlags(ItemTouchHelper.ActionStateIdle, ItemTouchHelper.Right);
+            return ItemTouchHelper.Callback.MakeMovementFlags(ItemTouchHelper.ActionStateIdle, ItemTouchHelper.Right);
         }
 
         public override bool OnMove(RecyclerView p0, RecyclerView.ViewHolder p1, RecyclerView.ViewHolder p2)
@@ -142,7 +142,7 @@ namespace WoWonder.Library.Anjo
                     {
                         if (Math.Abs(SwipeReply.MView.TranslationX) >= SwipeReply.ConvertTodp(100))
                         {
-                            SwipeReply.SwipeControllerActions.ShowReplyUi(ViewHolder.AdapterPosition);
+                            SwipeReply.SwipeControllerActions.ShowReplyUi(ViewHolder.BindingAdapterPosition);
                         }
                     }
 
@@ -239,7 +239,7 @@ namespace WoWonder.Library.Anjo
                 }
                  
                 float y;
-                y = (float)((MView.Top + MView.MeasuredHeight / 2));
+                y = (float)(MView.Top + MView.MeasuredHeight / 2);
                 ShareRound.SetTint(Color.ParseColor(AppSettings.MainColor));
                 ShareRound.SetBounds((int)((float)x - (float)ConvertTodp(18) * scale), (int)(y - (float)ConvertTodp(18) * scale), (int)((float)x + (float)ConvertTodp(18) * scale), (int)(y + (float)ConvertTodp(18) * scale));
                  

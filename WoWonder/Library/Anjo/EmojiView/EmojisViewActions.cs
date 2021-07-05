@@ -11,18 +11,19 @@ using AndroidX.Core.Graphics.Drawable;
 using WoWonder.Activities.Chat.ChatWindow;
 using WoWonder.Activities.Chat.GroupChat;
 using WoWonder.Activities.Chat.PageChat;
+using WoWonder.Activities.Story;
 using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Library.Anjo.EmojiView
 {
     public class EmojisViewActions : SimplePopupAdapter, View.IOnClickListener  
-    {
+    { 
         private readonly Activity ActivityContext;
 
         private readonly ChatWindowActivity ChatWindow;
         private readonly GroupChatWindowActivity GroupActivityView;
         private readonly PageChatWindowActivity PageActivityView;
-        //private readonly StoryReplyActivity StoryReplyActivity;
+        private readonly StoryReplyActivity StoryReplyActivity;
 
         private readonly AXEmojiPopup Popup;
         private readonly AXEmojiEditText AXEmojiEditText;
@@ -52,7 +53,7 @@ namespace WoWonder.Library.Anjo.EmojiView
                         GroupActivityView = (GroupChatWindowActivity)activity;
                         break;
                     case "StoryReplyActivity":
-                        //StoryReplyActivity = (StoryReplyActivity)activity;
+                        StoryReplyActivity = (StoryReplyActivity)activity;
                         break;
                 }
 
@@ -68,8 +69,8 @@ namespace WoWonder.Library.Anjo.EmojiView
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
-            } 
+                Methods.DisplayReportResultTrack(e);
+            }
         }
 
         private void UpdateButton(bool emoji)
@@ -121,10 +122,10 @@ namespace WoWonder.Library.Anjo.EmojiView
                                 GroupActivityView?.RemoveButtonFragment();
                                 break;
                             case "StoryReplyActivity":
-                                //StoryReplyActivity?.RemoveButtonFragment();
+                                StoryReplyActivity?.RemoveButtonFragment();
                                 break;
-                        } 
-                    }  
+                        }
+                    }
                 }
                 else if (v?.Id == EmojisViewImage?.Id)
                 {
@@ -142,14 +143,14 @@ namespace WoWonder.Library.Anjo.EmojiView
                             GroupActivityView?.RemoveButtonFragment();
                             break;
                         case "StoryReplyActivity":
-                            //StoryReplyActivity?.RemoveButtonFragment();
-                            break; 
+                            StoryReplyActivity?.RemoveButtonFragment();
+                            break;
                     }
                 }
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -163,7 +164,7 @@ namespace WoWonder.Library.Anjo.EmojiView
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-            } 
+            }
         }
 
         public override void OnDismiss()
@@ -175,8 +176,8 @@ namespace WoWonder.Library.Anjo.EmojiView
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
             }
-        } 
+        }
     }
 }

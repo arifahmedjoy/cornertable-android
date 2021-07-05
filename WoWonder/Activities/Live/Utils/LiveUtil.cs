@@ -75,12 +75,11 @@ namespace WoWonder.Activities.Live.Utils
         public void OpenDialogLive()
         {
             try
-            {
-
+            { 
                 var streamName = "live" + Methods.Time.CurrentTimeMillis();
                 if (string.IsNullOrEmpty(streamName) || string.IsNullOrWhiteSpace(streamName))
                 {
-                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_PleaseEnterLiveStreamName), ToastLength.Short);
                     return;
                 }
                 //Owner >> ClientRoleBroadcaster , Users >> ClientRoleAudience
@@ -89,7 +88,7 @@ namespace WoWonder.Activities.Live.Utils
                 intent.PutExtra("StreamName", streamName);
                 Activity.StartActivity(intent);
 
-                //var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                //var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 //dialog.Title(GetText(Resource.String.Lbl_CreateLiveVideo));
                 //dialog.Input(Resource.String.Lbl_AddLiveVideoContext, 0, false, (materialDialog, s) =>
                 //{

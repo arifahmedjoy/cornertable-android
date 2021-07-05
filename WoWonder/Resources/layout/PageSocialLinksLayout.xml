@@ -66,7 +66,7 @@
                 android:hint="@string/Lbl_Facebook"
                 android:textSize="15sp"
                 android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
+                android:background="@drawable/round_gray_border"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="3dp" />
             </LinearLayout>
@@ -97,7 +97,7 @@
                 android:hint="@string/Lbl_Twitter"
                 android:textSize="15sp"
                 android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
+                android:background="@drawable/round_gray_border"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="3dp" />
             </LinearLayout>
@@ -128,7 +128,7 @@
                 android:hint="@string/Lbl_Instagram"
                 android:textSize="15sp"
                 android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
+                android:background="@drawable/round_gray_border"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="3dp" />
             </LinearLayout>
@@ -159,7 +159,7 @@
                 android:hint="@string/Lbl_Vk"
                 android:textSize="15sp"
                 android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
+                android:background="@drawable/round_gray_border"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="3dp" />
             </LinearLayout>
@@ -190,7 +190,7 @@
                 android:hint="@string/Lbl_Linkedin"
                 android:textSize="15sp"
                 android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
+                android:background="@drawable/round_gray_border"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="3dp" />
             </LinearLayout>
@@ -221,7 +221,7 @@
                 android:hint="@string/Lbl_YouTube"
                 android:textSize="15sp"
                 android:gravity="start"
-                android:background="@drawable/EditTextStyleOne"
+                android:background="@drawable/round_gray_border"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="3dp" />
             </LinearLayout> 

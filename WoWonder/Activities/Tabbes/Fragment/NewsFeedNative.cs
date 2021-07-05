@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Graphics;
 using Android.OS;
-
 using Android.Views;
 using Android.Widget;
 using Bumptech.Glide;
@@ -19,7 +18,6 @@ using Google.Android.Material.FloatingActionButton;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient;
@@ -84,12 +82,25 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
                 LoadPost(true);
                  
-                GlobalContext.GetOneSignalNotification(); 
+                GlobalContext?.GetOneSignalNotification(); 
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
 
+            }
+        }
+
+        public override void OnStop()
+        {
+            try
+            {
+                base.OnStop();
+                MainRecyclerView?.StopVideo();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
             }
         }
          
@@ -110,6 +121,8 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
+                MainRecyclerView?.ReleasePlayer();
+
                 MainRecyclerView = null!;
                 PostFeedAdapter = null!;
                 base.OnDestroy();
@@ -151,7 +164,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
-                PostFeedAdapter = new NativePostAdapter(Activity, UserDetails.UserId, MainRecyclerView, NativeFeedType.Global);
+                PostFeedAdapter = new NativePostAdapter(Activity, "", MainRecyclerView, NativeFeedType.Global);
                 MainRecyclerView?.SetXAdapter(PostFeedAdapter, SwipeRefreshLayout);
                 switch (AppSettings.ShowNewPostOnNewsFeed)
                 {
@@ -178,43 +191,47 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
+                if (!Methods.CheckConnectivity())
+                {
+                    ToastUtils.ShowToast(Activity, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    return;
+                }
+
                 PopupBubbleView.Visibility = ViewStates.Gone;
 
-                PostFeedAdapter.ListDiffer.Clear();  
-                PostFeedAdapter.NotifyDataSetChanged();
+                PostFeedAdapter?.ListDiffer?.Clear();  
+                PostFeedAdapter?.NotifyDataSetChanged();
 
                 PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList?.Clear();
                 PostFeedAdapter?.HolderStory?.StoryAdapter?.NotifyDataSetChanged();
 
                 MainRecyclerView?.StopVideo();
 
-                var combiner = new FeedCombiner(null, PostFeedAdapter.ListDiffer, Activity);
+                var combiner = new FeedCombiner(null, PostFeedAdapter?.ListDiffer, Activity);
 
                 combiner.AddPostBoxPostView("feed", -1);
 
-                switch (AppSettings.ShowStory)
+                if (AppSettings.ShowStory)
                 {
-                    case true:
-                        combiner.AddStoryPostView("feed", -1);
-                        break;
+                    combiner.AddStoryPostView(new List<StoryDataObject>());
                 }
 
                 //combiner.AddPostBoxPostView("feed", -1);
 
-                var checkSectionAlertBox = PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                var checkSectionAlertBox = PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
                 {
-                    PostFeedAdapter.ListDiffer.Remove(checkSectionAlertBox);
+                    PostFeedAdapter?.ListDiffer?.Remove(checkSectionAlertBox);
                 }
 
-                var checkSectionAlertJoinBox = PostFeedAdapter.ListDiffer.Where(a => a.TypeView == PostModelType.AlertJoinBox).ToList();
+                var checkSectionAlertJoinBox = PostFeedAdapter?.ListDiffer?.Where(a => a.TypeView == PostModelType.AlertJoinBox).ToList();
                 {
                     foreach (var adapterModelsClass in checkSectionAlertJoinBox)
                     {
-                        PostFeedAdapter.ListDiffer.Remove(adapterModelsClass);
+                        PostFeedAdapter?.ListDiffer?.Remove(adapterModelsClass);
                     }
                 }
                  
-                PostFeedAdapter.NotifyDataSetChanged();
+                PostFeedAdapter?.NotifyDataSetChanged();
                  
                 StartApiService();
             }
@@ -232,16 +249,17 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
-                var combiner = new FeedCombiner(null, PostFeedAdapter.ListDiffer, Activity);
+                var combiner = new FeedCombiner(null, PostFeedAdapter?.ListDiffer, Activity);
 
                 //combiner.AddStoryPostView();
                 combiner.AddPostBoxPostView("feed", -1);
 
-                switch (AppSettings.ShowStory)
+                SqLiteDatabase dbDatabase = new SqLiteDatabase();
+
+                if (AppSettings.ShowStory)
                 {
-                    case true:
-                        combiner.AddStoryPostView("feed", -1);
-                        break;
+                    var list = dbDatabase.GetDataStory();
+                    combiner.AddStoryPostView(!string.IsNullOrEmpty(list) ? JsonConvert.DeserializeObject<List<StoryDataObject>>(list) : new List<StoryDataObject>());
                 }
 
                 switch (local)
@@ -251,41 +269,35 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         break;
                 }
 
-                SqLiteDatabase dbDatabase = new SqLiteDatabase();
                 var json = dbDatabase.GetDataPost();
 
-                switch (string.IsNullOrEmpty(json))
+                if (!string.IsNullOrEmpty(json) && local)
                 {
-                    case false when local:
+                    var postObject = JsonConvert.DeserializeObject<PostObject>(json);
+                    if (postObject?.Data.Count > 0)
                     {
-                        var postObject = JsonConvert.DeserializeObject<PostObject>(json);
-                        switch (postObject?.Data.Count)
-                        {
-                            case > 0:
-                                MainRecyclerView.ApiPostAsync.LoadDataApi(postObject.Status, postObject, "0"); 
-                                MainRecyclerView.ScrollToPosition(0);
-                                break;
-                        }
-
-                        //Start Updating the news feed every few minus 
-                        StartApiService();
-                        StartHandler();
-                        return;
+                        MainRecyclerView.ApiPostAsync.LoadDataApi(postObject.Status, postObject, "0");
+                        MainRecyclerView.ScrollToPosition(0);
                     }
+
+                    //Start Updating the news feed every few minus 
+                    StartApiService();
+                    StartHandler();
+                    return;
                 }
 
-                switch (PostFeedAdapter.ListDiffer.Count)
+                switch (PostFeedAdapter?.ListDiffer?.Count)
                 {
                     case <= 5:
                         StartApiService();
                         break;
                     default:
                     {
-                        var item = PostFeedAdapter.ListDiffer.LastOrDefault();
+                        var item = PostFeedAdapter?.ListDiffer?.LastOrDefault();
 
                         var lastItem = PostFeedAdapter.ListDiffer.IndexOf(item);
 
-                        item = PostFeedAdapter.ListDiffer[lastItem];
+                        item = PostFeedAdapter?.ListDiffer[lastItem];
 
                         string offset;
                         switch (item.TypeView)
@@ -301,7 +313,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                             case PostModelType.SuggestedUsersBox:
                             case PostModelType.CommentSection:
                             case PostModelType.AddCommentSection:
-                                item = PostFeedAdapter.ListDiffer.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
+                                item = PostFeedAdapter?.ListDiffer?.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
                                 offset = item?.PostData?.PostId ?? "0";
                                 Console.WriteLine(offset);
                                 break;
@@ -327,7 +339,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
         private void StartApiService(string offset = "0" ,string typeRun = "Add")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(Activity, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Activity, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadStory, () => MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts(offset , typeRun) }); 
         }
@@ -338,7 +350,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
             try
             {
                 MainHandler ??= new Handler(Looper.MainLooper);
-                MainHandler?.PostDelayed(new ApiPostUpdaterHelper(Activity, MainRecyclerView, new Handler(Looper.MainLooper)), 30000);
+                MainHandler?.PostDelayed(new ApiPostUpdaterHelper(Activity, new Handler(Looper.MainLooper)), AppSettings.RefreshPostSeconds);
                 IsCanceledHandler = false;
             }
             catch (Exception e)
@@ -351,7 +363,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {
-                MainHandler?.RemoveCallbacks(new ApiPostUpdaterHelper(Activity, MainRecyclerView, new Handler(Looper.MainLooper)));
+                MainHandler?.RemoveCallbacks(new ApiPostUpdaterHelper(Activity, new Handler(Looper.MainLooper)));
                 MainHandler = null;
                 IsCanceledHandler = true;
             }
@@ -363,13 +375,11 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
         private class ApiPostUpdaterHelper : Java.Lang.Object, IRunnable
         {
-            private readonly WRecyclerView MainRecyclerView;
             private readonly Handler MainHandler;
             private readonly Activity Activity;
 
-            public ApiPostUpdaterHelper(Activity activity, WRecyclerView mainRecyclerView, Handler mainHandler)
+            public ApiPostUpdaterHelper(Activity activity, Handler mainHandler)
             {
-                MainRecyclerView = mainRecyclerView;
                 MainHandler = mainHandler;
                 Activity = activity;
             }
@@ -380,18 +390,15 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 {
                     if (string.IsNullOrEmpty(Current.AccessToken) || !Methods.CheckConnectivity() || IsCanceledHandler)
                         return;
-
-                    if (MainRecyclerView?.ApiPostAsync != null)
-                        await MainRecyclerView.ApiPostAsync.FetchNewsFeedApiPosts("0", "Insert");
-                  
+                     
                     var instance = TabbedMainActivity.GetInstance();
                     if (instance != null)
                     {
-                        await instance.NewsFeedTab.LoadStory(); 
-                        await instance.Get_Notifications();
+                        if (instance.NewsFeedTab != null) await instance.NewsFeedTab.LoadStory();
+                        if (instance.NotificationsTab != null) await instance.Get_Notifications();
                     } 
                     //await ApiRequest.Get_MyProfileData_Api(Activity);
-                    MainHandler?.PostDelayed(new ApiPostUpdaterHelper(Activity, MainRecyclerView, MainHandler), 30000);
+                    MainHandler?.PostDelayed(new ApiPostUpdaterHelper(Activity, MainHandler), AppSettings.RefreshPostSeconds);
                 }
                 catch (Exception e)
                 {
@@ -447,7 +454,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                                         if (type != "Video")
                                                         {
                                                             Glide.With(Context).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
-                                                            item.DurationsList.Add(10000L);
+                                                            item.DurationsList.Add(AppSettings.StoryDuration);
                                                         }
                                                         else
                                                         {
@@ -474,7 +481,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                                         if (type1 != "Video")
                                                         {
                                                             Glide.With(Context).Load(mediaFile).Apply(new RequestOptions().SetDiskCacheStrategy(DiskCacheStrategy.All).CenterCrop()).Preload();
-                                                            item.DurationsList.Add(10000L);
+                                                            item.DurationsList.Add(AppSettings.StoryDuration);
                                                         }
                                                         else
                                                         {
@@ -497,7 +504,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                                 }
                                                 catch (Exception e)
                                                 {
-                                                    Console.WriteLine(e);
+                                                    Methods.DisplayReportResultTrack(e);
                                                 }
                                             });
                                         }
@@ -515,12 +522,33 @@ namespace WoWonder.Activities.Tabbes.Fragment
                             Methods.DisplayReportResult(Activity, respond);
                             break;
                     }
-                    var d = new Runnable(() => { PostFeedAdapter.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(checkSection)); }); d.Run();
+                    Activity?.RunOnUiThread(() =>
+                    {
+                        try
+                        {
+                            var d = new Runnable(() => { PostFeedAdapter?.NotifyItemChanged(PostFeedAdapter.ListDiffer.IndexOf(checkSection)); }); d.Run();
+                        }
+                        catch (Exception e)
+                        {
+                            Methods.DisplayReportResultTrack(e);
+                        }
+                    });
+
+                    if (checkSection.StoryList.Count > 0)
+                    {
+                       SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                       dbDatabase.InsertOrUpdateStory(JsonConvert.SerializeObject(checkSection.StoryList)); 
+                    }
+                    else
+                    {
+                        SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                        dbDatabase.DeleteStory();
+                    }
                 }
             }
             else
             {
-                Toast.MakeText(Context, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Context, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 

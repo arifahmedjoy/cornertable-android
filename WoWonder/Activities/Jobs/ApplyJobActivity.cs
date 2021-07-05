@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -12,7 +12,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Controller;
@@ -344,14 +343,14 @@ namespace WoWonder.Activities.Jobs
                     if (string.IsNullOrEmpty(TxtName.Text) || string.IsNullOrEmpty(TxtPhone.Text) || string.IsNullOrEmpty(TxtLocation.Text)
                         || string.IsNullOrEmpty(TxtWork.Text) || string.IsNullOrEmpty(TxtDescription.Text)|| string.IsNullOrEmpty(TxtFromDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                         return;
                     }
 
                     switch (CurrentlyWork)
                     {
                         case "off" when string.IsNullOrEmpty(TxtToDate.Text):
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                             return;
                     }
 
@@ -359,7 +358,7 @@ namespace WoWonder.Activities.Jobs
                     switch (check)
                     {
                         case false:
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_IsEmailValid), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_IsEmailValid), ToastLength.Short);
                             return;
                     }
                      
@@ -394,13 +393,13 @@ namespace WoWonder.Activities.Jobs
                                 case MessageJobObject result:
                                 {
                                     Console.WriteLine(result.MessageData);
-                                    Toast.MakeText(this, "You have successfully applied to this job", ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_SuccessfullyAppliedJob), ToastLength.Short);
                                     AndHUD.Shared.Dismiss(this);
 
-                                    var data =  JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
+                                    var data =  JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Job?.Id == DataInfoObject.Id);
                                     if (data != null)
                                     {
-                                        data.Apply = "true"; 
+                                        data.Job.Apply = "true"; 
                                         JobsActivity.GetInstance().MAdapter.NotifyItemChanged(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(data));
                                     }
 
@@ -419,7 +418,7 @@ namespace WoWonder.Activities.Jobs
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -435,7 +434,7 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 DialogType = "Position";
                 var arrayAdapter = JobCategories.ToList();
@@ -505,7 +504,7 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 DialogType = "ToDate";
                 var arrayAdapter = ExperienceDate.ToList();
@@ -529,7 +528,7 @@ namespace WoWonder.Activities.Jobs
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
                 DialogType = "FromDate";
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = ExperienceDate.ToList();
 
@@ -583,7 +582,7 @@ namespace WoWonder.Activities.Jobs
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -616,32 +615,32 @@ namespace WoWonder.Activities.Jobs
             } 
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (DialogType)
                 {
                     case "Position":
-                        TxtPosition.Text = itemString.ToString();
+                        TxtPosition.Text = itemString;
                         break;
                     case "FromDate":
-                        TxtFromDate.Text = itemString.ToString();
+                        TxtFromDate.Text = itemString;
                         break;
                     case "ToDate":
-                        TxtToDate.Text = itemString.ToString();
+                        TxtToDate.Text = itemString;
                         break;
                     case "QuestionOne":
-                        EdtQuestion.Text = itemString.ToString();
-                        QuestionOneAnswer = itemId.ToString();
+                        EdtQuestion.Text = itemString;
+                        QuestionOneAnswer = position.ToString();
                         break;
                     case "QuestionTwo":
-                        EdtQuestion.Text = itemString.ToString();
-                        QuestionTwoAnswer = itemId.ToString();
+                        EdtQuestion.Text = itemString;
+                        QuestionTwoAnswer = position.ToString();
                         break;
                     case "QuestionThree":
-                        EdtQuestion.Text = itemString.ToString();
-                        QuestionThreeAnswer = itemId.ToString();
+                        EdtQuestion.Text = itemString;
+                        QuestionThreeAnswer = position.ToString();
                         break;
                 }
             }
@@ -776,7 +775,7 @@ namespace WoWonder.Activities.Jobs
                             if (args.Event.Action != MotionEventActions.Down) return;
 
                             DialogType = "QuestionOne";
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             var arrayAdapter = new List<string>();
                             switch (DataInfoObject.QuestionOneAnswers?.Count)
@@ -919,7 +918,7 @@ namespace WoWonder.Activities.Jobs
                             if (args.Event.Action != MotionEventActions.Down) return;
 
                             DialogType = "QuestionTwo";
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             var arrayAdapter = new List<string>();
                             switch (DataInfoObject.QuestionTwoAnswers?.Count)
@@ -1062,7 +1061,7 @@ namespace WoWonder.Activities.Jobs
                             if (args.Event.Action != MotionEventActions.Down) return;
 
                             DialogType = "QuestionThree";
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             var arrayAdapter = new List<string>();
                             switch (DataInfoObject.QuestionThreeAnswers?.Count)

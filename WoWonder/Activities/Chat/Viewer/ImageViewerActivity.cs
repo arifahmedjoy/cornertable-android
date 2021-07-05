@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -10,11 +10,11 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using Java.IO;
-using Java.Lang;
 using Newtonsoft.Json;
 using Sephiroth.ImageZoom;
 using WoWonder.Activities.Chat.ChatWindow;
@@ -164,12 +164,13 @@ namespace WoWonder.Activities.Chat.Viewer
                 if (toolbar != null)
                 {
                     toolbar.Title = "";
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -207,7 +208,7 @@ namespace WoWonder.Activities.Chat.Viewer
             try
             {
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 if (MesData.Position == "right")
                 {
@@ -272,29 +273,29 @@ namespace WoWonder.Activities.Chat.Viewer
 
         #region MaterialDialog
 
-        public async void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public async void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_MessageInfo))
+                if (itemString == GetText(Resource.String.Lbl_MessageInfo))
                 {
                     var intent = new Intent(this, typeof(MessageInfoActivity));
                     intent.PutExtra("UserId", Id);
                     intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(MesData));
                     StartActivity(intent);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Forward))
+                else if (itemString == GetText(Resource.String.Lbl_Forward))
                 {
                     var intent = new Intent(this, typeof(ForwardMessagesActivity));
                     intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(MesData));
                     StartActivity(intent);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Share))
+                else if (itemString == GetText(Resource.String.Lbl_Share))
                 {
                     string urlImage = MediaFile;
                     var fileName = urlImage?.Split('/').Last();
 
-                    await ShareFileImplementation.ShareRemoteFile(urlImage, fileName, GetText(Resource.String.Lbl_Send_to));
+                    await ShareFileImplementation.ShareRemoteFile(urlImage, urlImage, fileName, GetText(Resource.String.Lbl_Send_to));
                 }
             }
             catch (Exception e)

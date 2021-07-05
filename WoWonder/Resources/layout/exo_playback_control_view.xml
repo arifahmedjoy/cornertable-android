@@ -91,12 +91,12 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_weight="1"
-                app:ad_marker_color="#FF2D55"
+                app:ad_marker_color="@color/ExoPlayer_TimeBar_color"
                 android:layout_gravity="center_vertical"
-                app:played_color="#FF2D55"
+                app:played_color="@color/ExoPlayer_TimeBar_color"
                 app:buffered_color="#ffe0e0e0"
                 app:unplayed_color="#2ec7c7c7"
-                android:outlineSpotShadowColor="#FF2D55"/>
+                android:outlineSpotShadowColor="@color/ExoPlayer_TimeBar_color"/>
             <TextView
                 android:id="@id/exo_duration"
                 android:layout_width="wrap_content"

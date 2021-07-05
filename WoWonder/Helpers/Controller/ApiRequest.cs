@@ -16,7 +16,6 @@ using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.AddPost;
 using WoWonder.Activities.AddPost.Service;
-using WoWonder.Activities.Chat.MsgTabbes.Services;
 using WoWonder.Activities.Default;
 using WoWonder.Activities.NativePost.Services;
 using WoWonder.Activities.SettingsPreferences;
@@ -29,6 +28,7 @@ using WoWonderClient;
 using WoWonderClient.Classes.Articles;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.Group;
+using WoWonderClient.Classes.Message;
 using WoWonderClient.Classes.Page;
 using WoWonderClient.Classes.User;
 using WoWonderClient.Requests;
@@ -43,16 +43,13 @@ namespace WoWonder.Helpers.Controller
 {
     internal static class ApiRequest
     {
-        private static readonly string ApiSendAgoraCallAction = Client.WebsiteUrl + "/app_api.php?application=phone&type=call_agora_actions";
-        private static readonly string ApiCreateAgoraCallEvent = Client.WebsiteUrl + "/app_api.php?application=phone&type=create_agora_call";
-        private static readonly string ApiCheckForAgoraAnswer = Client.WebsiteUrl + "/app_api.php?application=phone&type=check_agora_for_answer";
 
-        private static readonly string ApiGetSearchGif = "https://api.giphy.com/v1/gifs/search?api_key=b9427ca5441b4f599efa901f195c9f58&limit=45&rating=g&q=";
-        private static readonly string ApiGeTrendingGif = "https://api.giphy.com/v1/gifs/trending?api_key=b9427ca5441b4f599efa901f195c9f58&limit=45&rating=g";
-        private static readonly string ApiGetTimeZone = "http://ip-api.com/json/";
-        private static readonly string ApiGetWeatherApi = "https://api.weatherapi.com/v1/forecast.json?key=";
-        private static readonly string ApiGetExchangeCurrency = "https://openexchangerates.org/api/latest.json?app_id=";
-        private static readonly string ApiGetInfoCovid19 = "https://covid-193.p.rapidapi.com/statistics?country=";
+        internal static readonly string ApiGetSearchGif = "https://api.giphy.com/v1/gifs/search?api_key=b9427ca5441b4f599efa901f195c9f58&limit=45&rating=g&q=";
+        internal static readonly string ApiGeTrendingGif = "https://api.giphy.com/v1/gifs/trending?api_key=b9427ca5441b4f599efa901f195c9f58&limit=45&rating=g";
+        internal static readonly string ApiGetTimeZone = "http://ip-api.com/json/";
+        internal static readonly string ApiGetWeatherApi = "https://api.weatherapi.com/v1/forecast.json?key=";
+        internal static readonly string ApiGetExchangeCurrency = "https://openexchangerates.org/api/latest.json?app_id=";
+        internal static readonly string ApiGetInfoCovid19 = "https://covid-193.p.rapidapi.com/statistics?country=";
 
         public static async Task<GetSiteSettingsObject.ConfigObject> GetSettings_Api(Activity context)
         {
@@ -66,7 +63,8 @@ namespace WoWonder.Helpers.Controller
                     return Methods.DisplayReportResult(context, respond);
 
                 ListUtils.SettingsSiteList = result.Config;
-                 
+
+                UserDetails.VisionApiKey = result.Config.VisionApiKey;
                 AppSettings.OneSignalAppId = result.Config.AndroidNPushId;
                 AppSettings.MsgOneSignalAppId = result.Config.AndroidMPushId;
                 OneSignalNotification.RegisterNotificationDevice();
@@ -344,7 +342,7 @@ namespace WoWonder.Helpers.Controller
             }
             else
             {
-                Toast.MakeText(Application.Context, Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Application.Context, Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 return null!;
             }
         }
@@ -404,7 +402,7 @@ namespace WoWonder.Helpers.Controller
                 }
                 else
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -487,25 +485,38 @@ namespace WoWonder.Helpers.Controller
                 {
                     if (lang != "")
                     {
-                        var dataPrivacy = new Dictionary<string, string>
-                        {
-                            {"language", lang}
-                        };
+                        Dictionary<string, string> dataPrivacy = new Dictionary<string, string>();
 
                         var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
                         if (dataUser != null)
                         {
+                            dataPrivacy = new Dictionary<string, string>
+                            {
+                                {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory},
+                                {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost},
+                                {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted},
+                                {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup},
+                                {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned},
+                                {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited},
+                                {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage},
+                                {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed},
+                                {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared},
+                                {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented},
+                                {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked},
+                            };
+
                             dataUser.Language = lang;
 
                             var sqLiteDatabase = new SqLiteDatabase();
                             sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
-                            
                         }
 
+                        dataPrivacy.Add("language", lang);
+
                         if (Methods.CheckConnectivity())
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy)});
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
                         else
-                            Toast.MakeText(Application.Context,Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Application.Context, Application.Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                 });
             }
@@ -521,12 +532,13 @@ namespace WoWonder.Helpers.Controller
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return null!;
                 }
                 else
                 {
-                    var response = await RestHttp.Client.GetAsync(ApiGetSearchGif + searchKey + "&offset=" + offset);
+                    var client = new HttpClient();
+                    var response = await client.GetAsync(ApiGetSearchGif + searchKey + "&offset=" + offset);
                     string json = await response.Content.ReadAsStringAsync();
                     var data = JsonConvert.DeserializeObject<GifGiphyClass>(json);
 
@@ -552,12 +564,13 @@ namespace WoWonder.Helpers.Controller
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return null!;
                 }
                 else
                 {
-                    var response = await RestHttp.Client.GetAsync(ApiGeTrendingGif + "&offset=" + offset);
+                    var client = new HttpClient();
+                    var response = await client.GetAsync(ApiGeTrendingGif + "&offset=" + offset);
                     string json = await response.Content.ReadAsStringAsync();
                     var data = JsonConvert.DeserializeObject<GifGiphyClass>(json);
 
@@ -583,7 +596,7 @@ namespace WoWonder.Helpers.Controller
             { 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return null!;
                 }
                 else
@@ -592,8 +605,8 @@ namespace WoWonder.Helpers.Controller
                     {
                         await GetTimeZoneAsync();  
                     }
-                     
-                    var response = await RestHttp.Client.GetAsync(ApiGetWeatherApi + AppSettings.KeyWeatherApi +"&q=" + UserDetails.City + "&lang=" + UserDetails.LangName);
+                    var client = new HttpClient();
+                    var response = await client.GetAsync(ApiGetWeatherApi + AppSettings.KeyWeatherApi +"&q=" + UserDetails.City + "&lang=" + UserDetails.LangName);
                     string json = await response.Content.ReadAsStringAsync();
                     var data = JsonConvert.DeserializeObject<GetWeatherObject>(json);
                     return response.StatusCode switch
@@ -613,8 +626,9 @@ namespace WoWonder.Helpers.Controller
         public static async Task<(int, dynamic)> GetExchangeCurrencyAsync()
         {
             try
-            {   
-                var response = await RestHttp.Client.GetAsync(ApiGetExchangeCurrency + AppSettings.KeyCurrencyApi + "&base=" + AppSettings.ExCurrency  + "&symbols=" + AppSettings.ExCurrencies ); 
+            {
+                var client = new HttpClient();
+                var response = await client.GetAsync(ApiGetExchangeCurrency + AppSettings.KeyCurrencyApi + "&base=" + AppSettings.ExCurrency  + "&symbols=" + AppSettings.ExCurrencies ); 
                 string json = await response.Content.ReadAsStringAsync();
 
                 var data = JsonConvert.DeserializeObject<Classes.ExchangeCurrencyObject>(json);
@@ -666,7 +680,7 @@ namespace WoWonder.Helpers.Controller
                 return (404, e.Message);
             }
         }
-         
+          
         public static async Task Get_MyProfileData_Api(Activity context)
         {
             if (Methods.CheckConnectivity())
@@ -762,6 +776,38 @@ namespace WoWonder.Helpers.Controller
                         break;
                     }
                 }
+                //else Methods.DisplayReportResult(activity, respondString);
+            }
+        }
+         
+        public static async Task LoadSuggestedPage()
+        {
+            if (Methods.CheckConnectivity())
+            {
+                //var countList = ListUtils.SuggestedPageList.Count;
+                var (respondCode, respondString) = await RequestsAsync.Page.GetRecommendedPagesAsync("25", "0").ConfigureAwait(false);
+                switch (respondCode)
+                {
+                    case 200:
+                    {
+                        switch (respondString)
+                        {
+                            case ListPagesObject result:
+                            {
+                                var respondList = result.Data.Count;
+                                ListUtils.SuggestedPageList = respondList switch
+                                {
+                                    > 0 => new ObservableCollection<PageClass>(result.Data),
+                                    _ => ListUtils.SuggestedPageList
+                                };
+
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
 
                 //else Methods.DisplayReportResult(activity, respondString);
             }
@@ -806,7 +852,7 @@ namespace WoWonder.Helpers.Controller
             {
                 try
                 {
-                    var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroupsAsync("0", "25");
+                    var (apiStatus, respond) = await RequestsAsync.Group.GetMyGroupsAsync("0", "25").ConfigureAwait(false);
                     if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                     {
                         //Methods.DisplayReportResult(this, respond);
@@ -823,9 +869,8 @@ namespace WoWonder.Helpers.Controller
 
                                 foreach (var groupClass in result.Data)
                                 {
-                                    ListUtils.ShortCutsList.Add(new Classes.ShortCuts
+                                    ListUtils.ShortCutsList?.Add(new Classes.ShortCuts
                                     {
-                                        Id = ListUtils.ShortCutsList.Count +1,
                                         SocialId = groupClass.GroupId,
                                         Type = "Group",
                                         Name = groupClass.GroupName,
@@ -845,8 +890,8 @@ namespace WoWonder.Helpers.Controller
 
                 try
                 {
-                    var (apiStatus2, respond2) = await RequestsAsync.Group.GetJoinedGroupsAsync(UserDetails.UserId, "0", "25");
-                    if (apiStatus2 != 200 || !(respond2 is ListGroupsObject result2) || result2.Data == null)
+                    var (apiStatus2, respond2) = await RequestsAsync.Group.GetJoinedGroupsAsync(UserDetails.UserId, "0", "25").ConfigureAwait(false); 
+                    if (apiStatus2 != 200 || respond2 is not ListGroupsObject result2 || result2.Data == null)
                     {
                         //Methods.DisplayReportResult(this, respond);
                     }
@@ -883,7 +928,7 @@ namespace WoWonder.Helpers.Controller
         {
             if (Methods.CheckConnectivity())
             {
-                var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync("0", "25");
+                var (apiStatus, respond) = await RequestsAsync.Page.GetMyPagesAsync("0", "25").ConfigureAwait(false);  
                 if (apiStatus != 200 || respond is not ListPagesObject result || result.Data == null)
                 {
                     //Methods.DisplayReportResult(this, respond);
@@ -903,7 +948,6 @@ namespace WoWonder.Helpers.Controller
                             {
                                 ListUtils.ShortCutsList.Add(new Classes.ShortCuts
                                 {
-                                    Id = ListUtils.ShortCutsList.Count + 1,
                                     SocialId = pageClass.PageId,
                                     Type = "Page",
                                     Name = pageClass.PageName,
@@ -939,116 +983,75 @@ namespace WoWonder.Helpers.Controller
             } 
         }
 
-
-
-        #region Call
-
-
-        /// ###############################
-        /// Agora framework Api 
-
-        public static async Task<string> Send_Agora_Call_Action_Async(string answerType, string callId)
+        public static async Task GetArchivedChats()
         {
-            try
+            if (Methods.CheckConnectivity() && !string.IsNullOrEmpty(UserDetails.AccessToken) && AppSettings.EnableChatArchive)
             {
-
-                var formContent = new FormUrlEncodedContent(new[]
+                var (apiStatus, respond) = await RequestsAsync.Message.GetArchivedChatsAsync().ConfigureAwait(false);
+                if (apiStatus != 200 || respond is not LastChatObject result || result.Data == null)
                 {
-                    new KeyValuePair<string, string>("user_id", UserDetails.UserId),
-                    new KeyValuePair<string, string>("answer_type", answerType),
-                    new KeyValuePair<string, string>("call_id", callId),
-                    new KeyValuePair<string, string>("s", UserDetails.AccessToken)
-                });
-
-                var response = await RestHttp.Client.PostAsync(ApiSendAgoraCallAction, formContent);
-                string json = await response.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-                string apiStatus = data["status"].ToString();
-                return apiStatus;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-                return null;
-            }
-        }
-
-        public static async Task<string> Check_Agora_Call_Answer_Async(string callId, string callType)
-        {
-            try
-            {
-
-                var formContent = new FormUrlEncodedContent(new[]
-                {
-                    new KeyValuePair<string, string>("user_id", UserDetails.UserId),
-                    new KeyValuePair<string, string>("call_id", callId),
-                    new KeyValuePair<string, string>("call_type", callType),
-                    new KeyValuePair<string, string>("s", UserDetails.AccessToken)
-                });
-
-                var response = await RestHttp.Client.PostAsync(ApiCheckForAgoraAnswer, formContent);
-                string json = await response.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-                string apiStatus = data["api_status"]?.ToString();
-                if (apiStatus == "200")
-                {
-                    string callstatus = data["call_status"]?.ToString();
-                    return callstatus;
+                    //Methods.DisplayReportResult(this, respond);
                 }
-
-                return "400";
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-                return null;
-            }
-        }
-
-        public static async Task<Classes.CallUser> Create_Agora_Call_Event_Async(string recipientId, string callType)
-        {
-            try
-            {
-
-                var formContent = new FormUrlEncodedContent(new[]
+                else
                 {
-                    new KeyValuePair<string, string>("user_id", UserDetails.UserId),
-                    new KeyValuePair<string, string>("recipient_id", recipientId),
-                    new KeyValuePair<string, string>("call_type", callType),
-                    new KeyValuePair<string, string>("s", UserDetails.AccessToken)
-                });
+                    var respondList = result.Data.Count;
+                    if (respondList > 0)
+                    {
+                        foreach (var archive in result.Data)
+                        {
+                            ListUtils.ArchiveList?.Add(new Classes.LastChatArchive
+                            {
+                                ChatType = archive.ChatType,
+                                ChatId = archive.ChatId,
+                                UserId = archive.UserId,
+                                GroupId = archive.GroupId,
+                                PageId = archive.PageId,
+                                Name = archive.Name,
+                                IdLastMessage = archive?.LastMessage.LastMessageClass?.Id ?? "",
+                                LastChat = archive,
+                            });
+                        }
 
-                var response = await RestHttp.Client.PostAsync(ApiCreateAgoraCallEvent, formContent);
-                string json = await response.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-                string apiStatus = data["status"].ToString();
-                if (apiStatus == "200")
-                {
-                    Classes.CallUser vidodata = new Classes.CallUser();
-
-                    if (data.ContainsKey("id"))
-                        vidodata.Id = data["id"]?.ToString();
-                    if (data.ContainsKey("room_name"))
-                        vidodata.RoomName = data["room_name"]?.ToString();
-
-                    vidodata.Type = callType;
-
-                    return vidodata;
+                        SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                        dbDatabase.InsertORUpdateORDelete_ListArchive(new List<Classes.LastChatArchive>(ListUtils.ArchiveList));
+                    } 
                 }
-
-                return null;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-                return null;
             }
         }
 
-        /// ###############################
+        public static async Task GetPinChats()
+        {
+            if (Methods.CheckConnectivity() && !string.IsNullOrEmpty(UserDetails.AccessToken) && AppSettings.EnableChatPin)
+            {
+                var (apiStatus, respond) = await RequestsAsync.Message.GetPinChatsAsync().ConfigureAwait(false);
+                if (apiStatus != 200 || respond is not LastChatObject result || result.Data == null)
+                {
+                    //Methods.DisplayReportResult(this, respond);
+                }
+                else
+                {
+                    var respondList = result.Data.Count;
+                    if (respondList > 0)
+                    {
+                        foreach (var archive in result.Data)
+                        {
+                            ListUtils.PinList?.Add(new Classes.OptionLastChat
+                            {
+                                ChatType = archive.ChatType,
+                                ChatId = archive.ChatId,
+                                UserId = archive.UserId,
+                                GroupId = archive.GroupId,
+                                PageId = archive.PageId,
+                                Name = archive.Name,
+                            });
+                        }
 
-        #endregion
-
+                        SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                        dbDatabase.InsertORUpdateORDelete_ListPin(new List<Classes.OptionLastChat>(ListUtils.PinList));
+                    }
+                }
+            }
+        }
 
         /////////////////////////////////////////////////////////////////
         private static bool RunLogout;
@@ -1068,7 +1071,7 @@ namespace WoWonder.Helpers.Controller
                         {
                             try
                             {
-                                Methods.Path.DeleteAll_MyFolderDisk();
+                                Methods.Path.DeleteAll_FolderUser();
 
                                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
                                 dbDatabase.DropAll();
@@ -1085,12 +1088,10 @@ namespace WoWonder.Helpers.Controller
 
                                 context.StopService(new Intent(context, typeof(PostService)));
                                 context.StopService(new Intent(context, typeof(PostApiService)));
-                                context.StopService(new Intent(context, typeof(ChatApiService)));
 
                                 MainSettings.SharedData?.Edit()?.Clear()?.Commit();
                                 MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
-                                MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
-
+                                 
                                 Intent intent = new Intent(context, typeof(LoginActivity)); 
                                 intent.AddCategory(Intent.CategoryHome);
                                 intent.SetAction(Intent.ActionMain);
@@ -1130,7 +1131,7 @@ namespace WoWonder.Helpers.Controller
                         {
                             try
                             {
-                                Methods.Path.DeleteAll_MyFolderDisk();
+                                Methods.Path.DeleteAll_FolderUser();
 
                                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
                                 dbDatabase.DropAll();
@@ -1147,12 +1148,10 @@ namespace WoWonder.Helpers.Controller
                          
                                 context.StopService(new Intent(context, typeof(PostService)));
                                 context.StopService(new Intent(context, typeof(PostApiService)));
-                                context.StopService(new Intent(context, typeof(ChatApiService)));
 
                                 MainSettings.SharedData?.Edit()?.Clear()?.Commit();
                                 MainSettings.InAppReview?.Edit()?.Clear()?.Commit();
-                                MainSettings.LastPosition?.Edit()?.Clear()?.Commit();
-
+                                 
                                 Intent intent = new Intent(context, typeof(LoginActivity)); 
                                 intent.AddCategory(Intent.CategoryHome);
                                 intent.SetAction(Intent.ActionMain);
@@ -1315,7 +1314,7 @@ namespace WoWonder.Helpers.Controller
 
                 UserDetails.ClearAllValueUserDetails();
 
-                Methods.DeleteNoteOnSD(); 
+                Methods.DeleteNoteOnSD();
 
                 GC.Collect();
             }

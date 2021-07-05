@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
@@ -10,7 +10,8 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
-using Java.Lang;
+using Com.Adcolony.Sdk;
+using Newtonsoft.Json;
 using WoWonder.Activities.Chat.Call.Agora;
 using WoWonder.Activities.Chat.Call.Twilio;
 using WoWonder.Activities.Chat.MsgTabbes.Adapter;
@@ -18,6 +19,7 @@ using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
+using WoWonderClient.Classes.Message;
 using Xamarin.Facebook.Ads;
 using Exception = System.Exception;
 
@@ -49,7 +51,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -125,7 +127,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
 
                 LinearLayout adContainer = view.FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(Activity, adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(Activity, adContainer, MRecycler);
+                else
+                    AdsColony.InitBannerAd(Activity, adContainer, AdColonyAdSize.Banner, MRecycler); 
             }
             catch (Exception e)
             {
@@ -164,11 +169,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                     if (item != null)
                     {
                         DataUser = item;
-
-                        string timeNow = DateTime.Now.ToString("hh:mm");
-                        var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                        string time = Convert.ToString(unixTimestamp);
-
+                          
                         switch (AppSettings.EnableAudioCall)
                         {
                             case true when AppSettings.EnableVideoCall:
@@ -204,17 +205,15 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                                             break;
                                     }
 
-                                    intentVideoCall.PutExtra("UserID", item.UserId);
-                                    intentVideoCall.PutExtra("avatar", item.Avatar);
-                                    intentVideoCall.PutExtra("name", item.Name);
-                                    intentVideoCall.PutExtra("time", timeNow);
-                                    intentVideoCall.PutExtra("CallID", time);
-                                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                                    intentVideoCall.PutExtra("from_id", "0");
-                                    intentVideoCall.PutExtra("active", "0");
-                                    intentVideoCall.PutExtra("status", "0");
-                                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                                    var callUserObject = new CallUserObject
+                                    {
+                                        UserId = item.UserId,
+                                        Avatar = item.Avatar,
+                                        Name = item.Name,
+                                        Data = new CallUserObject.DataCallUser()
+                                    };
+                                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                                     
                                     StartActivity(intentVideoCall);
                                 }
                                 catch (Exception exception)
@@ -240,17 +239,15 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                                             break;
                                     }
 
-                                    intentVideoCall.PutExtra("UserID", item.UserId);
-                                    intentVideoCall.PutExtra("avatar", item.Avatar);
-                                    intentVideoCall.PutExtra("name", item.Name);
-                                    intentVideoCall.PutExtra("time", timeNow);
-                                    intentVideoCall.PutExtra("CallID", time);
-                                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                                    intentVideoCall.PutExtra("from_id", "0");
-                                    intentVideoCall.PutExtra("active", "0");
-                                    intentVideoCall.PutExtra("status", "0");
-                                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                                    var callUserObject = new CallUserObject
+                                    {
+                                        UserId = item.UserId,
+                                        Avatar = item.Avatar,
+                                        Name = item.Name,
+                                        Data = new CallUserObject.DataCallUser()
+                                    };
+                                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                                     
                                     StartActivity(intentVideoCall);
                                 }
                                 catch (Exception exception)
@@ -325,7 +322,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoCall);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
@@ -340,11 +337,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == Context.GetText(Resource.String.Lbl_Voice_call))
+                if (itemString == Context.GetText(Resource.String.Lbl_Voice_call))
                 {
                     string timeNow = DateTime.Now.ToString("hh:mm");
                     var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -363,14 +360,18 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                             break;
                     }
 
-                    intentVideoCall.PutExtra("UserID", DataUser.UserId);
-                    intentVideoCall.PutExtra("avatar", DataUser.Avatar);
-                    intentVideoCall.PutExtra("name", DataUser.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = DataUser.UserId,
+                        Avatar = DataUser.Avatar,
+                        Name = DataUser.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                     
                     StartActivity(intentVideoCall);
                 }
-                else if (itemString.ToString() == Context.GetText(Resource.String.Lbl_Video_call))
+                else if (itemString == Context.GetText(Resource.String.Lbl_Video_call))
                 {
                     string timeNow = DateTime.Now.ToString("hh:mm");
                     var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -389,17 +390,15 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                             break;
                     }
 
-                    intentVideoCall.PutExtra("UserID", DataUser.UserId);
-                    intentVideoCall.PutExtra("avatar", DataUser.Avatar);
-                    intentVideoCall.PutExtra("name", DataUser.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = DataUser.UserId,
+                        Avatar = DataUser.Avatar,
+                        Name = DataUser.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                     
                     StartActivity(intentVideoCall);
                 }
             }

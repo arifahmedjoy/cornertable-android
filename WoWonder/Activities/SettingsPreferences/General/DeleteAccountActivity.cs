@@ -240,7 +240,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -250,7 +250,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     if (TxtPassword.Text == data.Password)
                     {
                         ApiRequest.Delete(this);
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Your_account_was_successfully_deleted), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Your_account_was_successfully_deleted), ToastLength.Long);
                     }
                     else
                     {

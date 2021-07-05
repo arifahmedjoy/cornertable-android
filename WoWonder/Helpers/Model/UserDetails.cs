@@ -1,7 +1,9 @@
 ﻿using System;
 using Android.App;
 using WoWonder.Helpers.Utils;
+using WoWonder.SocketSystem;
 using WoWonderClient;
+using WoWonderClient.Classes.Posts;
 
 namespace WoWonder.Helpers.Model
 {
@@ -26,6 +28,7 @@ namespace WoWonder.Helpers.Model
         public static string Lng = string.Empty;
         public static string Country = string.Empty;
         public static string City = string.Empty;
+        public static string VisionApiKey = string.Empty;
        
         public static int CountNotificationsStatic = 0;
         public static string OffsetLastChat = "0";
@@ -40,7 +43,7 @@ namespace WoWonder.Helpers.Model
          
         public static string MarketDistanceCount = "";
 
-        public static string NearbyShopsDistanceCount = "";
+        public static string NearbyShopsDistanceCount = "0";
         public static string NearbyBusinessDistanceCount = "";
         
         public static string NearByDistanceCount = "0";
@@ -60,8 +63,12 @@ namespace WoWonder.Helpers.Model
         public static string FilterJobType = "";
         public static string FilterJobLocation = "";
         public static string FilterJobCategories = "";
-          
+
+        public static PostDataObject DataLivePost = null;
+
         public static readonly string AndroidId = Android.Provider.Settings.Secure.GetString(Application.Context.ContentResolver, Android.Provider.Settings.Secure.AndroidId);
+
+        public static WoSocketHandler Socket { get; set; }
 
         public static void ClearAllValueUserDetails()
         {

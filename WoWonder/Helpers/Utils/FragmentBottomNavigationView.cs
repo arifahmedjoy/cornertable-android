@@ -9,7 +9,7 @@ namespace WoWonder.Helpers.Utils
 {
     public class FragmentBottomNavigationView
     {
-        private readonly TabbedWalletActivity Context; 
+        private readonly TabbedWalletActivity Context;
         public readonly List<Fragment> FragmentListTab0 = new List<Fragment>();
         public readonly List<Fragment> FragmentListTab1 = new List<Fragment>();
         private int PageNumber;
@@ -18,7 +18,7 @@ namespace WoWonder.Helpers.Utils
         {
             Context = (TabbedWalletActivity)context;
         }
-          
+
         public void NavigationTabBarOnStartTabSelected(int index)
         {
             try
@@ -72,19 +72,19 @@ namespace WoWonder.Helpers.Utils
                 switch (fragmentList.Count)
                 {
                     case > 0:
-                    {
-                        foreach (var fra in fragmentList)
                         {
-                            switch (fra.IsAdded)
+                            foreach (var fra in fragmentList)
                             {
-                                case true when fra.IsVisible:
-                                    ft.Hide(fra);
-                                    break;
+                                switch (fra.IsAdded)
+                                {
+                                    case true when fra.IsVisible:
+                                        ft.Hide(fra);
+                                        break;
+                                }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -146,7 +146,7 @@ namespace WoWonder.Helpers.Utils
 
             return null!;
         }
-         
+
         public void DisplayFragment(Fragment newFragment)
         {
             try
@@ -159,33 +159,34 @@ namespace WoWonder.Helpers.Utils
                 switch (PageNumber)
                 {
                     case 0:
-                    {
-                        switch (FragmentListTab0.Contains(newFragment))
                         {
-                            case false:
-                                FragmentListTab0.Add(newFragment);
-                                break;
-                        }
+                            switch (FragmentListTab0.Contains(newFragment))
+                            {
+                                case false:
+                                    FragmentListTab0.Add(newFragment);
+                                    break;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case 1:
-                    {
-                        switch (FragmentListTab1.Contains(newFragment))
                         {
-                            case false:
-                                FragmentListTab1.Add(newFragment);
-                                break;
-                        }
+                            switch (FragmentListTab1.Contains(newFragment))
+                            {
+                                case false:
+                                    FragmentListTab1.Add(newFragment);
+                                    break;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
 
                 switch (newFragment.IsAdded)
                 {
                     case false:
-                        ft.Add(Resource.Id.mainFragment, newFragment, PageNumber + newFragment.Id.ToString());
+                        //ft.Add(Resource.Id.mainFragment, newFragment, PageNumber + newFragment.Id.ToString());
+                        ft.Add(Resource.Id.action_fragment, newFragment, PageNumber + newFragment.Id.ToString());
                         break;
                     default:
                         ft.Show(newFragment);
@@ -197,10 +198,10 @@ namespace WoWonder.Helpers.Utils
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
-            } 
+                Methods.DisplayReportResultTrack(e);
+            }
         }
-         
+
         public void RemoveFragment(Fragment oldFragment)
         {
             FragmentTransaction ft = Context.SupportFragmentManager.BeginTransaction();
@@ -208,17 +209,17 @@ namespace WoWonder.Helpers.Utils
             switch (PageNumber)
             {
                 case 0:
-                {
-                    if (FragmentListTab0.Contains(oldFragment))
-                        FragmentListTab0.Remove(oldFragment);
-                    break;
-                }
+                    {
+                        if (FragmentListTab0.Contains(oldFragment))
+                            FragmentListTab0.Remove(oldFragment);
+                        break;
+                    }
                 case 1:
-                {
-                    if (FragmentListTab1.Contains(oldFragment))
-                        FragmentListTab1.Remove(oldFragment);
-                    break;
-                }
+                    {
+                        if (FragmentListTab1.Contains(oldFragment))
+                            FragmentListTab1.Remove(oldFragment);
+                        break;
+                    }
             }
 
             HideFragmentFromList(FragmentListTab0, ft);
@@ -234,17 +235,17 @@ namespace WoWonder.Helpers.Utils
             switch (PageNumber)
             {
                 case 0:
-                {
-                    var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
-                    ft.Show(currentFragment)?.Commit();
-                    break;
-                }
+                    {
+                        var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
+                        ft.Show(currentFragment)?.Commit();
+                        break;
+                    }
                 case 1:
-                {
-                    var currentFragment = FragmentListTab1[FragmentListTab1.Count - 1];
-                    ft.Show(currentFragment)?.Commit();
-                    break;
-                }
+                    {
+                        var currentFragment = FragmentListTab1[FragmentListTab1.Count - 1];
+                        ft.Show(currentFragment)?.Commit();
+                        break;
+                    }
             }
         }
 
@@ -253,22 +254,22 @@ namespace WoWonder.Helpers.Utils
             switch (PageNumber)
             {
                 case 0 when FragmentListTab0.Count > 1:
-                {
-                    var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
-                    if (currentFragment != null)
-                        RemoveFragment(currentFragment);
-                    break;
-                }
+                    {
+                        var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
+                        if (currentFragment != null)
+                            RemoveFragment(currentFragment);
+                        break;
+                    }
                 case 0:
                     Context.Finish();
                     break;
                 case 1 when FragmentListTab1.Count > 1:
-                {
-                    var currentFragment = FragmentListTab1[FragmentListTab1.Count - 1];
-                    if (currentFragment != null)
-                        RemoveFragment(currentFragment);
-                    break;
-                }
+                    {
+                        var currentFragment = FragmentListTab1[FragmentListTab1.Count - 1];
+                        if (currentFragment != null)
+                            RemoveFragment(currentFragment);
+                        break;
+                    }
                 case 1:
                     Context.Finish();
                     break;
@@ -285,36 +286,36 @@ namespace WoWonder.Helpers.Utils
                         return;
                     // If user presses it while still on that tab it removes all fragments from the list
                     case > 1:
-                    {
-                        FragmentTransaction ft = Context.SupportFragmentManager.BeginTransaction();
-
-                        for (var index = FragmentListTab0.Count - 1; index > 0; index--)
                         {
-                            var oldFragment = FragmentListTab0[index];
-                            if (FragmentListTab0.Contains(oldFragment))
-                                FragmentListTab0.Remove(oldFragment);
+                            FragmentTransaction ft = Context.SupportFragmentManager.BeginTransaction();
 
-                            switch (oldFragment.IsAdded)
+                            for (var index = FragmentListTab0.Count - 1; index > 0; index--)
                             {
-                                case true:
-                                    ft.Remove(oldFragment);
-                                    break;
+                                var oldFragment = FragmentListTab0[index];
+                                if (FragmentListTab0.Contains(oldFragment))
+                                    FragmentListTab0.Remove(oldFragment);
+
+                                switch (oldFragment.IsAdded)
+                                {
+                                    case true:
+                                        ft.Remove(oldFragment);
+                                        break;
+                                }
+
+                                HideFragmentFromList(FragmentListTab0, ft);
                             }
 
-                            HideFragmentFromList(FragmentListTab0, ft);
+                            var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
+                            ft.Show(currentFragment)?.Commit();
+                            break;
                         }
-
-                        var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
-                        ft.Show(currentFragment)?.Commit();
-                        break;
-                    }
                     default:
-                    {
-                        var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
-                        if (currentFragment != null)
-                            DisplayFragment(currentFragment);
-                        break;
-                    }
+                        {
+                            var currentFragment = FragmentListTab0[FragmentListTab0.Count - 1];
+                            if (currentFragment != null)
+                                DisplayFragment(currentFragment);
+                            break;
+                        }
                 }
             }
             catch (Exception e)

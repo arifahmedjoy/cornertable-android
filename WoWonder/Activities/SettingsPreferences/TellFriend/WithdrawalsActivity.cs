@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -12,30 +12,32 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
+using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
-  
+
 namespace WoWonder.Activities.SettingsPreferences.TellFriend
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
     public class WithdrawalsActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
     {
         #region Variables Basic
+        private ImageView Avatar;
+        private TextView TxtProfileName, TxtUsername;
+        private TextView TextMiniRequest;
 
-        private TextView TxtMyBalance , IconWithdrawMethod , IconAmount , IconPayPalEmail, IconAccountNumber, IconCountry, IconAccountName, IconSwiftCode, IconAddress;
-        private EditText TxtWithdrawMethod , TxtAmount , TxtPayPalEmail, TxtAccountNumber, TxtCountry, TxtAccountName, TxtSwiftCode, TxtAddress;
-        private LinearLayout LayoutPayPalEmail , LayoutBank;
+        private TextView TxtMyBalance;
+        private EditText TxtWithdrawMethod, TxtAmount, TxtPayPalEmail, TxtAccountNumber, TxtCountry, TxtAccountName, TxtSwiftCode, TxtAddress;
+        private LinearLayout LayoutPayPalEmail, LayoutBank;
         private Button BtnRequestWithdrawal;
         private double CountBalance;
-        private string TypeDialog ,TypeWithdrawMethod = "paypal";
+        private string TypeDialog, TypeWithdrawMethod = "paypal";
 
         #endregion
 
@@ -55,7 +57,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
-                Get_Data_User(); 
+                Get_Data_User();
             }
             catch (Exception e)
             {
@@ -151,36 +153,34 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
+                Avatar = FindViewById<ImageView>(Resource.Id.avatar);
+                TxtProfileName = FindViewById<TextView>(Resource.Id.name);
+                TxtUsername = FindViewById<TextView>(Resource.Id.tv_subname);
+
+                TextMiniRequest = FindViewById<TextView>(Resource.Id.description);
+
                 TxtMyBalance = FindViewById<TextView>(Resource.Id.myBalance);
 
-                IconWithdrawMethod = FindViewById<TextView>(Resource.Id.IconWithdrawMethod);
                 TxtWithdrawMethod = FindViewById<EditText>(Resource.Id.WithdrawMethodEditText);
 
-                IconAmount = FindViewById<TextView>(Resource.Id.IconAmount);
                 TxtAmount = FindViewById<EditText>(Resource.Id.AmountEditText);
 
                 LayoutPayPalEmail = FindViewById<LinearLayout>(Resource.Id.LayoutPayPalEmail);
-                IconPayPalEmail = FindViewById<TextView>(Resource.Id.IconPayPalEmail);
                 TxtPayPalEmail = FindViewById<EditText>(Resource.Id.PayPalEmailEditText);
 
                 LayoutBank = FindViewById<LinearLayout>(Resource.Id.LayoutBank);
-                IconAccountNumber = FindViewById<TextView>(Resource.Id.IconAccountNumber);
                 TxtAccountNumber = FindViewById<EditText>(Resource.Id.AccountNumberEditText);
 
-                IconCountry = FindViewById<TextView>(Resource.Id.IconCountry);
                 TxtCountry = FindViewById<EditText>(Resource.Id.CountryEditText);
 
-                IconAccountName = FindViewById<TextView>(Resource.Id.IconAccountName);
                 TxtAccountName = FindViewById<EditText>(Resource.Id.AccountNameEditText);
 
-                IconSwiftCode = FindViewById<TextView>(Resource.Id.IconSwiftCode);
                 TxtSwiftCode = FindViewById<EditText>(Resource.Id.SwiftCodeEditText);
 
-                IconAddress = FindViewById<TextView>(Resource.Id.IconAddress);
                 TxtAddress = FindViewById<EditText>(Resource.Id.AddressEditText);
 
                 BtnRequestWithdrawal = FindViewById<Button>(Resource.Id.RequestWithdrawalButton);
-                 
+
                 Methods.SetColorEditText(TxtWithdrawMethod, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtAmount, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtPayPalEmail, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -190,16 +190,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 Methods.SetColorEditText(TxtSwiftCode, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtAddress, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWithdrawMethod, FontAwesomeIcon.MoneyCheckAlt);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAmount, FontAwesomeIcon.MoneyBillWave);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeBrands, IconPayPalEmail, FontAwesomeIcon.CcPaypal);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAccountNumber, FontAwesomeIcon.MoneyCheck);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconCountry, FontAwesomeIcon.MapMarkedAlt); 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAccountName, FontAwesomeIcon.User);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconSwiftCode, FontAwesomeIcon.Barcode); 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAddress, FontAwesomeIcon.Paragraph);
-
-                Methods.SetFocusable(TxtWithdrawMethod); 
+                Methods.SetFocusable(TxtWithdrawMethod);
                 Methods.SetFocusable(TxtCountry);
 
                 AdsGoogle.Ad_AdMobNative(this);
@@ -264,27 +255,23 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
             try
             {
                 TxtMyBalance = null!;
-                IconWithdrawMethod = null!;
                 TxtWithdrawMethod = null!;
-                IconAmount= null!;
                 TxtAmount = null!;
-                LayoutPayPalEmail= null!;
-                IconPayPalEmail = null!;
+                LayoutPayPalEmail = null!;
                 TxtPayPalEmail = null!;
                 LayoutBank = null!;
-                IconAccountNumber = null!;
                 TxtAccountNumber = null!;
-                IconCountry= null!;
                 TxtCountry = null!;
-                IconAccountName = null!;
                 TxtAccountName = null!;
-                IconSwiftCode = null!;
-                TxtSwiftCode= null!;
-                IconAddress = null!;
-                TxtAddress = null!;  
+                TxtSwiftCode = null!;
+                TxtAddress = null!;
                 BtnRequestWithdrawal = null!;
-                TypeDialog = null!; 
+                TypeDialog = null!;
                 TypeWithdrawMethod = null!;
+                Avatar = null!;
+                TxtProfileName = null!;
+                TxtUsername = null!;
+                TextMiniRequest = null!;
             }
             catch (Exception e)
             {
@@ -304,7 +291,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
 
                 var countriesArray = WoWonderTools.GetCountryList(this);
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
 
@@ -328,7 +315,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
 
                 TypeDialog = "WithdrawMethod";
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = new List<string>
                 {
@@ -339,38 +326,38 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 dialogList.Items(arrayAdapter);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();
-                dialogList.ItemsCallback(this).Build().Show(); 
+                dialogList.ItemsCallback(this).Build().Show();
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         private async void BtnRequestWithdrawalOnClick(object sender, EventArgs e)
         {
             try
             {
                 if (CountBalance < Convert.ToDouble(TxtAmount.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_ThereIsNoBalance), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ThereIsNoBalance), ToastLength.Long);
                     return;
                 }
 
                 if (Convert.ToDouble(TxtAmount.Text) < Convert.ToDouble(ListUtils.SettingsSiteList?.MWithdrawal))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CantRequestWithdrawals), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CantRequestWithdrawals), ToastLength.Long);
                     return;
                 }
 
                 switch (TypeWithdrawMethod)
                 {
                     case "paypal" when string.IsNullOrEmpty(TxtPayPalEmail.Text.Replace(" ", "")) || string.IsNullOrEmpty(TxtAmount.Text.Replace(" ", "")):
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_check_your_details), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_check_your_details), ToastLength.Long);
                         return;
                     case "bank" when string.IsNullOrEmpty(TxtAmount.Text.Replace(" ", "")) || string.IsNullOrEmpty(TxtAccountNumber.Text.Replace(" ", "")) || string.IsNullOrEmpty(TxtCountry.Text.Replace(" ", ""))
                                      || string.IsNullOrEmpty(TxtAccountName.Text.Replace(" ", "")) || string.IsNullOrEmpty(TxtSwiftCode.Text.Replace(" ", "")) || string.IsNullOrEmpty(TxtAddress.Text.Replace(" ", "")):
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_check_your_details), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_check_your_details), ToastLength.Long);
                         return;
                 }
 
@@ -403,20 +390,20 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                     switch (apiStatus)
                     {
                         case 200:
-                        {
-                            switch (respond)
                             {
-                                case MessageObject result:
-                                    Console.WriteLine(result.Message);
-                                    AndHUD.Shared.Dismiss(this);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_RequestSentWithdrawals), ToastLength.Long)?.Show();
+                                switch (respond)
+                                {
+                                    case MessageObject result:
+                                        Console.WriteLine(result.Message);
+                                        AndHUD.Shared.Dismiss(this);
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_RequestSentWithdrawals), ToastLength.Long);
 
-                                    Finish();
-                                    break;
+                                        Finish();
+                                        break;
+                                }
+
+                                break;
                             }
-
-                            break;
-                        }
                         default:
                             Methods.DisplayAndHudErrorResult(this, respond);
                             break;
@@ -424,7 +411,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception exception)
@@ -457,33 +444,33 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
             }
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "WithdrawMethod":
-                    {
-                        if (itemString.ToString() == GetText(Resource.String.Btn_Paypal))
                         {
-                            TypeWithdrawMethod = "paypal";
-                            LayoutPayPalEmail.Visibility = ViewStates.Visible;
-                            LayoutBank.Visibility = ViewStates.Gone;
-                        }
-                        else
-                        {
-                            TypeWithdrawMethod = "bank";
+                            if (itemString == GetText(Resource.String.Btn_Paypal))
+                            {
+                                TypeWithdrawMethod = "paypal";
+                                LayoutPayPalEmail.Visibility = ViewStates.Visible;
+                                LayoutBank.Visibility = ViewStates.Gone;
+                            }
+                            else
+                            {
+                                TypeWithdrawMethod = "bank";
 
-                            LayoutPayPalEmail.Visibility = ViewStates.Gone;
-                            LayoutBank.Visibility = ViewStates.Visible;
-                        }
+                                LayoutPayPalEmail.Visibility = ViewStates.Gone;
+                                LayoutBank.Visibility = ViewStates.Visible;
+                            }
 
-                        TxtWithdrawMethod.Text = itemString.ToString();
-                        break;
-                    }
+                            TxtWithdrawMethod.Text = itemString;
+                            break;
+                        }
                     case "Country":
-                        TxtCountry.Text = itemString.ToString();
+                        TxtCountry.Text = itemString;
                         break;
                 }
             }
@@ -509,8 +496,13 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 var local = ListUtils.MyProfileList?.FirstOrDefault();
                 if (local != null)
                 {
+                    GlideImageLoader.LoadImage(this, local.Avatar, Avatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    TxtProfileName.Text = WoWonderTools.GetNameFinal(local);
+                    TxtUsername.Text = "@" + local.Username;
+
                     CountBalance = Convert.ToDouble(local.Balance);
-                    TxtMyBalance.Text = GetText(Resource.String.Lbl_Withdrawals_SubText1) + " $" + CountBalance.ToString(CultureInfo.InvariantCulture) + ", " + GetText(Resource.String.Lbl_Withdrawals_SubText2) + " $" + ListUtils.SettingsSiteList?.MWithdrawal;
+                    TextMiniRequest.Text = GetText(Resource.String.Lbl_Withdrawals_SubText2) + " $" + ListUtils.SettingsSiteList?.MWithdrawal;
+                    TxtMyBalance.Text = "$" + CountBalance.ToString(CultureInfo.InvariantCulture);
 
                     TxtPayPalEmail.Text = local.PaypalEmail;
 

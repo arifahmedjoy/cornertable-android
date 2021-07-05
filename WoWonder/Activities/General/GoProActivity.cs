@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -15,7 +15,7 @@ using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Com.Razorpay;
-using Java.Lang;
+using InAppBilling.Lib;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.General.Adapters;
 using WoWonder.Activities.Suggested.User;
@@ -28,7 +28,6 @@ using WoWonder.PaymentGoogle;
 using WoWonder.SQLite;
 using WoWonderClient;
 using WoWonderClient.Classes.Global;
-using WoWonderClient.InAppBilling;
 using WoWonderClient.Requests;
 using Xamarin.PayPal.Android;
 using Exception = System.Exception;
@@ -144,7 +143,7 @@ namespace WoWonder.Activities.General
             {
                 switch (AppSettings.ShowInAppBilling)
                 {
-                    case true when Client.IsExtended:
+                    case true when InitializeWoWonder.IsExtended:
                         BillingPayment?.DisconnectInAppBilling();
                         break;
                 }
@@ -218,7 +217,7 @@ namespace WoWonder.Activities.General
             {
                 BillingPayment = AppSettings.ShowInAppBilling switch
                 {
-                    true when Client.IsExtended => new InitInAppBillingPayment(this),
+                    true when InitializeWoWonder.IsExtended => new InitInAppBillingPayment(this),
                     _ => BillingPayment
                 };
 
@@ -386,11 +385,11 @@ namespace WoWonder.Activities.General
                         if (ItemUpgrade != null)
                         {
                             var arrayAdapter = new List<string>();
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             switch (AppSettings.ShowInAppBilling)
                             {
-                                case true when Client.IsExtended:
+                                case true when InitializeWoWonder.IsExtended:
                                     arrayAdapter.Add(GetString(Resource.String.Btn_GooglePlay));
                                     break;
                             }
@@ -486,7 +485,7 @@ namespace WoWonder.Activities.General
 
                 switch (AppSettings.ShowInAppBilling)
                 {
-                    case true when Client.IsExtended:
+                    case true when InitializeWoWonder.IsExtended:
                         BillingPayment?.Handler?.HandleActivityResult(requestCode, resultCode, data);
                         break;
                 }
@@ -517,15 +516,15 @@ namespace WoWonder.Activities.General
 
                                 break;
                             case Result.Canceled:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Canceled), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Canceled), ToastLength.Long);
                                 break;
                         }
 
                         break;
                     case PaymentActivity.ResultExtrasInvalid:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long);
                         break;
-                    case BillingProcessor.PurchaseFlowRequestCode when resultCode == Result.Ok && AppSettings.ShowInAppBilling && Client.IsExtended:
+                    case BillingProcessor.PurchaseFlowRequestCode when resultCode == Result.Ok && AppSettings.ShowInAppBilling && InitializeWoWonder.IsExtended:
                         await SetProAsync();
                         break;
                 }
@@ -542,22 +541,22 @@ namespace WoWonder.Activities.General
 
         #region MaterialDialog
 
-        public async void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public async void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetString(Resource.String.Btn_Paypal))
                 {
                     Price = ItemUpgrade.PlanPrice;
                     PayType = "membership";
-                    PayId = ItemUpgrade.Id.ToString();
+                    PayId = ItemUpgrade.Id;
                     InitPayPalPayment.BtnPaypalOnClick(Price, "membership");
                 }
                 else if (text == GetString(Resource.String.Btn_GooglePlay))
                 {
                     Price = ItemUpgrade.PlanPrice;
-                    PayId = ItemUpgrade.Id.ToString();
+                    PayId = ItemUpgrade.Id;
 
                     BillingPayment.SetConnInAppBilling();
                     BillingPayment.InitInAppBilling(Price, "membership", PayId);
@@ -573,18 +572,18 @@ namespace WoWonder.Activities.General
                 else if (text == GetString(Resource.String.Lbl_RazorPay))
                 {
                     Price = ItemUpgrade.PlanPrice;
-                    PayId = ItemUpgrade.Id.ToString();
+                    PayId = ItemUpgrade.Id;
 
                     InitRazorPay?.BtnRazorPayOnClick(Price, "membership", PayId);
                 }
                 else if (text == GetString(Resource.String.Lbl_PayStack))
                 {
                     Price = ItemUpgrade.PlanPrice;
-                    PayId = ItemUpgrade.Id.ToString();
+                    PayId = ItemUpgrade.Id;
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
-                    dialog.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
+                    var dialogBuilder = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                    dialogBuilder.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
+                    dialogBuilder.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
                     {
                         try
                         {
@@ -600,7 +599,7 @@ namespace WoWonder.Activities.General
                                     Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
                                     return;
                                 default:
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                                     await PayStack(s.ToString());
                                     break;
@@ -611,11 +610,11 @@ namespace WoWonder.Activities.General
                             Methods.DisplayReportResultTrack(e);
                         }
                     });
-                    dialog.InputType(InputTypes.TextVariationEmailAddress);
-                    dialog.PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(this);
-                    dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                    dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.Build().Show();
+                    dialogBuilder.InputType(InputTypes.TextVariationEmailAddress);
+                    dialogBuilder.PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(this);
+                    dialogBuilder.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                    dialogBuilder.AlwaysCallSingleChoiceCallback();
+                    dialogBuilder.Build().Show();
                 }
                 else if (text == GetString(Resource.String.Lbl_CashFree))
                 {
@@ -623,7 +622,7 @@ namespace WoWonder.Activities.General
                 }
                 else if (text == GetString(Resource.String.Lbl_PaySera))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                     await PaySera();
                 }
@@ -658,7 +657,7 @@ namespace WoWonder.Activities.General
             try
             {
                 Intent intent = new Intent(this, typeof(PaymentCardDetailsActivity));
-                intent.PutExtra("Id", ItemUpgrade.Id.ToString());
+                intent.PutExtra("Id", ItemUpgrade.Id);
                 intent.PutExtra("Price", ItemUpgrade.PlanPrice);
                 intent.PutExtra("payType", "membership");
                 StartActivity(intent);
@@ -674,7 +673,7 @@ namespace WoWonder.Activities.General
             try
             {
                 Intent intent = new Intent(this, typeof(PaymentLocalActivity));
-                intent.PutExtra("Id", ItemUpgrade.Id.ToString());
+                intent.PutExtra("Id", ItemUpgrade.Id);
                 intent.PutExtra("Price", ItemUpgrade.PlanPrice);
                 intent.PutExtra("payType", "membership");
                 StartActivity(intent);
@@ -690,7 +689,7 @@ namespace WoWonder.Activities.General
             try
             {
                 Console.WriteLine("razorpay : Payment failed: " + code + " " + response);
-                Toast.MakeText(this, "Payment failed: " + response, ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PaymentFailed) + ": " + response, ToastLength.Long);
             }
             catch (Exception e)
             {
@@ -721,7 +720,7 @@ namespace WoWonder.Activities.General
                             {"type", type}, //week,year,month,life-time 
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(razorpayPaymentId, "upgrade", keyValues).ConfigureAwait(false);
+                        var (apiStatus, respond) = await RequestsAsync.Payments.RazorPayAsync(razorpayPaymentId, "upgrade", keyValues).ConfigureAwait(false);
                         switch (apiStatus)
                         {
                             case 200:
@@ -739,7 +738,7 @@ namespace WoWonder.Activities.General
                                         
                                         }
 
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long);
                                         FinishPage();
                                     }
                                     catch (Exception e)
@@ -756,7 +755,7 @@ namespace WoWonder.Activities.General
                         break;
                     }
                     case false:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         break;
                 }
             }
@@ -786,7 +785,7 @@ namespace WoWonder.Activities.General
                         _ => ""
                     };
                      
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStackAsync(type, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializePayStackAsync(type, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -812,7 +811,7 @@ namespace WoWonder.Activities.General
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -826,7 +825,7 @@ namespace WoWonder.Activities.General
         {
             try
             {
-                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light)
+                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light)
                     .Title(GetText(Resource.String.Lbl_CashFree)).TitleColorRes(Resource.Color.primary)
                     .CustomView(Resource.Layout.CashFreePaymentLayout, true)
                     .PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(async (materialDialog, action) =>
@@ -835,7 +834,7 @@ namespace WoWonder.Activities.General
                         {
                             if (string.IsNullOrEmpty(TxtName.Text) || string.IsNullOrWhiteSpace(TxtName.Text))
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                                 return;
                             }
 
@@ -849,11 +848,11 @@ namespace WoWonder.Activities.General
 
                             if (string.IsNullOrEmpty(TxtPhone.Text) || string.IsNullOrWhiteSpace(TxtPhone.Text))
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                                 return;
                             }
 
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                             await CashFree(TxtName.Text, TxtEmail.Text, TxtPhone.Text);
                         }
@@ -920,7 +919,7 @@ namespace WoWonder.Activities.General
                         {"email", email}, 
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFreeAsync(type, AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializeCashFreeAsync(type, AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "", ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -942,7 +941,7 @@ namespace WoWonder.Activities.General
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -966,7 +965,7 @@ namespace WoWonder.Activities.General
                         _ => ""
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySeraAsync(type, new Dictionary<string, string>());
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializePaySeraAsync(type, new Dictionary<string, string>());
                     switch (apiStatus)
                     {
                         case 200:
@@ -988,7 +987,7 @@ namespace WoWonder.Activities.General
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -1059,7 +1058,7 @@ namespace WoWonder.Activities.General
                                     
                                     }
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long);
                                     FinishPage();
                                 }
                                 catch (Exception e)
@@ -1075,7 +1074,7 @@ namespace WoWonder.Activities.General
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)

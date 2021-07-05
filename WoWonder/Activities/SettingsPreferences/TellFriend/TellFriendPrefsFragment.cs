@@ -7,6 +7,7 @@ using Android.OS;
 
 using Android.Views;
 using AndroidX.Preference;
+using WoWonder.Activities.SettingsPreferences.Custom;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
 using WoWonder.Activities.SettingsPreferences.InviteFriends;
@@ -22,7 +23,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
     {
         #region  Variables Basic
 
-        private Preference SharePref, MyAffiliatesPref, InviteFriendsPref, MyPointsPref, MyBalancePref, WithdrawalsPref;
+        private GeneralCustomPreference SharePref, MyAffiliatesPref, InviteFriendsPref, MyPointsPref, MyBalancePref, WithdrawalsPref;
         private string InviteSmsText = ""; 
         private readonly Activity ActivityContext;
 
@@ -131,12 +132,12 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 MainSettings.SharedData = PreferenceManager.SharedPreferences;
                 PreferenceManager.SharedPreferences.RegisterOnSharedPreferenceChangeListener(this);
 
-                SharePref = FindPreference("Share_key");
-                MyAffiliatesPref = FindPreference("MyAffiliates_key");
-                InviteFriendsPref = FindPreference("InviteFriends_key");
-                MyPointsPref = FindPreference("MyPoints_key");
-                MyBalancePref = FindPreference("MyBalance_key");
-                WithdrawalsPref = FindPreference("Withdrawals_key");
+                SharePref = (GeneralCustomPreference)FindPreference("Share_key");
+                MyAffiliatesPref = (GeneralCustomPreference)FindPreference("MyAffiliates_key");
+                InviteFriendsPref = (GeneralCustomPreference)FindPreference("InviteFriends_key");
+                MyPointsPref = (GeneralCustomPreference)FindPreference("MyPoints_key");
+                MyBalancePref = (GeneralCustomPreference)FindPreference("MyBalance_key");
+                WithdrawalsPref = (GeneralCustomPreference)FindPreference("Withdrawals_key");
 
                 //Delete Preference
                 var mCategoryEarnings = (PreferenceCategory)FindPreference("SectionEarnings_key");

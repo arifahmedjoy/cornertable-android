@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -8,15 +8,16 @@ using Android.Gms.Ads.DoubleClick;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
+using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
+using Google.Android.Flexbox;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Group;
 using WoWonderClient.Requests;
@@ -26,15 +27,22 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.Communities.Groups
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class CreateGroupActivity : BaseActivity, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback 
-    { 
+    public class CreateGroupActivity : BaseActivity
+    {
         #region Variables Basic
 
-        private TextView TxtCreate, IconTitle , IconUrl, IconAbout, IconCategories, IconType;
-        private EditText TxtTitle, TxtUrl, TxtAbout, TxtCategories;
-        private RadioButton RadioPublic, RadioPrivate;
-        private string CategoryId = ""  , TypeDialog= "", GroupPrivacy = "";
         private PublisherAdView PublisherAdView;
+
+        private TextView TvStep, TvStepTitle;
+        private View ViewStep1, ViewStep2, ViewStep3, ViewStep4, ViewStep5;
+        private EditText EtStep1, EtStep3;
+        private RadioGroup RgStep5;
+        private FlexboxLayout RgStep4;
+        private Button BtnNext;
+        private int NStep;
+        private string GroupTitle, GroupUsername, GroupAbout, Category, Privacy, CategoryId;
+        private List<string> ArrayAdapter;
+        private Button BtnPrev;
 
         #endregion
 
@@ -50,7 +58,7 @@ namespace WoWonder.Activities.Communities.Groups
                 Methods.App.FullScreenApp(this);
 
                 // Create your application here
-                SetContentView(Resource.Layout.CreateGroupLayout);
+                SetContentView(Resource.Layout.create_group_layout);
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -130,7 +138,7 @@ namespace WoWonder.Activities.Communities.Groups
         }
 
         #endregion
-         
+
         #region Menu
 
         public override bool OnOptionsItemSelected(IMenuItem item)
@@ -152,39 +160,180 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                TxtCreate = FindViewById<TextView>(Resource.Id.toolbar_title);
+                //
+                NStep = 1;
+                TvStep = FindViewById<TextView>(Resource.Id.tv_step);
+                TvStepTitle = FindViewById<TextView>(Resource.Id.tv_step_title);
+                ViewStep1 = FindViewById<View>(Resource.Id.view_step1);
+                ViewStep2 = FindViewById<View>(Resource.Id.view_step2);
+                ViewStep3 = FindViewById<View>(Resource.Id.view_step3);
+                ViewStep4 = FindViewById<View>(Resource.Id.view_step4);
+                ViewStep5 = FindViewById<View>(Resource.Id.view_step5);
+                EtStep1 = FindViewById<EditText>(Resource.Id.et_step12);
+                EtStep3 = FindViewById<EditText>(Resource.Id.et_step3);
+                RgStep4 = FindViewById<FlexboxLayout>(Resource.Id.rg_step4);
+                RgStep5 = FindViewById<RadioGroup>(Resource.Id.rg_step5);
+                BtnNext = FindViewById<Button>(Resource.Id.btn_next);
 
-                IconTitle = FindViewById<TextView>(Resource.Id.IconTitle);
-                TxtTitle = FindViewById<EditText>(Resource.Id.TitleEditText);
+                Methods.SetColorEditText(EtStep1, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                Methods.SetColorEditText(EtStep3, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
-                IconUrl = FindViewById<TextView>(Resource.Id.IconUrl);
-                TxtUrl = FindViewById<EditText>(Resource.Id.UrlEditText);
+                // Create category buttons
+                CreateCategoryButtons();
 
-                IconAbout = FindViewById<TextView>(Resource.Id.IconAbout);
-                TxtAbout = FindViewById<EditText>(Resource.Id.AboutEditText);
-
-                IconCategories = FindViewById<TextView>(Resource.Id.IconCategories);
-                TxtCategories = FindViewById<EditText>(Resource.Id.CategoriesEditText);
-                
-                IconType = FindViewById<TextView>(Resource.Id.IconType);
-                RadioPublic = FindViewById<RadioButton>(Resource.Id.radioPublic);
-                RadioPrivate = FindViewById<RadioButton>(Resource.Id.radioPrivate);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTitle, FontAwesomeIcon.UserFriends);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconUrl, FontAwesomeIcon.Link);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAbout, FontAwesomeIcon.Paragraph);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeBrands, IconCategories, FontAwesomeIcon.Buromobelexperte);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconType, FontAwesomeIcon.ShieldAlt);
-
-                Methods.SetColorEditText(TxtTitle, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtUrl, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtCategories, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtAbout, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-
-                Methods.SetFocusable(TxtCategories);
-
-                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view); 
+                //
+                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view);
                 AdsGoogle.InitPublisherAdView(PublisherAdView);
+
+                //
+                SetStepChild();
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void CreateCategoryButtons()
+        {
+            try
+            {
+                int count = CategoriesController.ListCategoriesGroup.Count;
+                if (count == 0)
+                {
+                    Methods.DisplayReportResult(this, "Not have List Categories Group");
+                    return;
+                }
+
+                foreach (Classes.Categories category in CategoriesController.ListCategoriesGroup)
+                {
+                    Button button = new Button(this);
+                    var ll = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+                    ll.SetMargins(10, 10, 10, 10);
+                    button.LayoutParameters = ll;
+
+                    button.Text = category.CategoriesName;
+                    button.SetBackgroundResource(Resource.Drawable.liked_button_normal);
+                    button.SetTextColor(Color.ParseColor("#b0b0b0"));
+                    button.TextSize = 14;
+                    button.SetAllCaps(false);
+                    button.SetPadding(10, 0, 10, 0);
+                    button.Click += CategoryOnClick;
+                    RgStep4.AddView(button);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void CategoryOnClick(object sender, EventArgs e)
+        {
+            if (BtnPrev != null)
+            {
+                BtnPrev.SetTextColor(Color.ParseColor("#b0b0b0"));
+                BtnPrev.SetBackgroundResource(Resource.Drawable.liked_button_normal);
+            }
+            Button BtnCurrent = sender as Button;
+            BtnCurrent.SetTextColor(Color.ParseColor("#ffffff"));
+            BtnCurrent.SetBackgroundResource(Resource.Drawable.liked_button_pressed);
+            Category = BtnCurrent.Text;
+
+            BtnPrev = BtnCurrent;
+        }
+
+        private void HideKeyboard()
+        {
+            try
+            {
+                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+                inputManager?.HideSoftInputFromWindow(CurrentFocus?.WindowToken, HideSoftInputFlags.None);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void SetStepChild()
+        {
+            try
+            {
+                TvStep.Text = GetText(Resource.String.Lbl_Step) + " " + NStep + "/5";
+
+                switch (NStep)
+                {
+                    case 1:
+                        EtStep1.Visibility = ViewStates.Visible;
+                        EtStep3.Visibility = ViewStates.Gone;
+                        RgStep4.Visibility = ViewStates.Gone;
+                        RgStep5.Visibility = ViewStates.Gone;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SetGroupTitle);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                    case 2:
+                        EtStep1.Hint = GetString(Resource.String.Lbl_GroupUsername);
+                        EtStep1.Visibility = ViewStates.Visible;
+                        EtStep3.Visibility = ViewStates.Gone;
+                        RgStep4.Visibility = ViewStates.Gone;
+                        RgStep5.Visibility = ViewStates.Gone;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SetGroupUserName);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                    case 3:
+                        EtStep1.Visibility = ViewStates.Gone;
+                        EtStep3.Visibility = ViewStates.Visible;
+                        RgStep4.Visibility = ViewStates.Gone;
+                        RgStep5.Visibility = ViewStates.Gone;
+                        HideKeyboard();
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_Describe_Group);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                    case 4:
+                        HideKeyboard();
+                        ArrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
+                        EtStep1.Visibility = ViewStates.Gone;
+                        EtStep3.Visibility = ViewStates.Gone;
+                        RgStep4.Visibility = ViewStates.Visible;
+                        RgStep5.Visibility = ViewStates.Gone;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SelectCategory);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#4E586E"));
+                        ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                        BtnNext.Text = GetString(Resource.String.lb_onboarding_accessibility_next);
+                        break;
+                    case 5:
+                        EtStep1.Visibility = ViewStates.Gone;
+                        EtStep3.Visibility = ViewStates.Gone;
+                        RgStep4.Visibility = ViewStates.Gone;
+                        RgStep5.Visibility = ViewStates.Visible;
+                        TvStepTitle.Text = GetString(Resource.String.Lbl_SelectPrivacy);
+                        ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep3.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep4.Background.SetTint(Color.ParseColor("#00E711"));
+                        ViewStep5.Background.SetTint(Color.ParseColor("#4E586E"));
+                        BtnNext.Text = GetString(Resource.String.Lbl_Save);
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -207,7 +356,7 @@ namespace WoWonder.Activities.Communities.Groups
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
- 
+
                 }
             }
             catch (Exception e)
@@ -215,7 +364,7 @@ namespace WoWonder.Activities.Communities.Groups
                 Methods.DisplayReportResultTrack(e);
             }
         }
-        
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -224,22 +373,89 @@ namespace WoWonder.Activities.Communities.Groups
                 {
                     // true +=  // false -=
                     case true:
-                        TxtCreate.Click += TxtCreateOnClick;
-                        TxtCategories.Touch += TxtCategoryOnClick;
-                        RadioPublic.CheckedChange += RbPublicOnCheckedChange;
-                        RadioPrivate.CheckedChange += RbPrivateOnCheckedChange;
+                        BtnNext.Click += BtnNext_Click;
                         break;
                     default:
-                        TxtCreate.Click -= TxtCreateOnClick;
-                        TxtCategories.Touch -= TxtCategoryOnClick;
-                        RadioPublic.CheckedChange -= RbPublicOnCheckedChange;
-                        RadioPrivate.CheckedChange -= RbPrivateOnCheckedChange;
+                        BtnNext.Click -= BtnNext_Click;
                         break;
                 }
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        public override void OnBackPressed()
+        {
+            if (NStep > 1)
+            {
+                NStep -= 1;
+                SetStepChild();
+                return;
+            }
+            base.OnBackPressed();
+        }
+
+        private void BtnNext_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                switch (NStep)
+                {
+                    case 1:
+                        GroupTitle = EtStep1.Text;
+                        if (GroupTitle.Length > 0)
+                        {
+                            NStep += 1;
+                            SetStepChild();
+                            EtStep1.Text = "";
+                        }
+                        break;
+                    case 2:
+                        GroupUsername = EtStep1.Text;
+                        if (GroupUsername.Length > 0)
+                        {
+                            NStep += 1;
+                            SetStepChild();
+                        }
+                        break;
+                    case 3:
+                        GroupAbout = EtStep3.Text;
+                        if (GroupAbout.Length > 0)
+                        {
+                            NStep += 1;
+                            SetStepChild();
+                        }
+                        break;
+                    case 4:
+                        if (Category.Length > 0)
+                        {
+                            CategoryId = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesName == Category)?.CategoriesId;
+
+                            NStep += 1;
+                            SetStepChild();
+                        }
+                        break;
+                    case 5:
+                        if (RgStep5.CheckedRadioButtonId > 0)
+                        {
+                            var rb1 = FindViewById<RadioButton>(RgStep5.CheckedRadioButtonId);
+
+                            if (rb1.Text.Equals("Public"))
+                                Privacy = "1";
+                            else
+                                Privacy = "2";
+
+                            // Create Group
+                            OnSave();
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Methods.DisplayReportResultTrack(ex);
             }
         }
 
@@ -249,21 +465,25 @@ namespace WoWonder.Activities.Communities.Groups
             {
                 PublisherAdView?.Destroy();
 
-                TxtCreate = null!;
-                IconTitle = null!;
-                IconUrl = null!;
-                IconAbout = null!;
-                IconCategories = null!;
-                IconType = null!;
-                TxtTitle = null!;
-                TxtUrl = null!;
-                TxtAbout = null!;
-                TxtCategories = null!;
-                RadioPublic = null!;
-                RadioPrivate = null!;
-                CategoryId = "";
-                TypeDialog = "";
-                GroupPrivacy = "";
+                TvStep = null!;
+                TvStepTitle = null!;
+                ViewStep1 = null!;
+                ViewStep2 = null!;
+                ViewStep3 = null!;
+                ViewStep4 = null!;
+                ViewStep5 = null!;
+                EtStep1 = null!;
+                EtStep3 = null!;
+                RgStep4 = null!;
+                RgStep5 = null!;
+                BtnNext = null!;
+
+                GroupTitle = "";
+                GroupUsername = "";
+                GroupAbout = "";
+                Category = "";
+                Privacy = "";
+                NStep = 1;
 
                 PublisherAdView = null!;
             }
@@ -277,146 +497,47 @@ namespace WoWonder.Activities.Communities.Groups
 
         #region Events
 
-        private void RbPrivateOnCheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
-        {
-            try
-            {
-                var isChecked = RadioPrivate.Checked;
-                switch (isChecked)
-                {
-                    case true:
-                        RadioPublic.Checked = false;
-                        GroupPrivacy = "2";
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void RbPublicOnCheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
-        {
-            try
-            {
-                var isChecked = RadioPublic.Checked;
-                switch (isChecked)
-                {
-                    case true:
-                        RadioPrivate.Checked = false;
-                        GroupPrivacy = "1";
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void TxtCategoryOnClick(object sender, View.TouchEventArgs e)
-        {
-            try
-            {
-                if (e?.Event?.Action != MotionEventActions.Down) return;
-
-                switch (CategoriesController.ListCategoriesGroup.Count)
-                {
-                    case > 0:
-                    {
-                        TypeDialog = "Categories";
-
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        var arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
-
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
-                        break;
-                    }
-                    default:
-                        Methods.DisplayReportResult(this, "Not have List Categories Group");
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-         
-        private async void TxtCreateOnClick(object sender, EventArgs e)
+        private async void OnSave()
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(TxtTitle.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_title ), ToastLength.Short)?.Show();
-                    return;
-                }
-                if (string.IsNullOrEmpty(TxtUrl.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
-                    return;
-                }
-                if (string.IsNullOrEmpty(TxtAbout.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_about), ToastLength.Short)?.Show();
-                    return;
-                }
-                if (string.IsNullOrEmpty(TxtCategories.Text))
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_category), ToastLength.Short)?.Show();
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(GroupPrivacy))
-                { 
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_privacy), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 //Show a progress
                 AndHUD.Shared.Show(this, GetString(Resource.String.Lbl_Loading) + "...");
 
-                var (apiStatus, respond) = await RequestsAsync.Group.CreateGroupAsync(TxtUrl.Text.Replace(" " , "") ,TxtTitle.Text, TxtAbout.Text, CategoryId, GroupPrivacy);
+                var (apiStatus, respond) = await RequestsAsync.Group.CreateGroupAsync(GroupUsername.Replace(" ", ""), GroupTitle, GroupAbout, CategoryId, Privacy);
                 switch (apiStatus)
                 {
                     case 200:
-                    {
-                        switch (respond)
                         {
-                            case CreateGroupObject result:
+                            switch (respond)
                             {
-                                AndHUD.Shared.Dismiss(this); 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                                case CreateGroupObject result:
+                                    {
+                                        AndHUD.Shared.Dismiss(this);
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short);
 
-                                Intent returnIntent = new Intent();
-                                if (result.GroupData != null)
-                                    returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(result.GroupData));
-                                SetResult(Result.Ok, returnIntent);
+                                        Intent returnIntent = new Intent();
+                                        if (result.GroupData != null)
+                                            returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(result.GroupData));
+                                        SetResult(Result.Ok, returnIntent);
 
-                                Finish();
-                                break;
+                                        Finish();
+                                        break;
+                                    }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
                         Methods.DisplayAndHudErrorResult(this, respond);
                         break;
-                } 
+                }
             }
             catch (Exception exception)
             {
@@ -427,50 +548,5 @@ namespace WoWonder.Activities.Communities.Groups
 
         #endregion
 
-        #region MaterialDialog
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
-        {
-            try
-            {
-                switch (TypeDialog)
-                {
-                    case "Categories":
-                    {
-                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString());
-                        if (category != null)
-                        {
-                            CategoryId = category.CategoriesId; 
-                        }
-                        TxtCategories.Text = itemString.ToString();
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        #endregion 
     }
 }

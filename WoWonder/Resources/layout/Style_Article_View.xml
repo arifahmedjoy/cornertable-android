@@ -67,7 +67,7 @@
             android:maxLines="2"
             android:layout_marginEnd="3dp"
             android:textSize="16sp"
-            android:textColor="@color/gnt_black"/>
+            />
         <TextView
             android:id="@+id/description"
             android:layout_width="match_parent"
@@ -75,7 +75,7 @@
             android:layout_marginTop="5dp"
             android:ellipsize="none"
             android:maxLines="2"
-            android:textColor="@color/colorCommentText"
+            
             android:textSize="14sp"/>
         <RelativeLayout
 			android:id="@+id/UserItem_Layout"
@@ -99,16 +99,16 @@
                 android:layout_marginStart="12dp" 
                 android:layout_marginTop="9dp"
                 android:drawablePadding="4dp"
-                android:layout_toEndOf="@id/UserImageProfile"
+                android:layout_toEndOf="@+id/UserImageProfile"
                 android:textColor="@color/accent"
                 android:textSize="14sp" />
             <TextView
                 android:id="@+id/card_dist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/Username"
+                android:layout_below="@+id/Username"
                 android:layout_marginStart="12dp"
-                android:layout_toEndOf="@id/UserImageProfile"
+                android:layout_toEndOf="@+id/UserImageProfile"
                 android:textSize="12sp"/>
         </RelativeLayout> 
         <TextView 

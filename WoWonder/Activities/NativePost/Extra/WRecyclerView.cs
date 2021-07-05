@@ -32,6 +32,7 @@ using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.Tabbes;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Utils;
+using WoWonder.MediaPlayers;
 using WoWonderClient.Classes.Posts;
 using WoWonderClient.Requests;
 using Console = System.Console;
@@ -44,10 +45,10 @@ using Util = Com.Google.Android.Exoplayer2.Util.Util;
 
 namespace WoWonder.Activities.NativePost.Extra
 {
-    public class WRecyclerView : RecyclerView/*, IOnLoadMoreListener*/
+    public class WRecyclerView : RecyclerView
     {
         private static WRecyclerView Instance;
-        private enum VolumeState { On, Off }
+        public enum VolumeState { On, Off }
 
         private FrameLayout MediaContainerLayout;
         private ImageView Thumbnail, PlayControl;
@@ -121,6 +122,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.PromotePost, 10);
                 GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.SharedHeaderPost, 10);
                 GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.Story, 1);
+                GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.SuggestedPagesBox, 1);
                 GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.SuggestedGroupsBox, 1);
                 GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.SuggestedUsersBox, 1);
                 GetRecycledViewPool().SetMaxRecycledViews((int)PostModelType.MultiImage2, 10);
@@ -221,8 +223,8 @@ namespace WoWonder.Activities.NativePost.Extra
                     tab.SwipeRefreshLayoutOnRefresh(this, EventArgs.Empty);
                     tab.RemoveHandler();
 
-                    tab.PostFeedAdapter.ListDiffer.Clear();
-                    tab.PostFeedAdapter.NotifyDataSetChanged();
+                    tab.PostFeedAdapter?.ListDiffer?.Clear();
+                    tab.PostFeedAdapter?.NotifyDataSetChanged();
 
                     tab.LoadPost(false);
                 }
@@ -260,7 +262,7 @@ namespace WoWonder.Activities.NativePost.Extra
         {
             try
             {
-                ApiPostAsync.LoadTopDataApi(NativeFeedAdapter.NewPostList);
+                ApiPostAsync.LoadTopDataApi(ListUtils.NewPostList);
 
                 PopupBubbleView.Visibility = ViewStates.Gone;
                 ScrollToPosition(0); 
@@ -562,7 +564,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 Console.WriteLine(offset);
 
                 if (!Methods.CheckConnectivity())
-                    Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 else
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => NativeFeedAdapter.NativePostType != NativeFeedType.HashTag ? ApiPostAsync.FetchNewsFeedApiPosts(offset) : ApiPostAsync.FetchNewsFeedApiPosts(offset, "Add", Hash) });
@@ -585,11 +587,8 @@ namespace WoWonder.Activities.NativePost.Extra
                 var model1 = diffList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
                 var model2 = diffList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
                 var model3 = diffList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                var model4 = diffList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
-                if (model4 != null)
-                    countIndex += diffList.IndexOf(model4);
-                else if (model3 != null)
+                if (model3 != null)
                     countIndex += diffList.IndexOf(model3);
                 else if (model2 != null)
                     countIndex += diffList.IndexOf(model2);
@@ -904,6 +903,10 @@ namespace WoWonder.Activities.NativePost.Extra
             }
         }
 
+        #endregion
+
+        #region VideoObject player
+
         private class ExoPlayerRecyclerEvent : Object, IPlayerEventListener, PlayerControlView.IVisibilityListener, PlayerControlView.IProgressUpdateListener
         {
             private readonly ProgressBar LoadingProgressBar;
@@ -941,9 +944,20 @@ namespace WoWonder.Activities.NativePost.Extra
                     }
 
                     if (holder != null) LoadingProgressBar = holder.VideoProgressBar;
-
-                    SetVolumeControl(XRecyclerView.VolumeStateProvider == VolumeState.On ? VolumeState.On : VolumeState.Off);
-
+ 
+                    switch (XRecyclerView.VolumeStateProvider)
+                    {
+                        case VolumeState.Off:
+                            SetVolumeControl(VolumeState.On);
+                            break;
+                        case VolumeState.On:
+                            SetVolumeControl(VolumeState.Off);
+                            break;
+                        default:
+                            SetVolumeControl(AppSettings.DefaultVolumeVideoPost);
+                            break;
+                    }
+                     
                     switch (VolumeControl.HasOnClickListeners)
                     {
                         case false:
@@ -1205,11 +1219,7 @@ namespace WoWonder.Activities.NativePost.Extra
             {
             }
         }
-
-        #endregion
-
-        #region VideoObject player
-
+         
         private void SetPlayer()
         {
             try
@@ -1233,10 +1243,10 @@ namespace WoWonder.Activities.NativePost.Extra
 
         private IMediaSource GetMediaSourceFromUrl(Uri uri, string extension, string tag)
         {
-            var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(MainContext);
+            var bandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(MainContext);
             //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(MainContext, AppSettings.ApplicationName), mBandwidthMeter);
-            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(MainContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
-            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(MainContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(MainContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(MainContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(MainContext, AppSettings.ApplicationName)));
             int type = Util.InferContentType(uri, extension);
             try
             {
@@ -1276,12 +1286,14 @@ namespace WoWonder.Activities.NativePost.Extra
                 }
             }
         }
-
-
+         
         public void CacheVideosFiles(Uri videoUrl)
         {
             try
             {
+                if (!PlayerSettings.EnableOfflineMode)
+                    return;
+
                 Cache ??= new SimpleCache(MainContext.CacheDir, new NoOpCacheEvictor(), new ExoDatabaseProvider(MainContext));
 
                 CacheDataSourceFactory ??= new CacheDataSourceFactory(Cache, DefaultDataSourceFac);
@@ -1558,7 +1570,7 @@ namespace WoWonder.Activities.NativePost.Extra
         //        Console.WriteLine(offset);
 
         //        if (!Methods.CheckConnectivity())
-        //            Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+        //            ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
         //        else
         //        {
         //            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => NativeFeedAdapter.NativePostType != NativeFeedType.HashTag ? FetchNewsFeedApiPosts(offset) : FetchNewsFeedApiPosts(offset, "Add", Hash) });
@@ -1569,134 +1581,6 @@ namespace WoWonder.Activities.NativePost.Extra
         //    {
         //        Methods.DisplayReportResultTrack(e);
         //    }
-        //}
-
-
-        //wael function fix emojis 
-        public static Dictionary<string, string> GetAddDiscountList()
-        {
-            try
-            {
-                var arrayAdapter = new Dictionary<string, string>
-                {
-                    {":)", "smile"},
-                    {"(&lt;", "joy"},
-                    {"**)", "relaxed"},
-                    {":p", "stuck-out-tongue-winking-eye"},
-                    {":_p", "stuck-out-tongue"},
-                    {"B)", "sunglasses"},
-                    {";)", "wink"},
-                    {":D", "grin"},
-                    {"/_)", "smirk"},
-                    {"0)", "innocent"},
-                    {":_(", "cry"},
-                    {":__(", "sob"},
-                    {":(", "disappointed"},
-                    {":*", "kissing-heart"},
-                    {"&lt;3", "heart"},
-                    {"&lt;/3", "broken-heart"},
-                    {"*_*", "heart-eyes"},
-                    {"&lt;5", "star"},
-                    {":o", "open-mouth"},
-                    {":0", "scream"},
-                    {"o(", "anguished"},
-                    {"-_(", "unamused"},
-                    {"x(", "angry"},
-                    {"X(", "rage"},
-                    {"-_-", "expressionless"},
-                    {":-/", "confused"},
-                    {":|", "neutral-face"},
-                    {"!_", "exclamation"},
-                    {":|", "neutral-face"},
-                    {":|", "neutral-face"},
-                    {":yum:", "yum"},
-                    {":triumph:", "triumph"},
-                    {":imp:", "imp"},
-                    {":hear_no_evil:", "hear-no-evil"},
-                    {":alien:", "alien"},
-                    {":yellow_heart:", "yellow-heart"},
-                    {":sleeping:", "sleeping"},
-                    {":mask:", "mask"},
-                    {":no_mouth:", "no-mouth"},
-                    {":weary:", "weary"},
-                    {":dizzy_face:", "dizzy-face"},
-                    {":man:", "man"},
-                    {":woman:", "woman"},
-                    {":boy:", "boy"},
-                    {":girl:", "girl"},
-                    {":?lder_man:", "older-man"},
-                    {":?lder_woman:", "older-woman"},
-                    {":cop:", "cop"},
-                    {":dancers:", "dancers"},
-                    {":speak_no_evil:", "speak-no-evil"},
-                    {":lips:", "lips"},
-                    {":see_no_evil:", "see-no-evil"},
-                    {":dog:", "dog"},
-                    {":bear:", "bear"},
-                    {":rose:", "rose"},
-                    {":gift_heart:", "gift-heart"},
-                    {":ghost:", "ghost"},
-                    {":bell:", "bell"},
-                    {":video_game:", "video-game"},
-                    {":soccer:", "soccer"},
-                    {":books:", "books"},
-                    {":moneybag:", "moneybag"},
-                    {":mortar_board:", "mortar-board"},
-                    {":hand:", "hand"},
-                    {":tiger:", "tiger"},
-                    {":elephant:", "elephant"},
-                    {":scream_cat:", "scream-cat"},
-                    {":monkey:", "monkey"},
-                    {":bird:", "bird"},
-                    {":snowflake:", "snowflake"},
-                    {":sunny:", "sunny"},
-                    {":?cean:", "ocean"},
-                    {":umbrella:", "umbrella"},
-                    {":hibiscus:", "hibiscus"},
-                    {":tulip:", "tulip"},
-                    {":computer:", "computer"},
-                    {":bomb:", "bomb"},
-                    {":gem:", "gem"},
-                    {":ring:", "ring"},
-                    {":)", "??"},
-                    {"(&lt;", "??"},
-                    {"**)", "??"},
-                    {":p", "??"},
-                    {":_p", "??"},
-                    {"B)", "??"},
-                    {";)", "??"},
-                    {":D", "??"},
-                    {"/_)", "smirk"},
-                    {"0)", "innocent"},
-                    {":_(", "cry"},
-                    {":__(", "sob"},
-                    {":(", "disappointed"},
-                    {":*", "kissing-heart"},
-                    {"&lt;3", "heart"},
-                    {"&lt;/3", "broken-heart"},
-                    {"*_*", "heart-eyes"},
-                    {"&lt;5", "star"},
-                    {":o", "open-mouth"},
-                    {":0", "scream"},
-                    {"o(", "anguished"},
-                    {"-_(", "unamused"},
-                    {"x(", "angry"},
-                    {"X(", "rage"},
-                    {"-_-", "expressionless"},
-                    {":-/", "confused"},
-                    {":|", "neutral-face"},
-                    {"!_", "exclamation"},
-                    {":|", "neutral-face"},
-                };
-
-                return arrayAdapter;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-                return new Dictionary<string, string>();
-            }
-        }
-          
+        //} 
     }
 }

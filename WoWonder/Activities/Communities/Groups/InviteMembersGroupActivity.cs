@@ -9,8 +9,6 @@ using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
@@ -42,8 +40,7 @@ namespace WoWonder.Activities.Communities.Groups
         private LinearLayoutManager LayoutManager;
         private ViewStub EmptyStateLayout;
         private View Inflated;
-        private AdView MAdView;
-        private UserDataObject ItemUser; 
+        private AdView MAdView; 
         private string GroupId;
 
         #endregion
@@ -269,8 +266,7 @@ namespace WoWonder.Activities.Communities.Groups
                 SwipeRefreshLayout = null!;
                 MRecycler = null!;
                 EmptyStateLayout = null!;
-                Inflated = null!;
-                ItemUser = null!;
+                Inflated = null!; 
                 MAdView = null!;
             }
             catch (Exception e)
@@ -305,22 +301,23 @@ namespace WoWonder.Activities.Communities.Groups
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
-                ItemUser = MAdapter.GetItem(e.Position);
-                if (ItemUser != null)
+                var itemUser = MAdapter.GetItem(e.Position);
+                if (itemUser != null)
                 {
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.GroupAddAsync(GroupId, ItemUser.UserId) });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.GroupAddAsync(GroupId, itemUser.UserId) });
 
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_Added), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Added), ToastLength.Short);
 
-                    var local = MAdapter.UserList.FirstOrDefault(a => a.UserId == ItemUser.UserId);
+                    var local = MAdapter.UserList.FirstOrDefault(a => a.UserId == itemUser.UserId);
                     if (local != null)
                     {
-                        MAdapter.UserList.Remove(local);
-                        MAdapter.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
+                        var index = MAdapter.UserList.IndexOf(local);
+                        MAdapter.UserList.RemoveAt(index);
+                        MAdapter.NotifyDataSetChanged();
                     }
 
                     switch (MAdapter.UserList.Count)
@@ -344,7 +341,7 @@ namespace WoWonder.Activities.Communities.Groups
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadMembersAsync });
         }
@@ -383,7 +380,7 @@ namespace WoWonder.Activities.Communities.Groups
                             switch (MAdapter.UserList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -407,7 +404,7 @@ namespace WoWonder.Activities.Communities.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 

@@ -10,9 +10,6 @@ using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
-
-
-
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
@@ -29,6 +26,7 @@ using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonderClient;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Requests;
 using SearchView = AndroidX.AppCompat.Widget.SearchView;
@@ -442,17 +440,17 @@ namespace WoWonder.Activities.NearbyBusiness
 
         #endregion
 
-        #region Load Shops 
+        #region Load Business 
 
         public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadShopsAsync(offset) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadBusinessAsync(offset) });
         }
 
-        private async Task LoadShopsAsync(string offset = "0")
+        private async Task LoadBusinessAsync(string offset = "0")
         {
             switch (MainScrollEvent.IsLoading)
             {
@@ -473,32 +471,45 @@ namespace WoWonder.Activities.NearbyBusiness
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
+                    if (respondList > 0)
                     {
-                        case > 0 when countList > 0:
+                        foreach (var item in from item in result.Data let check = MAdapter.NearbyBusinessList.FirstOrDefault(a => a.JobId == item.JobId) where check == null select item)
                         {
-                            foreach (var item in from item in result.Data let check = MAdapter.NearbyBusinessList.FirstOrDefault(a => a.JobId == item.JobId) where check == null select item)
+                            if (item.Job != null)
                             {
-                                MAdapter.NearbyBusinessList.Add(item);
+                                if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.FullImage))
+                                {
+                                    item.Job.Value.JobInfoClass.Image = item.Job.Value.JobInfoClass.FullImage;
+                                }
+                                else
+                                {
+                                    item.Job.Value.JobInfoClass.Image = item.Job.Value.JobInfoClass.Image.Contains(InitializeWoWonder.WebsiteUrl) switch
+                                    {
+                                        false => WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image),
+                                        _ => item.Job.Value.JobInfoClass.Image
+                                    };
+                                }
                             }
-
-                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.NearbyBusinessList.Count - countList); });
-                            break;
+                              
+                            MAdapter.NearbyBusinessList.Add(item);
                         }
-                        case > 0:
-                            MAdapter.NearbyBusinessList = new ObservableCollection<NearbyBusinessesDataObject>(result.Data);
-                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                            break;
-                        default:
-                        {
-                            switch (MAdapter.NearbyBusinessList.Count)
-                            {
-                                case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
-                                    break;
-                            }
 
-                            break;
+                        if (countList > 0)
+                        {  
+                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.NearbyBusinessList.Count - countList); });
+                        }
+                        else  
+                        {
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                        } 
+                    } 
+                    else
+                    {
+                        switch (MAdapter.NearbyBusinessList.Count)
+                        {
+                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short);
+                                break;
                         }
                     }
                 }
@@ -518,7 +529,7 @@ namespace WoWonder.Activities.NearbyBusiness
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

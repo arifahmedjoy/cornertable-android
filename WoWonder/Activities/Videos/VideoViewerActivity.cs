@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Aghajari.EmojiView.Views;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -13,17 +14,17 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using Bumptech.Glide.Util;
 using Com.Google.Android.Youtube.Player;
 using Com.Luseen.Autolinklibrary;
 using Newtonsoft.Json;
 using WoWonder.Activities.Movies.Adapters;
 using WoWonder.Activities.Tabbes;
 using WoWonder.Helpers.Ads;
+using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo.EmojiView;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Movies;
@@ -47,8 +48,7 @@ namespace WoWonder.Activities.Videos
 
         //About 
         private AdView MAdView;
-        private TextView QualityIcon, ViewsIcon, ShareIcon, MoreIcon, ShowMoreDescriptionIcon, VideoVideoCategory, VideoStars, VideoTag, VideoQualityTextView, VideoViewsNumber, VideoVideoDate, VideoTittle;
-        private LinearLayout VideoDescriptionLayout, ShareButton, MoreButton;
+        private TextView TxtVideoName, TxtName, TxtViewCount, TxtCreateTime, TxtCategory, TxtTags, VideoStars;
         private AutoLinkTextView VideoVideoDescription;
         private TextSanitizer TextSanitizerAutoLink;
 
@@ -57,9 +57,9 @@ namespace WoWonder.Activities.Videos
         private LinearLayoutManager LayoutManager;
         private RecyclerViewOnScrollListener MainScrollEvent;
         private RecyclerView MRecycler;
-        private EditText TxtComment;
-        private ImageView ImgSent;
-         
+        private AXEmojiEditText TxtComment;
+        private ImageView EmojisView,ImgSent, ImgAvatar; 
+
         #endregion
 
         #region General
@@ -85,7 +85,7 @@ namespace WoWonder.Activities.Videos
                 SetRecyclerViewAdapters();
 
                 GetDataVideo();
-
+                //SetPlayer();
 
                 AdsGoogle.Ad_RewardedVideo(this);
             }
@@ -221,50 +221,40 @@ namespace WoWonder.Activities.Videos
         {
             try
             {
-                QualityIcon = FindViewById<TextView>(Resource.Id.Qualityicon);
-                ViewsIcon = FindViewById<TextView>(Resource.Id.Viewsicon);
-                ShareIcon = FindViewById<TextView>(Resource.Id.Shareicon);
-                MoreIcon = FindViewById<TextView>(Resource.Id.Moreicon);
-                ShowMoreDescriptionIcon = FindViewById<TextView>(Resource.Id.video_ShowDiscription);
-                VideoDescriptionLayout = FindViewById<LinearLayout>(Resource.Id.videoDescriptionLayout);
-
-                ShareButton = FindViewById<LinearLayout>(Resource.Id.ShareButton);
-                ShareButton.Click += VideoActionsController.ShareIcon_Click;
-
-                MoreButton = FindViewById<LinearLayout>(Resource.Id.moreButton);
-                MoreButton.Click += VideoActionsController.MoreButton_OnClick;
-
-                VideoTittle = FindViewById<TextView>(Resource.Id.video_Titile);
-                VideoQualityTextView = FindViewById<TextView>(Resource.Id.QualityTextView);
-                VideoViewsNumber = FindViewById<TextView>(Resource.Id.ViewsNumber);
-                VideoVideoDate = FindViewById<TextView>(Resource.Id.videoDate);
+                TxtVideoName = FindViewById<TextView>(Resource.Id.Title);
+                TxtName = FindViewById<TextView>(Resource.Id.tv_subname);
+                
+                TxtViewCount = FindViewById<TextView>(Resource.Id.Views_Count);
+                TxtCreateTime = FindViewById<TextView>(Resource.Id.tv_time);
                 VideoVideoDescription = FindViewById<AutoLinkTextView>(Resource.Id.videoDescriptionTextview);
-                VideoVideoCategory = FindViewById<TextView>(Resource.Id.videoCategorytextview);
+                TxtCategory = FindViewById<TextView>(Resource.Id.videoCategorytextview);
 
-                VideoStars = FindViewById<TextView>(Resource.Id.videoStarstextview);
-                VideoTag = FindViewById<TextView>(Resource.Id.videoTagtextview);
+                VideoStars = FindViewById<TextView>(Resource.Id.videoStartextview);
+                TxtTags = FindViewById<TextView>(Resource.Id.videoTagtextview);
 
                 TextSanitizerAutoLink = new TextSanitizer(VideoVideoDescription, this);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, QualityIcon, IonIconsFonts.Ribbon);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ViewsIcon, IonIconsFonts.Eye);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ShareIcon, IonIconsFonts.ShareAlt);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MoreIcon, IonIconsFonts.AddCircle);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ShowMoreDescriptionIcon, IonIconsFonts.ArrowDown);
-
-                ShowMoreDescriptionIcon.Visibility = ViewStates.Gone;
-
-                VideoDescriptionLayout.Visibility = ViewStates.Visible;
 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, null);
                  
                 MRecycler = FindViewById<RecyclerView>(Resource.Id.recyler);
-                TxtComment = FindViewById<EditText>(Resource.Id.commenttext);
+                TxtComment = FindViewById<AXEmojiEditText>(Resource.Id.commenttext);
+                EmojisView = FindViewById<ImageView>(Resource.Id.Emojiicon);
                 ImgSent = FindViewById<ImageView>(Resource.Id.send);
-                 
-                TxtComment.Text = "";
+
+                ImgAvatar = FindViewById<ImageView>(Resource.Id.avatar);
+                
                 Methods.SetColorEditText(TxtComment, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+
+                if (AppSettings.SetTabDarkTheme)
+                    EmojisViewTools.LoadDarkTheme();
+                else
+                    EmojisViewTools.LoadTheme(AppSettings.MainColor);
+
+                EmojisViewTools.MStickerView = true;
+                AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, TxtComment, "");
+                AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
+                var EmojisViewActions = new EmojisViewActions(this, "", popup, TxtComment, EmojisView);
             }
             catch (Exception e)
             {
@@ -286,7 +276,7 @@ namespace WoWonder.Activities.Videos
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
-                var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                var sizeProvider = new Bumptech.Glide.Util.FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<CommentsMoviesObject>(this, MAdapter, sizeProvider, 10);
                 MRecycler.AddOnScrollListener(preLoader);
                 MRecycler.SetAdapter(MAdapter);
@@ -312,7 +302,7 @@ namespace WoWonder.Activities.Videos
                 {
                     // true +=  // false -=
                     case true:
-                        ImgSent.Click += ImgSentOnClick;
+                        ImgSent.Click += ImgSentOnClick; 
                         break;
                     default:
                         ImgSent.Click -= ImgSentOnClick;
@@ -414,7 +404,7 @@ namespace WoWonder.Activities.Videos
                         p1.GetErrorDialog(this, 1).Show();
                         break;
                     default:
-                        Toast.MakeText(this, p1.ToString(), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, p1.ToString(), ToastLength.Short);
                         break;
                 }
             }
@@ -550,7 +540,7 @@ namespace WoWonder.Activities.Videos
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -584,14 +574,14 @@ namespace WoWonder.Activities.Videos
             {
                 if (!string.IsNullOrEmpty(Intent?.GetStringExtra("Viewer_Video")))
                 {
-                    Video = JsonConvert.DeserializeObject<GetMoviesObject.Movie>(Intent?.GetStringExtra("Viewer_Video"));
+                    Video = JsonConvert.DeserializeObject<GetMoviesObject.Movie>(Intent?.GetStringExtra("Viewer_Video") ?? "");
                     LoadDataVideo();
                 }
                 else
                 {
                     if (!Methods.CheckConnectivity())
                     {
-                        Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         return;
                     }
 
@@ -668,6 +658,7 @@ namespace WoWonder.Activities.Videos
                     }
                     default:
                     {
+                            //VideoPlayer(Android.Net.Uri.Parse(Video.Url));
                         var dbDatabase = new SqLiteDatabase();
                         var dataVideos = dbDatabase.Get_WatchOfflineVideos_ById(Video.Id);
                         if (dataVideos != null)
@@ -692,15 +683,17 @@ namespace WoWonder.Activities.Videos
             {
                 if (videoObject != null)
                 {
-                    VideoTittle.Text = Methods.FunString.DecodeString(videoObject.Name);
+                    TxtVideoName.Text = Methods.FunString.DecodeString(videoObject.Name);
+                    TxtName.Text = AppSettings.ApplicationName;
+                    //VideoQualityTextView.Text = videoObject.Quality.ToUpperInvariant();
+                    TxtViewCount.Text = videoObject.Views + " " + GetText(Resource.String.Lbl_Views);
+                    TxtCreateTime.Text = videoObject.Release;
 
-                    VideoQualityTextView.Text = videoObject.Quality.ToUpperInvariant();
-                    VideoViewsNumber.Text = videoObject.Views + " " + GetText(Resource.String.Lbl_Views);
-                    VideoVideoDate.Text = GetText(Resource.String.Lbl_Published_on) + " " + videoObject.Release;
-
-                    VideoVideoCategory.Text = videoObject.Genre;
+                    TxtCategory.Text = videoObject.Genre;
                     VideoStars.Text = videoObject.Stars;
-                    VideoTag.Text = videoObject.Producer;
+                    TxtTags.Text = videoObject.Producer;
+
+                    GlideImageLoader.LoadImage(this, UserDetails.Avatar, ImgAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
                     TextSanitizerAutoLink.Load(Methods.FunString.DecodeString(videoObject.Description));
                 }
@@ -714,7 +707,7 @@ namespace WoWonder.Activities.Videos
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadDataComment(offset) });
         }
@@ -798,9 +791,7 @@ namespace WoWonder.Activities.Videos
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-
-        #endregion
          
+        #endregion 
     }
 }

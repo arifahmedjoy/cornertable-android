@@ -61,7 +61,7 @@
                          android:layout_height="wrap_content"
                          android:layout_marginStart="19dp"
                          android:layout_marginTop="14dp"
-                         android:layout_toEndOf="@id/postsectionimage"
+                         android:layout_toEndOf="@+id/postsectionimage"
                          
                          android:textSize="15sp" />
                     <View
@@ -71,7 +71,7 @@
                          android:layout_marginStart="15dp"
                          android:layout_marginEnd="15dp"
                          android:background="?attr/colorDivider"
-                         android:layout_below="@id/postsectionimage" />
+                         android:layout_below="@+id/postsectionimage" />
                </RelativeLayout>
                <EditText
                     android:id="@+id/editTxtEmail"

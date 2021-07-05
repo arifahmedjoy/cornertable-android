@@ -135,29 +135,31 @@ namespace WoWonder.Payment
                     {
                         {"reference", reference}, 
                     };
-                     
+
+                    var priceInt = Convert.ToInt32(Price) * 100;
+
                     switch (request)
                     {
                         case "fund":
-                            keyValues.Add("amount", Price);
+                            keyValues.Add("amount", priceInt.ToString());
                             keyValues.Add("fund_id", Id);
                             break;
                         case "upgrade":
                             keyValues.Add("pro_type", Id);
                             break;
                         case "wallet":
-                            keyValues.Add("amount", Price);
+                            keyValues.Add("amount", priceInt.ToString());
                             break;
-                    } 
-                      
-                    var (apiStatus, respond) = await RequestsAsync.Global.PayStackAsync(request , keyValues);
+                    }
+
+                    var (apiStatus, respond) = await RequestsAsync.Payments.PayStackAsync(request , keyValues);
                     switch (apiStatus)
                     {
                         case 200:
                             switch (request)
                             {
                                 case "fund":
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long);
                                     FundingViewActivity.GetInstance()?.StartApiService();
                                     break;
                                 case "upgrade":
@@ -171,10 +173,10 @@ namespace WoWonder.Payment
                                     
                                     }
 
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long);
                                     break;
                                 case "wallet":
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long);
                                     break;
                             }
                             ActivityContext.Finish();
@@ -186,7 +188,7 @@ namespace WoWonder.Payment
                 }
                 else
                 {
-                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)

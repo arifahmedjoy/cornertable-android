@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Aghajari.EmojiView.Views;
 using Android;
 using Android.App;
@@ -46,6 +47,7 @@ using WoWonder.Activities.Chat.ChatWindow.Fragment;
 using WoWonder.Activities.Chat.MsgTabbes;
 using WoWonder.Activities.Chat.SharedFiles;
 using WoWonder.Activities.Chat.Viewer;
+using WoWonder.Activities.NativePost.Pages;
 using WoWonder.Activities.SettingsPreferences;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.CacheLoaders;
@@ -60,11 +62,15 @@ using WoWonder.SQLite;
 using WoWonderClient;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.Message;
+using WoWonderClient.Classes.Posts;
+using WoWonderClient.Classes.Product;
+using WoWonderClient.Classes.Story;
 using WoWonderClient.Classes.User;
 using WoWonderClient.Requests;
 using Console = System.Console;
 using Exception = System.Exception;
 using MessageData = WoWonder.Helpers.Model.MessageDataExtra;
+using Reaction = WoWonder.Library.Anjo.Reaction;
 using SupportFragment = AndroidX.Fragment.App.Fragment;
 using Uri = Android.Net.Uri;
 
@@ -88,7 +94,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         //public ChatStickersTabFragment ChatStickersTabBoxFragment;
         private FrameLayout ButtonFragmentHolder;
         public FrameLayout TopFragmentHolder;
-        private LinearLayoutManager LayoutManager;
+        private Holders.MsgPreCachingLayoutManager LayoutManager;
         public MessageAdapter MAdapter;
         private SupportFragment MainFragmentOpened;
         private Methods.AudioRecorderAndPlayer RecorderService;
@@ -102,7 +108,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         public ChatObject DataUser;
         public GetUsersListObject.User DataUserChat;
         public UserDataObject UserData;
-        public string UserId; // to_id
+        public string UserId, ReplyId; // to_id
         private static ChatWindowActivity Instance;
         private MsgTabbedMainActivity GlobalContext;
         private LinearLayout FirstLiner, FirstBoxOnButton;
@@ -154,7 +160,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 //Set ToolBar and data chat
                 FirstLoadData_Item();
 
-                Window?.SetStatusBarColor(Color.ParseColor(MainChatColor));
+                //Window?.SetStatusBarColor(Color.ParseColor(MainChatColor));
                 SetTheme(MainChatColor);
 
                 // Set our view from the "ChatWindow" layout resource
@@ -269,7 +275,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     Timer.Enabled = false;
                     Timer.Stop();
                     Timer.Dispose();
-                    Timer = null;
+                    Timer = null!;
                 }
 
                 ResetMediaPlayer();
@@ -341,11 +347,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         private void StartCall()
         {
             try
-            {
-                string timeNow = DateTime.Now.ToString("hh:mm");
-                var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string time = Convert.ToString(unixTimestamp);
-
+            { 
                 Intent intentVideoCall = new Intent(this, typeof(TwilioVideoCallActivity));
                 if (AppSettings.UseLibrary == SystemCall.Agora)
                 {
@@ -360,45 +362,37 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                 if (DataUser != null && AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                 {
-                    intentVideoCall.PutExtra("UserID", DataUser.UserId);
-                    intentVideoCall.PutExtra("avatar", DataUser.Avatar);
-                    intentVideoCall.PutExtra("name", DataUser.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = DataUser.UserId,
+                        Avatar = DataUser.Avatar,
+                        Name = DataUser.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
                 }
                 else if (DataUserChat != null && AppSettings.LastChatSystem == SystemApiGetLastChat.Old)
                 {
-                    intentVideoCall.PutExtra("UserID", DataUserChat.UserId);
-                    intentVideoCall.PutExtra("avatar", DataUserChat.Avatar);
-                    intentVideoCall.PutExtra("name", DataUserChat.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = DataUserChat.UserId,
+                        Avatar = DataUserChat.Avatar,
+                        Name = DataUserChat.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                     
                 }
                 else if (UserData != null)
                 {
-                    intentVideoCall.PutExtra("UserID", UserData.UserId);
-                    intentVideoCall.PutExtra("avatar", UserData.Avatar);
-                    intentVideoCall.PutExtra("name", UserData.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = UserData.UserId,
+                        Avatar = UserData.Avatar,
+                        Name = UserData.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
                 }
 
                 StartActivity(intentVideoCall);
@@ -431,45 +425,37 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                 if (DataUser != null && AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                 {
-                    intentVideoCall.PutExtra("UserID", DataUser.UserId);
-                    intentVideoCall.PutExtra("avatar", DataUser.Avatar);
-                    intentVideoCall.PutExtra("name", DataUser.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = DataUser.UserId,
+                        Avatar = DataUser.Avatar,
+                        Name = DataUser.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                     
                 }
                 else if (DataUserChat != null && AppSettings.LastChatSystem == SystemApiGetLastChat.Old)
-                {
-                    intentVideoCall.PutExtra("UserID", DataUserChat.UserId);
-                    intentVideoCall.PutExtra("avatar", DataUserChat.Avatar);
-                    intentVideoCall.PutExtra("name", DataUserChat.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                { 
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = DataUserChat.UserId,
+                        Avatar = DataUserChat.Avatar,
+                        Name = DataUserChat.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
                 }
                 else if (UserData != null)
                 {
-                    intentVideoCall.PutExtra("UserID", UserData.UserId);
-                    intentVideoCall.PutExtra("avatar", UserData.Avatar);
-                    intentVideoCall.PutExtra("name", UserData.Name);
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                    var callUserObject = new CallUserObject
+                    {
+                        UserId = UserData.UserId,
+                        Avatar = UserData.Avatar,
+                        Name = UserData.Name,
+                        Data = new CallUserObject.DataCallUser()
+                    };
+                    intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
                 }
 
                 StartActivity(intentVideoCall);
@@ -543,12 +529,12 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         dbDatabase.Insert_Or_Replace_OR_Delete_UsersContact(UserData, "Delete");
 
 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_Blocked_successfully), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Blocked_successfully), ToastLength.Short);
                     }
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -561,7 +547,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         {
             try
             {
-                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 dialog.Title(GetText(Resource.String.Lbl_Clear_chat));
                 dialog.Content(GetText(Resource.String.Lbl_AreYouSureDeleteMessages));
                 dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
@@ -742,13 +728,32 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
                 }
 
-                if (!AppSettings.EnableAudioCall)
-                    AudioCallButton.Visibility = ViewStates.Gone;
+                if (AppSettings.EnableAudioVideoCall)
+                {
+                    var dataSettings = ListUtils.SettingsSiteList;
+                    if (dataSettings?.WhoCall == "pro") //just pro user can chat 
+                    {
+                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault()?.IsPro;
+                        if (dataUser == "0") // Not Pro remove call
+                        {
+                            AudioCallButton.Visibility = ViewStates.Gone;
+                            VideoCallButton.Visibility = ViewStates.Gone;
+                        }
+                    }
+                    else //all users can chat
+                    {
+                        if (dataSettings?.VideoChat == "0" || !AppSettings.EnableVideoCall)
+                        {
+                            VideoCallButton.Visibility = ViewStates.Gone;
+                        }
 
-                if (!AppSettings.EnableVideoCall)
-                    VideoCallButton.Visibility = ViewStates.Gone;
-
-                if (!AppSettings.EnableAudioVideoCall)
+                        if (dataSettings?.AudioChat == "0" || !AppSettings.EnableAudioCall)
+                        {
+                            AudioCallButton.Visibility = ViewStates.Gone;
+                        }
+                    }
+                }
+                else
                 {
                     AudioCallButton.Visibility = ViewStates.Gone;
                     VideoCallButton.Visibility = ViewStates.Gone;
@@ -759,7 +764,6 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     TopFragmentHolder.SetBackgroundColor(Color.ParseColor("#282828"));
                     FirstLiner.SetBackgroundColor(Color.ParseColor("#282828"));
                     FirstBoxOnButton.SetBackgroundColor(Color.ParseColor("#282828"));
-
                 }
                 else
                 {
@@ -817,7 +821,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 EmojisViewTools.MStickerView = AppSettings.ShowButtonStickers;
                 AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, EmojIconEditTextView, "ChatWindowActivity");
                 AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
-                var EmojisViewActions = new EmojisViewActions(this, "ChatWindowActivity", popup, EmojIconEditTextView, ChatEmojImage);
+                var emojisViewActions = new EmojisViewActions(this, "ChatWindowActivity", popup, EmojIconEditTextView, ChatEmojImage);
 
                 EmojIconEditTextView.AddTextChangedListener(new MyTextWatcher(this));
             }
@@ -833,11 +837,16 @@ namespace WoWonder.Activities.Chat.ChatWindow
             {
                 MAdapter = new MessageAdapter(this, UserId, false) { DifferList = new ObservableCollection<AdapterModelsClassMessage>() };
 
-                LayoutManager = new LinearLayoutManager(this);
+                LayoutManager = new Holders.MsgPreCachingLayoutManager(this) {Orientation = RecyclerView.Vertical};
+                LayoutManager.AutoMeasureEnabled = false;
+                LayoutManager.SetExtraLayoutSpace(2000); 
+                LayoutManager.StackFromEnd = true;
+                
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                ((SimpleItemAnimator) MRecycler.GetItemAnimator()).SupportsChangeAnimations = false;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<AdapterModelsClassMessage>(this, MAdapter, sizeProvider, 10);
                 MRecycler.AddOnScrollListener(preLoader);
@@ -867,7 +876,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -929,7 +938,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -955,20 +964,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         {
             try
             {
-                Animation animation = new TranslateAnimation(0, 0, 0, RepliedMessageView.Top + RepliedMessageView.Height);
-                animation.Duration = 300;
-                animation.AnimationEnd += (o, args) =>
-                {
-                    try
-                    {
-                        RepliedMessageView.Visibility = ViewStates.Gone;
-                    }
-                    catch (Exception exception)
-                    {
-                        Methods.DisplayReportResultTrack(exception);
-                    }
-                };
-                RepliedMessageView.StartAnimation(animation);
+                CloseReplyUi();
             }
             catch (Exception exception)
             {
@@ -1026,18 +1022,27 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                 if (Methods.CheckConnectivity())
                 {
-                    Task.Factory.StartNew(() =>
+                    if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
                     {
-                        MessageController.SendMessageTask(this, UserId, time2, SuggestionAdapter.GetItem(position).RealMessage).ConfigureAwait(false);
-                    });
+                        UserDetails.Socket?.EmitAsync_SendMessage(UserId, UserDetails.AccessToken, UserDetails.Username, SuggestionAdapter.GetItem(position).RealMessage, MainChatColor, false);
+                    }
+                    else
+                    {
+                        Task.Factory.StartNew(() =>
+                        {
+                            MessageController.SendMessageTask(this, UserId, time2, SuggestionAdapter.GetItem(position).RealMessage).ConfigureAwait(false);
+                        });
+                    }
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
 
                 SayHiLayout.Visibility = ViewStates.Gone;
                 SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
+           
+                CloseReplyUi(); 
             }
             catch (Exception exception)
             {
@@ -1092,7 +1097,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                     i.SetData(Uri.Parse(item.MesData.Media));
                                     i.SetType(mimeType);
                                     StartActivity(i);
-                                    // Toast.MakeText(MainActivity, MainActivity.GetText(Resource.String.Lbl_Something_went_wrong), ToastLength.Long)?.Show();
+                                    // ToastUtils.ShowToast(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 }
 
                                 break;
@@ -1202,35 +1207,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 {
                     SelectedItemPositions = MAdapter.GetItem(e.Position);
                     if (SelectedItemPositions != null)
-                    {
-                        var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        if (e.Type == Holders.TypeClick.Text)
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_Copy));
-
-                        if (SelectedItemPositions.MesData.Position == "right")
-                        {
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_MessageInfo));
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_DeleteMessage));
-                        }
-
-                        if (AppSettings.EnableReplyMessageSystem)
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_Reply));
-
-                        if (AppSettings.EnableForwardMessageSystem)
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_Forward));
-
-                        if (AppSettings.EnablePinMessageSystem)
-                            arrayAdapter.Add(SelectedItemPositions.MesData.IsPinned ? GetText(Resource.String.Lbl_UnPin) : GetText(Resource.String.Lbl_Pin));
-
-                        if (AppSettings.EnableFavoriteMessageSystem)
-                            arrayAdapter.Add(SelectedItemPositions.MesData.IsStarted ? GetText(Resource.String.Lbl_UnFavorite) : GetText(Resource.String.Lbl_Favorite));
-
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                    { 
+                        OptionsChatWindowBottomSheet bottomSheet = new OptionsChatWindowBottomSheet();
+                        Bundle bundle = new Bundle();
+                        bundle.PutString("Type", JsonConvert.SerializeObject(e.Type));
+                        bundle.PutString("Page", "ChatWindow");
+                        bundle.PutString("ItemObject", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
+                        bottomSheet.Arguments = bundle;
+                        bottomSheet.Show(SupportFragmentManager, bottomSheet.Tag); 
                     }
                 }
             }
@@ -1250,7 +1234,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
             try
             {
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_View_Profile));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Block));
@@ -1377,7 +1361,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                         EditTextClose();
 
-                        RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "stopped").ConfigureAwait(false);
+                        if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                        {
+                            //Socket.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken, "stopped");
+                        }
+                        else
+                        {
+                            RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "stopped").ConfigureAwait(false);
+                        }
                     }
                 }
                 else
@@ -1430,7 +1421,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 layoutParams.Height = 42;
                 ChatMediaButton.LayoutParameters = layoutParams;
 
-                RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "typing").ConfigureAwait(false);
+                if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                {
+                    UserDetails.Socket?.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken);
+                }
+                else
+                {
+                    RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "typing").ConfigureAwait(false);
+                }
             }
             catch (Exception exception)
             {
@@ -1572,7 +1570,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 if (ChatMediaButton?.Tag?.ToString() == "attachment")
                 {
                     var arrayAdapter = new List<string>();
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                     if (AppSettings.ShowButtonImage)
                         arrayAdapter.Add(GetText(Resource.String.Lbl_ImageGallery));
@@ -1663,12 +1661,12 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         {
                             Task.Factory.StartNew(() =>
                             {
-                                MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", filePath).ConfigureAwait(false);
+                                MessageController.SendMessageTask(this, UserId, time2, "", "", filePath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                             });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                     }
 
@@ -1723,14 +1721,21 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                         if (Methods.CheckConnectivity())
                         {
-                            Task.Factory.StartNew(() =>
+                            if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
                             {
-                                MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text).ConfigureAwait(false);
-                            });
+                                UserDetails.Socket?.EmitAsync_SendMessage(UserId, UserDetails.AccessToken, UserDetails.Username, EmojIconEditTextView.Text, MainChatColor, false);
+                            }
+                            else
+                            { 
+                                Task.Factory.StartNew(() =>
+                                {
+                                    MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text,"", "", "", "", "", "", "","", "", ReplyId).ConfigureAwait(false);
+                                });
+                            }
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
 
                         EmojIconEditTextView.Text = "";
@@ -1749,6 +1754,8 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         RecordButton.SetListenForRecord(false);
                     }
                 }
+
+                CloseReplyUi();
             }
             catch (Exception e)
             {
@@ -1761,7 +1768,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         #region Permissions && Result
 
         //Result
-        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
+        protected override async void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             try
             {
@@ -1794,6 +1801,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             SendFile = true,
                             ChatColor = MainChatColor,
                         };
+
                         MAdapter.DifferList.Add(new AdapterModelsClassMessage
                         {
                             TypeView = MessageModelType.RightContact,
@@ -1819,14 +1827,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         if (Methods.CheckConnectivity())
                         {
                             //Send contact function
-                            Task.Factory.StartNew(() =>
+                            await Task.Factory.StartNew(() =>
                             {
-                                MessageController.SendMessageTask(this, UserId, time2, dataContact, "1").ConfigureAwait(false);
+                                MessageController.SendMessageTask(this, UserId, time2, dataContact, "1", "", "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                             });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
                     }
                 }
@@ -1835,11 +1843,11 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
                     if (filepath != null)
                     {
-                        var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
                         if (!check)
                         {
                             //this file not supported on the server , please select another file 
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                             return;
                         }
 
@@ -1875,19 +1883,19 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Send image function
                             if (Methods.CheckConnectivity())
                             {
-                                Task.Factory.StartNew(() =>
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
+                                    MessageController.SendMessageTask(this, UserId, time2, "", "", filepath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                 });
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                             }
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_Please_check_your_details), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Please_check_your_details), ToastLength.Long);
                         }
                     }
                 }
@@ -1932,19 +1940,19 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 //Send image function
                                 if (Methods.CheckConnectivity())
                                 {
-                                    Task.Factory.StartNew(() =>
+                                    await Task.Factory.StartNew(() =>
                                     {
-                                        MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", resultUri.Path).ConfigureAwait(false);
+                                        MessageController.SendMessageTask(this, UserId, time2, "", "", resultUri.Path).ConfigureAwait(false);
                                     });
                                 }
                                 else
                                 {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                                 }
                             }
                             else
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                             }
                         }
                     }
@@ -1953,7 +1961,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 {
                     if (string.IsNullOrEmpty(IntentController.CurrentPhotoPath))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
                     }
                     else
                     {
@@ -1992,19 +2000,19 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Send image function
                             if (Methods.CheckConnectivity())
                             {
-                                Task.Factory.StartNew(() =>
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", IntentController.CurrentPhotoPath).ConfigureAwait(false);
+                                    MessageController.SendMessageTask(this, UserId, time2, "", "", IntentController.CurrentPhotoPath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                 });
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                             }
                         }
                         else
                         {
-                            //Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load),ToastLength.Short)?.Show();
+                            //ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load),ToastLength.Short);
                         }
                     }
                 }
@@ -2013,11 +2021,11 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
                     if (filepath != null)
                     {
-                        var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
                         if (!check)
                         {
                             //this file not supported on the server , please select another file 
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                             return;
                         }
 
@@ -2070,14 +2078,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Send Video function
                             if (Methods.CheckConnectivity())
                             {
-                                Task.Factory.StartNew(() =>
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
+                                    MessageController.SendMessageTask(this, UserId, time2, "", "", filepath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                 });
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                             }
 
                             //}
@@ -2122,14 +2130,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         //Send Video function
                         if (Methods.CheckConnectivity())
                         {
-                            Task.Factory.StartNew(() =>
+                            await Task.Factory.StartNew(() =>
                             {
-                                MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", IntentController.CurrentVideoPath).ConfigureAwait(false);
+                                MessageController.SendMessageTask(this, UserId, time2, "", "", IntentController.CurrentVideoPath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                             });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
                     }
                     else
@@ -2170,14 +2178,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 //Send Video function
                                 if (Methods.CheckConnectivity())
                                 {
-                                    Task.Factory.StartNew(() =>
+                                    await Task.Factory.StartNew(() =>
                                     {
-                                        MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
+                                        MessageController.SendMessageTask(this, UserId, time2, "", "", filepath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                     });
                                 }
                                 else
                                 {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                                 }
                             }
                         }
@@ -2188,11 +2196,11 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     string filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
                     if (filepath != null)
                     {
-                        var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
                         if (!check)
                         {
                             //this file not supported on the server , please select another file 
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                             return;
                         }
 
@@ -2228,14 +2236,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         //Send Video function
                         if (Methods.CheckConnectivity())
                         {
-                            Task.Factory.StartNew(() =>
+                            await Task.Factory.StartNew(() =>
                             {
-                                MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
+                                MessageController.SendMessageTask(this, UserId, time2, "", "", filepath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                             });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
                     }
                 }
@@ -2244,11 +2252,11 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
                     if (filepath != null)
                     {
-                        var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
                         if (!check)
                         {
                             //this file not supported on the server , please select another file 
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                             return;
                         }
 
@@ -2293,25 +2301,25 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Send Video function
                             if (Methods.CheckConnectivity())
                             {
-                                Task.Factory.StartNew(() =>
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    MessageController.SendMessageTask(this, UserId, time2, "", "", filepath).ConfigureAwait(false);
+                                    MessageController.SendMessageTask(this, UserId, time2, "", "", filepath, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                 });
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                             }
                             //}
                         }
                         else
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
                         }
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
                     }
                 }
                 else if (requestCode == 300 && resultCode == Result.Ok) // right_gif
@@ -2358,19 +2366,19 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         //Send image function
                         if (Methods.CheckConnectivity())
                         {
-                            Task.Factory.StartNew(() =>
+                            await Task.Factory.StartNew(() =>
                             {
-                                MessageController.SendMessageTask(this, UserId, time2, EmojIconEditTextView.Text, "", "", "", "", gifUrl).ConfigureAwait(false);
+                                MessageController.SendMessageTask(this, UserId, time2, "", "", "", "", "", gifUrl, "", "", "", "", ReplyId).ConfigureAwait(false);
                             });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         }
                     }
                     else
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_Please_check_your_details) + " ", ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Please_check_your_details) + " ", ToastLength.Long);
                     }
                 }
                 else if (requestCode == 502 && resultCode == Result.Ok) // Location
@@ -2415,18 +2423,20 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Send image function
                             if (Methods.CheckConnectivity())
                             {
-                                Task.Factory.StartNew(() =>
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    MessageController.SendMessageTask(this, UserId, time2, "", "", "", "", "", "", "", lat, lng).ConfigureAwait(false);
+                                    MessageController.SendMessageTask(this, UserId, time2, "", "", "", "", "", "", "", lat, lng, "", ReplyId).ConfigureAwait(false);
                                 });
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                             }
                         }
                     }
                 }
+
+                CloseReplyUi();
             }
             catch (Exception e)
             {
@@ -2449,7 +2459,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 108)
@@ -2459,9 +2469,9 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         switch (PermissionsType)
                         {
                             //requestCode >> 500 => Image Gallery
-                            case "Image" when AppSettings.ImageCropping:
-                                OpenDialogGallery("Image");
-                                break;
+                            //case "Image" when AppSettings.ImageCropping:
+                            //    OpenDialogGallery("Image");
+                            //    break;
                             case "Image": //requestCode >> 500 => Image Gallery
                                 new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false);
                                 break;
@@ -2481,7 +2491,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 100)
@@ -2502,7 +2512,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 101)
@@ -2514,7 +2524,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 105)
@@ -2526,7 +2536,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 102)
@@ -2546,11 +2556,18 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Start Audio record
                             await Task.Delay(600);
                             RecorderService.StartRecording();
+
+                            if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                            {
+                                //Socket.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken, "recording");
+                            }
+                            else
+                                await RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "recording").ConfigureAwait(false);
                         }
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 1106) //Audio Call
@@ -2561,7 +2578,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
                 else if (requestCode == 1107) //Video call
@@ -2572,7 +2589,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
             }
@@ -2586,18 +2603,18 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_ImageGallery)) // image 
+                if (itemString == GetText(Resource.String.Lbl_ImageGallery)) // image 
                 {
                     // Check if we're running on Android 5.0 or higher
                     if ((int)Build.VERSION.SdkInt < 23)
                     {
-                        if (AppSettings.ImageCropping)
-                            OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
-                        else
+                        //if (AppSettings.ImageCropping)
+                        //    OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
+                        //else
                             new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false); //requestCode >> 500 => Image Gallery
                     }
                     else
@@ -2605,9 +2622,9 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
                                                                                                   && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
                         {
-                            if (AppSettings.ImageCropping)
-                                OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
-                            else
+                            //if (AppSettings.ImageCropping)
+                            //    OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
+                            //else
                                 new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false); //requestCode >> 500 => Image Gallery
                         }
                         else
@@ -2616,7 +2633,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_TakeImageFromCamera)) // Camera 
+                else if (itemString == GetText(Resource.String.Lbl_TakeImageFromCamera)) // Camera 
                 {
                     PermissionsType = "Camera";
 
@@ -2640,7 +2657,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_VideoGallery)) // video  
+                else if (itemString == GetText(Resource.String.Lbl_VideoGallery)) // video  
                 {
                     PermissionsType = "Video";
 
@@ -2664,7 +2681,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_RecordVideoFromCamera)) // video camera
+                else if (itemString == GetText(Resource.String.Lbl_RecordVideoFromCamera)) // video camera
                 {
                     PermissionsType = "Video_camera";
 
@@ -2688,7 +2705,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_File)) // File  
+                else if (itemString == GetText(Resource.String.Lbl_File)) // File  
                 {
                     PermissionsType = "File";
 
@@ -2712,7 +2729,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Music)) // Music  
+                else if (itemString == GetText(Resource.String.Lbl_Music)) // Music  
                 {
                     PermissionsType = "Music";
 
@@ -2727,69 +2744,38 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             new PermissionsController(this).RequestPermission(100);
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Gif)) // Gif  
+                else if (itemString == GetText(Resource.String.Lbl_Gif)) // Gif  
                 {
                     StartActivityForResult(new Intent(this, typeof(GifActivity)), 300);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Contact)) // Contact  
+                else if (itemString == GetText(Resource.String.Lbl_Contact)) // Contact  
                 {
                     ChatContactButtonOnClick();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Location)) // Location  
+                else if (itemString == GetText(Resource.String.Lbl_Location)) // Location  
                 {
                     ChatLocationButtonOnClick();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_View_Profile)) // Menu View profile
+                else if (itemString == GetText(Resource.String.Lbl_View_Profile)) // Menu View profile
                 {
                     OnMenuViewProfile_Click();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Block)) // Menu Block
+                else if (itemString == GetText(Resource.String.Lbl_Block)) // Menu Block
                 {
                     OnMenuBlock_Click();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Clear_chat)) // Menu Clear Chat
+                else if (itemString == GetText(Resource.String.Lbl_Clear_chat)) // Menu Clear Chat
                 {
                     OnMenuClearChat_Click();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_StartedMessages)) // Menu Started Messages
+                else if (itemString == GetText(Resource.String.Lbl_StartedMessages)) // Menu Started Messages
                 {
                     OnMenuStartedMessages_Click();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Media)) // Menu Media (Shared Files)
+                else if (itemString == GetText(Resource.String.Lbl_Media)) // Menu Media (Shared Files)
                 {
                     OnMenuMedia_Click();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Copy))
-                {
-                    CopyItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_MessageInfo))
-                {
-                    var intent = new Intent(this, typeof(MessageInfoActivity));
-                    intent.PutExtra("UserId", UserId);
-                    intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
-                    StartActivity(intent);
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Forward))
-                {
-                    ForwardItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Reply))
-                {
-                    ReplyItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_DeleteMessage))
-                {
-                    DeleteMessageItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_UnFavorite) || itemString.ToString() == GetText(Resource.String.Lbl_Favorite))
-                {
-                    StarMessageItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_UnPin) || itemString.ToString() == GetText(Resource.String.Lbl_Pin))
-                {
-                    PinMessageItems();
-                }
+                }   
             }
             catch (Exception e)
             {
@@ -2809,7 +2795,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 {
                     if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                     {
-                        DataUser = JsonConvert.DeserializeObject<ChatObject>(Intent?.GetStringExtra("UserItem"));
+                        DataUser = JsonConvert.DeserializeObject<ChatObject>(Intent?.GetStringExtra("UserItem") ?? "");
                         if (DataUser != null)
                         {
                             DataUser.LastMessage.LastMessageClass.ChatColor ??= AppSettings.MainColor;
@@ -2825,7 +2811,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     }
                     else
                     {
-                        DataUserChat = JsonConvert.DeserializeObject<GetUsersListObject.User>(Intent?.GetStringExtra("UserItem"));
+                        DataUserChat = JsonConvert.DeserializeObject<GetUsersListObject.User>(Intent?.GetStringExtra("UserItem") ?? "");
                         if (DataUserChat != null)
                         {
                             DataUserChat.ChatColor ??= AppSettings.MainColor;
@@ -2847,7 +2833,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 }
                 else
                 {
-                    UserData = JsonConvert.DeserializeObject<UserDataObject>(Intent?.GetStringExtra("UserItem"));
+                    UserData = JsonConvert.DeserializeObject<UserDataObject>(Intent?.GetStringExtra("UserItem") ?? "");
                     if (UserData != null)
                     {
                         UserData.ChatColor ??= AppSettings.MainColor;
@@ -3109,7 +3095,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                     RunLoadMore = false;
                 }
-                else Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                else ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
             catch (Exception e)
             {
@@ -3138,6 +3124,9 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 {
                                     var typing = result.Typing.ToString();
                                     ActionBarSubTitle.Text = typing == "1" ? GetString(Resource.String.Lbl_Typping) : LastSeen ?? LastSeen;
+
+                                    var isRecording = result.IsRecording.ToString();
+                                    ActionBarSubTitle.Text = isRecording == "1" ? GetString(Resource.String.Lbl_Recording) : LastSeen ?? LastSeen;
                                 }
                                 catch (Exception e)
                                 {
@@ -3156,7 +3145,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                                         var check = MAdapter.DifferList.FirstOrDefault(a => a.MesData.Id == item.Id);
                                         if (check == null)
-                                        {
+                                        { 
                                             MAdapter.DifferList.Add(new AdapterModelsClassMessage
                                             {
                                                 TypeView = type,
@@ -3287,7 +3276,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         }
                         else Methods.DisplayReportResult(this, respond);
                     }
-                    else Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    else ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
 
                     TaskWork = "Working";
                 }
@@ -3341,7 +3330,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                              Position = message.Position,
                                              ModelType = message.ModelType,
                                              FileSize = message.FileSize,
-                                             MessageUser = new WoWonderClient.Classes.Message.MessageData.MessageUserUnion()
+                                             MessageUser = new WoWonderClient.Classes.Message.MessageData.MessageUserUnion
                                              {
                                                  User = JsonConvert.DeserializeObject<UserDataObject>(message.MessageUser)
                                              },
@@ -3350,7 +3339,22 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                              ChatColor = MainChatColor,
                                              Lat = message.Lat,
                                              Lng = message.Lng,
-                                             SendFile = false,
+                                             SendFile = false, 
+                                             Product = new ProductUnion()
+                                             {
+                                                 ProductClass = JsonConvert.DeserializeObject<ProductDataObject>(message.Product)
+                                             },
+                                             UserData = JsonConvert.DeserializeObject<UserDataObject>(message.UserData),
+                                             ToData = JsonConvert.DeserializeObject<UserDataObject>(message.ToData),
+                                             Reaction = JsonConvert.DeserializeObject<WoWonderClient.Classes.Posts.Reaction>(message.Reaction),
+                                             Reply = new MessageData.ReplyUnion()
+                                             {
+                                                 ReplyClass = JsonConvert.DeserializeObject<MessageData>(message.Reply)
+                                             },
+                                             Story = new MessageData.StoryUnion()
+                                             {
+                                                 StoryClass = JsonConvert.DeserializeObject<StoryDataObject.Story>(message.Story)
+                                             },
                                          })
                     {
                         var type = Holders.GetTypeModel(item);
@@ -3485,7 +3489,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                     RunLoadMore = false;
                 }
-                else Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                else ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
             catch (Exception e)
             {
@@ -3502,7 +3506,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         {
             try
             {
-                //Toast.MakeText(this, "RECORD BUTTON CLICKED", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(this, "RECORD BUTTON CLICKED", ToastLength.Short);
                 OnClick_OfSendButton();
             }
             catch (Exception e)
@@ -3513,7 +3517,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         public async void OnStartRecord()
         {
-            //Toast.MakeText(this, "OnStartRecord", ToastLength.Short)?.Show();
+            //ToastUtils.ShowToast(this, "OnStartRecord", ToastLength.Short);
 
             //record voices ( Permissions is 102 )
             try
@@ -3536,6 +3540,13 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         //Start Audio record
                         await Task.Delay(600);
                         RecorderService.StartRecording();
+
+                        if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                        {
+                            //Socket.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken, "recording");
+                        }
+                        else
+                            await RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "recording").ConfigureAwait(false);
                     }
                 }
                 else
@@ -3559,6 +3570,13 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             //Start Audio record
                             await Task.Delay(600);
                             RecorderService.StartRecording();
+
+                            if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                            {
+                                //Socket.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken, "recording");
+                            }
+                            else
+                                await RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "recording").ConfigureAwait(false);
                         }
                     }
                     else
@@ -3579,12 +3597,21 @@ namespace WoWonder.Activities.Chat.ChatWindow
             {
                 RecorderService.StopRecording();
 
-                //Toast.MakeText(this, "OnCancelRecord", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(this, "OnCancelRecord", ToastLength.Short);
                 // reset mic nd show edittext
                 LayoutEditText.Visibility = ViewStates.Visible;
                 ChatColorButton.Visibility = ViewStates.Visible;
                 //ChatStickerButton.Visibility = ViewStates.Visible;
                 ChatMediaButton.Visibility = ViewStates.Visible;
+
+                if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                {
+                    //Socket.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken, "stopped");
+                }
+                else
+                {
+                    RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "stopped").ConfigureAwait(false);
+                }
             }
             catch (Exception e)
             {
@@ -3594,7 +3621,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         public void OnFinishRecord(long recordTime)
         {
-            //Toast.MakeText(this, "OnFinishRecord " + recordTime, ToastLength.Short)?.Show();
+            //ToastUtils.ShowToast(this, "OnFinishRecord " + recordTime, ToastLength.Short);
             //open fragemt recoud and show edittext
             try
             {
@@ -3625,6 +3652,15 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 ChatColorButton.Visibility = ViewStates.Visible;
                 //ChatStickerButton.Visibility = ViewStates.Visible;
                 ChatMediaButton.Visibility = ViewStates.Visible;
+
+                if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                {
+                    //Socket.EmitAsync_TypingEvent(UserId, UserDetails.AccessToken, "stopped");
+                }
+                else
+                {
+                    RequestsAsync.Message.SetChatTypingStatusAsync(UserId, "stopped").ConfigureAwait(false);
+                }
             }
             catch (Exception exception)
             {
@@ -3634,7 +3670,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         public void OnLessThanSecond()
         {
-            //Toast.MakeText(this, "OnLessThanSecond", ToastLength.Short)?.Show(); 
+            //ToastUtils.ShowToast(this, "OnLessThanSecond", ToastLength.Short); 
         }
 
         #endregion
@@ -3656,8 +3692,8 @@ namespace WoWonder.Activities.Chat.ChatWindow
                             item.MesData.MediaPlayer.Reset();
                         }
                         item.MesData.MediaPlayer?.Release();
-                        item.MesData.MediaPlayer = null;
-                        item.MesData.MediaTimer = null;
+                        item.MesData.MediaPlayer = null!;
+                        item.MesData.MediaTimer = null!;
                     }
                     MAdapter.NotifyDataSetChanged();
                 }
@@ -3824,26 +3860,24 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         #region Selected
 
-        //Copy Messages
-        private void CopyItems()
+        //Message Info 
+        public void MessageInfoItems()
         {
             try
             {
-                string allText = "";
-                if (SelectedItemPositions != null && !string.IsNullOrEmpty(SelectedItemPositions.MesData.Text))
-                {
-                    allText = SelectedItemPositions.MesData.Text;
-                }
-                Methods.CopyToClipboard(this, allText);
+                var intent = new Intent(this, typeof(MessageInfoActivity));
+                intent.PutExtra("UserId", UserId);
+                intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
+                StartActivity(intent);
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         //Forward Messages
-        private void ForwardItems()
+        public void ForwardItems()
         {
             try
             {
@@ -3866,9 +3900,8 @@ namespace WoWonder.Activities.Chat.ChatWindow
             }
         }
 
-        //ToDo //wael
         //Reply Messages
-        private void ReplyItems()
+        public void ReplyItems()
         {
             try
             {
@@ -3878,6 +3911,8 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     var animation = new TranslateAnimation(0, 0, RepliedMessageView.Height, 0) { Duration = 300 };
 
                     RepliedMessageView.StartAnimation(animation);
+                 
+                    ReplyId = SelectedItemPositions.MesData.Id;
 
                     TxtOwnerName.Text = SelectedItemPositions.MesData.MessageUser?.User?.UserId == UserDetails.UserId ? GetText(Resource.String.Lbl_You) : ActionBarTitle.Text;
 
@@ -4056,7 +4091,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         }
 
         //Delete Message
-        private void DeleteMessageItems()
+        public void DeleteMessageItems()
         {
             try
             {
@@ -4099,7 +4134,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         }
 
         //Star Message 
-        private void StarMessageItems()
+        public void StarMessageItems()
         {
             try
             {
@@ -4131,7 +4166,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         }
 
         //Pin Message 
-        private void PinMessageItems()
+        public void PinMessageItems()
         {
             try
             {
@@ -4153,6 +4188,17 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                     SqLiteDatabase dbDatabase = new SqLiteDatabase();
                     dbDatabase.Insert_Or_Delete_To_one_PinnedMessagesTable(SelectedItemPositions.MesData);
+
+                    if (SelectedItemPositions.MesData.IsPinned)
+                    {
+                        if (Methods.CheckConnectivity())
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.PinMessageAsync(SelectedItemPositions.MesData.Id, "yes", "user") });
+                    }
+                    else
+                    {
+                        if (Methods.CheckConnectivity())
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.PinMessageAsync(SelectedItemPositions.MesData.Id, "no", "user") });
+                    }
 
                     LoadPinnedMessage();
                 }
@@ -4239,7 +4285,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetProfileApi });
         }
@@ -4481,6 +4527,8 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 SayHiLayout.Visibility = ViewStates.Visible;
                                 SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
                             }
+
+                            CloseReplyUi();
                         }
                         catch (Exception e)
                         {
@@ -4682,14 +4730,14 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
             public event LoadMoreEventHandler LoadMoreEvent;
 
-            private readonly LinearLayoutManager LayoutManager;
+            private readonly Holders.MsgPreCachingLayoutManager LayoutManager;
             //private readonly SwipeRefreshLayout SwipeRefreshLayout;
             private readonly FloatingActionButton FabScrollDown;
             private static readonly int HideThreshold = 20;
             private int ScrolledDistance = 0;
             private bool ControlsVisible = true;
 
-            public XamarinRecyclerViewOnScrollListener(LinearLayoutManager layoutManager, FloatingActionButton fabScrollDown, SwipeRefreshLayout swipeRefreshLayout)
+            public XamarinRecyclerViewOnScrollListener(Holders.MsgPreCachingLayoutManager layoutManager, FloatingActionButton fabScrollDown, SwipeRefreshLayout swipeRefreshLayout)
             {
                 LayoutManager = layoutManager;
                 FabScrollDown = fabScrollDown;
@@ -4801,6 +4849,35 @@ namespace WoWonder.Activities.Chat.ChatWindow
             }
         }
 
+        private void CloseReplyUi()
+        {
+            try
+            {
+                if (RepliedMessageView.Visibility == ViewStates.Visible)
+                {
+                    Animation animation = new TranslateAnimation(0, 0, 0, RepliedMessageView.Top + RepliedMessageView.Height);
+                    animation.Duration = 300;
+                    animation.AnimationEnd += (o, args) =>
+                    {
+                        try
+                        {
+                            RepliedMessageView.Visibility = ViewStates.Gone;
+                        }
+                        catch (Exception exception)
+                        {
+                            Methods.DisplayReportResultTrack(exception);
+                        }
+                    };
+                    RepliedMessageView.StartAnimation(animation);
+                    SelectedItemPositions = null;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
         private void GetOneSignalNotification()
         {
             try
@@ -4835,7 +4912,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
                                 if (!Methods.CheckConnectivity())
                                 {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                                     return;
                                 }
 
@@ -4843,7 +4920,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 var time = unixTimestamp.ToString();
 
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.SendMessageAsync(UserId, time, "", "", "", "", "", "", productId) });
-                                //Toast.MakeText(this, GetString(Resource.String.Lbl_MessageSentSuccessfully),ToastLength.Short)?.Show();
+                                //ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_MessageSentSuccessfully),ToastLength.Short);
                             }
                         }
 

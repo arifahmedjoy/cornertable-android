@@ -9,7 +9,7 @@ using Android.Widget;
 using Google.Places;
 using Java.Lang;
 using AmulyaKhare.TextDrawableLib;
-using Android.Support.V7.Widget;
+using AndroidX.RecyclerView.Widget;
 using WoWonder.Helpers.Utils;
 using Double = Java.Lang.Double;
 using Exception = System.Exception;
@@ -164,8 +164,8 @@ namespace WoWonder.PlacesAsync.Adapters
                 Description = MainView.FindViewById<TextView>(Resource.Id.card_dist); 
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new PlacesAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new PlacesAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new PlacesAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new PlacesAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

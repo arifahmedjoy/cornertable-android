@@ -7,6 +7,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
+using Com.Adcolony.Sdk;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.SettingsPreferences.InviteFriends;
 using WoWonder.Helpers.Ads;
@@ -109,7 +110,10 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 SupportFragmentManager.BeginTransaction().Replace(Resource.Id.content_frame, new TellFriendPrefsFragment(this))?.Commit();
 
                 LinearLayout adContainer = FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(this, adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(this, adContainer, null);
+                else
+                    AdsColony.InitBannerAd(this, adContainer, AdColonyAdSize.Banner, null);
             }
             catch (Exception e)
             {
@@ -158,7 +162,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                         break;
                     }
                     case 101:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }

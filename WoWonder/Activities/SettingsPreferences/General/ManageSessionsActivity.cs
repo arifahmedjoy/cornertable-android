@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -15,6 +15,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
+using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Activities.Base;
@@ -166,6 +167,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 EmptyStateLayout = FindViewById<ViewStub>(Resource.Id.viewStub);
 
                 SwipeRefreshLayout = (SwipeRefreshLayout)FindViewById(Resource.Id.swipeRefreshLayout);
+                SwipeRefreshLayout.SetBackgroundColor(new Color(ContextCompat.GetColor(this, AppSettings.SetTabDarkTheme ? Resource.Color.bgApp_Dark_color : Resource.Color.bgApp_color)));
                 SwipeRefreshLayout.SetColorSchemeResources(Android.Resource.Color.HoloBlueLight, Android.Resource.Color.HoloGreenLight, Android.Resource.Color.HoloOrangeLight, Android.Resource.Color.HoloRedLight);
                 SwipeRefreshLayout.Refreshing = true;
                 SwipeRefreshLayout.Enabled = true;
@@ -293,14 +295,14 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                     return;
                 }
                
                 ItemSessionsDataObject = MAdapter.GetItem(e.Position);
                 if (ItemSessionsDataObject != null)
                 {
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                     dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                     dialog.Content(GetText(Resource.String.Lbl_AreYouSureLogoutFromThisDevice));
@@ -324,7 +326,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadSessionsAsync });
         }
@@ -382,7 +384,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -464,7 +466,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     if (Methods.CheckConnectivity())
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.DeleteSessionsAsync(ItemSessionsDataObject.Id) });
                     else
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
                 else if (p1 == DialogAction.Negative)
                 {

@@ -2,113 +2,109 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using Android.App;
+using Android.Content;
 using Android.Graphics;
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
-using Bumptech.Glide.Load;
-using Bumptech.Glide.Load.Engine;
-using Bumptech.Glide.Load.Resource.Bitmap;
 using Bumptech.Glide.Request;
+using Bumptech.Glide.Util;
+using Java.IO;
 using Java.Util;
+using Newtonsoft.Json;
+using Refractored.Controls;
 using WoWonder.Activities.Communities.Groups;
 using WoWonder.Activities.Communities.Pages;
 using WoWonder.Activities.NativePost.Post;
+using WoWonder.Activities.Suggested.Adapters;
+using WoWonder.Activities.Suggested.Groups;
+using WoWonder.Activities.Suggested.Pages;
 using WoWonder.Activities.UserProfile.Adapters;
+using WoWonder.Activities.UsersPages;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonderClient.Classes.Global;
-using WoWonderClient.Classes.Group;
-using WoWonderClient.Requests;
 using IList = System.Collections.IList;
 
 namespace WoWonder.Activities.Communities.Adapters
 {
     public class SocialAdapter : RecyclerView.Adapter, ListPreloader.IPreloadModelProvider
     {
-        public event EventHandler<GroupsAdapterClickEventArgs> GroupItemClick;
-        public event EventHandler<GroupsAdapterClickEventArgs> GroupItemLongClick;
-
-        public event EventHandler<PageAdapterClickEventArgs> PageItemClick;
-        public event EventHandler<PageAdapterClickEventArgs> PageItemLongClick;
+        public event EventHandler<SocialAdapterClickEventArgs> ItemClick;
+        public event EventHandler<SocialAdapterClickEventArgs> ItemLongClick;
+        public event EventHandler<SocialAdapterClickEventArgs> ButtonItemClick;
 
         public readonly Activity ActivityContext;
-        public ObservableCollection<SocialModelsClass> SocialList { get; private set; }
-        private SocialModelType SocialPageType { get; set; }
         private RecyclerView.RecycledViewPool RecycledViewPool { get; set; }
-        public UserGroupsAdapter GroupsAdapter { get; private set; }
-        public UserPagesAdapter PagesAdapter { get; private set; }
 
-        public SocialAdapter(Activity context, SocialModelType socialModelType)
+        private LikedPagesAdapter LikedPagesAdapter;
+        private SuggestedGroupAdapter SuggestedGroupAdapter;
+        private SuggestedPageAdapter SuggestedPageAdapter;
+
+        public ObservableCollection<SocialModelsClass> SocialList = new ObservableCollection<SocialModelsClass>();
+         
+        public SocialAdapter(Activity context)
         {
             try
             {
                 HasStableIds = true;
                 ActivityContext = context;
-                SocialPageType = socialModelType;
-                
-                SocialList = new ObservableCollection<SocialModelsClass>(); 
+                RecycledViewPool = new RecyclerView.RecycledViewPool();
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+       
         public override int ItemCount => SocialList?.Count ?? 0;
-         
+
         // Create new views (invoked by the layout manager)
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
             try
-            { 
-                View itemView; 
-                var item = SocialList[viewType]; 
-                switch (item.TypeView)
-                {
-                    case SocialModelType.MangedGroups:
+            {
+                switch (viewType)
+                { 
+                    case (int)SocialModelType.MangedPages:
+                    case (int)SocialModelType.JoinedGroups:
+                    case (int)SocialModelType.MangedGroups:
                     {
-                        itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
-                        var vh = new AdapterHolders.GroupsSocialViewHolder(ActivityContext, itemView, this);
+                        var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_MyPage_View, parent, false);
+                        var vh = new MangedSocialAdapterViewHolder(itemView, OnClick, OnLongClick);
+                        return vh;
+                    } 
+                    case (int)SocialModelType.LikedPages:
+                    case (int)SocialModelType.SuggestedPages:
+                    case (int)SocialModelType.SuggestedGroups:
+                    {
+                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
+                        var vh = new SocialAdapterViewHolder(itemView, OnClick, OnLongClick, this);
                         RecycledViewPool = new RecyclerView.RecycledViewPool();
-                        vh.GroupsRecyclerView.SetRecycledViewPool(RecycledViewPool); 
+                        vh.MRecycler.SetRecycledViewPool(RecycledViewPool);
                         return vh;
                     }
-                    case SocialModelType.JoinedGroups:
+                    case (int)SocialModelType.Section:
                     {
-                        itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_GroupCircle_view, parent, false);
-                        var vh = new GroupsAdapterViewHolder(itemView, GroupsOnClick, this);
+                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_Section, parent, false);
+                        var vh = new SocialSectionViewHolder(itemView, OnClick, OnLongClick, this);
                         return vh;
                     }
-                    case SocialModelType.Section:
+                    case (int)SocialModelType.Divider:
                     {
-                        itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_Section, parent, false);
-                        var vh = new AdapterHolders.SectionViewHolder(itemView);
-                        return vh;
-                    }
-                    case SocialModelType.MangedPages:
-                    {
-                        itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.ViewModel_HRecyclerView, parent, false);
-                        var vh = new AdapterHolders.PagesSocialViewHolder(ActivityContext, itemView , this);
-                        RecycledViewPool = new RecyclerView.RecycledViewPool();
-                        vh.PagesRecyclerView.SetRecycledViewPool(RecycledViewPool); 
-                        return vh;
-                    }
-                    case SocialModelType.LikedPages:
-                    {
-                        itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_HPage_view, parent, false);
-                        var vh = new PageAdapterViewHolder(itemView, PageOnClick, this);
+                        View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Post_Devider, parent, false);
+                        var vh = new AdapterHolders.PostDividerSectionViewHolder(itemView);
                         return vh;
                     }
                     default:
                         return null!;
-                } 
+                }
+
             }
             catch (Exception exception)
             {
@@ -122,186 +118,211 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-                var item = SocialList[viewHolder.AdapterPosition];
+                var item = SocialList[position];
                 if (item != null)
                 {
-                    switch (item.TypeView)
+                    if (item.TypeView == SocialModelType.MangedPages)
                     {
-                        case SocialModelType.MangedGroups:
+                        if (viewHolder is MangedSocialAdapterViewHolder holder)
                         {
-                            switch (viewHolder)
-                            {
-                                case AdapterHolders.GroupsSocialViewHolder holder:
-                                {
-                                    switch (GroupsAdapter)
-                                    {
-                                        case null:
-                                            holder.GroupsRecyclerView?.SetLayoutManager(new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false));
-                                            GroupsAdapter = new UserGroupsAdapter(ActivityContext)
-                                            {
-                                                GroupList = new ObservableCollection<GroupClass>()
-                                            };
-                                            holder.GroupsRecyclerView?.SetAdapter(GroupsAdapter);
-                                            GroupsAdapter.ItemClick += GroupsAdapterOnItemClick;
-                                            break;
-                                    }
+                            GlideImageLoader.LoadImage(ActivityContext, item.Page.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                                    var countList = item.MangedGroupsModel.GroupsList.Count;
-                                    switch (item.MangedGroupsModel.GroupsList.Count)
-                                    {
-                                        case > 0 when countList > 0:
-                                        {
-                                            foreach (var user in from user in item.MangedGroupsModel.GroupsList let check = GroupsAdapter.GroupList.FirstOrDefault(a => a.GroupId == user.GroupId) where check == null select user)
-                                            {
-                                                GroupsAdapter.GroupList.Add(user);
-                                            }
+                            string name = Methods.FunString.DecodeString(item.Page.PageTitle);
+                            holder.Name.Text = name;
 
-                                            GroupsAdapter.NotifyItemRangeInserted(countList - 1, GroupsAdapter.GroupList.Count - countList);
-                                            break;
-                                        }
-                                        case > 0:
-                                            GroupsAdapter.GroupList = new ObservableCollection<GroupClass>(item.MangedGroupsModel.GroupsList);
-                                            GroupsAdapter.NotifyDataSetChanged();
-                                            break;
-                                    }
-
-                                    holder.AboutHead.Text = item.MangedGroupsModel?.TitleHead;
-                                    holder.AboutMore.Text = item.MangedGroupsModel?.More;
-                                    holder.AboutMore.Visibility = GroupsAdapter?.GroupList?.Count >= 5 ? ViewStates.Visible : ViewStates.Invisible;
-                                    break;
-                                }
-                            }
-
-                            break;
+                            CategoriesController cat = new CategoriesController();
+                            holder.Category.Text = cat.Get_Translate_Categories_Communities(item.Page.PageCategory, item.Page.Category, "Page"); 
                         }
-                        case SocialModelType.JoinedGroups:
-                        {
-                            switch (viewHolder)
-                            {
-                                case GroupsAdapterViewHolder holder:
-                                {
-                                    var options = new RequestOptions();
-                                    options.Transform(new MultiTransformation(new CenterCrop(), new RoundedCorners(110)));
-                                    options.Error(Resource.Drawable.ImagePlacholder).Placeholder(Resource.Drawable.ImagePlacholder);
-
-                                    GlideImageLoader.LoadImage(ActivityContext, item.GroupData.Avatar, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable, false, options);
-
-                                    holder.Name.Text = Methods.FunString.DecodeString(item.GroupData.Name);
-                                     
-                                    if (WoWonderTools.IsJoinedGroup(item.GroupData))
-                                    {
-                                        holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Joined);
-                                        holder.JoinButton.Tag = "true";
-                                    }
-                                    else
-                                    {
-                                        holder.JoinButton.Text = ActivityContext.GetString(Resource.String.Btn_Join_Group);
-                                        holder.JoinButton.Tag = "false";
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                        case SocialModelType.Section:
-                        {
-                            if (viewHolder is not AdapterHolders.SectionViewHolder holder)
-                                return;
-
-                            holder.AboutHead.Text = item.TitleHead;
-                            break;
-                        }
-                        case SocialModelType.MangedPages:
-                        {
-                            switch (viewHolder)
-                            {
-                                case AdapterHolders.PagesSocialViewHolder holder:
-                                {
-                                    switch (PagesAdapter)
-                                    {
-                                        case null:
-                                            holder.PagesRecyclerView?.SetLayoutManager(new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false));
-                                            PagesAdapter = new UserPagesAdapter(ActivityContext)
-                                            {
-                                                PageList = new ObservableCollection<PageClass>()
-                                            };
-                                            holder.PagesRecyclerView?.SetAdapter(PagesAdapter);
-                                            PagesAdapter.ItemClick += PagesAdapterOnItemClick;
-                                            break;
-                                    }
-
-                                    var countList = item.PagesModelClass.PagesList.Count;
-                                    switch (item.PagesModelClass.PagesList.Count)
-                                    {
-                                        case > 0 when countList > 0:
-                                        {
-                                            foreach (var user in from user in item.PagesModelClass.PagesList let check = PagesAdapter.PageList.FirstOrDefault(a => a.PageId == user.PageId) where check == null select user)
-                                            {
-                                                PagesAdapter.PageList.Add(user);
-                                            }
-
-                                            PagesAdapter.NotifyItemRangeInserted(countList - 1, PagesAdapter.PageList.Count - countList);
-                                            break;
-                                        }
-                                        case > 0:
-                                            PagesAdapter.PageList = new ObservableCollection<PageClass>(item.PagesModelClass.PagesList);
-                                            PagesAdapter.NotifyDataSetChanged();
-                                            break;
-                                    }
-
-                                    holder.AboutHead.Text = item.PagesModelClass?.TitleHead;
-                                    holder.AboutMore.Text = item.PagesModelClass?.More;
-                                    holder.AboutMore.Visibility = PagesAdapter?.PageList?.Count >= 5 ? ViewStates.Visible : ViewStates.Invisible;
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                        case SocialModelType.LikedPages:
-                        {
-                            switch (viewHolder)
-                            {
-                                case PageAdapterViewHolder holder:
-                                {
-                                    GlideImageLoader.LoadImage(ActivityContext, item.PageData.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                             
-                                    holder.About.Text = item.PageData.Category;
-
-                                    if (!string.IsNullOrEmpty(item.PageData.PageTitle) || !string.IsNullOrWhiteSpace(item.PageData.PageTitle))
-                                        holder.Name.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.PageData.PageTitle), 20);
-                                    else
-                                        holder.Name.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.PageData.PageName), 20);
-
-                                    //Set style Btn Like page 
-                                    if (WoWonderTools.IsLikedPage(item.PageData))
-                                    { 
-                                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                                        holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
-                                        holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Unlike);
-                                        holder.Button.Tag = "true";
-                                    }
-                                    else
-                                    {
-                                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                                        holder.Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                        holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Like);
-                                        holder.Button.Tag = "false";
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                        case SocialModelType.Pages:
-                            break;
-                        case SocialModelType.Groups:
-                            break; 
                     }
+                    else if (item.TypeView == SocialModelType.LikedPages)
+                    {
+                        if (viewHolder is SocialAdapterViewHolder holder)
+                        {
+                            if (LikedPagesAdapter == null)
+                            {
+                                LikedPagesAdapter = new LikedPagesAdapter(ActivityContext)
+                                {
+                                    PageList = new ObservableCollection<PageClass>()
+                                };
+
+                                LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                holder.MRecycler.SetLayoutManager(layoutManager);
+                                holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                holder.MRecycler.NestedScrollingEnabled = false;
+
+                                var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, LikedPagesAdapter, sizeProvider, 10);
+                                holder.MRecycler.AddOnScrollListener(preLoader);
+                                holder.MRecycler.SetAdapter(LikedPagesAdapter);
+                                LikedPagesAdapter.ItemClick += LikedPagesAdapterOnItemClick;
+
+                                holder.TitleText.Text = item.TitleHead;
+
+                                holder.MoreText.Text = ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                                holder.MoreText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.MoreText.Visibility = item.PageList.Count >= 1 ? ViewStates.Visible : ViewStates.Invisible;
+                            }
+
+                            var countList = LikedPagesAdapter.PageList.Count;
+                            if (item.PageList.Count > 0)
+                            {
+                                if (countList > 0)
+                                {
+                                    foreach (var page in from page in item.PageList let check = LikedPagesAdapter.PageList.FirstOrDefault(a => a.PageId == page.PageId) where check == null select page)
+                                    {
+                                        LikedPagesAdapter.PageList.Add(page);
+                                    }
+
+                                    LikedPagesAdapter.NotifyItemRangeInserted(countList, LikedPagesAdapter.PageList.Count - countList);
+                                }
+                                else
+                                {
+                                    LikedPagesAdapter.PageList = new ObservableCollection<PageClass>(item.PageList);
+                                    LikedPagesAdapter.NotifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }
+                    else if (item.TypeView == SocialModelType.MangedGroups || item.TypeView == SocialModelType.JoinedGroups)
+                    {
+                        if (viewHolder is MangedSocialAdapterViewHolder holder)
+                        {
+                            if (item.Group.Avatar.Contains("http"))
+                                GlideImageLoader.LoadImage(ActivityContext, item.Group.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                            else
+                                Glide.With(ActivityContext).Load(new File(item.Group.Avatar)).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder_circle).Error(Resource.Drawable.ImagePlacholder_circle)).Into(holder.Image);
+
+                            holder.Name.Text = Methods.FunString.SubStringCutOf(Methods.FunString.DecodeString(item.Group.Name), 20);
+
+                            holder.Category.Text = Methods.FunString.DecodeString(item.Group.Category);
+
+                            holder.CivBackground.SetColorFilter(Color.ParseColor("#FCA65C"));
+                            holder.SmallIcon.SetImageResource(Resource.Drawable.ic_small_group); 
+                        }
+                    }
+                    else if (item.TypeView == SocialModelType.SuggestedGroups)
+                    {
+                        if (viewHolder is SocialAdapterViewHolder holder)
+                        {
+                            if (SuggestedGroupAdapter == null)
+                            {
+                                SuggestedGroupAdapter = new SuggestedGroupAdapter(ActivityContext)
+                                {
+                                    GroupList = new ObservableCollection<GroupClass>()
+                                };
+
+                                LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                holder.MRecycler.SetLayoutManager(layoutManager);
+                                holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                holder.MRecycler.NestedScrollingEnabled = false;
+
+                                var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, SuggestedGroupAdapter, sizeProvider, 10);
+                                holder.MRecycler.AddOnScrollListener(preLoader);
+                                holder.MRecycler.SetAdapter(SuggestedGroupAdapter);
+                                SuggestedGroupAdapter.ItemClick += SuggestedGroupAdapterOnItemClick;
+                                SuggestedGroupAdapter.JoinButtonItemClick += SuggestedGroupAdapterOnJoinButtonItemClick;
+
+                                holder.TitleText.Text = item.TitleHead;
+                                holder.MoreText.Text = ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                                holder.MoreText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.MoreText.Visibility = item.SuggestedGroupList.Count >= 1 ? ViewStates.Visible : ViewStates.Invisible;
+                            }
+
+                            var countList = SuggestedGroupAdapter.GroupList.Count;
+                            if (item.SuggestedGroupList.Count > 0)
+                            {
+                                if (countList > 0)
+                                {
+                                    foreach (var page in from page in item.SuggestedGroupList let check = SuggestedGroupAdapter.GroupList.FirstOrDefault(a => a.GroupId == page.GroupId) where check == null select page)
+                                    {
+                                        SuggestedGroupAdapter.GroupList.Add(page);
+                                    }
+
+                                    SuggestedGroupAdapter.NotifyItemRangeInserted(countList, SuggestedGroupAdapter.GroupList.Count - countList);
+                                }
+                                else
+                                {
+                                    SuggestedGroupAdapter.GroupList = new ObservableCollection<GroupClass>(item.SuggestedGroupList);
+                                    SuggestedGroupAdapter.NotifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }
+                    else if (item.TypeView == SocialModelType.SuggestedPages)
+                    {
+                        if (viewHolder is SocialAdapterViewHolder holder)
+                        {
+                            if (SuggestedPageAdapter == null)
+                            {
+                                SuggestedPageAdapter = new SuggestedPageAdapter(ActivityContext)
+                                {
+                                    PageList = new ObservableCollection<PageClass>()
+                                };
+
+                                LinearLayoutManager layoutManager = new LinearLayoutManager(ActivityContext, LinearLayoutManager.Horizontal, false);
+                                holder.MRecycler.SetLayoutManager(layoutManager);
+                                holder.MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                                holder.MRecycler.NestedScrollingEnabled = false;
+
+                                var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                                var preLoader = new RecyclerViewPreloader<PageClass>(ActivityContext, SuggestedPageAdapter, sizeProvider, 10);
+                                holder.MRecycler.AddOnScrollListener(preLoader);
+                                holder.MRecycler.SetAdapter(SuggestedPageAdapter);
+                                SuggestedPageAdapter.ItemClick += SuggestedPageAdapterOnItemClick;
+                                SuggestedPageAdapter.LikeButtonItemClick += SuggestedPageAdapterOnLikeButtonItemClick;
+
+                                holder.TitleText.Text = item.TitleHead;
+                                holder.MoreText.Text = ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                                holder.MoreText.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                holder.MoreText.Visibility = item.SuggestedPageList.Count >= 1 ? ViewStates.Visible : ViewStates.Invisible;
+                            }
+
+                            var countList = SuggestedPageAdapter.PageList.Count;
+                            if (item.SuggestedPageList.Count > 0)
+                            {
+                                if (countList > 0)
+                                {
+                                    foreach (var page in from page in item.SuggestedPageList let check = SuggestedPageAdapter.PageList.FirstOrDefault(a => a.PageId == page.PageId) where check == null select page)
+                                    {
+                                        SuggestedPageAdapter.PageList.Add(page);
+                                    }
+
+                                    SuggestedPageAdapter.NotifyItemRangeInserted(countList, SuggestedPageAdapter.PageList.Count - countList);
+                                }
+                                else
+                                {
+                                    SuggestedPageAdapter.PageList = new ObservableCollection<PageClass>(item.SuggestedPageList);
+                                    SuggestedPageAdapter.NotifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }
+                    else if (item.TypeView == SocialModelType.Section)
+                    {
+                        if (viewHolder is not SocialSectionViewHolder holder)
+                            return;
+
+                        holder.AboutHead.Text = item.TitleHead;
+                    } 
+                } 
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        #region Event
+
+        private void LikedPagesAdapterOnItemClick(object sender, LikedPagesAdapterClickEventArgs e)
+        {
+            try
+            {
+                var item = LikedPagesAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    MainApplication.GetInstance()?.NavigateTo(ActivityContext, typeof(PageProfileActivity), item);
                 }
             }
             catch (Exception exception)
@@ -310,92 +331,74 @@ namespace WoWonder.Activities.Communities.Adapters
             }
         }
 
-        private void PagesAdapterOnItemClick(object sender, UserPagesAdapterClickEventArgs e)
+        private void SuggestedPageAdapterOnLikeButtonItemClick(object sender, SuggestedPageAdapterClickEventArgs e)
         {
             try
             {
-                var position = e.Position;
-                switch (position)
+                var item = SuggestedPageAdapter.GetItem(e.Position);
+                if (item != null)
                 {
-                    case < 0:
-                        return;
-                }
-
-                var item = PagesAdapter.GetItem(position);
-                switch (item)
-                {
-                    case null:
-                        return;
-                    default:
-                        MainApplication.GetInstance()?.NavigateTo(ActivityContext, typeof(PageProfileActivity), item);
-                        break;
+                    WoWonderTools.SetLikePage(ActivityContext, item.PageId, e.LikeButton);
                 }
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
+        }
+
+        private void SuggestedPageAdapterOnItemClick(object sender, SuggestedPageAdapterClickEventArgs e)
+        {
+            try
+            {
+                var item = SuggestedPageAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    MainApplication.GetInstance()?.NavigateTo(ActivityContext, typeof(PageProfileActivity), item);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+
+
+        private void SuggestedGroupAdapterOnJoinButtonItemClick(object sender, SuggestedGroupAdapterClickEventArgs e)
+        {
+            try
+            {
+                var item = SuggestedGroupAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    WoWonderTools.SetJoinGroup(ActivityContext, item.GroupId, e.JoinButton);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void SuggestedGroupAdapterOnItemClick(object sender, SuggestedGroupAdapterClickEventArgs e)
+        {
+            try
+            {
+                var item = SuggestedGroupAdapter.GetItem(e.Position);
+                if (item != null)
+                {
+                    MainApplication.GetInstance()?.NavigateTo(ActivityContext, typeof(GroupProfileActivity), item);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
           
-        }
+        #endregion
 
-        private void GroupsAdapterOnItemClick(object sender, UserGroupsAdapterClickEventArgs e)
-        {
-            try
-            {
-                var position = e.Position;
-                switch (position)
-                {
-                    case < 0:
-                        return;
-                }
-
-                var item = GroupsAdapter.GetItem(position);
-                switch (item)
-                {
-                    case null:
-                        return;
-                }
-
-                if (UserDetails.UserId == item.UserId)
-                    item.IsOwner = true;
-
-                //if (!string.IsNullOrEmpty(item.GroupsModel.UserProfileId) && UserDetails.UserId == item.GroupsModel.UserProfileId)
-                //    group.IsJoined = "true";
-
-                MainApplication.GetInstance()?.NavigateTo(ActivityContext, typeof(GroupProfileActivity), item);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        public override void OnViewRecycled(Java.Lang.Object holder)
-        {
-            try
-            {
-                if (ActivityContext?.IsDestroyed != false)
-                        return;
-                 
-                if (holder != null)
-                {
-                    switch (holder)
-                    {
-                        case GroupsAdapterViewHolder viewHolder:
-                            Glide.With(ActivityContext).Clear(viewHolder.Image);
-                            break;
-                        case PageAdapterViewHolder viewHolder2:
-                            Glide.With(ActivityContext).Clear(viewHolder2.Image);
-                            break;
-                    }
-                }
-                base.OnViewRecycled(holder);
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
         public SocialModelsClass GetItem(int position)
         {
             return SocialList[position];
@@ -418,6 +421,23 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
+                var item = SocialList[position];
+                if (item != null)
+                {
+                    return item.TypeView switch
+                    {
+                        SocialModelType.JoinedGroups => (int)SocialModelType.JoinedGroups,
+                        SocialModelType.MangedGroups => (int)SocialModelType.MangedGroups,
+                        SocialModelType.SuggestedGroups => (int)SocialModelType.SuggestedGroups,
+                        SocialModelType.LikedPages => (int)SocialModelType.LikedPages,
+                        SocialModelType.MangedPages => (int)SocialModelType.MangedPages,
+                        SocialModelType.SuggestedPages => (int)SocialModelType.SuggestedPages,
+                        SocialModelType.Section => (int)SocialModelType.Section,
+                        SocialModelType.Divider => (int)SocialModelType.Divider,
+                        _ => position
+                    };
+                }
+
                 return position;
             }
             catch (Exception exception)
@@ -427,63 +447,40 @@ namespace WoWonder.Activities.Communities.Adapters
             }
         }
 
-        private void GroupsOnClick(GroupsAdapterClickEventArgs args)
+
+        private void ButtonClick(SocialAdapterClickEventArgs args)
         {
-            GroupItemClick?.Invoke(this, args);
+            ButtonItemClick?.Invoke(this, args);
         }
 
-        private void GroupsOnLongClick(GroupsAdapterClickEventArgs args)
+
+        private void OnClick(SocialAdapterClickEventArgs args)
         {
-            GroupItemLongClick?.Invoke(this, args);
+            ItemClick?.Invoke(this, args);
         }
 
-        private void PageOnClick(PageAdapterClickEventArgs args)
+        private void OnLongClick(SocialAdapterClickEventArgs args)
         {
-            PageItemClick?.Invoke(this, args);
+            ItemLongClick?.Invoke(this, args);
         }
 
-        private void PageOnLongClick(PageAdapterClickEventArgs args)
-        {
-            PageItemLongClick?.Invoke(this, args);
-        }
-         
+
         public IList GetPreloadItems(int p0)
         {
             try
             {
                 var d = new List<string>();
                 var item = SocialList[p0];
-
-                switch (SocialPageType)
+                if (item == null)
                 {
-                    case SocialModelType.Groups when item.GroupData == null:
-                        return d;
-                    case SocialModelType.Groups:
-                    {
-                        switch (string.IsNullOrEmpty(item.GroupData.Avatar))
-                        {
-                            case false:
-                                d.Add(item.GroupData.Avatar);
-                                break;
-                        }
+                    return d;
+                }
+                else
+                {
+                    //if (!string.IsNullOrEmpty(item.Avatar))
+                    //    d.Add(item.Avatar);
 
-                        return d;
-                    }
-                    case SocialModelType.Pages when item.PageData == null:
-                        return d;
-                    case SocialModelType.Pages:
-                    {
-                        switch (string.IsNullOrEmpty(item.PageData.Avatar))
-                        {
-                            case false:
-                                d.Add(item.PageData.Avatar);
-                                break;
-                        }
-
-                        return d;
-                    }
-                    default:
-                        return Collections.SingletonList(p0);
+                    return d;
                 }
             }
             catch (Exception e)
@@ -495,146 +492,76 @@ namespace WoWonder.Activities.Communities.Adapters
 
         public RequestBuilder GetPreloadRequestBuilder(Java.Lang.Object p0)
         {
-            return Glide.With(ActivityContext).Load(p0.ToString())
-                .Apply(new RequestOptions().CenterCrop().SetDiskCacheStrategy(DiskCacheStrategy.All)); 
+            return GlideImageLoader.GetPreLoadRequestBuilder(ActivityContext, p0.ToString(), ImageStyle.CircleCrop);
         } 
     }
 
-    public class GroupsAdapterViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
+    public class MangedSocialAdapterViewHolder : RecyclerView.ViewHolder
     {
-        private readonly SocialAdapter SocialAdapter;
-        
         public View MainView { get; }
-        public ImageView Image { get; private set; }
-        public TextView Name { get; private set; }
-        public TextView CountJoinedUsers { get; private set; }
-        public TextView JoinButton { get; private set; }
+        public ImageView Image { get; set; }
+        public TextView Name { get; set; }
+        public TextView Category { get; set; }
+        public ImageView SmallIcon { get; set; }
+        public CircleImageView CivBackground { get; set; }
 
-        public GroupsAdapterViewHolder(View itemView, Action<GroupsAdapterClickEventArgs> clickListener, SocialAdapter socialAdapter) : base(itemView)
+        public MangedSocialAdapterViewHolder(View itemView, Action<SocialAdapterClickEventArgs> clickListener, Action<SocialAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
-                SocialAdapter = socialAdapter;
                 MainView = itemView;
-                
-                Image = MainView.FindViewById<ImageView>(Resource.Id.Image);
-                Name = MainView.FindViewById<TextView>(Resource.Id.groupName);
-                CountJoinedUsers = MainView.FindViewById<TextView>(Resource.Id.groupUsers);
-                JoinButton = MainView.FindViewById<TextView>(Resource.Id.groupButtonJoin);
+                Image = itemView.FindViewById<ImageView>(Resource.Id.PageImage);
+                Name = itemView.FindViewById<TextView>(Resource.Id.Page_Name);
+                Category = itemView.FindViewById<TextView>(Resource.Id.Page_Notifications);
 
-                JoinButton?.SetOnClickListener(this);
+                CivBackground = itemView.FindViewById<CircleImageView>(Resource.Id.civ_bg);
+                SmallIcon = itemView.FindViewById<ImageView>(Resource.Id.iv_small_icon);
+
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new GroupsAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new SocialAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SocialAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
-        public async void OnClick(View v)
-        {
-            try
-            {
-                if (AdapterPosition != RecyclerView.NoPosition)
-                {
-                    var item = SocialAdapter.SocialList[AdapterPosition];
-
-                    if (v.Id == JoinButton.Id)
-                    {
-                        if (!Methods.CheckConnectivity())
-                        {
-                            Toast.MakeText(SocialAdapter.ActivityContext, SocialAdapter.ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                            return;
-                        }
-
-                        var (apiStatus, respond) = await RequestsAsync.Group.JoinGroupAsync(item.GroupData.GroupId);
-                        switch (apiStatus)
-                        {
-                            case 200:
-                            {
-                                switch (respond)
-                                {
-                                    case JoinGroupObject result when result.JoinStatus == "requested":
-                                        JoinButton.SetTextColor(Color.Gray);
-                                        JoinButton.Text = Application.Context.GetText(Resource.String.Lbl_Request);
-                                        break;
-                                    case JoinGroupObject result:
-                                    {
-                                        var isJoined = result.JoinStatus == "left" ? "false" : "true";
-                                        JoinButton.Text = SocialAdapter.ActivityContext.GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
-
-                                        switch (isJoined)
-                                        {
-                                            case "yes":
-                                            case "true":
-                                                JoinButton.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                                break;
-                                            default:
-                                                JoinButton.SetTextColor(Color.Black);
-                                                break;
-                                        }
-
-                                        break;
-                                    }
-                                }
-
-                                break;
-                            }
-                            default:
-                                Methods.DisplayReportResult(SocialAdapter.ActivityContext, respond);
-                                break;
-                        } 
-                    }
-                } 
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        } 
     }
-
-    public class GroupsAdapterClickEventArgs : EventArgs
-    {
-        public View View { get; set; }
-        public int Position { get; set; }
-    }
-
-
-    public class PageAdapterViewHolder : RecyclerView.ViewHolder , View.IOnClickListener
+     
+    public class SocialAdapterViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
     {
         #region Variables Basic
+
         private readonly SocialAdapter SocialAdapter;
 
-        public View MainView { get; }
-
-        public ImageView Image { get; private set; }
-
-        public TextView Name { get; private set; }
-        public TextView About { get; private set; }
-        public Button Button { get; private set; }
+        public View MainView { get; private set; }
+        public TextView TitleText { get; private set; }
+        public TextView MoreText { get; private set; }
+        public RecyclerView MRecycler { get; private set; }
 
         #endregion
 
-        public PageAdapterViewHolder(View itemView, Action<PageAdapterClickEventArgs> clickListener, SocialAdapter socialAdapter) : base(itemView)
+        public SocialAdapterViewHolder(View itemView, Action<SocialAdapterClickEventArgs> clickListener, Action<SocialAdapterClickEventArgs> longClickListener, SocialAdapter socialAdapter) : base(itemView)
         {
             try
             {
                 SocialAdapter = socialAdapter;
-            
                 MainView = itemView;
 
-                Image = MainView.FindViewById<ImageView>(Resource.Id.Image);
-                Name = MainView.FindViewById<TextView>(Resource.Id.card_name);
-                About = MainView.FindViewById<TextView>(Resource.Id.card_dist);
-                Button = MainView.FindViewById<Button>(Resource.Id.cont);
+                MainView = itemView;
+                MRecycler = MainView.FindViewById<RecyclerView>(Resource.Id.Recyler);
+                TitleText = MainView.FindViewById<TextView>(Resource.Id.headText);
+                MoreText = MainView.FindViewById<TextView>(Resource.Id.moreText);
+                 
+                MRecycler.HasFixedSize = true;
+                MRecycler.SetItemViewCacheSize(10); 
 
-                Button?.SetOnClickListener(this);
+                MoreText?.SetOnClickListener(this);
 
-                //Event
-                itemView.Click += (sender, e) => clickListener(new PageAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
+                //Create an Event
+                itemView.Click += (sender, e) => clickListener(new SocialAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SocialAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -646,37 +573,27 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-                if (AdapterPosition != RecyclerView.NoPosition)
+                if (BindingAdapterPosition != RecyclerView.NoPosition)
                 {
-                    var item = SocialAdapter.SocialList[AdapterPosition];
+                    SocialModelsClass item = SocialAdapter.SocialList[BindingAdapterPosition];
 
-                    if (v.Id == Button.Id)
+                    if (item.TypeView == SocialModelType.SuggestedGroups)
                     {
-                        if (!Methods.CheckConnectivity())
-                        {
-                            Toast.MakeText(MainView.Context, MainView.Context?.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                            return;
-                        }
-
-                        switch (Button?.Tag?.ToString())
-                        {
-                            case "false":
-                                Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                                Button.SetTextColor(Color.ParseColor("#ffffff"));
-                                Button.Text = MainView.Context?.GetText(Resource.String.Btn_Unlike);
-                                Button.Tag = "true";
-                                break;
-                            default:
-                                Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                                Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                Button.Text = MainView.Context?.GetText(Resource.String.Btn_Like);
-                                Button.Tag = "false";
-                                break;
-                        }
-
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Page.LikePageAsync(item.PageData.PageId) });
+                        SocialAdapter.ActivityContext.StartActivity(new Intent(SocialAdapter.ActivityContext, typeof(SuggestedGroupActivity)));
                     }
-                } 
+                    else if (item.TypeView == SocialModelType.SuggestedPages)
+                    {
+                        SocialAdapter.ActivityContext.StartActivity(new Intent(SocialAdapter.ActivityContext, typeof(SuggestedPageActivity)));
+                    } 
+                    else if (item.TypeView == SocialModelType.LikedPages)
+                    {
+                        var intent = new Intent(SocialAdapter.ActivityContext, typeof(AllViewerActivity));
+                        intent.PutExtra("Type", "LikedPagesModel");
+                        intent.PutExtra("PassedId", UserDetails.UserId);
+                        intent.PutExtra("itemObject", JsonConvert.SerializeObject(item));
+                        SocialAdapter.ActivityContext.StartActivity(intent);
+                    } 
+                }
             }
             catch (Exception e)
             {
@@ -684,11 +601,92 @@ namespace WoWonder.Activities.Communities.Adapters
             }
         }
     }
+  
+    public class SocialSectionViewHolder : RecyclerView.ViewHolder, View.IOnClickListener
+    {
+        #region Variables Basic
 
-    public class PageAdapterClickEventArgs : EventArgs
+        private readonly SocialAdapter SocialAdapter;
+
+        public View MainView { get; private set; }
+        public TextView AboutHead { get; private set; }
+        public TextView AboutMore { get; private set; }
+
+        #endregion
+
+        public SocialSectionViewHolder(View itemView, Action<SocialAdapterClickEventArgs> clickListener, Action<SocialAdapterClickEventArgs> longClickListener, SocialAdapter socialAdapter) : base(itemView)
+        {
+            try
+            {
+                SocialAdapter = socialAdapter;
+                MainView = itemView;
+
+                MainView = itemView;
+                AboutHead = MainView.FindViewById<TextView>(Resource.Id.headText);
+                AboutMore = MainView.FindViewById<TextView>(Resource.Id.moreText);
+
+                AboutMore.Text = SocialAdapter.ActivityContext.GetText(Resource.String.Lbl_SeeAll);
+                AboutMore.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                AboutMore.Visibility = ViewStates.Visible;
+
+                AboutMore?.SetOnClickListener(this);
+
+                //Create an Event
+                itemView.Click += (sender, e) => clickListener(new SocialAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SocialAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        public void OnClick(View v)
+        {
+            try
+            {
+                if (BindingAdapterPosition != RecyclerView.NoPosition)
+                {
+                    List<SocialModelsClass> item = new List<SocialModelsClass>();
+                    var intent = new Intent(SocialAdapter.ActivityContext, typeof(AllViewerActivity));
+
+                    if (AboutHead.Text == SocialAdapter.ActivityContext.GetText(Resource.String.Lbl_Your_Pages))
+                    {
+                        intent.PutExtra("Type", "MangedPagesModel");
+                        item = SocialAdapter.SocialList.Where(a => a.Page != null && a.TypeView == SocialModelType.MangedPages).ToList();
+                    }
+                    if (AboutHead.Text == SocialAdapter.ActivityContext.GetText(Resource.String.Lbl_Liked_Pages))  
+                    {
+                        intent.PutExtra("Type", "LikedPagesModel");
+                        item = SocialAdapter.SocialList.Where(a => a.Page != null && a.TypeView == SocialModelType.LikedPages).ToList();
+                    }
+                    else if (AboutHead.Text == SocialAdapter.ActivityContext.GetText(Resource.String.Lbl_Manage_Groups))
+                    {
+                        intent.PutExtra("Type", "MangedGroupsModel");
+                        item = SocialAdapter.SocialList.Where(a => a.Group != null && a.TypeView == SocialModelType.MangedGroups).ToList();
+                    }
+                    else if (AboutHead.Text == SocialAdapter.ActivityContext.GetText(Resource.String.Lbl_Joined_Groups))
+                    {
+                        intent.PutExtra("Type", "JoinedGroupsModel");
+                        item = SocialAdapter.SocialList.Where(a => a.Group != null && a.TypeView == SocialModelType.JoinedGroups).ToList();
+                    }
+
+                    intent.PutExtra("PassedId", UserDetails.UserId);
+                    intent.PutExtra("itemObject", JsonConvert.SerializeObject(item));
+                    SocialAdapter.ActivityContext.StartActivity(intent);
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+    }
+     
+    public class SocialAdapterClickEventArgs : EventArgs
     {
         public View View { get; set; }
         public int Position { get; set; }
+        public Button Button { get; set; }
     }
-
 }

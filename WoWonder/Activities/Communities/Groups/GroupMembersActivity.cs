@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -20,7 +20,6 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Adapters;
@@ -73,7 +72,7 @@ namespace WoWonder.Activities.Communities.Groups
                 GroupId = Intent?.GetStringExtra("GroupId");
 
                 if (!string.IsNullOrEmpty(Intent?.GetStringExtra("itemObject")))
-                    GroupDataClass = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("itemObject"));
+                    GroupDataClass = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("itemObject") ?? "");
                  
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -369,7 +368,7 @@ namespace WoWonder.Activities.Communities.Groups
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -377,7 +376,7 @@ namespace WoWonder.Activities.Communities.Groups
                 if (ItemUser != null)
                 {
                     var arrayAdapter = new List<string>();
-                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                     if (GroupDataClass.IsOwner != null && GroupDataClass.IsOwner.Value)
                     { 
@@ -420,7 +419,7 @@ namespace WoWonder.Activities.Communities.Groups
         private void StartApiService(string offset = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadMembersAsync(offset) });
         }
@@ -468,7 +467,7 @@ namespace WoWonder.Activities.Communities.Groups
                             switch (MAdapter.UserList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                     break;
                             }
 
@@ -492,7 +491,7 @@ namespace WoWonder.Activities.Communities.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
@@ -554,17 +553,17 @@ namespace WoWonder.Activities.Communities.Groups
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
-                if (itemString.ToString() == GetText(Resource.String.Lbl_MakeAdmin))
+                if (itemString == GetText(Resource.String.Lbl_MakeAdmin))
                 { 
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Group.MakeGroupAdminAsync(GroupId, ItemUser.UserId)});
 
@@ -575,7 +574,7 @@ namespace WoWonder.Activities.Communities.Groups
                         MAdapter?.NotifyItemChanged(MAdapter.UserList.IndexOf(local));
                     } 
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_RemoveAdmin))
+                else if (itemString == GetText(Resource.String.Lbl_RemoveAdmin))
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.MakeGroupAdminAsync(GroupId, ItemUser.UserId) });
                      
@@ -586,7 +585,7 @@ namespace WoWonder.Activities.Communities.Groups
                         MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
                     }
                 }  
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_RemoveMember))
+                else if (itemString == GetText(Resource.String.Lbl_RemoveMember))
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.RemoveGroupMembersAsync(GroupId, ItemUser.UserId) });
                     
@@ -597,7 +596,7 @@ namespace WoWonder.Activities.Communities.Groups
                         MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
                     }
                 }  
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_BlockMember))
+                else if (itemString == GetText(Resource.String.Lbl_BlockMember))
                 {
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Group.RemoveGroupMembersAsync(GroupId, ItemUser.UserId) , () => RequestsAsync.Global.BlockUserAsync(GroupId, true) });
 
@@ -608,7 +607,7 @@ namespace WoWonder.Activities.Communities.Groups
                         MAdapter?.NotifyItemRemoved(MAdapter.UserList.IndexOf(local));
                     } 
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_ViewProfile))
+                else if (itemString == GetText(Resource.String.Lbl_ViewProfile))
                 {
                     WoWonderTools.OpenProfile(this, ItemUser.UserId, ItemUser);
                 }

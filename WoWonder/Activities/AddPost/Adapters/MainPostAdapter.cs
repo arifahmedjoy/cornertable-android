@@ -26,7 +26,7 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 1,
                             TypeText = activityContext.GetText(Resource.String.Lbl_ImageGallery),
-                            Image = Resource.Drawable.icon_photos_vector,
+                            Image = Resource.Drawable.ic_post_img_gallery,
                             ImageColor = ""
                         });
                         break;
@@ -39,8 +39,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 2,
                             TypeText = activityContext.GetText(Resource.String.Lbl_VideoGallery),
-                            Image = Resource.Drawable.icon_video_gallary_vector,
-                            ImageColor = "#00CF91"
+                            Image = Resource.Drawable.ic_post_video_gallery,
+                            ImageColor = ""
                         });
                         break;
                 }
@@ -52,8 +52,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 3,
                             TypeText = activityContext.GetText(Resource.String.Lbl_MentionContact),
-                            Image = Resource.Drawable.icon_mention_contact_vector,
-                            ImageColor = "#1776CD"
+                            Image = Resource.Drawable.ic_post_contact,
+                            ImageColor = ""
                         });
                         break;
                 }
@@ -68,8 +68,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 4,
                             TypeText = name,
-                            Image = Resource.Drawable.icon_map_marker_filled_vector,
-                            ImageColor = "#F85C50"
+                            Image = Resource.Drawable.ic_post_location,
+                            ImageColor = ""
                         });
                         break;
                     }
@@ -86,30 +86,31 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 5,
                             TypeText = name,
-                            Image = Resource.Drawable.icon_smile_emoji_vector,
+                            Image = Resource.Drawable.ic_post_feeling,
                             ImageColor = ""
                         });
                         break;
                     }
                 }
 
+                //if (AppSettings.ShowCamera)
+                //    PostTypeList.Add(new Classes.PostType
+                //    {
+                //        Id = 6,
+                //        TypeText = activityContext.GetText(Resource.String.Lbl_Camera),
+                //        Image = Resource.Drawable.ic__Attach_video,
+                //        ImageColor = ""
+                //    });
+
                 switch (AppSettings.ShowGif)
                 {
-                    //if (AppSettings.ShowCamera)
-                    //    PostTypeList.Add(new Classes.PostType
-                    //    {
-                    //        Id = 6,
-                    //        TypeText = activityContext.GetText(Resource.String.Lbl_Camera),
-                    //        Image = Resource.Drawable.ic__Attach_video,
-                    //        ImageColor = ""
-                    //    });
                     case true:
                         PostTypeList.Add(new Classes.PostType
                         {
                             Id = 7,
                             TypeText = activityContext.GetText(Resource.String.Lbl_Gif),
-                            Image = Resource.Drawable.icon_gif_vector,
-                            ImageColor = "#A854A5"
+                            Image = Resource.Drawable.ic_post_gif,
+                            ImageColor = ""
                         });
                         break;
                 }
@@ -120,7 +121,7 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 8,
                             TypeText = activityContext.GetText(Resource.String.Lbl_File),
-                            Image = Resource.Drawable.ic_attach_file,
+                            Image = Resource.Drawable.ic_post_file,
                             ImageColor = ""
                         });
                         break;
@@ -132,19 +133,19 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 9,
                             TypeText = activityContext.GetText(Resource.String.Lbl_Music),
-                            Image = Resource.Drawable.ic_attach_music,
+                            Image = Resource.Drawable.ic_post_music,
                             ImageColor = ""
                         });
                         break;
                 }
-                switch (AppSettings.ShowMusic)
+                switch (AppSettings.ShowVoiceRecord)
                 {
                     case true when WoWonderTools.CheckAllowedFileSharingInServer("Audio"):
                         PostTypeList.Add(new Classes.PostType
                         {
                             Id = 10,
                             TypeText = activityContext.GetText(Resource.String.Lbl_VoiceRecord),
-                            Image = Resource.Drawable.ic_attach_microphone,
+                            Image = Resource.Drawable.ic_post_mic,
                             ImageColor = ""
                         });
                         break;
@@ -156,8 +157,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                         {
                             Id = 11,
                             TypeText = activityContext.GetText(Resource.String.Lbl2_Polls),
-                            Image = Resource.Drawable.icon_bar_polls_vector,
-                            ImageColor = "#8CBA51"
+                            Image = Resource.Drawable.ic_post_polls,
+                            ImageColor = ""
                         });
                         break;
                 }
@@ -278,8 +279,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                 PostImageIcon = (ImageView) MainView.FindViewById(Resource.Id.Iconimage);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new MainPostAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new MainPostAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new MainPostAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new MainPostAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

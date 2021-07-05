@@ -58,30 +58,30 @@ namespace WoWonder.Adapters
                 switch (viewHolder)
                 {
                     case GendersAdapterViewHolder holder:
-                    {
-                        var item = GenderList[position];
-                        switch (item)
                         {
-                            case null:
-                                return;
+                            var item = GenderList[position];
+                            switch (item)
+                            {
+                                case null:
+                                    return;
+                            }
+
+                            holder.Button.Text = item.GenderName;
+
+                            switch (item.GenderSelect)
+                            {
+                                case true:
+                                    holder.Button.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                                    holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
+                                    break;
+                                default:
+                                    holder.Button.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                                    holder.Button.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+                                    break;
+                            }
+
+                            break;
                         }
-
-                        holder.Button.Text = item.GenderName;
-
-                        switch (item.GenderSelect)
-                        {
-                            case true:
-                                holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                                holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
-                                break;
-                            default:
-                                holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                                holder.Button.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-                                break;
-                        }
-
-                        break;
-                    }
                 }
             }
             catch (Exception exception)
@@ -145,10 +145,10 @@ namespace WoWonder.Adapters
                 Button = MainView.FindViewById<Button>(Resource.Id.cont);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new GendersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new GendersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new GendersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new GendersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
-            
+
                 Button.SetTextColor(Color.ParseColor("#efefef"));
             }
             catch (Exception e)

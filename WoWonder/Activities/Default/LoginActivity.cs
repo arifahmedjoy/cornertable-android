@@ -82,17 +82,16 @@ namespace WoWonder.Activities.Default
                 InitSocialLogins(); 
                 GetTimezone();
 
-                if ((int) Build.VERSION.SdkInt is < 23)
-                {
-                    LoadConfigSettings();
+                LoadConfigSettings();
+
+                if ((int)Build.VERSION.SdkInt < 23)
+                { 
                     CheckCrossAppAuthentication();
                 }
                 else
                 {
-                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                        CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                    {
-                        LoadConfigSettings();
+                    if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted)
+                    { 
                         CheckCrossAppAuthentication();
                     }
                     else
@@ -100,11 +99,10 @@ namespace WoWonder.Activities.Default
                         RequestPermissions(new[]
                         {
                             Manifest.Permission.ReadExternalStorage,
-                            Manifest.Permission.WriteExternalStorage
                         }, 101);
                     }
                 }
-
+                 
                 if (string.IsNullOrEmpty(UserDetails.DeviceId))
                     OneSignalNotification.RegisterNotificationDevice(); 
             }
@@ -505,7 +503,6 @@ namespace WoWonder.Activities.Default
                     Intent newIntent = new Intent(this, typeof(VerificationCodeActivity));
                     newIntent?.PutExtra("TypeCode", "TwoFactor");
                     StartActivity(newIntent);
-
                 }
                 else if (apiStatus == 400)
                 {
@@ -678,7 +675,7 @@ namespace WoWonder.Activities.Default
                     FbAccessToken = accessToken.Token;
 
                     //Login Api 
-                    var (apiStatus, respond) = await RequestsAsync.Auth.SocialLoginAsync(FbAccessToken, "facebook", UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                    var (apiStatus, respond) = await RequestsAsync.Auth.SocialLoginAsync(FbAccessToken, "facebook", UserDetails.DeviceId , UserDetails.DeviceMsgId);
                     if (apiStatus == 200)
                     {
                         if (respond is AuthObject auth)
@@ -756,7 +753,7 @@ namespace WoWonder.Activities.Default
                         Methods.DisplayReportResultTrack(ex);
                     }
                 //else
-                //    Toast.MakeText(this, GetString(Resource.String.Lbl_Null_Data_User), ToastLength.Short)?.Show();
+                //    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Null_Data_User), ToastLength.Short);
             }
             catch (Exception exception)
             {
@@ -879,7 +876,7 @@ namespace WoWonder.Activities.Default
 
         #endregion
 
-        #region Result && Permissions
+        #region Result && Permissions 
 
         //Result
         protected override async void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -918,7 +915,7 @@ namespace WoWonder.Activities.Default
                         CheckCrossAppAuthentication();
                         break;
                     case 101:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         Finish();
                         break;
                 }
@@ -932,7 +929,7 @@ namespace WoWonder.Activities.Default
         #endregion
 
         #region Cross App Authentication
-         
+
         private void CheckCrossAppAuthentication()
         {
             try
@@ -1075,7 +1072,7 @@ namespace WoWonder.Activities.Default
 
                 var dbDatabase = new SqLiteDatabase();
                 dbDatabase.InsertOrUpdateLogin_Credentials(user);
-
+                 
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(this) });
             }
             catch (Exception e)

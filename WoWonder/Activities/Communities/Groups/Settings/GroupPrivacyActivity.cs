@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,7 +11,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
@@ -303,18 +302,18 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 if (string.IsNullOrEmpty(TxtJoinPrivacy.Text))
                 { 
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                     return;
                 }
                 if (string.IsNullOrEmpty(GroupPrivacy))
                 { 
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_privacy), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_privacy), ToastLength.Short);
                     return;
                 }
 
@@ -343,7 +342,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
 
                                 GroupProfileActivity.GroupDataClass = GroupData;
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short)?.Show();  
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short);  
 
                                 Intent returnIntent = new Intent();
                                 returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(GroupData));
@@ -376,7 +375,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
 
                 TypeDialog = "JoinPrivacy";
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = new List<string> { GetString(Resource.String.Lbl_Yes), GetString(Resource.String.Lbl_No) };
 
@@ -395,19 +394,19 @@ namespace WoWonder.Activities.Communities.Groups.Settings
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
-                    case "JoinPrivacy" when itemString.ToString() == GetString(Resource.String.Lbl_Yes):
+                    case "JoinPrivacy" when itemString == GetString(Resource.String.Lbl_Yes):
                         JoinPrivacyId = "2";
                         TxtJoinPrivacy.Text = GetString(Resource.String.Lbl_Yes);
                         break;
                     case "JoinPrivacy":
                     {
-                        if (itemString.ToString() == GetString(Resource.String.Lbl_No))
+                        if (itemString == GetString(Resource.String.Lbl_No))
                         {
                             JoinPrivacyId = "1";
                             TxtJoinPrivacy.Text = GetString(Resource.String.Lbl_No);
@@ -448,7 +447,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         {
             try
             {
-                GroupData = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("GroupData"));
+                GroupData = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("GroupData") ?? "");
                 if (GroupData != null)
                 {
                     switch (GroupData.Privacy)

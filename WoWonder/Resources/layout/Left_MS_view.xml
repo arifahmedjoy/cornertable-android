@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:gravity="start"
-    android:layout_margin="0dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="3dp"
-    android:id="@+id/main"
-    android:paddingEnd="3dp"> 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:orientation="vertical"
+                android:gravity="start"
+                android:layout_margin="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="3dp"
+                android:id="@+id/main"
+                android:paddingEnd="3dp"> 
 	<TextView
         android:id="@+id/name"
         android:layout_marginEnd="13dp"
@@ -16,6 +16,7 @@
         android:layout_marginTop="5dp"
         android:textColor="@color/accent"
         android:textSize="14sp"
+        android:text="wael anjo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
@@ -23,10 +24,12 @@
     <LinearLayout
         android:layout_marginStart="3dp"
         android:layout_marginEnd="17dp"
+        android:layout_below="@+id/name"
         android:background="@drawable/chat_rounded_left_layout"
         android:layout_width="wrap_content"
         android:gravity="start"
         android:id="@+id/bubble_layout"
+        android:minWidth="150dp"
         android:weightSum="3"
         android:layout_gravity="start"
         android:layout_height="wrap_content"
@@ -75,20 +78,44 @@
                 android:padding="2dp" />
         </RelativeLayout>
     </LinearLayout>
-    <TextView
-        android:layout_height="match_parent"
+   
+  <LinearLayout
+    android:orientation="horizontal"
+    android:id="@+id/countLikeSection"
+    android:layout_alignEnd="@+id/bubble_layout"
+    android:layout_below="@+id/bubble_layout"
+    android:layout_width="wrap_content" 
+    android:clickable="true"
+    android:translationY="-5dp"
+    android:visibility="gone"
+    android:gravity="center"
+    android:backgroundTint="?attr/colorFill"
+    android:background="@drawable/shape_radius_btn"
+    android:layout_height="20dp">
+    <ImageView
+      android:id="@+id/ImagecountLike"
+      android:layout_width="16dp"
+      android:layout_height="16dp"
+      android:src="@drawable/emoji_love"
+      android:layout_margin="5dp"
+      android:scaleType="centerCrop" />
+  </LinearLayout>
+  
+  <TextView
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/bubble_layout"
+        android:layout_below="@+id/bubble_layout"
         android:id="@+id/time"
         android:textColor="#444"
-        android:textSize="13dp"
+        android:textSize="10dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="3dp"
-        android:gravity="bottom|start"
-        android:layout_margin="5dp"
+        android:gravity="bottom|start" 
         android:text="01:12 PM"
         android:visibility="gone"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="1dp"
         android:layout_marginBottom="5dp"
         android:layout_width="wrap_content"
         android:translationX="0dp"
-        android:paddingBottom="2dp" />
-</LinearLayout>
+        android:paddingBottom="2dp" /> 
+</RelativeLayout>

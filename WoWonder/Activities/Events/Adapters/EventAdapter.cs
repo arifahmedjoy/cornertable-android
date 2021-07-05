@@ -16,6 +16,7 @@ using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Event;
 using IList = System.Collections.IList;
 using Object = Java.Lang.Object;
+using Android.Graphics;
 
 namespace WoWonder.Activities.Events.Adapters
 {
@@ -90,7 +91,23 @@ namespace WoWonder.Activities.Events.Adapters
                 holder.TxtEventTitle.Text = Methods.FunString.DecodeString(item.Name);
                 holder.TxtEventDescription.Text = Methods.FunString.DecodeString(item.Description);
                 holder.TxtEventLocation.Text = item.Location;
-                holder.TxtEventTime.Text = item.EndDate; 
+                holder.TxtEventTime.Text = item.EndDate;
+
+                if (item?.IsGoing == true)
+                {
+                    holder.TxtEventType.Text = ActivityContext.GetText(Resource.String.Lbl_Going);
+                    holder.TxtEventType.Background.SetTint(Color.ParseColor("#02BE10"));
+                }
+                else if (item?.IsInterested == true)
+                {
+                    holder.TxtEventType.Text = ActivityContext.GetText(Resource.String.Lbl_Interested);
+                    holder.TxtEventType.Background.SetTint(Color.ParseColor("#F18D05"));
+                }
+                else if (item?.IsOwner == true)
+                {
+                    holder.TxtEventType.Text = ActivityContext.GetText(Resource.String.Lbl_My_Events);
+                    holder.TxtEventType.Background.SetTint(Color.ParseColor("#E70000"));
+                }
 
                 item.IsOwner = item.UserData.UserId == UserDetails.UserId;
             }
@@ -206,6 +223,7 @@ namespace WoWonder.Activities.Events.Adapters
                 TxtEventDescription = itemView.FindViewById<TextView>(Resource.Id.event_description);
                 TxtEventTime = itemView.FindViewById<TextView>(Resource.Id.event_time);
                 TxtEventLocation = itemView.FindViewById<TextView>(Resource.Id.event_location);
+                TxtEventType = itemView.FindViewById<TextView>(Resource.Id.event_type);
                 PostLinkLinearLayout = itemView.FindViewById<CardView>(Resource.Id.card_view);
 
                 if (TxtEventTitle != null)
@@ -216,8 +234,8 @@ namespace WoWonder.Activities.Events.Adapters
                     TxtEventLocationTextMetrics = TextViewCompat.GetTextMetricsParams(TxtEventLocation);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new EventAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new EventAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new EventAdapterClickEventArgs{ View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new EventAdapterClickEventArgs{ View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -233,6 +251,7 @@ namespace WoWonder.Activities.Events.Adapters
         public TextView TxtEventDescription { get; private set; }
         public TextView TxtEventTime { get; private set; } 
         public TextView TxtEventLocation { get; private set; }
+        public TextView TxtEventType { get; private set; }
         public CardView PostLinkLinearLayout { get; private set; }
         public PrecomputedTextCompat.Params TxtEventTitleTextMetrics { get; private set; }
         public PrecomputedTextCompat.Params TxtEventDescriptionTextMetrics { get; private set; }

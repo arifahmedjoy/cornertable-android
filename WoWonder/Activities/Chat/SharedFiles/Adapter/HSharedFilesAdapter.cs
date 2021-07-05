@@ -56,7 +56,7 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -85,7 +85,7 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
                                 var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimVideo + "/" + UserId, fileNameWithoutExtension + ".png");
                                 if (videoPlaceHolderImage == "File Dont Exists")
                                 {
-                                    var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(ActivityContext ,item.FilePath);
+                                    var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(ActivityContext, item.FilePath);
                                     Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, Methods.Path.FolderDcimVideo + "/" + UserId);
 
                                     var imageVideo = Methods.Path.FolderDcimVideo + "/" + UserId + "/" + fileNameWithoutExtension + ".png";
@@ -203,7 +203,7 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
                 var item = SharedFilesList[p0];
                 if (item == null)
                     return d;
-                 
+
                 d.Add(item.FilePath);
 
                 return d;
@@ -243,8 +243,8 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
 
 
                 //Create an Event
-                MainView.Click += (sender, e) => clickListener(new HSharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new HSharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
+                MainView.Click += (sender, e) => clickListener(new HSharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new HSharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

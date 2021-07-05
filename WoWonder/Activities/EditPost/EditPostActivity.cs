@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,7 +11,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.CacheLoaders;
@@ -53,7 +52,7 @@ namespace WoWonder.Activities.EditPost
                 // Create your application here
                 SetContentView(Resource.Layout.EditPost_Layout);
 
-                PostData = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostItem"));
+                PostData = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostItem") ?? "");
                  
                 var id = Intent?.GetStringExtra("PostId") ?? "Data not available";
                 if (id != "Data not available" && !string.IsNullOrEmpty(id))
@@ -248,13 +247,13 @@ namespace WoWonder.Activities.EditPost
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtContentPost.Text))
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_YouCannot_PostanEmptyPost), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_YouCannot_PostanEmptyPost), ToastLength.Long);
                         return;
                     }
 
@@ -270,7 +269,7 @@ namespace WoWonder.Activities.EditPost
                             {
                                 case PostActionsObject result when result.Action.Contains("edited"):
                                 {
-                                    Toast.MakeText(this, result.Action, ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, result.Action, ToastLength.Short);
                                     AndHUD.Shared.Dismiss(this);
 
                                     // put the String to pass back into an Intent and close this activity
@@ -306,7 +305,7 @@ namespace WoWonder.Activities.EditPost
    
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
@@ -314,15 +313,15 @@ namespace WoWonder.Activities.EditPost
                 {
                     case "PostPrivacy":
                     {
-                        PostPrivacyButton.Text = itemString.ToString();
+                        PostPrivacyButton.Text = itemString;
 
-                        if (itemString.ToString() == GetString(Resource.String.Lbl_Everyone))
+                        if (itemString == GetString(Resource.String.Lbl_Everyone))
                             PostPrivacy = "0";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_People_i_Follow))
+                        else if (itemString == GetString(Resource.String.Lbl_People_i_Follow))
                             PostPrivacy = "2";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_People_Follow_Me))
+                        else if (itemString == GetString(Resource.String.Lbl_People_Follow_Me))
                             PostPrivacy = "1";
-                        else if (itemString.ToString() == GetString(Resource.String.Lbl_No_body))
+                        else if (itemString == GetString(Resource.String.Lbl_No_body))
                             PostPrivacy = "3";
                         else
                             PostPrivacy = "0";
@@ -501,7 +500,7 @@ namespace WoWonder.Activities.EditPost
                 TypeDialog = "PostPrivacy";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetString(Resource.String.Lbl_Everyone));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_People_i_Follow));

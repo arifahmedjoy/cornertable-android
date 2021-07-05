@@ -10,28 +10,28 @@ namespace WoWonder.NiceArt
 {
     public class MultiTouchListener : Java.Lang.Object, View.IOnTouchListener
     {
-        private static readonly int InvalidPointerId = -1;
-        private readonly GestureDetector MGestureListener;
-        private static readonly bool IsRotateEnabled = true;
-        private static readonly bool IsTranslateEnabled = true;
-        private static readonly bool IsScaleEnabled = true;
-        private static readonly float MinimumScale = 0.5f;
-        private static readonly float MaximumScale = 10.0f;
-        private int MActivePointerId = InvalidPointerId;
-        private float MPrevX, MPrevY, MPrevRawX, MPrevRawY;
-        private readonly ScaleGestureDetector MScaleGestureDetector;
+        public static readonly int InvalidPointerId = -1;
+        public readonly GestureDetector MGestureListener;
+        public static bool IsRotateEnabled = true;
+        public static bool IsTranslateEnabled = true;
+        public static bool IsScaleEnabled = true;
+        public static float MinimumScale = 0.5f;
+        public static float MaximumScale = 10.0f;
+        public int MActivePointerId = InvalidPointerId;
+        public float MPrevX, MPrevY, MPrevRawX, MPrevRawY;
+        public ScaleGestureDetector MScaleGestureDetector;
 
-        private readonly int[] Location = new int[2];
-        private readonly Rect OutRect;
-        private readonly View DeleteView;
-        private readonly ImageView PhotoEditImageView;
-        private RelativeLayout ParentView;
+        public int[] Location = new int[2];
+        public Rect OutRect;
+        public View DeleteView;
+        public ImageView PhotoEditImageView;
+        public RelativeLayout ParentView;
 
-        private INiceArt.IOnMultiTouchListener OnMultiTouchListener;
-        private static INiceArt.IOnGestureControl MOnGestureControl;
-        private static bool MIsTextPinchZoomable;
-        private readonly INiceArt.IOnNiceArtEditorListener MOnNiceArtEditorListener;
-        private static ViewType MviewType;
+        public INiceArt.IOnMultiTouchListener OnMultiTouchListener;
+        public static INiceArt.IOnGestureControl MOnGestureControl;
+        public static bool MIsTextPinchZoomable;
+        public INiceArt.IOnNiceArtEditorListener MOnNiceArtEditorListener;
+        public static ViewType MviewType;
 
         public MultiTouchListener(View deleteView, RelativeLayout parentView, ImageView photoEditImageView, bool isTextPinchZoomable, INiceArt.IOnNiceArtEditorListener onNiceArtEditorListener)
         {

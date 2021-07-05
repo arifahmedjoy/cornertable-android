@@ -6,7 +6,7 @@
                 android:layout_height="250dp"
 	android:layout_marginStart="15dp"
 	android:layout_marginEnd="15dp">
-	<com.makeramen.roundedimageview.RoundedImageView 
+	<ImageView 
 		android:layout_height="match_parent" 
 		android:layout_width="match_parent"
 		android:id="@+id/ImageLive" 
@@ -14,7 +14,7 @@
 		android:src="@android:color/black"
 		android:layout_alignParentEnd="true"
 		android:scaleType="centerCrop"
-		app:riv_corner_radius="5dp"/>
+		/>
 
     <LinearLayout
         android:id="@+id/ll_video_story"
@@ -40,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="3dp"
-            android:text="LIVE"
+            android:text="@string/Lbl_Live"
             android:textColor="@color/gnt_white"
             android:textSize="7sp"
             android:textStyle="bold"/>

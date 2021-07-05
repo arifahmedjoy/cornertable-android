@@ -71,7 +71,10 @@ namespace WoWonder.Activities.Tabbes
 
                 StartApiService();
 
-                RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                if (AppSettings.ShowFbRewardVideoAds)
+                    RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                else
+                    AdsColony.Ad_Rewarded(this);
             }
             catch (Exception e)
             {
@@ -370,7 +373,7 @@ namespace WoWonder.Activities.Tabbes
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadActivitiesAsync(offset) });
         }
@@ -418,7 +421,7 @@ namespace WoWonder.Activities.Tabbes
                                         switch (MAdapter.LastActivitiesList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreActivities), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreActivities), ToastLength.Short);
                                                 break;
                                         }
 
@@ -452,7 +455,7 @@ namespace WoWonder.Activities.Tabbes
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
             MainScrollEvent.IsLoading = false;

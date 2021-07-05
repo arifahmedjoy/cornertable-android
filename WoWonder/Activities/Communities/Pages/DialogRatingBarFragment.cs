@@ -78,7 +78,7 @@ namespace WoWonder.Activities.Communities.Pages
         {
             try
             {
-                Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle); //Sets the title bar to invisible
+                //Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle); //Sets the title bar to invisible
                 base.OnViewCreated(view, savedInstanceState);
                 if (Dialog?.Window?.Attributes != null)
                     Dialog.Window.Attributes.WindowAnimations = Resource.Style.dialog_animation; //set the animation
@@ -200,20 +200,20 @@ namespace WoWonder.Activities.Communities.Pages
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(ActivityContext, ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     switch (RatingBar.Rating)
                     {
                         case <= 0:
-                            Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Please_select_Rating), ToastLength.Short)?.Show(); 
+                            ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Please_select_Rating), ToastLength.Short); 
                             return;
                     }
 
                     if (string.IsNullOrEmpty(TxtReview.Text) || string.IsNullOrWhiteSpace(TxtReview.Text))
                     {
-                        Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Please_enter_review), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Please_enter_review), ToastLength.Short);
                         return;
                     }
 
@@ -233,7 +233,7 @@ namespace WoWonder.Activities.Communities.Pages
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(ActivityContext, ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(ActivityContext, ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { RatePageApi });
         }
@@ -256,7 +256,7 @@ namespace WoWonder.Activities.Communities.Pages
                              
                                     Item.Rating = result.Val;
 
-                                    var modelsClass = ActivityContext.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.InfoPageBox);
+                                    var modelsClass = ActivityContext.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.InfoPageBox);
                                     if (modelsClass != null)
                                     {
                                         modelsClass.PageInfoModelClass = new PageInfoModelClass
@@ -264,13 +264,13 @@ namespace WoWonder.Activities.Communities.Pages
                                             PageClass = Item,
                                             PageId = Item.PageId
                                         };
-                                        ActivityContext.PostFeedAdapter.NotifyItemChanged(ActivityContext.PostFeedAdapter.ListDiffer.IndexOf(modelsClass));
+                                        ActivityContext.PostFeedAdapter?.NotifyItemChanged(ActivityContext.PostFeedAdapter.ListDiffer.IndexOf(modelsClass));
                                     } 
                               
                                     PageProfileActivity.PageData.IsRated = true;
                                     PageProfileActivity.PageData.Rating = result.Val;
 
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Rated), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Rated), ToastLength.Short);
 
                                     Dismiss(); 
                                 }

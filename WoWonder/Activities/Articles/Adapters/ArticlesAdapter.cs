@@ -108,7 +108,7 @@ namespace WoWonder.Activities.Articles.Adapters
 
                 CategoriesController cat = new CategoriesController();
                 string id = item.CategoryLink.Split('/').Last();
-
+                
 
                 holder.Category.Text = cat.Get_Translate_Categories_Communities(id, item.CategoryName , "Blog");
                  
@@ -125,7 +125,7 @@ namespace WoWonder.Activities.Articles.Adapters
                 }
 
                 holder.ViewMore.Text = ActivityContext.GetText(Resource.String.Lbl_ReadMore) + " >"; //READ MORE &gt; 
-                holder.Time.Text = item.Posted;  
+                holder.Time.Text = ActivityContext.GetText(Resource.String.Lbl_Posted) + " " + item.Posted;
             }
             catch (Exception e)
             {
@@ -252,9 +252,9 @@ namespace WoWonder.Activities.Articles.Adapters
                 ViewMore = MainView.FindViewById<TextView>(Resource.Id.View_more);
                  
                 //Event
-                UserItem.Click += (sender, e) => userClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.Click += (sender, e) => clickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                UserItem.Click += (sender, e) => userClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new ArticlesAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception exception)
             {

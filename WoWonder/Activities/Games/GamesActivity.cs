@@ -9,20 +9,18 @@ using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
-
-
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.ViewPager2.Widget;
-using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Games.Fragment;
 using WoWonder.Adapters;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Games;
 using WoWonderClient.Requests;
@@ -37,11 +35,10 @@ namespace WoWonder.Activities.Games
         #region Variables Basic
 
         private MainTabAdapter Adapter;
-        private ViewPager2 ViewPager;
+        public ViewPager2 ViewPager;
         private GamesFragment GamesTab;
         private MyGamesFragment MyGamesTab;
         private TabLayout TabLayout;
-        private FloatingActionButton FloatingActionButtonView;
         private SearchView SearchView;
         private Toolbar ToolBar;
         public string SearchKey;
@@ -60,7 +57,7 @@ namespace WoWonder.Activities.Games
                 Methods.App.FullScreenApp(this);
 
                 // Create your application here
-                SetContentView(Resource.Layout.EventMain_Layout);
+                SetContentView(Resource.Layout.GamesMain_Layout);
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -74,33 +71,7 @@ namespace WoWonder.Activities.Games
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        protected override void OnResume()
-        {
-            try
-            {
-                base.OnResume();
-                AddOrRemoveGames(true);
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        protected override void OnPause()
-        {
-            try
-            {
-                base.OnPause();
-                AddOrRemoveGames(false);
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
+        
         public override void OnTrimMemory(TrimMemory level)
         {
             try
@@ -170,7 +141,7 @@ namespace WoWonder.Activities.Games
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
-            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
+            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor(AppSettings.MainColor));
             try
             {
                 var item = menu.FindItem(Resource.Id.searchUserBar);
@@ -215,7 +186,7 @@ namespace WoWonder.Activities.Games
                 GamesTab.SwipeRefreshLayout.Refreshing = true;
 
                 if (!Methods.CheckConnectivity())
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 else
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => SearchGames() });
 
@@ -256,9 +227,6 @@ namespace WoWonder.Activities.Games
                 ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
 
-                FloatingActionButtonView = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                FloatingActionButtonView.Visibility = ViewStates.Gone;
-
                 ViewPager.OffscreenPageLimit = 2;
                 SetUpViewPager(ViewPager);
                 new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
@@ -284,8 +252,6 @@ namespace WoWonder.Activities.Games
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
-
-
                 }
             }
             catch (Exception e)
@@ -293,32 +259,13 @@ namespace WoWonder.Activities.Games
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        private void AddOrRemoveGames(bool addGames)
-        {
-            try
-            {
-                switch (addGames)
-                {
-                    // true +=  // false -=
-                    case true:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
+        
         private void DestroyBasic()
         {
             try
             {
                 ViewPager = null!;
                 TabLayout = null!;
-                FloatingActionButtonView = null!;
                 ToolBar = null!;
                 SearchKey = null!;
             }
@@ -384,8 +331,8 @@ namespace WoWonder.Activities.Games
                     GamesTab.MAdapter.NotifyDataSetChanged();
 
                     var item = GamesTab.MAdapter.GamesList.LastOrDefault();
-                    if (item != null && !string.IsNullOrEmpty(item.Id))
-                        offsetGames = item.Id;
+                    if (item != null && !string.IsNullOrEmpty(item.Game.Id))
+                        offsetGames = item.Game.Id;
                 }
 
                 if (MyGamesTab.MAdapter != null && ListUtils.ListCachedDataMyGames.Count > 0)
@@ -397,7 +344,7 @@ namespace WoWonder.Activities.Games
                     if (item != null && !string.IsNullOrEmpty(item.Id))
                         offsetMyGames = item.Id;
                 }
-
+                 
                 StartApiService(offsetGames, offsetMyGames);
             }
             catch (Exception e)
@@ -409,9 +356,101 @@ namespace WoWonder.Activities.Games
         private void StartApiService(string offsetGames = "0", string offsetMyGames = "0")
         {
             if (Methods.CheckConnectivity())
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetGames(offsetGames), () => GetMyGames(offsetMyGames) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetMyGames(offsetMyGames), () => GetRecentGames() });
+//            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetGames(offsetGames), () => GetMyGames(offsetMyGames), () => GetMyGames(offsetMyGames), () =>  GetPopularGames() });
             else
-                Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+        }
+
+        public async Task GetRecentGames(string offset = "0")
+        {
+            switch (GamesTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
+
+            if (Methods.CheckConnectivity())
+            {
+                GamesTab.MainScrollEvent.IsLoading = true;
+                var countList = GamesTab.MAdapter.GamesList.Count;
+
+                var (respondCode, respondString) = await RequestsAsync.Games.FetchGamesAsync("6", offset);
+                switch (respondCode)
+                {
+                    case 200:
+                        {
+                            switch (respondString)
+                            {
+                                case FetchGamesObject result:
+                                    {
+                                        var respondList = result.Data.Count;
+                                        if (respondList > 0)
+                                        {
+                                            var checkList = GamesTab.MAdapter.GamesList.FirstOrDefault(q => q.Type == Classes.ItemType.RecentGame);
+                                            if (checkList == null)
+                                            {
+                                                var recentGame = new Classes.GameClass
+                                                {
+                                                    Id = 1790,
+                                                    Type = Classes.ItemType.RecentGame,
+                                                    GameList = new List<GamesDataObject>(),
+                                                };
+
+                                                foreach (var item in from item in result.Data let check = recentGame.GameList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    recentGame.GameList.Add(item);
+                                                }
+
+                                                GamesTab.MAdapter.GamesList.Insert(0, recentGame);
+                                                
+                                                RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+
+                                                GamesTab.MAdapter.GamesList.Add(new Classes.GameClass
+                                                {
+                                                    Type = Classes.ItemType.Divider,
+                                                });
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (GamesTab.MAdapter.GamesList.Count > 10 && !GamesTab.MRecycler.CanScrollVertically(1))
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short);
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
+                }
+
+                GamesTab.MainScrollEvent.IsLoading = false;
+                await GetPopularGames(offset);
+
+                RunOnUiThread(() => ShowEmptyPage("GetRecentGames"));
+            }
+            else
+            {
+                GamesTab.Inflated = GamesTab.EmptyStateLayout.Inflate();
+                EmptyStateInflater x = new EmptyStateInflater();
+                x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoConnection);
+                switch (x.EmptyStateButton.HasOnClickListeners)
+                {
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
+                }
+
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                //GamesTab.MainScrollEvent.IsLoading = false;
+            }
         }
 
         public async Task GetGames(string offset = "0")
@@ -433,42 +472,49 @@ namespace WoWonder.Activities.Games
                     case 200:
                     {
                         switch (respondString)
-                        {
-                            case FetchGamesObject result:
                             {
-                                var respondList = result.Data.Count;
-                                switch (respondList)
-                                {
-                                    case > 0 when countList > 0:
+                                case FetchGamesObject result:
                                     {
-                                        foreach (var item in from item in result.Data let check = GamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        var respondList = result.Data.Count;
+                                        if (respondList >0)
                                         {
-                                            GamesTab.MAdapter.GamesList.Add(item);
+                                            var checkList = GamesTab.MAdapter.GamesList.FirstOrDefault(q => q.Type == Classes.ItemType.RecommendGame);
+                                            if (checkList == null)
+                                            {
+                                                var recommendGame = new Classes.GameClass
+                                                {
+                                                    Id = 1790,
+                                                    Type = Classes.ItemType.RecommendGame,
+                                                    GameList = new List<GamesDataObject>(),
+                                                };
+
+                                                foreach (var item in from item in result.Data let check = recommendGame.GameList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    recommendGame.GameList.Add(item);
+                                                }
+
+                                                GamesTab.MAdapter.GamesList.Add(recommendGame);
+
+                                                //if (countList > 0)
+                                                //{
+                                                //    RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
+                                                //}
+                                                //else
+                                                //{
+                                                    RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+                                                //}
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (GamesTab.MAdapter.GamesList.Count > 10 && !GamesTab.MRecycler.CanScrollVertically(1))
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short);
                                         }
 
-                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
                                         break;
                                     }
-                                    case > 0:
-                                        GamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
-                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
-                                        break;
-                                    default:
-                                    {
-                                        switch (GamesTab.MAdapter.GamesList.Count)
-                                        {
-                                            case > 10 when !GamesTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
-                                                break;
-                                        }
-
-                                        break;
-                                    }
-                                }
-
-                                break;
                             }
-                        }
 
                         break;
                     }
@@ -492,8 +538,8 @@ namespace WoWonder.Activities.Games
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                GamesTab.MainScrollEvent.IsLoading = false;
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                //GamesTab.MainScrollEvent.IsLoading = false;
             }
         }
 
@@ -541,7 +587,7 @@ namespace WoWonder.Activities.Games
                                         switch (MyGamesTab.MAdapter.GamesList.Count)
                                         {
                                             case > 10 when !MyGamesTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short);
                                                 break;
                                         }
 
@@ -575,8 +621,115 @@ namespace WoWonder.Activities.Games
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MyGamesTab.MainScrollEvent.IsLoading = false;
+            }
+        }
+        
+        public async Task GetPopularGames(string offset = "0")
+        {
+            switch (GamesTab.MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
+
+            if (Methods.CheckConnectivity())
+            {
+                GamesTab.MainScrollEvent.IsLoading = true;
+                var countList = GamesTab.MAdapter.GamesList.Count;
+
+                var (respondCode, respondString) = await RequestsAsync.Games.FetchPopularGamesAsync("6", offset);
+                switch (respondCode)
+                {
+                    case 200:
+                    {
+                        switch (respondString)
+                        {
+                            case FetchGamesObject result:
+                            {
+                                var respondList = result.Data.Count;
+                                        if (respondList > 0)
+                                        {
+                                            var checkList = GamesTab.MAdapter.GamesList.FirstOrDefault(q => q.Type == Classes.ItemType.PopularGame);
+                                            if (checkList == null)
+                                            {
+                                                var popularGames = new Classes.GameClass
+                                                {
+                                                    Id = 1770,
+                                                    GameList = new List<GamesDataObject>(),
+                                                    Type = Classes.ItemType.PopularGame,
+                                                };
+
+                                                foreach (var item in from item in result.Data let check = popularGames.GameList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    popularGames.GameList.Add(item);
+                                                }
+
+                                                GamesTab.MAdapter.GamesList.Add(popularGames);
+
+                                                //if (countList > 0)
+                                                //{
+                                                //    RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
+                                                //}
+                                                //else
+                                                //{
+                                                    RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
+                                                //}
+
+                                                GamesTab.MAdapter.GamesList.Add(new Classes.GameClass
+                                                {
+                                                    Type = Classes.ItemType.Divider,
+                                                });
+
+                                            }
+                                            else
+                                            {
+                                                foreach (var item in from item in result.Data let check = checkList.GameList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                                {
+                                                    checkList.GameList.Add(item);
+                                                }
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            if (GamesTab.MAdapter.GamesList.Count > 10 && !GamesTab.MRecycler.CanScrollHorizontally(1))
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short);
+                                        }
+
+                                        break;
+                            }
+                        }
+
+                            break;
+                    }
+                    default:
+                        Methods.DisplayReportResult(this, respondString);
+                        break;
+                }
+
+                GamesTab.MainScrollEvent.IsLoading = false;
+                await GetGames(offset);
+
+                RunOnUiThread(() => ShowEmptyPage("GetPopularGames"));
+
+            }
+            else
+            {
+                GamesTab.Inflated = GamesTab.EmptyStateLayout.Inflate();
+                EmptyStateInflater x = new EmptyStateInflater();
+                x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoConnection);
+                switch (x.EmptyStateButton.HasOnClickListeners)
+                {
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
+                }
+
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                GamesTab.MainScrollEvent.IsLoading = false;
             }
         }
 
@@ -591,6 +744,7 @@ namespace WoWonder.Activities.Games
             if (Methods.CheckConnectivity())
             {
                 GamesTab.MainScrollEvent.IsLoading = true;
+                GamesTab.MAdapter.GamesList.Clear();
                 var countList = GamesTab.MAdapter.GamesList.Count;
 
                 var (respondCode, respondString) = await RequestsAsync.Games.SearchGamesAsync(SearchKey,"15", offset);
@@ -603,33 +757,41 @@ namespace WoWonder.Activities.Games
                             case FetchGamesObject result:
                             {
                                 var respondList = result.Data.Count;
-                                switch (respondList)
+                                if (respondList > 0)
                                 {
-                                    case > 0 when countList > 0:
+                                    var checkList = GamesTab.MAdapter.GamesList.FirstOrDefault(q => q.Type == Classes.ItemType.SearchGame);
+                                    if (checkList == null)
                                     {
-                                        foreach (var item in from item in result.Data let check = GamesTab.MAdapter.GamesList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        var searchGames = new Classes.GameClass
                                         {
-                                            GamesTab.MAdapter.GamesList.Add(item);
+                                            Id = 1830,
+                                            GameList = new List<GamesDataObject>(),
+                                            Type = Classes.ItemType.SearchGame,
+                                        };
+
+                                        foreach (var item in from item in result.Data let check = searchGames.GameList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                                    searchGames.GameList.Add(item);
                                         }
 
-                                        RunOnUiThread(() => { GamesTab.MAdapter.NotifyItemRangeInserted(countList, GamesTab.MAdapter.GamesList.Count - countList); });
-                                        break;
-                                    }
-                                    case > 0:
-                                        GamesTab.MAdapter.GamesList = new ObservableCollection<GamesDataObject>(result.Data);
+                                        GamesTab.MAdapter.GamesList.Add(searchGames);
+
                                         RunOnUiThread(() => { GamesTab.MAdapter.NotifyDataSetChanged(); });
-                                        break;
-                                    default:
-                                    {
-                                        switch (GamesTab.MAdapter.GamesList.Count)
-                                        {
-                                            case > 10 when !GamesTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGames), ToastLength.Short)?.Show();
-                                                break;
-                                        }
 
-                                        break;
                                     }
+                                    else
+                                    {
+                                        foreach (var item in from item in result.Data let check = checkList.GameList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                                        {
+                                            checkList.GameList.Add(item);
+                                        }
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (GamesTab.MAdapter.GamesList.Count > 10 && !GamesTab.MRecycler.CanScrollVertically(1))
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short);
                                 }
 
                                 break;
@@ -658,7 +820,7 @@ namespace WoWonder.Activities.Games
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 GamesTab.MainScrollEvent.IsLoading = false;
             }
         }
@@ -741,6 +903,42 @@ namespace WoWonder.Activities.Games
 
                         break;
                     }
+                    case "GetPopularGames":
+                    {
+                        GamesTab.MainScrollEvent.IsLoading = false;
+                            GamesTab.SwipeRefreshLayout.Refreshing = false;
+
+                        switch (GamesTab.MAdapter.GamesList.Count)
+                        {
+                            case > 0:
+                                    GamesTab.MRecycler.Visibility = ViewStates.Visible;
+                                    GamesTab.EmptyStateLayout.Visibility = ViewStates.Gone;
+                                break;
+                            default:
+                            {
+                                        GamesTab.MRecycler.Visibility = ViewStates.Gone;
+
+                                        GamesTab.Inflated = GamesTab.Inflated switch
+                                {
+                                    null => GamesTab.EmptyStateLayout.Inflate(),
+                                    _ => GamesTab.Inflated
+                                };
+
+                                EmptyStateInflater x = new EmptyStateInflater();
+                                x.InflateLayout(GamesTab.Inflated, EmptyStateInflater.Type.NoGames);
+                                switch (x.EmptyStateButton.HasOnClickListeners)
+                                {
+                                    case false:
+                                        x.EmptyStateButton.Click += null!;
+                                        break;
+                                }
+                                        GamesTab.EmptyStateLayout.Visibility = ViewStates.Visible;
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
                 }
             }
             catch (Exception e)
@@ -765,7 +963,7 @@ namespace WoWonder.Activities.Games
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
+         
         #endregion
     }
 }

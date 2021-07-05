@@ -48,7 +48,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -125,8 +125,21 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                 if (check == null)
                 {
                     MCallUser.Insert(0, call);
-                    NotifyItemInserted(0);
-                    MsgTabbedMainActivity.GetInstance().LastCallsTab.MRecycler?.ScrollToPosition(0);
+                   
+
+                    var instance = MsgTabbedMainActivity.GetInstance();
+                    instance?.RunOnUiThread(() =>
+                    {
+                        try
+                        {
+                            NotifyItemInserted(0);
+                            instance.LastCallsTab?.MRecycler?.ScrollToPosition(0);
+                        }
+                        catch (Exception e)
+                        {
+                            Methods.DisplayReportResultTrack(e);
+                        }
+                    });
                 }
             }
             catch (Exception e)
@@ -205,9 +218,9 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                 ImageLastseen.Visibility = ViewStates.Gone;
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new LastCallsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new LastCallsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                IconCall.Click += (sender, e) => callclickListener(new LastCallsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new LastCallsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new LastCallsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                IconCall.Click += (sender, e) => callclickListener(new LastCallsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

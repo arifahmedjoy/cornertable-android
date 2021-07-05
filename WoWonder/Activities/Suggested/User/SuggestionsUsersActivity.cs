@@ -9,8 +9,6 @@ using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
@@ -394,7 +392,7 @@ namespace WoWonder.Activities.Suggested.User
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -405,7 +403,7 @@ namespace WoWonder.Activities.Suggested.User
                             UserDataObject item = MAdapter.GetItem(e.Position);
                             if (item != null)
                             {
-                                WoWonderTools.SetAddFriend(this, item, e.BtnAddUser);
+                                WoWonderTools.SetAddFriendWithImage(this, item, e.BtnAddUser, e.Image);
                             }
 
                             break;
@@ -426,7 +424,7 @@ namespace WoWonder.Activities.Suggested.User
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadSuggestionsAsync(offset) });
         }
@@ -475,7 +473,7 @@ namespace WoWonder.Activities.Suggested.User
                                         switch (MAdapter.UserList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -509,7 +507,7 @@ namespace WoWonder.Activities.Suggested.User
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
             MainScrollEvent.IsLoading = false;

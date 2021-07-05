@@ -30,7 +30,7 @@ namespace WoWonder.Activities.Chat.StickersFragments
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 

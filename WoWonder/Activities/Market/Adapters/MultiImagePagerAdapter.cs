@@ -1,5 +1,4 @@
-﻿
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
 using System.Collections.Generic;
 using AndroidX.Core.Content;

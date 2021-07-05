@@ -6,6 +6,7 @@ using Android.Widget;
 using Google.Android.Material.BottomSheet;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -13,25 +14,25 @@ using WoWonderClient.Classes.Posts;
 
 namespace WoWonder.Activities.NativePost
 {
-    public class MoreBottomDialogFragment : BottomSheetDialogFragment, View.IOnClickListener
+    public class MoreBottomDialogFragment : BottomSheetDialogFragment ,View.IOnClickListener
     {
-        
-        private LinearLayout LlSavePost, LlCopyText, LlCopyLink, LlReportPost, LlEditPost, LlBoostPost, LlDisableComments, LlDeletePost;
-        private TextView TvSavePost, TvCopyText, TvCopyLink, TvReportPost, TvEditPost, TvBoostPost, TvDisableComments, TvDeletePost;
-        private string Savepost, Copytext, Reportpost, Editpost, Boostpost, Disablecomments;
+        #region Variables Basic
+
+        private LinearLayout LlSavePost, LlCopyText, LlCopyLink, LlHidePost, LlReportPost, LlEditPost, LlBoostPost, LlDisableComments, LlDeletePost;
+        private TextView TvSavePost, TvCopyText, TvCopyLink, TvHidePost, TvReportPost, TvEditPost, TvBoostPost, TvDisableComments, TvDeletePost;
+
         private PostDataObject DataPost;
-        private PostModelType TypePost;
         private Activity MainContext;
+        private PostClickListener Listener;
 
-        public string TypeDialog { get; private set; }
+        #endregion
 
-        private ITemClickListener Listener;
+        #region General
 
-        public MoreBottomDialogFragment(ITemClickListener listener)
+        public MoreBottomDialogFragment(PostClickListener clickListener)
         {
-            this.Listener = listener;
+            Listener = clickListener;
         }
-
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             try
@@ -68,24 +69,31 @@ namespace WoWonder.Activities.NativePost
             {
                 base.OnViewCreated(view, savedInstanceState);
 
-                DataPost = JsonConvert.DeserializeObject<PostDataObject>(Arguments?.GetString("ItemData") ?? "");
-                TypePost = JsonConvert.DeserializeObject<PostModelType>(Arguments?.GetString("TypePost") ?? "");
-
-                Savepost = JsonConvert.DeserializeObject<string>(Arguments?.GetString("savePost") ?? "");
-                Copytext = JsonConvert.DeserializeObject<string>(Arguments?.GetString("copyText") ?? "");
-                Reportpost = JsonConvert.DeserializeObject<string>(Arguments?.GetString("copyLink") ?? "");
-                Editpost = JsonConvert.DeserializeObject<string>(Arguments?.GetString("postType") ?? "");
-                Boostpost = JsonConvert.DeserializeObject<string>(Arguments?.GetString("boostPost") ?? "");
-                Disablecomments = JsonConvert.DeserializeObject<string>(Arguments?.GetString("commentStatus") ?? "");
-
                 InitComponent(view);
-                AddOrRemoveEvent(true);
+                LoadData();
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
+
+        public override void OnDetach()
+        {
+            try
+            {
+                base.OnDetach();
+                Listener = null;
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+         
+        #endregion
+
+        #region Functions
 
         private void InitComponent(View view)
         {
@@ -94,87 +102,90 @@ namespace WoWonder.Activities.NativePost
                 LlSavePost = view.FindViewById<LinearLayout>(Resource.Id.more_save_post);
                 LlCopyText = view.FindViewById<LinearLayout>(Resource.Id.more_copy_text);
                 LlCopyLink = view.FindViewById<LinearLayout>(Resource.Id.more_copy_link);
+                LlHidePost = view.FindViewById<LinearLayout>(Resource.Id.more_hide_post);
                 LlReportPost = view.FindViewById<LinearLayout>(Resource.Id.more_report_post);
                 LlEditPost = view.FindViewById<LinearLayout>(Resource.Id.more_edit_post);
                 LlBoostPost = view.FindViewById<LinearLayout>(Resource.Id.more_boost_post);
                 LlDisableComments = view.FindViewById<LinearLayout>(Resource.Id.more_disable_comment);
                 LlDeletePost = view.FindViewById<LinearLayout>(Resource.Id.more_delete_post);
 
-                //
-                if (Editpost == null)
-                    LlEditPost.Visibility = ViewStates.Gone;
-                else
-                    LlEditPost.SetOnClickListener(this);
-
-                //
-                if (Boostpost == null)
-                    LlBoostPost.Visibility = ViewStates.Gone;
-                else
-                    LlBoostPost.SetOnClickListener(this);
-
-                //
-                if (Disablecomments == null)
-                    LlDisableComments.Visibility = ViewStates.Gone;
-                else
-                    LlDisableComments.SetOnClickListener(this);
-
-                // 
-                if (DataPost.Publisher.UserId == UserDetails.UserId)
-                    LlDeletePost.SetOnClickListener(this);
-                else
-                    LlDeletePost.Visibility = ViewStates.Gone;
-
-                LlSavePost.SetOnClickListener(this);
-                LlCopyText.SetOnClickListener(this);
-                LlCopyLink.SetOnClickListener(this);
-                LlReportPost.SetOnClickListener(this);
-
                 TvSavePost = view.FindViewById<TextView>(Resource.Id.tv_save_post);
                 TvCopyText = view.FindViewById<TextView>(Resource.Id.tv_copy_text);
                 TvCopyLink = view.FindViewById<TextView>(Resource.Id.tv_copy_link);
+                TvHidePost = view.FindViewById<TextView>(Resource.Id.tv_hide_post);
                 TvReportPost = view.FindViewById<TextView>(Resource.Id.tv_report_post);
                 TvEditPost = view.FindViewById<TextView>(Resource.Id.tv_edit_post);
                 TvBoostPost = view.FindViewById<TextView>(Resource.Id.tv_boost_post);
                 TvDisableComments = view.FindViewById<TextView>(Resource.Id.tv_disable_comment);
                 TvDeletePost = view.FindViewById<TextView>(Resource.Id.tv_delete_post);
 
-                SetNames();
+                LlSavePost?.SetOnClickListener(this);
+                LlCopyText?.SetOnClickListener(this);
+                LlCopyLink?.SetOnClickListener(this);
+                LlHidePost?.SetOnClickListener(this);
+                LlReportPost?.SetOnClickListener(this);
+                LlEditPost?.SetOnClickListener(this);
+                LlBoostPost?.SetOnClickListener(this);
+                LlDisableComments?.SetOnClickListener(this);
+                LlDeletePost?.SetOnClickListener(this); 
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
+         
+        #endregion
 
-        private void SetNames()
-        {
-            if (DataPost.IsPostReported == true)
-                LlReportPost.Visibility = ViewStates.Gone;
-
-            TvSavePost.Text = Savepost;
-
-            if (Copytext.Length == 0)
-                LlCopyText.Visibility = ViewStates.Gone;
-            else
-                TvCopyText.Text = Copytext;
-
-            TvReportPost.Text = Reportpost;
-            TvEditPost.Text = Editpost;
-            TvBoostPost.Text = Boostpost;
-            TvDisableComments.Text = Disablecomments;
-        }
-
-        private void AddOrRemoveEvent(bool addEvent)
+        public void OnClick(View v)
         {
             try
             {
-                switch (addEvent)
+                string item;
+                if (v.Id == LlSavePost.Id)
                 {
-                    // true +=  // false -=
-                    case true:
-                        break;
-                    default:
-                        break;
+                    item = TvSavePost.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlCopyText.Id)
+                {
+                    item = TvCopyText.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlCopyLink.Id)
+                {
+                    item = TvCopyLink.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlHidePost.Id)
+                {
+                    item = TvHidePost.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlReportPost.Id)
+                {
+                    item = TvReportPost.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlEditPost.Id)
+                {
+                    item = TvEditPost.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlBoostPost.Id)
+                {
+                    item = TvBoostPost.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlDisableComments.Id)
+                {
+                    item = TvDisableComments.Text;
+                    Listener.OnItemClick(item, DataPost);
+                }
+                else if (v.Id == LlDeletePost.Id)
+                {
+                    item = TvDeletePost.Text;
+                    Listener.OnItemClick(item, DataPost);
                 }
             }
             catch (Exception e)
@@ -182,71 +193,78 @@ namespace WoWonder.Activities.NativePost
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        public void OnClick(View v)
+         
+        private void LoadData()
         {
-            string item;
-            switch (v.Id)
+            try
+            { 
+                DataPost = JsonConvert.DeserializeObject<PostDataObject>(Arguments?.GetString("ItemData") ?? "");
+                if (DataPost != null)
+                {
+                    var postType = PostFunctions.GetAdapterType(DataPost);
+                      
+                    LlCopyText.Visibility = !string.IsNullOrEmpty(DataPost.Orginaltext) ? ViewStates.Visible : ViewStates.Gone;
+                    LlReportPost.Visibility = !Convert.ToBoolean(DataPost.IsPostReported) ? ViewStates.Visible : ViewStates.Gone;
+                    LlHidePost.Visibility = DataPost.Publisher.UserId != UserDetails.UserId ? ViewStates.Visible : ViewStates.Gone;
+
+                    TvSavePost.Text = DataPost.IsPostSaved != null && DataPost.IsPostSaved.Value ? GetText(Resource.String.Lbl_UnSavePost) : GetText(Resource.String.Lbl_SavePost);
+
+                    if ((DataPost.UserId != "0" || DataPost.PageId != "0" || DataPost.GroupId != "0") && DataPost.Publisher.UserId == UserDetails.UserId)
+                    {
+                        switch (postType)
+                        {
+                            case PostModelType.ProductPost:
+                                TvEditPost.Text = MainContext.GetString(Resource.String.Lbl_EditProduct);
+                                break;
+                            case PostModelType.OfferPost:
+                                TvEditPost.Text = MainContext.GetString(Resource.String.Lbl_EditOffers);
+                                break;
+                            default:
+                                TvEditPost.Text = MainContext.GetString(Resource.String.Lbl_EditPost);
+                                break;
+                        }
+
+                        if (AppSettings.ShowAdvertisingPost)
+                        {
+                            var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                            if (dataUser?.IsPro == "1" && ListUtils.SettingsSiteList?.Pro == "1" && AppSettings.ShowGoPro)
+                            {
+                                switch (DataPost?.Boosted)
+                                {
+                                    case "0":
+                                        TvBoostPost.Text = MainContext.GetString(Resource.String.Lbl_BoostPost);
+                                        break;
+                                    case "1":
+                                        TvBoostPost.Text = MainContext.GetString(Resource.String.Lbl_UnBoostPost);
+                                        break;
+                                }
+                            } 
+                        }
+
+                        switch (DataPost?.CommentsStatus)
+                        {
+                            case "0":
+                                TvDisableComments.Text = MainContext.GetString(Resource.String.Lbl_EnableComments);
+                                break;
+                            case "1":
+                                TvDisableComments.Text = MainContext.GetString(Resource.String.Lbl_DisableComments);
+                                break;
+                        } 
+                    }
+                    else
+                    {
+                        LlEditPost.Visibility = ViewStates.Gone;
+                        LlBoostPost.Visibility = ViewStates.Gone;
+                        LlDisableComments.Visibility = ViewStates.Gone;
+                        LlDeletePost.Visibility = ViewStates.Gone;
+                    }  
+                } 
+            }
+            catch (Exception e)
             {
-                case Resource.Id.more_save_post:
-                    item = TvSavePost.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_copy_text:
-                    item = TvCopyText.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_copy_link:
-                    item = TvCopyLink.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_report_post:
-                    item = TvReportPost.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_edit_post:
-                    item = TvEditPost.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_boost_post:
-                    item = TvBoostPost.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_disable_comment:
-                    item = TvDisableComments.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                case Resource.Id.more_delete_post:
-                    item = TvDeletePost.Text;
-                    Listener.OnItemClick(item);
-                    break;
-                default:
-                    break;
+                Methods.DisplayReportResultTrack(e);
             }
         }
-
-        public override void OnAttach(Context context)
-        {
-            base.OnAttach(context);
-
-            if( context.GetType() == typeof(ITemClickListener) )
-            {
-                Listener = context as ITemClickListener;
-            }
-
-        }
-
-        public override void OnDetach()
-        {
-            base.OnDetach();
-            Listener = null;
-        }
-
-        public interface ITemClickListener
-        {
-            void OnItemClick(string item);
-        }
-
-
+         
     }
 }

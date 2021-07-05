@@ -402,7 +402,7 @@ namespace WoWonder.Activities.Contacts
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadContactsAsync(offset) });
         }
@@ -463,7 +463,7 @@ namespace WoWonder.Activities.Contacts
                                     switch (MAdapter.UserList.Count)
                                     {
                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                             break;
                                     }
 
@@ -517,7 +517,7 @@ namespace WoWonder.Activities.Contacts
                                     switch (MAdapter.UserList.Count)
                                     {
                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                             break;
                                     }
 
@@ -545,7 +545,7 @@ namespace WoWonder.Activities.Contacts
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

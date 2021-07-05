@@ -395,7 +395,7 @@ namespace WoWonder.Library.MusicBar
                     MBarAnimator.RemoveAllUpdateListeners();
                     MBarAnimator.RemoveAllListeners();
                     MBarAnimator.Cancel();
-                    //MBarAnimator = null;
+                    //MBarAnimator = null!;
                 }
             }
             catch (Exception e)
@@ -469,7 +469,7 @@ namespace WoWonder.Library.MusicBar
                     MProgressAnimator.RemoveAllUpdateListeners();
                     MProgressAnimator.RemoveAllListeners();
                     MProgressAnimator.Cancel();
-                    //MProgressAnimator = null;
+                    //MProgressAnimator = null!;
                 }
             }
             catch (Exception e)
@@ -629,8 +629,8 @@ namespace WoWonder.Library.MusicBar
         /// </summary>
         public void RemoveAllListener()
         {
-            MMusicBarAnimationChangeListener = null;
-            MMusicBarChangeListener = null;
+            MMusicBarAnimationChangeListener = null!;
+            MMusicBarChangeListener = null!;
         }
 
         public void SetLoadedBarPrimeColor(Color color)

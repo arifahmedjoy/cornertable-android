@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:background="?attr/colorBubble"
+    android:background="?attr/colorFill"
     android:layout_height="match_parent">
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -22,14 +22,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="fill_vertical"
-        android:background="?attr/colorBubble"
+        android:background="?attr/colorFill"
         android:layout_marginBottom="1dp">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_gravity="fill_vertical"
-            android:background="?attr/colorBubble"
             android:layout_below="@+id/title_pic_s03">
             <TextView
                 android:layout_width="match_parent"
@@ -51,67 +50,34 @@
                 android:text="@string/Lbl_Describe_TwoFactor"
                 android:textSize="12dp" />
             <!--TwoFactor Section -->
-            <LinearLayout
-                android:id="@+id/LayoutTwoFactor"
-                android:paddingTop="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="5dp"
+            <EditText
+                android:id="@+id/TwoFactorEditText"
+                style="@style/EditTextNormalStyle"
                 android:layout_width="match_parent"
-                android:orientation="horizontal"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/IconTwoFactor"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="#"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    android:textSize="20sp"
-                    android:layout_marginStart="5dp" />
-                <EditText
-                    android:id="@+id/TwoFactorEditText"
-                    style="@style/EditTextNormalStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="45dp"
-                    android:hint="@string/Lbl_TwoFactor"
-                    android:textSize="15sp"
-                    android:gravity="start"
-                    android:background="@drawable/EditTextStyleOne"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginStart="3dp" />
-            </LinearLayout>
-            <!--TwoFactor Code Section -->
-            <LinearLayout
-                android:id="@+id/LayoutTwoFactorCode"
-                android:paddingTop="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="5dp"
+                android:layout_height="35dp"
+                android:hint="@string/Lbl_TwoFactor"
+                android:textSize="14sp"
+                android:gravity="start|center_vertical"
+                android:paddingStart="16dp"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/round_gray_border"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="30dp" />
+            <EditText
+                android:id="@+id/TwoFactorCodeEditText"
+                style="@style/EditTextNormalStyle"
                 android:layout_width="match_parent"
-                android:orientation="horizontal"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/IconTwoFactorCode"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    android:textSize="20sp"
-                    android:layout_marginStart="5dp" />
-                <EditText
-                    android:id="@+id/TwoFactorCodeEditText"
-                    style="@style/EditTextNormalStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="45dp"
-                    android:hint="@string/Lbl_ConfirmationCode"
-                    android:textSize="15sp"
-                    android:gravity="start"
-                    android:inputType="number"
-                    android:background="@drawable/EditTextStyleOne"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginStart="3dp" />
-            </LinearLayout>
+                android:layout_height="35dp"
+                android:hint="@string/Lbl_ConfirmationCode"
+                android:textSize="14sp"
+                android:gravity="start|center_vertical"
+                android:paddingStart="16dp"
+                android:inputType="number"
+                android:background="@drawable/round_gray_border"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="15dp" />
 
             <Button
               android:id="@+id/SaveButton"
@@ -125,9 +91,9 @@
               android:textColor="@color/textIcon"
               android:textSize="12sp"
               android:clickable="true"
-              android:layout_marginEnd="30dp"
-              android:layout_marginStart="30dp"
-              android:layout_marginTop="19dp"
+              android:layout_marginEnd="16dp"
+              android:layout_marginStart="16dp"
+              android:layout_marginTop="30dp"
               android:gravity="center"
               android:layout_marginBottom="10dp" /> 
 			 

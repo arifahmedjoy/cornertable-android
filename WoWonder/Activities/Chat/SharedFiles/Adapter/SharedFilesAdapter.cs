@@ -24,17 +24,17 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
         public event EventHandler<SharedFilesAdapterViewHolderClickEventArgs> ItemClick;
         public event EventHandler<SharedFilesAdapterViewHolderClickEventArgs> ItemLongClick;
 
-        private readonly Activity ActivityContext; 
+        private readonly Activity ActivityContext;
         public ObservableCollection<Classes.SharedFile> SharedFilesList = new ObservableCollection<Classes.SharedFile>();
         private readonly string UserId;
         private readonly string TypeStyle;
-        public SharedFilesAdapter(Activity context, string userId , string typeStyle)
+        public SharedFilesAdapter(Activity context, string userId, string typeStyle)
         {
             try
             {
-                ActivityContext = context; 
+                ActivityContext = context;
                 UserId = userId;
-                TypeStyle = typeStyle; 
+                TypeStyle = typeStyle;
             }
             catch (Exception e)
             {
@@ -49,14 +49,14 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
             {
                 //Setup your layout here >> Style_SharedFiles_View
                 View itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_SharedFilesView, parent, false);
-                 
+
                 var vh = new SharedFilesAdapterViewHolder(itemView, OnClick, OnLongClick);
                 return vh;
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -72,73 +72,73 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
                     switch (item.FileType)
                     {
                         case "Video":
-                        {
-                            var fileName = item.FilePath.Split('/').Last();
-                            var fileNameWithoutExtension = fileName.Split('.').First();
-
-                            FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.PlayIcon, IonIconsFonts.Play);
-                            holder.PlayIcon.Visibility = ViewStates.Visible;
-
-                            FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.TypeIcon, IonIconsFonts.Camera);
-                            holder.TypeIcon.Visibility = ViewStates.Visible;
-
-                            var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimVideo + "/" + UserId, fileNameWithoutExtension + ".png");
-                            if (videoPlaceHolderImage == "File Dont Exists")
                             {
-                                var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(ActivityContext ,item.FilePath);
-                                Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, Methods.Path.FolderDcimVideo + "/" + UserId);
+                                var fileName = item.FilePath.Split('/').Last();
+                                var fileNameWithoutExtension = fileName.Split('.').First();
 
-                                var imageVideo = Methods.Path.FolderDcimVideo + "/" + UserId + "/" + fileNameWithoutExtension + ".png";
-                                 
-                                File file2 = new File(imageVideo);
-                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image); 
-                            }
-                            else
-                            {
-                                File file2 = new File(videoPlaceHolderImage);
-                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image); 
-                            }
+                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.PlayIcon, IonIconsFonts.Play);
+                                holder.PlayIcon.Visibility = ViewStates.Visible;
 
-                            break;
-                        }
+                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.TypeIcon, IonIconsFonts.Camera);
+                                holder.TypeIcon.Visibility = ViewStates.Visible;
+
+                                var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimVideo + "/" + UserId, fileNameWithoutExtension + ".png");
+                                if (videoPlaceHolderImage == "File Dont Exists")
+                                {
+                                    var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(ActivityContext, item.FilePath);
+                                    Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, Methods.Path.FolderDcimVideo + "/" + UserId);
+
+                                    var imageVideo = Methods.Path.FolderDcimVideo + "/" + UserId + "/" + fileNameWithoutExtension + ".png";
+
+                                    File file2 = new File(imageVideo);
+                                    var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                    Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                                }
+                                else
+                                {
+                                    File file2 = new File(videoPlaceHolderImage);
+                                    var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                    Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                                }
+
+                                break;
+                            }
                         case "Gif":
-                        {
-                            holder.TypeIcon.Text = ActivityContext.GetText(Resource.String.Lbl_Gif);
+                            {
+                                holder.TypeIcon.Text = ActivityContext.GetText(Resource.String.Lbl_Gif);
 
-                            holder.PlayIcon.Visibility = ViewStates.Gone; 
-                            holder.TypeIcon.Visibility = ViewStates.Visible;
+                                holder.PlayIcon.Visibility = ViewStates.Gone;
+                                holder.TypeIcon.Visibility = ViewStates.Visible;
 
-                            File file2 = new File(item.FilePath);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
-                            break;
-                        }
+                                File file2 = new File(item.FilePath);
+                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                                break;
+                            }
                         case "Sticker":
-                        {
-                            holder.PlayIcon.Visibility = ViewStates.Gone; 
-                            holder.TypeIcon.Visibility = ViewStates.Gone;
+                            {
+                                holder.PlayIcon.Visibility = ViewStates.Gone;
+                                holder.TypeIcon.Visibility = ViewStates.Gone;
 
-                            File file2 = new File(item.FilePath);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
-                            break;
-                        }
+                                File file2 = new File(item.FilePath);
+                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                                break;
+                            }
                         case "Image":
-                        {
-                            holder.PlayIcon.Visibility = ViewStates.Gone;
-                            holder.TypeIcon.Visibility = ViewStates.Gone;
+                            {
+                                holder.PlayIcon.Visibility = ViewStates.Gone;
+                                holder.TypeIcon.Visibility = ViewStates.Gone;
 
-                            File file2 = new File(item.FilePath);
-                            var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
-                            Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
-                            break;
-                        }
+                                File file2 = new File(item.FilePath);
+                                var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
+                                Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.Image);
+                                break;
+                            }
                         case "Sounds":
                             holder.PlayIcon.Visibility = ViewStates.Gone;
                             holder.TypeIcon.Visibility = ViewStates.Gone;
-                           
+
                             Glide.With(ActivityContext).Load(ActivityContext.GetDrawable(Resource.Drawable.Audio_File)).Apply(new RequestOptions()).Into(holder.Image);
                             break;
                         case "File":
@@ -219,14 +219,14 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
         public RequestBuilder GetPreloadRequestBuilder(Object p0)
         {
             return GlideImageLoader.GetPreLoadRequestBuilder(ActivityContext, p0.ToString(), ImageStyle.CenterCrop);
-        } 
+        }
     }
 
     public class SharedFilesAdapterViewHolder : RecyclerView.ViewHolder
     {
         #region Variables Basic
         public View MainView { get; set; }
-         
+
         public ImageView Image { get; private set; }
         public TextView PlayIcon { get; private set; }
         public TextView TypeIcon { get; private set; }
@@ -243,8 +243,8 @@ namespace WoWonder.Activities.Chat.SharedFiles.Adapter
 
 
                 //Create an Event
-                MainView.Click += (sender, e) => clickListener(new SharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new SharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
+                MainView.Click += (sender, e) => clickListener(new SharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SharedFilesAdapterViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

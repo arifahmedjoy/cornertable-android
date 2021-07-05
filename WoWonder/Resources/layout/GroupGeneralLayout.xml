@@ -67,7 +67,7 @@
               android:hint="@string/Lbl_Group_title" 
               android:textSize="15sp"
               android:gravity="start"
-              android:background="@drawable/EditTextStyleOne"
+              android:background="@drawable/round_gray_border"
               android:layout_alignParentEnd="true"
               android:layout_marginStart="3dp" />
           </LinearLayout>   
@@ -98,7 +98,7 @@
               android:hint="@string/Lbl_GroupUsername" 
               android:textSize="15sp"
               android:gravity="start"
-              android:background="@drawable/EditTextStyleOne"
+              android:background="@drawable/round_gray_border"
               android:layout_alignParentEnd="true"
               android:layout_marginStart="3dp" />
           </LinearLayout>  
@@ -126,7 +126,7 @@
               style="@style/EditTextNormalStyle"
               android:layout_width="match_parent"
               android:layout_height="80dp"
-              android:background="@drawable/EditTextStyleOne"
+              android:background="@drawable/round_gray_border"
               android:hint="@string/Lbl_Group_About"
               android:textSize="15sp"
               android:gravity="start"
@@ -160,7 +160,7 @@
               android:hint="@string/Lbl_SelectCategories" 
               android:textSize="15sp"
               android:gravity="start"
-              android:background="@drawable/EditTextStyleOne"
+              android:background="@drawable/round_gray_border"
               android:layout_alignParentEnd="true"
               android:layout_marginStart="3dp" />
           </LinearLayout>  
@@ -192,7 +192,7 @@
             android:hint="@string/Lbl_SubCategories" 
             android:textSize="15sp"
             android:gravity="start"
-            android:background="@drawable/EditTextStyleOne"
+            android:background="@drawable/round_gray_border"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="3dp" />
         </LinearLayout> 

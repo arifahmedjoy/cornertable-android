@@ -45,7 +45,7 @@
                             android:layout_marginEnd="11dp"
                             android:layout_marginStart="11dp"
                             android:paddingBottom="16dp"
-                            android:src="@drawable/ic_action_ic_back"
+                            android:src="@drawable/ic_action_left_arrow2"
                             android:paddingTop="15dp" />
                         <TextView
                             android:layout_width="wrap_content"
@@ -63,33 +63,29 @@
                     </RelativeLayout>
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="120dp"
+                        android:layout_height="72dp"
                         android:layout_alignParentBottom="true"
                         android:orientation="vertical"
                         android:layout_marginTop="0dp">
                         <View
-                            android:background="@drawable/rounded_corner_from_top_shape"
+                            android:background="@color/gnt_white"
                             android:layout_alignParentBottom="true"
                             android:layout_width="match_parent"
-                            android:layout_height="60dp" />
+                            android:layout_height="36dp" />
                         <androidx.cardview.widget.CardView
                             android:id="@+id/card_view"
                             android:focusable="true"
                             android:clickable="true"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginStart="9dp"
-                            android:layout_marginTop="0dp"
                             android:layout_centerHorizontal="true"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             card_view:cardElevation="0dp"
-                            card_view:cardCornerRadius="13dp">
+                            card_view:cardCornerRadius="20dp">
                             <ImageView
                                 android:id="@+id/JobAvatar"
                                 android:scaleType="centerCrop"
-                                android:layout_width="105dp"
-                                android:layout_height="105dp"
-                                android:layout_margin="6dp"
+                                android:layout_width="72dp"
+                                android:layout_height="72dp"
                                 android:layout_gravity="center"
                                 android:layout_centerHorizontal="true"
                                 android:src="@drawable/imageplacholder_circle" />
@@ -109,125 +105,201 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
                 android:translationY="0dp"
                 android:layout_marginTop="0dp">
                 <TextView
-                    android:id="@+id/Jobtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:layout_alignParentTop="true"
-                    android:paddingBottom="3dp"
-                    android:paddingStart="13dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="0dp"
-                    android:textStyle="bold"
-                    android:textSize="18sp" />
-                <TextView
                     android:id="@+id/pageName"
-                    android:layout_width="match_parent" 
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:layout_alignParentTop="true"
-                    android:paddingBottom="3dp"
-                    android:paddingStart="13dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="0dp"
-                    android:textSize="13sp" />
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/JobInfo"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"
+                    android:textSize="24sp"
+                    android:textColor="@color/accent"/>
+                <TextView
+                    android:id="@+id/tv_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:drawableStart="@drawable/ic_profile_pin"
+                    android:drawableTint="#B0B6C3"
+                    android:drawablePadding="10dp"
+                    android:textSize="16sp"/>
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:layout_alignParentTop="true"
-                    android:layout_marginTop="15dp"
-                    android:paddingStart="7dp"
-                    android:paddingEnd="7dp"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="2dp"
-                    android:textSize="13sp" />
-                <Button
-                    android:id="@+id/JobButton"
-                    android:background="@drawable/follow_button_profile_friends_pressed"
-                    android:layout_height="40dp"
-                    android:layout_width="match_parent"
-                    android:padding="5dp"
-                    style="@style/Base.TextAppearance.AppCompat.Body1"
-                    android:text="@string/Lbl_apply_now"
-                    android:textColor="@color/textLight_color"
-                    android:textSize="12sp"
-                    android:clickable="true"
-                    android:layout_marginEnd="7dp"
-                    android:layout_marginStart="7dp"
-                    android:layout_marginTop="19dp"
-                    android:gravity="center"
-                    android:layout_marginBottom="5dp" />
-                <RelativeLayout
+                    android:orientation="vertical"
+                    android:layout_marginTop="25dp">
+                    <TextView
+                        android:id="@+id/Jobtitle"
+                        android:layout_width="match_parent" 
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="28dp"
+                        android:layout_marginEnd="28dp"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="start|center_vertical"
+                        android:layout_marginStart="35dp"
+                        android:layout_marginEnd="35dp"
+                        android:layout_marginTop="15dp">
+                        <TextView
+                            android:id="@+id/tv_icon_jobtype"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            />
+                        <TextView
+                            android:id="@+id/tv_fulltime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:textSize="14sp"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="start|center_vertical"
+                        android:layout_marginStart="35dp"
+                        android:layout_marginEnd="35dp"
+                        android:layout_marginTop="15dp">
+                        <TextView
+                            android:id="@+id/tv_icon_jobtime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            />
+                        <TextView
+                            android:id="@+id/tv_time_ago"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:textSize="14sp"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="start|center_vertical"
+                        android:layout_marginStart="35dp"
+                        android:layout_marginEnd="35dp"
+                        android:layout_marginTop="15dp">
+                        <TextView
+                            android:id="@+id/tv_icon_jobcategory"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            />
+                        <TextView
+                            android:id="@+id/tv_category"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:textSize="14sp"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="start|center_vertical"
+                        android:layout_marginStart="35dp"
+                        android:layout_marginEnd="35dp"
+                        android:layout_marginTop="15dp">
+                        <TextView
+                            android:id="@+id/tv_icon_jobsalary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            />
+                        <TextView
+                            android:id="@+id/tv_salary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:textSize="14sp"
+                            />
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="7dp"
-                    android:layout_marginEnd="7dp"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="-3dp">
+                    android:layout_marginTop="18dp"
+                    android:orientation="vertical">
                     <TextView
-                        android:id="@+id/minimum"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent" 
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textSize="15dp"
-                        android:layout_marginStart="11dp"
-                        android:text="@string/Lbl_minimum"
-                        android:layout_gravity="center"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:id="@+id/minimumNumber"
-                        android:layout_marginStart="11dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/minimum"
-                        android:textSize="12dp" />
-                    <TextView
-                        android:id="@+id/maximum"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textSize="15dp"
-                        android:layout_toEndOf="@+id/minimum"
-                        android:layout_marginStart="60dp"
-                        android:text="@string/Lbl_maximum"
-                        android:layout_gravity="center"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:id="@+id/maximumNumber"
-                        android:layout_marginStart="60dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_toEndOf="@+id/minimum"
-                        android:layout_below="@+id/maximum"
-                        android:layout_centerHorizontal="true"
-                        android:textSize="12dp" />
+                        android:layout_marginStart="28dp"
+                        android:layout_marginEnd="28dp"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        
+                        android:text="@string/Lbl_Description"/>
                     <WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView
-                        android:layout_below="@+id/minimumNumber"
                         android:id="@+id/description"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="start"
-                        android:layout_alignParentBottom="true"
-                        android:gravity="center|start"
-                        android:layout_marginStart="11dp"
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="6dp"
-                        android:paddingBottom="10dp"
-                        android:paddingStart="1dp"
-                        android:paddingEnd="5dp"
+                        android:layout_marginStart="28dp"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginEnd="28dp"
                         android:textAlignment="textStart"
                         android:textAllCaps="false"
                         android:hyphenationFrequency="none"
-                        android:textSize="14sp" />
-                </RelativeLayout>
+                        android:textSize="14sp"
+                        />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="match_parent" 
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="28dp"
+                        android:layout_marginEnd="28dp"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        
+                        android:text="@string/Lbl_JobQualification"/>
+                    <WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView
+                        android:id="@+id/tv_qualification"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:layout_marginStart="28dp"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginEnd="28dp"
+                        android:textAlignment="textStart"
+                        android:textAllCaps="false"
+                        android:hyphenationFrequency="none"
+                        android:textSize="14sp"
+                        />
+                </LinearLayout>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <Button
+        android:id="@+id/JobButton"
+        android:background="@drawable/follow_button_profile_friends_pressed"
+        android:layout_height="40dp"
+        android:layout_width="match_parent"
+        android:text="@string/Lbl_Apply"
+        android:textColor="@color/textLight_color"
+        android:textSize="16sp"
+        android:clickable="true"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentBottom="true"
+        android:textAppearance="?android:attr/textAppearanceSmall"/>
 </RelativeLayout>

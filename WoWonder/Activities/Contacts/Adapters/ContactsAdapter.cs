@@ -121,7 +121,7 @@ namespace WoWonder.Activities.Contacts.Adapters
                         holder.About.Visibility = ViewStates.Gone;
                         break;
                     default:
-                        holder.About.Text = Type == TypeTextSecondary.About ? Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(users), 25) : ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), true);
+                        holder.About.Text = Type == TypeTextSecondary.About ? Methods.FunString.SubStringCutOf(WoWonderTools.GetAboutFinal(users), 25) : ActivityContext.GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), false);
                         break;
                 }
 
@@ -134,7 +134,7 @@ namespace WoWonder.Activities.Contacts.Adapters
                     case false:
                         return;
                     default:
-                        WoWonderTools.SetAddFriendCondition(users.IsFollowing, holder.Button);
+                        WoWonderTools.SetAddFriendCondition(users,users.IsFollowing, holder.Button);
                         break;
                 }
             }
@@ -240,7 +240,7 @@ namespace WoWonder.Activities.Contacts.Adapters
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(ActivityContext, ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -284,9 +284,9 @@ namespace WoWonder.Activities.Contacts.Adapters
                 ImageLastSeen = (CircleImageView)MainView.FindViewById(Resource.Id.ImageLastseen);
 
                 //Event
-                Button.Click += (sender, e) => followButtonClickListener(new ContactsAdapterClickEventArgs { View = itemView, Position = AdapterPosition , BtnAddUser = Button });
-                itemView.Click += (sender, e) => clickListener(new ContactsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new ContactsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => followButtonClickListener(new ContactsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition , BtnAddUser = Button });
+                itemView.Click += (sender, e) => clickListener(new ContactsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new ContactsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

@@ -10,23 +10,12 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
                 app:theme="@style/ToolbarTheme"
-            app:title="@string/Lbl_Update_DataProfile"
+            app:title="@string/Lbl_Edit_Profile_and_avatar"
             app:titleTextColor="@color/primary"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
             android:background="?attr/colorFill">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/Lbl_Save"
-                android:layout_gravity="end"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary" 
-                android:padding="15dp"
-                android:layout_marginEnd="10dp"
-                android:id="@+id/toolbar_title" />
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
    <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -74,12 +63,14 @@
                         android:layout_marginStart="15dp"
                         android:ems="10"
                         android:layout_height="45dp"
-                        android:background="@drawable/edittext_background"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:hint="@string/Lbl_First_Name"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         android:maxLines="1"
                         android:paddingStart="15dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
 						 android:gravity="center_vertical"
                         android:inputType="textEmailAddress" />
                     <EditText
@@ -89,15 +80,17 @@
                         android:layout_weight="50"
                         android:ems="10"
                         android:layout_height="45dp"
-                        android:background="@drawable/edittext_background"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:hint="@string/Lbl_Last_Name"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         android:maxLines="1"
                         android:paddingStart="15dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
                         android:gravity="center_vertical"
                         android:inputType="textEmailAddress"
-                        android:layout_marginStart="3dp" />
+                        android:layout_marginStart="10dp" />
                 </LinearLayout>
                 <!--Location Section -->
                 <LinearLayout
@@ -122,11 +115,11 @@
                         android:id="@+id/LocationEditText"
                         style="@style/EditTextNormalStyle"
                         android:layout_width="match_parent"
-                        android:layout_height="80dp"
+                        android:layout_height="53dp"
                         android:layout_marginStart="15dp"
-                        android:background="@drawable/edittext_background"
+                        android:background="@drawable/round_gray_border"
                         android:hint="@string/Lbl_Location"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         android:gravity="start"
                         android:paddingTop="6dp"
                         android:paddingStart="15dp"
@@ -159,12 +152,14 @@
                         android:layout_marginStart="15dp"
                         android:hint="@string/Lbl_Mobile"
 						android:inputType="phone"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         android:maxLines="1"
                         android:singleLine="true"
 						android:gravity="center_vertical"
                         android:paddingStart="15dp"
-                        android:background="@drawable/edittext_background"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true" />
                 </LinearLayout>
                 <!--Website Section -->
@@ -194,10 +189,12 @@
                         android:layout_marginStart="15dp"
                         android:hint="@string/Lbl_website"
 						 android:inputType="textWebEmailAddress"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
 						 android:gravity="center_vertical"
                         android:paddingStart="15dp"
-                        android:background="@drawable/edittext_background"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true" />
                 </LinearLayout>
                 <!--WorkStatus Section -->
@@ -226,10 +223,12 @@
                         android:layout_height="45dp"
                         android:layout_marginStart="15dp"
                         android:hint="@string/Lbl_Work_Place"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
 						 android:gravity="center_vertical"
-                        android:background="@drawable/edittext_background"
+                        android:background="@drawable/round_gray_border"
                         android:paddingStart="15dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
                         android:layout_alignParentEnd="true" />
                 </LinearLayout>
                 <!--School Section -->
@@ -258,10 +257,12 @@
                         android:layout_height="45dp"
                         android:layout_marginStart="15dp"
                         android:hint="@string/Lbl_School"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
 						android:gravity="center_vertical"
                         android:paddingStart="15dp"
-                        android:background="@drawable/edittext_background"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true" />
                 </LinearLayout>     
                 <!--Relationship Section -->
@@ -290,12 +291,24 @@
                         android:layout_height="45dp"
                         android:layout_marginStart="15dp"
                         android:hint="@string/Lbl_Relationship"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
 						 android:gravity="center_vertical"
                         android:paddingStart="15dp"
-                        android:background="@drawable/edittext_background"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="7dp"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"/>
                 </LinearLayout> 
+                <Button
+                    android:id="@+id/SaveButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="37dp"
+                    android:layout_marginTop="25dp"
+                    android:background="@drawable/follow_colored_button"
+                    android:text="@string/Lbl_Save"
+                    android:textAllCaps="false"
+                    android:textColor="@color/gnt_white"
+                    android:textSize="14sp"/>
                 <View 
 				    android:layout_height="?android:attr/actionBarSize"
                     android:layout_width="match_parent" /> 

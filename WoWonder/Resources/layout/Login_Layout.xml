@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
-        android:layout_below="@id/Logoplace">
+        android:layout_below="@+id/Logoplace">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -108,6 +108,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:src="@drawable/icon_eye"
+                            android:gravity="end"
+                            android:layout_gravity="end"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"/>
                     </RelativeLayout>
@@ -220,8 +222,8 @@
                             android:textColor="@color/gnt_white"
                             android:drawableStart="@drawable/ic_google"
                             android:drawablePadding="10dp"
-                            	android:paddingStart="35dp"
-                            android:paddingEnd="30dp"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
                             android:gravity="center"
                             style="?android:attr/borderlessButtonStyle"/>
 
@@ -242,8 +244,8 @@
                             android:textColor="@color/gnt_white"
                             android:drawableStart="@drawable/ic_facebook"
                             android:drawablePadding="10dp"
-                            	android:paddingStart="35dp"
-                            android:paddingEnd="30dp"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
                             android:gravity="center"
                             style="?android:attr/borderlessButtonStyle"/>
 

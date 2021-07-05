@@ -7,7 +7,7 @@ using Object = Java.Lang.Object;
 
 namespace WoWonder.Library.Anjo.EmojiView.StickersView
 {
-    public class WoWonderStickers : Object, IStickerCategory
+    public class WoWonderStickers : Java.Lang.Object, IStickerCategory
     {
         private readonly int Number;
         public WoWonderStickers(int number)
@@ -22,7 +22,7 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
 
         public View GetEmptyView(ViewGroup viewGroup)
         {
-            return null;
+            return null!;
         }
 
         public Sticker[] GetStickers()
@@ -70,7 +70,7 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
 
         public View GetView(ViewGroup viewGroup)
         {
-            return null;
+            return null!;
         }
 
         public bool UseCustomView()

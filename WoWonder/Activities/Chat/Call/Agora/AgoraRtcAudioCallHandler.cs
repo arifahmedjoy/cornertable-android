@@ -1,3 +1,4 @@
+using System;
 using DT.Xamarin.Agora;
 
 namespace WoWonder.Activities.Chat.Call.Agora
@@ -13,22 +14,39 @@ namespace WoWonder.Activities.Chat.Call.Agora
 
         public override void OnConnectionLost()
         {
+            base.OnConnectionLost();
             Context.OnConnectionLost();
         }
 
-        public override void OnUserOffline(int p0, int p1)
+        public override void OnUserOffline(int uid, int reason)
         {
-            Context.OnUserOffline(p0, p1);
+            base.OnUserOffline(uid, reason);
+            Context.OnUserOffline(uid, reason);
         }
 
-        public override void OnNetworkQuality(int p0, int p1, int p2)
+        public override void OnNetworkQuality(int uid, int txQuality, int rxQuality)
         {
-            Context.OnNetworkQuality(p0, p1, p2);
+            base.OnNetworkQuality(uid, txQuality, rxQuality);
+            Context.OnNetworkQuality(uid, txQuality, rxQuality);
         }
 
-        public override void OnUserJoined(int p0, int p1)
+        public override void OnUserJoined(int uid, int elapsed)
         {
-            Context.OnUserJoined(p0, p1);
+            base.OnUserJoined(uid, elapsed);
+            Context.OnUserJoined(uid, elapsed);
         }
+
+        public override void OnJoinChannelSuccess(string channel, int uid, int elapsed)
+        {
+            base.OnJoinChannelSuccess(channel, uid, elapsed);
+            Context.OnJoinChannelSuccess(channel, uid, elapsed);
+        }
+
+        [Obsolete("deprecated")]
+        public override void OnUserMuteAudio(int uid, bool muted)
+        {
+            base.OnUserMuteAudio(uid, muted);
+            Context.OnUserMuteAudio(uid, muted); 
+        } 
     }
 }

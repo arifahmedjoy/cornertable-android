@@ -135,7 +135,7 @@ namespace WoWonder.Activities.SearchForPosts
         {
             try
             {
-                MainRecyclerView.ReleasePlayer();
+                MainRecyclerView?.ReleasePlayer();
                 DestroyBasic();
                 base.OnDestroy();
             }
@@ -279,11 +279,15 @@ namespace WoWonder.Activities.SearchForPosts
         {
             try
             {
-                PostFeedAdapter.ListDiffer.Clear();
-                PostFeedAdapter.NotifyDataSetChanged();
+                if (!Methods.CheckConnectivity())
+                {
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    return;
+                }
 
-                PostFeedAdapter.NativePostType = NativeFeedType.SearchForPosts;
-
+                PostFeedAdapter?.ListDiffer?.Clear();
+                PostFeedAdapter?.NotifyDataSetChanged();
+ 
                 StartApiService();
             }
             catch (Exception exception)
@@ -327,14 +331,12 @@ namespace WoWonder.Activities.SearchForPosts
 
                         SearchView.ClearFocus();
                      
-                        PostFeedAdapter.ListDiffer.Clear();
-                        PostFeedAdapter.NotifyDataSetChanged();
+                        PostFeedAdapter?.ListDiffer?.Clear();
+                        PostFeedAdapter?.NotifyDataSetChanged();
 
                         SwipeRefreshLayout.Refreshing = true;
                         SwipeRefreshLayout.Enabled = true;
-
-                        PostFeedAdapter.NativePostType = NativeFeedType.SearchForPosts;
-
+ 
                         StartApiService();
 
                         EmptyStateLayout.Visibility = ViewStates.Gone;
@@ -356,7 +358,7 @@ namespace WoWonder.Activities.SearchForPosts
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => MainRecyclerView.ApiPostAsync.FetchSearchForPosts(offset, IdSearch, SearchText, TypeSearch) });
         }

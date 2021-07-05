@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Linq;
 using Android.App;
+using Android.Graphics;
 using Android.Widget;
+using AndroidX.Interpolator.View.Animation;
 using Java.Lang;
 using WoWonder.Activities.Chat.ChatWindow;
 using WoWonder.Activities.Chat.ChatWindow.Adapters;
 using WoWonder.Activities.Chat.GroupChat;
 using WoWonder.Activities.Chat.PageChat;
+using WoWonder.Activities.Story;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -22,7 +25,7 @@ namespace WoWonder.Activities.Chat.StickersFragments
         private readonly ChatWindowActivity ChatWindow;
         private readonly GroupChatWindowActivity GroupActivityView;
         private readonly PageChatWindowActivity PageActivityView;
-        //private readonly StoryReplyActivity StoryReplyActivity;
+        private readonly StoryReplyActivity StoryReplyActivity;
         private readonly string TimeNow = DateTime.Now.ToString("hh:mm");
 
         public StickerItemClickListener(Activity activity, string type, StickerRecylerAdapter.StickerAdapter stickerAdapter)
@@ -47,7 +50,7 @@ namespace WoWonder.Activities.Chat.StickersFragments
                         GroupActivityView = (GroupChatWindowActivity)activity;
                         break;
                     case "StoryReplyActivity":
-                        //StoryReplyActivity = (StoryReplyActivity)activity;
+                        StoryReplyActivity = (StoryReplyActivity)activity;
                         break;
                 }
             }
@@ -100,7 +103,7 @@ namespace WoWonder.Activities.Chat.StickersFragments
                             }
                             else
                             {
-                                Toast.MakeText(ChatWindow, ChatWindow.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(ChatWindow, ChatWindow.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             }
 
                             //try
@@ -154,7 +157,7 @@ namespace WoWonder.Activities.Chat.StickersFragments
                             }
                             else
                             {
-                                Toast.MakeText(GroupActivityView, GroupActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(GroupActivityView, GroupActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             }
 
                             //try
@@ -208,7 +211,7 @@ namespace WoWonder.Activities.Chat.StickersFragments
                             }
                             else
                             {
-                                Toast.MakeText(PageActivityView, PageActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(PageActivityView, PageActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             }
 
                             //try
@@ -230,30 +233,30 @@ namespace WoWonder.Activities.Chat.StickersFragments
                         }
                     case "StoryReplyActivity":
                         {
-                            //if (Methods.CheckConnectivity())
-                            //{
-                            //    //Sticker Send Function
-                            //    StoryReplyActivity.SendMess(StoryReplyActivity.UserId, "", "", "", stickerUrl, "sticker" + adapterClickEvents.Position).ConfigureAwait(false);
-                            //}
-                            //else
-                            //{
-                            //    Toast.MakeText(StoryReplyActivity, StoryReplyActivity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                            //}
+                            if (Methods.CheckConnectivity())
+                            {
+                                //Sticker Send Function
+                                StoryReplyActivity.SendMess(StoryReplyActivity.UserId, "", "", "", stickerUrl, "sticker" + adapterClickEvents.Position).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(StoryReplyActivity, StoryReplyActivity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                            }
 
-                            //try
-                            //{
-                            //    var interplator = new FastOutSlowInInterpolator();
-                            //    StoryReplyActivity.ChatStickerButton.Tag = "Closed";
+                            try
+                            {
+                                var interplator = new FastOutSlowInInterpolator();
+                                StoryReplyActivity.ChatStickerButton.Tag = "Closed";
 
-                            //    StoryReplyActivity.ResetButtonTags();
-                            //    StoryReplyActivity.ChatStickerButton?.Drawable?.SetTint(Color.ParseColor("#888888"));
-                            //    StoryReplyActivity.TopFragmentHolder.Animate().SetInterpolator(interplator).TranslationY(1200).SetDuration(300);
-                            //    StoryReplyActivity.SupportFragmentManager.BeginTransaction().Remove(StoryReplyActivity.ChatStickersTabBoxFragment)?.Commit();
-                            //}
-                            //catch (Exception exception)
-                            //{
-                            //    Methods.DisplayReportResultTrack(exception);
-                            //}
+                                StoryReplyActivity.ResetButtonTags();
+                                StoryReplyActivity.ChatStickerButton?.Drawable?.SetTint(Color.ParseColor("#888888"));
+                                StoryReplyActivity.TopFragmentHolder.Animate().SetInterpolator(interplator).TranslationY(1200).SetDuration(300);
+                                StoryReplyActivity.SupportFragmentManager.BeginTransaction().Remove(StoryReplyActivity.ChatStickersTabBoxFragment)?.Commit();
+                            }
+                            catch (Exception exception)
+                            {
+                                Methods.DisplayReportResultTrack(exception);
+                            }
 
                             break;
                         }

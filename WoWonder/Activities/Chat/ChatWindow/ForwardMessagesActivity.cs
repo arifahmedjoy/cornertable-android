@@ -12,7 +12,6 @@ using Android.Runtime;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
-using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide.Util;
@@ -216,13 +215,12 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 if (ToolBar != null)
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_ForwardTo);
-                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    ToolBar.SetTitleTextColor(Color.White);
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
-                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -410,7 +408,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                 }
                         }
 
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_MessagesSent), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_MessagesSent), ToastLength.Short);
                         Finish();
                     }
                 }
@@ -555,7 +553,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
             {
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadContactsAsync });
@@ -569,7 +567,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
             {
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserDetails.UserId, "following", "35", lastIdUser);
-                if (apiStatus != 200 || (respond is not GetFriendsObject result) || result.DataFriends == null)
+                if (apiStatus != 200 || respond is not GetFriendsObject result || result.DataFriends == null)
                 {
                     Methods.DisplayReportResult(this, respond);
                 }
@@ -599,7 +597,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     else
                     {
                         if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                     }
                 }
 
@@ -613,11 +611,11 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
                 if (!x.EmptyStateButton.HasOnClickListeners)
                 {
-                    x.EmptyStateButton.Click += null;
+                    x.EmptyStateButton.Click += null!;
                     x.EmptyStateButton.Click += EmptyStateButtonOnClick;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -646,7 +644,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
@@ -768,7 +766,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                         else
                         {
                             if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                         }
                     }
                 }
@@ -807,7 +805,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {

@@ -1,71 +1,67 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" >
-<!--PROFILE SECTION-->
-  <PreferenceCategory android:layout="@xml/divider" />
+  <!--PROFILE SECTION-->
   <PreferenceCategory  android:key="SectionAccount_key"  android:title="@string/Lbl_General" >
- 
-    <Preference
-      android:key="editprofile_key"
-      android:title="@string/Lbl_Edit_Profile_and_avatar" />
 
-    <Preference
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+        android:key="editprofile_key"
+        android:title="@string/Lbl_Edit_Profile_and_avatar"/>
+
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="about_me_key"
       android:title="@string/Lbl_About" />
-  
-    <Preference
+
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="editAccount_key"
       android:title="@string/Lbl_My_Account" />
-    
-    <Preference
+
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="editSocialLinks_key"
       android:title="@string/Lbl_SocialLinks" />
-     
-    <Preference
+
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="blocked_key"
       android:title="@string/Lbl_BlockedUsers" />
 
-    <Preference
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
       android:key="verification_key"
       android:title="@string/Lbl_Verification" />
-   
+
   </PreferenceCategory>
 
-<PreferenceCategory android:layout="@xml/divider" />
-<PreferenceCategory android:key="Theme_key" android:title="@string/Lbl_Display">
+  <PreferenceCategory android:key="Theme_key" android:title="@string/Lbl_Display" >
 
-	<Preference
-		android:key="Wallpaper_key"
-		android:title="@string/Lbl_Wallpaper" />
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+      android:key="Wallpaper_key"
+      android:title="@string/Lbl_Wallpaper" />
 
-	<Preference
-    android:key="Night_Mode_key"
-    android:title="@string/Lbl_Theme" />
-</PreferenceCategory>
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+      android:key="Night_Mode_key"
+      android:title="@string/Lbl_Theme" />
+  </PreferenceCategory>
 
-  <PreferenceCategory android:layout="@xml/divider" />
+  <PreferenceCategory  android:key="SecurityAccount_key"  android:title="@string/Lbl_Security" >
 
-<PreferenceCategory  android:key="SecurityAccount_key"  android:title="@string/Lbl_Security" >
-  
-  <Preference
-    android:key="editpassword_key"
-    android:title="@string/Lbl_Password"
-    android:summary="@string/Lbl_Change_your_password" />
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+      android:key="editpassword_key"
+      android:title="@string/Lbl_Password"
+      android:summary="@string/Lbl_Change_your_password" />
 
-  <Preference
-    android:key="Twofactor_key"
-    android:title="@string/Lbl_TwoFactor"  />
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+      android:key="Twofactor_key"
+      android:title="@string/Lbl_TwoFactor"  />
 
-  <Preference
-    android:key="ManageSessions_key"
-    android:title="@string/Lbl_ManageSessions"  />
-    
-  <Preference
-    android:key="deleteaccount_key"
-    android:title="@string/Lbl_DeleteAccount" />
- 
-</PreferenceCategory>
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+      android:key="ManageSessions_key"
+      android:title="@string/Lbl_ManageSessions"  />
 
-  
+    <WoWonder.Activities.SettingsPreferences.Custom.GeneralCustomPreference
+      android:key="deleteaccount_key"
+      android:title="@string/Lbl_DeleteAccount" />
+
+  </PreferenceCategory>
+
+
   <!--GENERAL SECTION-->
   <!--<PreferenceCategory android:layout="@xml/divider"/>-->
   <!--<PreferenceCategory  android:key="category_General" android:title="@string/Lbl_General" >

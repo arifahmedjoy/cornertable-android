@@ -8,25 +8,25 @@
 	should add file app-ads.txt in the server >>this content file text https://prnt.sc/vm086w
 	and the link should example: https://www.demo.com/app-ads.txt -->
 	<!--ADMOB APPLICATION_ID >> ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy-->
-	<string name="admob_app_id">ca-app-pub-5135691635931982~1552760489</string>
-	<string name="banner_ad_unit_id">ca-app-pub-5135691635931982/1056816903</string>
-	<string name="banner_multiple_ad_sizes_id">ca-app-pub-5135691635931982/1056816903</string>
+  <string name="admob_app_id">ca-app-pub-5135691635931982~1552760489</string>
+  <string name="banner_ad_unit_id">ca-app-pub-5135691635931982/1056816903</string>
+  <string name="banner_multiple_ad_sizes_id">ca-app-pub-5135691635931982/1056816903</string>
 	<string name="ad_attribution">Ad</string>
 	<!--===============================================================-->
 
 	<!--facebook ID-->
-	<string name="facebook_app_id">362090568091616</string>
-	<string name="fb_login_protocol_scheme">fb362090568091616</string>
+  <string name="facebook_app_id">362090568091616</string>
+  <string name="fb_login_protocol_scheme">fb362090568091616</string>
 	<string name="icon_desc">Ad icon</string>
 	<string name="image_desc">Ad image</string>
 	<string name="sponsored">Sponsored</string>
 	<!--===============================================================-->
 
 	<!--google ID >> Google Login - Map - YouTube Player  https://prnt.sc/vysrsw -->
-	<string name="google_key">MTQ1MGE0OWItODg3YS00MzRlLWI1ZGQtZGUxNWJmZTI5OTk1</string>
+  <string name="google_key">MTQ1MGE0OWItODg3YS00MzRlLWI1ZGQtZGUxNWJmZTI5OTk1</string>
 
-	<!-- https://developers.google.com/maps/documentation/maps-static/intro -->
-	<string name="google_maps_key">MTQ1MGE0OWItODg3YS00MzRlLWI1ZGQtZGUxNWJmZTI5OTk1</string>
+  <!-- https://developers.google.com/maps/documentation/maps-static/intro -->
+  <string name="google_maps_key">MTQ1MGE0OWItODg3YS00MzRlLWI1ZGQtZGUxNWJmZTI5OTk1</string>
 
 	<string name="razorpay_api_Key">rzp_test_ruzI7R7AkonOIi</string>
 

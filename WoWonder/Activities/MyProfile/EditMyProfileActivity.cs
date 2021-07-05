@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads.DoubleClick;
+using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
@@ -30,8 +30,7 @@ namespace WoWonder.Activities.MyProfile
     {
         #region Variables Basic
 
-        private TextView TxtSave;
-        //private TextView IconName, IconLocation, IconMobile, IconWebsite, IconWork, IconSchool, IconRelationship;
+        private Button BtnSave;
         private EditText TxtFirstName, TxtLastName, TxtLocation, TxtMobile,TxtWebsite,TxtWork,TxtSchool, TxtRelationship;
         private PublisherAdView PublisherAdView;
         private string TypeDialog,IdRelationShip;
@@ -155,41 +154,26 @@ namespace WoWonder.Activities.MyProfile
         {
             try
             {
-                TxtSave = FindViewById<TextView>(Resource.Id.toolbar_title);
+                BtnSave = FindViewById<Button>(Resource.Id.SaveButton);
 
-                //IconName = FindViewById<TextView>(Resource.Id.IconName);
                 TxtFirstName = FindViewById<EditText>(Resource.Id.FirstNameEditText);
                 TxtLastName = FindViewById<EditText>(Resource.Id.LastNameEditText);
-                //IconLocation = FindViewById<TextView>(Resource.Id.IconLocation);
                 TxtLocation = FindViewById<EditText>(Resource.Id.LocationEditText);
-                //IconMobile = FindViewById<TextView>(Resource.Id.IconPhone);
                 TxtMobile = FindViewById<EditText>(Resource.Id.PhoneEditText); 
-                //IconWebsite = FindViewById<TextView>(Resource.Id.IconWebsite);
                 TxtWebsite = FindViewById<EditText>(Resource.Id.WebsiteEditText); 
-                //IconWork = FindViewById<TextView>(Resource.Id.IconWorkStatus);
                 TxtWork = FindViewById<EditText>(Resource.Id.WorkStatusEditText); 
-                //IconSchool = FindViewById<TextView>(Resource.Id.IconSchool);
                 TxtSchool = FindViewById<EditText>(Resource.Id.SchoolEditText);
-                //IconRelationship = FindViewById<TextView>(Resource.Id.IconRelationship);
                 TxtRelationship = FindViewById<EditText>(Resource.Id.RelationshipEditText);
 
-                /*Methods.SetColorEditText(TxtFirstName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                Methods.SetColorEditText(TxtFirstName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtLastName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtLocation, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtMobile, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtWebsite, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtWork, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtSchool, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                Methods.SetColorEditText(TxtRelationship, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);*/
- 
-                /*FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconName, FontAwesomeIcon.User);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconLocation, FontAwesomeIcon.MapMarkedAlt);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconMobile, FontAwesomeIcon.Mobile);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWork, FontAwesomeIcon.Briefcase);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconWebsite, FontAwesomeIcon.Globe);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconSchool, FontAwesomeIcon.School);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconRelationship, FontAwesomeIcon.Heart);*/
- 
+                Methods.SetColorEditText(TxtRelationship, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                
                 Methods.SetFocusable(TxtRelationship);
 
                 PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view);
@@ -234,12 +218,12 @@ namespace WoWonder.Activities.MyProfile
                 {
                     // true +=  // false -=
                     case true:
-                        TxtSave.Click +=  TxtSaveOnClick;
+                        BtnSave.Click +=  TxtSaveOnClick;
                         TxtLocation.OnFocusChangeListener = this; 
                         TxtRelationship.Touch += TxtRelationshipOnTouch;
                         break;
                     default:
-                        TxtSave.Click -= TxtSaveOnClick;
+                        BtnSave.Click -= TxtSaveOnClick;
                         TxtLocation.OnFocusChangeListener = null!;
                         TxtRelationship.Touch -= TxtRelationshipOnTouch;
                         break;
@@ -256,21 +240,14 @@ namespace WoWonder.Activities.MyProfile
             try
             {
                 PublisherAdView?.Destroy();
-                TxtSave = null!;
-                //IconName = null!;
+                BtnSave = null!;
                 TxtFirstName = null!;
                 TxtLastName  = null!;
-                //IconLocation = null!;
                 TxtLocation  = null!;
-                //IconMobile = null!;
                 TxtMobile = null!;
-                //IconWebsite  = null!;
                 TxtWebsite = null!;
-                //IconWork = null!;
                 TxtWork = null!;
-                //IconSchool = null!;
                 TxtSchool = null!;
-                //IconRelationship = null!;
                 TxtRelationship = null!;
                 PublisherAdView = null!;
                 IdRelationShip = null!;
@@ -290,9 +267,17 @@ namespace WoWonder.Activities.MyProfile
             try
             {
                 if (Methods.CheckConnectivity())
-                {
+                { 
+                    if (string.IsNullOrEmpty(TxtMobile.Text) || !Methods.FunString.IsPhoneNumber(TxtMobile.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PhoneNumberIsWrong), ToastLength.Short);
+                        return;
+                    } 
+
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
+
+                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
 
                     var dictionary = new Dictionary<string, string>
                     {
@@ -303,8 +288,21 @@ namespace WoWonder.Activities.MyProfile
                         {"website", TxtWebsite.Text},
                         {"working", TxtWork.Text},
                         {"school", TxtSchool.Text},
-                        {"relationship", IdRelationShip}
+                        {"relationship", IdRelationShip},
+
+                        {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                     };
+
 
                     var (apiStatus, respond) = await RequestsAsync.Global.UpdateUserDataAsync(dictionary);
                     switch (apiStatus)
@@ -314,8 +312,7 @@ namespace WoWonder.Activities.MyProfile
                             switch (respond)
                             {
                                 case MessageObject result:
-                                {
-                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                { 
                                     if (dataUser != null)
                                     {
                                         dataUser.FirstName = TxtFirstName.Text;
@@ -332,7 +329,7 @@ namespace WoWonder.Activities.MyProfile
                                 
                                     }
 
-                                    Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourDetailsWasUpdated), ToastLength.Short);
                                     AndHUD.Shared.Dismiss(this);
 
                                     Intent  intent = new Intent();
@@ -351,7 +348,7 @@ namespace WoWonder.Activities.MyProfile
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -457,7 +454,7 @@ namespace WoWonder.Activities.MyProfile
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -518,15 +515,15 @@ namespace WoWonder.Activities.MyProfile
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "RelationShip":
-                        IdRelationShip = itemId.ToString();
-                        TxtRelationship.Text = itemString.ToString();
+                        IdRelationShip = position.ToString();
+                        TxtRelationship.Text = itemString;
                         break;
                 }
             }

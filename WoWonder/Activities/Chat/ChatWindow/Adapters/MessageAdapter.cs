@@ -34,6 +34,7 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Message;
+using WoWonderClient.Classes.Story;
 using Console = System.Console;
 using IList = System.Collections.IList;
 using Object = Java.Lang.Object;
@@ -64,7 +65,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
         {
             try
             {
-                //HasStableIds = true;
+                HasStableIds = true;
                 MainActivity = activity;
                 Id = userid;
                 ShowName = showName;
@@ -231,7 +232,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -416,7 +417,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                                     LoadFileOfChatItem(holder, position, item.MesData);
                                 //NotifyItemChanged(position);
                                 break;
-                            }
+                            }   
                         default:
                             base.OnBindViewHolder(viewHolder, position, payloads);
                             break;
@@ -436,16 +437,109 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
         #region Function Load Message
 
-        //Reply Messages //wael Todo
-        private void ReplyItems(Holders.RepliedMessageView holder, MessageModelType TypeView, MessageData message)
+        //Reply Story Messages
+        private void ReplyStoryItems(Holders.RepliedMessageView holder, StoryDataObject.Story story)
         {
             try
             {
-                if (message != null)
+                if (!string.IsNullOrEmpty(story?.Id))
                 {
-                    //holder.TxtOwnerName.Text = message.MessageUser.UserId == UserDetails.UserId ? MainActivity.GetText(Resource.String.Lbl_You) : ActionBarTitle.Text;
+                    holder.RepliedMessageLayout.Visibility = ViewStates.Visible;
+                    holder.TxtOwnerName.Text = MainActivity.GetText(Resource.String.Lbl_Story);
 
-                    if (TypeView == MessageModelType.LeftText || TypeView == MessageModelType.RightText)
+                    holder.MessageFileThumbnail.Visibility = ViewStates.Visible;
+                     
+                    var mediaFile = !story.Thumbnail.Contains("avatar") && story.Videos.Count == 0 ? story.Thumbnail : story.Videos[0].Filename;
+                    var fileName = mediaFile?.Split('/').Last();
+
+                    var typeView = Methods.AttachmentFiles.Check_FileExtension(mediaFile); 
+                    switch (typeView)
+                    {
+                        case "Video":
+                            {
+                                holder.TxtMessageType.Visibility = ViewStates.Gone;
+                                holder.TxtShortMessage.Text = MainActivity.GetText(Resource.String.video);
+
+                                var fileNameWithoutExtension = fileName.Split('.').First();
+
+                                var videoImage = Methods.MultiMedia.GetMediaFrom_Gallery(Methods.Path.FolderDcimVideo + Id, fileNameWithoutExtension + ".png");
+                                if (videoImage == "File Dont Exists")
+                                {
+                                    File file2 = new File(mediaFile);
+                                    try
+                                    {
+                                        Uri photoUri = mediaFile.Contains("http") ? Uri.Parse(mediaFile) : FileProvider.GetUriForFile(MainActivity, MainActivity.PackageName + ".fileprovider", file2);
+                                        Glide.With(MainActivity)
+                                            .AsBitmap()
+                                            .Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable))
+                                            .Load(photoUri) // or URI/path
+                                            .Into(holder.MessageFileThumbnail);  //image view to set thumbnail to 
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                        Glide.With(MainActivity)
+                                            .AsBitmap()
+                                            .Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable))
+                                            .Load(file2) // or URI/path
+                                            .Into(holder.MessageFileThumbnail);  //image view to set thumbnail to 
+                                    }
+                                }
+                                else
+                                {
+                                    File file = new File(videoImage);
+                                    try
+                                    {
+                                        Uri photoUri = FileProvider.GetUriForFile(MainActivity, MainActivity.PackageName + ".fileprovider", file);
+                                        Glide.With(MainActivity).Load(photoUri).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                        Glide.With(MainActivity).Load(file).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
+                                    }
+                                }
+                                break;
+                            }
+
+                        case "Image":
+                            {
+                                holder.TxtMessageType.Visibility = ViewStates.Gone;
+                                holder.TxtShortMessage.Text = MainActivity.GetText(Resource.String.image);
+
+                                mediaFile = WoWonderTools.GetFile(Id, Methods.Path.FolderDcimImage, fileName, mediaFile);
+
+                                if (mediaFile.Contains("http"))
+                                {
+                                    GlideImageLoader.LoadImage(MainActivity, mediaFile, holder.MessageFileThumbnail, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
+                                }
+                                else
+                                {
+                                    var file = Uri.FromFile(new File(mediaFile));
+                                    Glide.With(MainActivity).Load(file.Path).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
+                                }
+                                break;
+                            }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+        
+        //Reply Messages
+        private void ReplyItems(Holders.RepliedMessageView holder, MessageModelType typeView, MessageData message)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(message?.Id))
+                {
+                    holder.RepliedMessageLayout.Visibility = ViewStates.Visible;
+                    holder.TxtOwnerName.Text = message.MessageUser?.User?.UserId == UserDetails.UserId ? MainActivity.GetText(Resource.String.Lbl_You) : message.MessageUser?.User?.Name;
+
+                    if (typeView == MessageModelType.LeftText || typeView == MessageModelType.RightText)
                     {
                         holder.MessageFileThumbnail.Visibility = ViewStates.Gone;
                         holder.TxtMessageType.Visibility = ViewStates.Gone;
@@ -454,8 +548,8 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                     else
                     {
                         holder.MessageFileThumbnail.Visibility = ViewStates.Visible;
-                        var fileName = message.Media.Split('/').Last();
-                        switch (TypeView)
+                        var fileName = message.Media?.Split('/').Last();
+                        switch (typeView)
                         {
                             case MessageModelType.LeftVideo:
                             case MessageModelType.RightVideo:
@@ -515,12 +609,12 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
                                     if (message.Media.Contains("http"))
                                     {
-                                        GlideImageLoader.LoadImage(MainActivity, message.Media, holder.MessageFileThumbnail, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        GlideImageLoader.LoadImage(MainActivity, message.Media, holder.MessageFileThumbnail, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
                                     }
                                     else
                                     {
                                         var file = Uri.FromFile(new File(message.Media));
-                                        Glide.With(MainActivity).Load(file.Path).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                        Glide.With(MainActivity).Load(file.Path).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     }
                                     break;
                                 }
@@ -534,12 +628,12 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
                                     if (message.Media.Contains("http"))
                                     {
-                                        GlideImageLoader.LoadImage(MainActivity, message.Media, holder.MessageFileThumbnail, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        GlideImageLoader.LoadImage(MainActivity, message.Media, holder.MessageFileThumbnail, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
                                     }
                                     else
                                     {
                                         var file = Uri.FromFile(new File(message.Media));
-                                        Glide.With(MainActivity).Load(file.Path).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                        Glide.With(MainActivity).Load(file.Path).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     }
                                     break;
                                 }
@@ -553,12 +647,12 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
                                     if (message.Media.Contains("http"))
                                     {
-                                        GlideImageLoader.LoadImage(MainActivity, message.Media, holder.MessageFileThumbnail, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                        GlideImageLoader.LoadImage(MainActivity, message.Media, holder.MessageFileThumbnail, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
                                     }
                                     else
                                     {
                                         var file = Uri.FromFile(new File(message.Media));
-                                        Glide.With(MainActivity).Load(file.Path).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                        Glide.With(MainActivity).Load(file.Path).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     }
                                     break;
                                 }
@@ -567,26 +661,27 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                                 {
                                     holder.TxtMessageType.Visibility = ViewStates.Gone;
                                     holder.TxtShortMessage.Text = MainActivity.GetText(Resource.String.Lbl_VoiceMessage) + " (" + message.MediaDuration + ")";
-                                    Glide.With(MainActivity).Load(MainActivity.GetDrawable(Resource.Drawable.Audio_File)).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                    Glide.With(MainActivity).Load(MainActivity.GetDrawable(Resource.Drawable.Audio_File)).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     break;
                                 }
                             case MessageModelType.LeftFile:
                             case MessageModelType.RightFile:
                                 {
+                                    //holder.TxtShortMessage.Visibility = ViewStates.Gone;
                                     holder.TxtMessageType.Text = MainActivity.GetText(Resource.String.Lbl_File);
 
                                     var fileNameWithoutExtension = fileName.Split('.').First();
                                     var fileNameExtension = fileName.Split('.').Last();
 
                                     holder.TxtShortMessage.Text = Methods.FunString.SubStringCutOf(fileNameWithoutExtension, 10) + fileNameExtension;
-                                    Glide.With(MainActivity).Load(MainActivity.GetDrawable(Resource.Drawable.Image_File)).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                    Glide.With(MainActivity).Load(MainActivity.GetDrawable(Resource.Drawable.Image_File)).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     break;
                                 }
                             case MessageModelType.LeftMap:
                             case MessageModelType.RightMap:
                                 {
-                                    holder.TxtMessageType.Visibility = ViewStates.Gone;
-                                    holder.TxtShortMessage.Text = MainActivity.GetText(Resource.String.Lbl_Location);
+                                    holder.TxtShortMessage.Visibility = ViewStates.Gone;
+                                    holder.TxtMessageType.Text = MainActivity.GetText(Resource.String.Lbl_Location);
                                     Glide.With(MainActivity).Load(message.MessageMap).Apply(new RequestOptions().Placeholder(Resource.Drawable.Image_Map).Error(Resource.Drawable.Image_Map)).Into(holder.MessageFileThumbnail);
                                     break;
                                 }
@@ -595,7 +690,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                                 {
                                     holder.TxtMessageType.Text = MainActivity.GetText(Resource.String.Lbl_Contact);
                                     holder.TxtShortMessage.Text = message.ContactName;
-                                    Glide.With(MainActivity).Load(Resource.Drawable.no_profile_image).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                    Glide.With(MainActivity).Load(Resource.Drawable.no_profile_image).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     break;
                                 }
                             case MessageModelType.LeftProduct:
@@ -604,7 +699,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                                     holder.TxtMessageType.Visibility = ViewStates.Gone;
                                     holder.TxtShortMessage.Text = MainActivity.GetText(Resource.String.Lbl_Product);
                                     string imageUrl = !string.IsNullOrEmpty(message.Media) ? message.Media : message.Product?.ProductClass?.Images?.FirstOrDefault()?.Image;
-                                    Glide.With(MainActivity).Load(imageUrl).Apply(new RequestOptions()).Into(holder.MessageFileThumbnail);
+                                    Glide.With(MainActivity).Load(imageUrl).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.MessageFileThumbnail);
                                     break;
                                 }
                             case MessageModelType.LeftText:
@@ -613,6 +708,55 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                                 break;
                         }
                     }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        //Reaction Messages
+        private void ReactionItems(Holders.ReactionMessageView holder, MessageData message)
+        {
+            try
+            {
+                if (message.Reaction?.IsReacted != null && message.Reaction.IsReacted.Value)
+                {
+                    if (!string.IsNullOrEmpty(message.Reaction.Type))
+                    {
+                        var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == message.Reaction.Type).Value?.Id ?? "";
+                        switch (react)
+                        {
+                            case "1":
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                break;
+                            case "2":
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_love);
+                                break;
+                            case "3":
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_haha);
+                                break;
+                            case "4":
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_wow);
+                                break;
+                            case "5":
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_sad);
+                                break;
+                            case "6":
+                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_angry);
+                                break;
+                            default:
+                                if (message.Reaction.Count > 0)
+                                    holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                                break;
+                        }
+                        holder.CountLikeSection.Visibility = ViewStates.Visible;
+                    }
+                }
+                else
+                {
+                    holder.CountLikeSection.Visibility = ViewStates.Gone;
                 }
             }
             catch (Exception e)
@@ -697,6 +841,44 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
+                  
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                        holder.BubbleLayout.SetMinimumWidth(0);
+                    }
+                }
+                 
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
 
                 holder.Time.Visibility = message.ShowTimeText ? ViewStates.Visible : ViewStates.Gone;
 
@@ -816,6 +998,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone; 
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
                 holder.Time.Text = message.TimeText;
 
                 LatLng latLng = new LatLng(Convert.ToDouble(message.Lat), Convert.ToDouble(message.Lng));
@@ -880,6 +1099,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone; 
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
                 Console.WriteLine(position);
                 var fileName = message.Media.Split('/').Last();
                 message.Media = WoWonderTools.GetFile(Id, Methods.Path.FolderDcimImage, fileName, message.Media);
@@ -927,6 +1183,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone; 
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
                 Console.WriteLine(position);
                 string imageUrl = !string.IsNullOrEmpty(message.Media) ? message.Media : message.Product?.ProductClass?.Images?.FirstOrDefault()?.Image;
                 holder.Time.Text = message.TimeText;
@@ -954,42 +1247,81 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
             }
         }
 
-        private void LoadAudioBarOfChatItem(Holders.MusicBarViewHolder musicBarViewHolder, int position, MessageDataExtra message)
+        private void LoadAudioBarOfChatItem(Holders.MusicBarViewHolder holder, int position, MessageDataExtra message)
         {
             try
             {
-                if (musicBarViewHolder.UserName != null && ShowName)
+                Console.WriteLine(position);
+
+                if (holder.UserName != null && ShowName)
                 {
-                    musicBarViewHolder.UserName.Text = WoWonderTools.GetNameFinal(message.UserData);
-                    musicBarViewHolder.UserName.Visibility = ViewStates.Visible;
+                    holder.UserName.Text = WoWonderTools.GetNameFinal(message.UserData);
+                    holder.UserName.Visibility = ViewStates.Visible;
                 }
 
                 if (message.Position == "right")
                 {
-                    SetSeenMessage(musicBarViewHolder.Seen, message.Seen);
+                    SetSeenMessage(holder.Seen, message.Seen);
 
                     if (!ShowName)
-                        musicBarViewHolder.BubbleLayout.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(message.ChatColor));
+                        holder.BubbleLayout.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(message.ChatColor));
                 }
 
                 if (!ShowName)
-                    SetStartedMessage(musicBarViewHolder.StarIcon, musicBarViewHolder.StarImage, message.IsStarted);
+                    SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
-                if (message.SendFile)
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
                 {
-                    musicBarViewHolder.LoadingProgressview.Indeterminate = true;
-                    musicBarViewHolder.LoadingProgressview.IndeterminateDrawable?.SetColorFilter(new PorterDuffColorFilter(Color.White, PorterDuff.Mode.Multiply));
-                    musicBarViewHolder.LoadingProgressview.Visibility = ViewStates.Visible;
-                    musicBarViewHolder.PlayButton.Visibility = ViewStates.Gone;
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
                 }
                 else
                 {
-                    musicBarViewHolder.LoadingProgressview.Indeterminate = false;
-                    musicBarViewHolder.LoadingProgressview.Visibility = ViewStates.Gone;
-                    musicBarViewHolder.PlayButton.Visibility = ViewStates.Visible;
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
                 }
 
-                musicBarViewHolder.MsgTimeTextView.Text = message.TimeText;
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
+                if (message.SendFile)
+                {
+                    holder.LoadingProgressview.Indeterminate = true;
+                    holder.LoadingProgressview.IndeterminateDrawable?.SetColorFilter(new PorterDuffColorFilter(Color.White, PorterDuff.Mode.Multiply));
+                    holder.LoadingProgressview.Visibility = ViewStates.Visible;
+                    holder.PlayButton.Visibility = ViewStates.Gone;
+                }
+                else
+                {
+                    holder.LoadingProgressview.Indeterminate = false;
+                    holder.LoadingProgressview.Visibility = ViewStates.Gone;
+                    holder.PlayButton.Visibility = ViewStates.Visible;
+                }
+
+                holder.MsgTimeTextView.Text = message.TimeText;
 
                 var fileName = message.Media.Split('/').Last();
 
@@ -998,27 +1330,27 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 var duration = WoWonderTools.GetDuration(mediaFile);
                 if (string.IsNullOrEmpty(message.MediaDuration) || message.MediaDuration == "00:00")
                 {
-                    musicBarViewHolder.DurationTextView.Text = Methods.AudioRecorderAndPlayer.GetTimeString(duration);
+                    holder.DurationTextView.Text = Methods.AudioRecorderAndPlayer.GetTimeString(duration);
                 }
                 else
-                    musicBarViewHolder.DurationTextView.Text = message.MediaDuration;
+                    holder.DurationTextView.Text = message.MediaDuration;
 
                 if (mediaFile.Contains("http"))
                     mediaFile = WoWonderTools.GetFile(Id, Methods.Path.FolderDcimSound, fileName, message.Media);
 
-                musicBarViewHolder.FixedMusicBar.LoadFrom(mediaFile, Convert.ToInt32(duration));
-                musicBarViewHolder.FixedMusicBar.Show();
+                holder.FixedMusicBar.LoadFrom(mediaFile, Convert.ToInt32(duration));
+                holder.FixedMusicBar.Show();
 
                 if (message.MediaIsPlaying)
                 {
                     if (message.ModelType == MessageModelType.LeftAudio)
-                        musicBarViewHolder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+                        holder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
                     else
-                        musicBarViewHolder.PlayButton.SetImageResource(Resource.Drawable.ic_media_pause_light);
+                        holder.PlayButton.SetImageResource(Resource.Drawable.ic_media_pause_light);
                 }
                 else
                 {
-                    musicBarViewHolder.PlayButton.SetImageResource(message.ModelType == MessageModelType.LeftAudio ? Resource.Drawable.ic_play_dark_arrow : Resource.Drawable.ic_play_arrow);
+                    holder.PlayButton.SetImageResource(message.ModelType == MessageModelType.LeftAudio ? Resource.Drawable.ic_play_dark_arrow : Resource.Drawable.ic_play_arrow);
                 }
             }
             catch (Exception e)
@@ -1027,42 +1359,81 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
             }
         }
 
-        private void LoadAudioOfChatItem(Holders.SoundViewHolder soundViewHolder, int position, MessageDataExtra message)
+        private void LoadAudioOfChatItem(Holders.SoundViewHolder holder, int position, MessageDataExtra message)
         {
             try
             {
-                if (soundViewHolder.UserName != null && ShowName)
+                Console.WriteLine(position);
+
+                if (holder.UserName != null && ShowName)
                 {
-                    soundViewHolder.UserName.Text = WoWonderTools.GetNameFinal(message.UserData);
-                    soundViewHolder.UserName.Visibility = ViewStates.Visible;
+                    holder.UserName.Text = WoWonderTools.GetNameFinal(message.UserData);
+                    holder.UserName.Visibility = ViewStates.Visible;
                 }
 
                 if (message.Position == "right")
                 {
-                    SetSeenMessage(soundViewHolder.Seen, message.Seen);
+                    SetSeenMessage(holder.Seen, message.Seen);
 
                     if (!ShowName)
-                        soundViewHolder.BubbleLayout.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(message.ChatColor));
+                        holder.BubbleLayout.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(message.ChatColor));
                 }
 
                 if (!ShowName)
-                    SetStartedMessage(soundViewHolder.StarIcon, soundViewHolder.StarImage, message.IsStarted);
+                    SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
-                if (message.SendFile)
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
                 {
-                    soundViewHolder.LoadingProgressview.Indeterminate = true;
-                    soundViewHolder.LoadingProgressview.IndeterminateDrawable?.SetColorFilter(new PorterDuffColorFilter(Color.White, PorterDuff.Mode.Multiply));
-                    soundViewHolder.LoadingProgressview.Visibility = ViewStates.Visible;
-                    soundViewHolder.PlayButton.Visibility = ViewStates.Gone;
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
                 }
                 else
                 {
-                    soundViewHolder.LoadingProgressview.Indeterminate = false;
-                    soundViewHolder.LoadingProgressview.Visibility = ViewStates.Gone;
-                    soundViewHolder.PlayButton.Visibility = ViewStates.Visible;
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
                 }
 
-                soundViewHolder.MsgTimeTextView.Text = message.TimeText;
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
+                if (message.SendFile)
+                {
+                    holder.LoadingProgressview.Indeterminate = true;
+                    holder.LoadingProgressview.IndeterminateDrawable?.SetColorFilter(new PorterDuffColorFilter(Color.White, PorterDuff.Mode.Multiply));
+                    holder.LoadingProgressview.Visibility = ViewStates.Visible;
+                    holder.PlayButton.Visibility = ViewStates.Gone;
+                }
+                else
+                {
+                    holder.LoadingProgressview.Indeterminate = false;
+                    holder.LoadingProgressview.Visibility = ViewStates.Gone;
+                    holder.PlayButton.Visibility = ViewStates.Visible;
+                }
+
+                holder.MsgTimeTextView.Text = message.TimeText;
 
                 var fileName = message.Media.Split('/').Last();
 
@@ -1070,21 +1441,21 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 if (string.IsNullOrEmpty(message.MediaDuration) || message.MediaDuration == "00:00")
                 {
                     var duration = WoWonderTools.GetDuration(mediaFile);
-                    soundViewHolder.DurationTextView.Text = message.MediaDuration = Methods.AudioRecorderAndPlayer.GetTimeString(duration);
+                    holder.DurationTextView.Text = message.MediaDuration = Methods.AudioRecorderAndPlayer.GetTimeString(duration);
                 }
                 else
-                    soundViewHolder.DurationTextView.Text = message.MediaDuration;
+                    holder.DurationTextView.Text = message.MediaDuration;
 
                 if (message.MediaIsPlaying)
                 {
                     if (message.ModelType == MessageModelType.LeftAudio)
-                        soundViewHolder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+                        holder.PlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
                     else
-                        soundViewHolder.PlayButton.SetImageResource(Resource.Drawable.ic_media_pause_light);
+                        holder.PlayButton.SetImageResource(Resource.Drawable.ic_media_pause_light);
                 }
                 else
                 {
-                    soundViewHolder.PlayButton.SetImageResource(message.ModelType == MessageModelType.LeftAudio ? Resource.Drawable.ic_play_dark_arrow : Resource.Drawable.ic_play_arrow);
+                    holder.PlayButton.SetImageResource(message.ModelType == MessageModelType.LeftAudio ? Resource.Drawable.ic_play_dark_arrow : Resource.Drawable.ic_play_arrow);
                 }
             }
             catch (Exception e)
@@ -1113,6 +1484,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
+
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
 
                 Console.WriteLine(position);
                 holder.MsgTimeTextView.Text = message.TimeText;
@@ -1150,6 +1558,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
 
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
+
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
 
                 var fileName = message.Media.Split('/').Last();
                 var fileNameWithoutExtension = fileName.Split('.').First();
@@ -1302,6 +1747,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
                 Console.WriteLine(position);
                 //var fileName = message.Media.Split('/').Last();
                 //message.Media = WoWonderTools.GetFile(Id, Methods.Path.FolderDiskSticker, fileName, message.Media);
@@ -1348,6 +1830,43 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 if (!ShowName)
                     SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
 
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
+
                 Console.WriteLine(position);
                 var fileName = message.Media.Split('/').Last();
                 var fileNameWithoutExtension = fileName.Split('.').First();
@@ -1390,52 +1909,92 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
             }
         }
 
-        private void LoadGifOfChatItem(Holders.ImageViewHolder holder, int position, MessageDataExtra item)
+        private void LoadGifOfChatItem(Holders.ImageViewHolder holder, int position, MessageDataExtra message)
         {
             try
             {
                 if (holder.UserName != null && ShowName)
                 {
-                    holder.UserName.Text = WoWonderTools.GetNameFinal(item.UserData);
+                    holder.UserName.Text = WoWonderTools.GetNameFinal(message.UserData);
                     holder.UserName.Visibility = ViewStates.Visible;
                 }
 
-                if (item.Position == "right")
+                if (message.Position == "right")
                 {
-                    SetSeenMessage(holder.Seen, item.Seen);
+                    SetSeenMessage(holder.Seen, message.Seen);
 
                     if (!ShowName)
-                        holder.BubbleLayout.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(item.ChatColor));
+                        holder.BubbleLayout.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(message.ChatColor));
                 }
 
                 if (!ShowName)
-                    SetStartedMessage(holder.StarIcon, holder.StarImage, item.IsStarted);
+                    SetStartedMessage(holder.StarIcon, holder.StarImage, message.IsStarted);
+
+                if (message.Story?.StoryClass != null && message.StoryId != "0")
+                {
+                    ReplyStoryItems(holder.RepliedMessageView, message.Story?.StoryClass);
+
+                    if (message.Position == "right")
+                    {
+                        holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                        holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                    }
+                }
+                else
+                {
+                    if (message.Reply?.ReplyClass != null && message.ReplyId != "0")
+                    {
+                        ReplyItems(holder.RepliedMessageView, Holders.GetTypeModel(message.Reply?.ReplyClass), message.Reply?.ReplyClass);
+
+                        if (message.Position == "right")
+                        {
+                            holder.RepliedMessageView.TxtOwnerName.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtShortMessage.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.TxtMessageType.SetTextColor(Color.ParseColor("#efefef"));
+                            holder.RepliedMessageView.ColorView.SetBackgroundColor(Color.ParseColor("#efefef"));
+                        }
+                    }
+                    else
+                    {
+                        holder.RepliedMessageView.RepliedMessageLayout.Visibility = ViewStates.Gone;
+                    }
+                }
+
+                if (AppSettings.EnableReactionMessageSystem)
+                    ReactionItems(holder.ReactionMessageView, message);
+                else
+                    holder.ReactionMessageView.CountLikeSection.Visibility = ViewStates.Gone;
 
                 Console.WriteLine(position);
                 // G_fixed_height_small_url, // UrlGif - view  >>  mediaFileName
                 // G_fixed_height_small_mp4, //MediaGif - sent >>  media
 
                 string imageUrl = "";
-                if (!string.IsNullOrEmpty(item.Stickers))
-                    imageUrl = item.Stickers;
-                else if (!string.IsNullOrEmpty(item.Media))
-                    imageUrl = item.Media;
-                else if (!string.IsNullOrEmpty(item.MediaFileName))
-                    imageUrl = item.MediaFileName;
+                if (!string.IsNullOrEmpty(message.Stickers))
+                    imageUrl = message.Stickers;
+                else if (!string.IsNullOrEmpty(message.Media))
+                    imageUrl = message.Media;
+                else if (!string.IsNullOrEmpty(message.MediaFileName))
+                    imageUrl = message.MediaFileName;
 
-                string[] fileName = imageUrl.Split(new[] { "/", "200.gif?cid=", "&rid=200" }, StringSplitOptions.RemoveEmptyEntries);
-                var lastFileName = fileName.Last();
-                var name = fileName[3] + lastFileName;
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    string[] fileName = imageUrl.Split(new[] { "/", "200.gif?cid=", "&rid=200" }, StringSplitOptions.RemoveEmptyEntries);
+                    var lastFileName = fileName.Last();
+                    var name = fileName[3] + lastFileName;
 
-                item.Media = WoWonderTools.GetFile(Id, Methods.Path.FolderDiskGif, name, imageUrl);
-
-                if (item.Media != null && item.Media.Contains("http"))
+                    message.Media = WoWonderTools.GetFile(Id, Methods.Path.FolderDiskGif, name, imageUrl);
+                }
+               
+                if (message.Media != null && message.Media.Contains("http"))
                 {
                     GlideImageLoader.LoadImage(MainActivity, imageUrl, holder.ImageView, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
                 }
                 else
                 {
-                    var file = Uri.FromFile(new File(item.Media));
+                    var file = Uri.FromFile(new File(message.Media));
                     Glide.With(MainActivity).Load(file.Path).Apply(GlideImageLoader.GetRequestOptions(ImageStyle.RoundedCrop, ImagePlaceholders.Drawable)).Into(holder.ImageView);
                     //Glide.With(MainActivity).Load(file.Path).Apply(Options).Into(holder.ImageGifView);
                 }

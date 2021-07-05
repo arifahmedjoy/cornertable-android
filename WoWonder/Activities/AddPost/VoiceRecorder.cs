@@ -2,20 +2,24 @@
 using System.Threading.Tasks;
 using System.Timers;
 using Android;
+using Android.App;
 using Android.Content.PM;
 using Android.Graphics;
-using Android.OS;
-
+using Android.Media;
+using Android.OS; 
 using Android.Views;
 using Android.Widget;
+using AndroidX.Core.Content;
 using AT.Markushi.UI;
 using Com.Sothree.Slidinguppanel;
 using Google.Android.Material.BottomSheet;
+using WoWonder.Activities.AddPost.Service;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Posts;
+using Uri = Android.Net.Uri;
 
 namespace WoWonder.Activities.AddPost
 {
@@ -23,7 +27,8 @@ namespace WoWonder.Activities.AddPost
     {
         #region Variables Basic
 
-        private AddPostActivity MainActivityContext;
+        private readonly AddPostActivity MainActivityContext;
+        private readonly PostSharingActivity PostSharingActivity;
 
         private TextView IconClose, IconMicrophone;
         private CircleButton RecordPlayButton, RecordCloseButton, SendRecordButton, BtnVoice;
@@ -33,19 +38,32 @@ namespace WoWonder.Activities.AddPost
         private Methods.AudioRecorderAndPlayer AudioPlayerClass;
         private Timer TimerSound;
         private bool IsRecording;
-
+        private MediaPlayer MediaPlayer;
+        private readonly string PageName;
         #endregion
 
         #region General
 
-        public override void OnCreate(Bundle savedInstanceState)
+        public VoiceRecorder(Activity activityPage ,string page)
         {
-            base.OnCreate(savedInstanceState);
-
-            // Create your fragment here
-            MainActivityContext = (AddPostActivity)Activity;
+            try
+            {
+                PageName = page;
+                if (activityPage is AddPostActivity activity)
+                {
+                    MainActivityContext = activity;
+                }
+                else if (activityPage is PostSharingActivity sharingActivity)
+                {
+                    PostSharingActivity = sharingActivity;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }     
         }
-
+         
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             try
@@ -55,7 +73,7 @@ namespace WoWonder.Activities.AddPost
                 // clone the inflater using the ContextThemeWrapper 
                 LayoutInflater localInflater = inflater.CloneInContext(contextThemeWrapper);
 
-                View view = localInflater.Inflate(Resource.Layout.DialogVoiceRecorder, container, false);
+                View view = localInflater?.Inflate(Resource.Layout.DialogVoiceRecorder, container, false);
 
                 InitComponent(view);
                  
@@ -85,7 +103,7 @@ namespace WoWonder.Activities.AddPost
         { 
             try
             {
-                AudioPlayerClass?.StopAudioPlay();
+                StopAudioPlay();
 
                 base.OnDestroy();
             }
@@ -113,7 +131,6 @@ namespace WoWonder.Activities.AddPost
                 RecordLayout = view.FindViewById<LinearLayout>(Resource.Id.recordLayout);
                 
                 RecordPlayButton = view.FindViewById<CircleButton>(Resource.Id.playButton);
-                RecordPlayButton.Tag = "Stop";
                 RecordPlayButton.Click += RecordPlayButton_Click;
                  
                 RecordCloseButton = view.FindViewById<CircleButton>(Resource.Id.closeRecordButton);
@@ -124,6 +141,7 @@ namespace WoWonder.Activities.AddPost
                 SendRecordButton.Click += SendRecordButton_Click;
 
                 VoiceSeekBar = view.FindViewById<SeekBar>(Resource.Id.voiceseekbar);
+                VoiceSeekBar.Max = 10000;
                 VoiceSeekBar.Progress = 0;
                  
                 BtnVoice = view.FindViewById<CircleButton>(Resource.Id.startRecordButton);
@@ -149,24 +167,47 @@ namespace WoWonder.Activities.AddPost
         private void SendRecordButton_Click(object sender, EventArgs e)
         {
             try
-            { 
-                MainActivityContext.NameAlbumButton.Visibility = ViewStates.Gone;
-
-                //remove file the type
-                MainActivityContext.AttachmentsAdapter.RemoveAll();
-
-                var attach = new Attachments
+            {
+                if (PageName == "AddPost")
                 {
-                    Id = MainActivityContext.AttachmentsAdapter.AttachmentList.Count + 1,
-                    TypeAttachment = "postMusic",
-                    FileSimple = "Audio_File",
-                    FileUrl = RecordFilePath
-                };
+                    MainActivityContext.NameAlbumButton.Visibility = ViewStates.Gone;
 
-                MainActivityContext.AttachmentsAdapter.Add(attach);
+                    //remove file the type
+                    MainActivityContext.AttachmentsAdapter.RemoveAll();
 
-                MainActivityContext.SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
+                    var attach = new Attachments
+                    {
+                        Id = MainActivityContext.AttachmentsAdapter.AttachmentList.Count + 1,
+                        TypeAttachment = "postMusic",
+                        FileSimple = "Record_File",
+                        FileUrl = RecordFilePath
+                    };
+                     
+                    MainActivityContext.AttachmentsAdapter.Add(attach);
 
+                    MainActivityContext.SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
+                }
+                else
+                {
+                    PostSharingActivity.NameAlbumButton.Visibility = ViewStates.Gone;
+
+                    //remove file the type
+                    PostSharingActivity.AttachmentsAdapter.RemoveAll();
+
+                    var attach = new Attachments
+                    {
+                        Id = PostSharingActivity.AttachmentsAdapter.AttachmentList.Count + 1,
+                        TypeAttachment = "postMusic",
+                        FileSimple = "Record_File",
+                        FileUrl = RecordFilePath
+                    };
+
+                    PostSharingActivity.AttachmentsAdapter.Add(attach);
+
+                    PostSharingActivity.SlidingUpPanel.SetPanelState(SlidingUpPanelLayout.PanelState.Collapsed);
+
+                }
+                 
                 Dismiss();
             }
             catch (Exception ez)
@@ -180,7 +221,7 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                AudioPlayerClass?.StopAudioPlay();
+                StopAudioPlay();
                 Dismiss();
             }
             catch (Exception exception)
@@ -192,13 +233,8 @@ namespace WoWonder.Activities.AddPost
         private void RecordCloseButtonClick(object sender, EventArgs e)
         {
             try
-            {
-                switch (string.IsNullOrEmpty(RecordFilePath))
-                {
-                    case false:
-                        AudioPlayerClass.StopAudioPlay();
-                        break;
-                }
+            { 
+                StopAudioPlay();
 
                 switch (UserDetails.SoundControl)
                 {
@@ -226,21 +262,142 @@ namespace WoWonder.Activities.AddPost
         {
             try
             {
-                switch (string.IsNullOrEmpty(RecordFilePath))
+                switch (MediaPlayer)
                 {
-                    case false when RecordPlayButton?.Tag?.ToString() == "Stop":
-                        RecordPlayButton.Tag = "Playing";
-                        RecordPlayButton.SetColor(Color.ParseColor("#efefef"));
-                        RecordPlayButton.SetImageResource(Resource.Drawable.ic_stop_dark_arrow);
+                    case null:
+                        {
+                            MediaPlayer = new MediaPlayer();
+                            MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()?.SetUsage(AudioUsageKind.Media)?.SetContentType(AudioContentType.Music)?.Build());
 
-                        AudioPlayerClass.PlayAudioFromPath(RecordFilePath);
-                        VoiceSeekBar.Max = AudioPlayerClass.Player.Duration;
-                        TimerSound.Interval = 1000;
-                        TimerSound.Elapsed += TimerSound_Elapsed;
-                        TimerSound.Start();
-                        break;
-                    case false:
-                        RestPlayButton();
+                            MediaPlayer.Completion += (sender, e) =>
+                            {
+                                try
+                                {
+                                    RecordPlayButton.Tag = "Play";
+                                    RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+                                     
+                                    MediaPlayer.Stop();
+                                    MediaPlayer.Reset();
+                                    MediaPlayer = null!;
+
+                                    TimerSound.Enabled = false;
+                                    TimerSound.Stop();
+                                    TimerSound = null!;
+
+                                    VoiceSeekBar.Progress = 0;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Methods.DisplayReportResultTrack(exception);
+                                }
+                            };
+
+                            MediaPlayer.Prepared += (s, ee) =>
+                            {
+                                try
+                                {
+                                    RecordPlayButton.Tag = "Pause";
+                                    RecordPlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+
+                                    TimerSound ??= new Timer { Interval = 1000 };
+
+                                    MediaPlayer.Start();
+                                     
+                                    TimerSound.Elapsed += (sender, eventArgs) =>
+                                    {
+                                        Activity?.RunOnUiThread(() =>
+                                        {
+                                            try
+                                            {
+                                                if (TimerSound != null && TimerSound.Enabled)
+                                                {
+                                                    if (MediaPlayer != null)
+                                                    {
+                                                        int totalDuration = MediaPlayer.Duration;
+                                                        int currentDuration = MediaPlayer.CurrentPosition;
+
+                                                        // Updating progress bar
+                                                        int progress = GetProgressSeekBar(currentDuration, totalDuration);
+
+                                                        switch (Build.VERSION.SdkInt)
+                                                        {
+                                                            case >= BuildVersionCodes.N:
+                                                                VoiceSeekBar.SetProgress(progress, true);
+                                                                break;
+                                                            default:
+                                                                // For API < 24 
+                                                                VoiceSeekBar.Progress = progress;
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Methods.DisplayReportResultTrack(e);
+                                                RecordPlayButton.Tag = "Play";
+                                            }
+                                        });
+                                    };
+                                    TimerSound.Start();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            };
+
+                            if (RecordFilePath.Contains("http"))
+                            {
+                                MediaPlayer.SetDataSource(Activity, Uri.Parse(RecordFilePath));
+                                MediaPlayer.PrepareAsync();
+                            }
+                            else
+                            {
+                                Java.IO.File file2 = new Java.IO.File(RecordFilePath);
+                                var photoUri = FileProvider.GetUriForFile(Activity, Activity.PackageName + ".fileprovider", file2);
+
+                                MediaPlayer.SetDataSource(Activity, photoUri);
+                                MediaPlayer.PrepareAsync();
+                            }
+                            
+                            break;
+                        }
+                    default:
+                        switch (RecordPlayButton?.Tag?.ToString())
+                        {
+                            case "Play":
+                                {
+                                    RecordPlayButton.Tag = "Pause";
+                                    RecordPlayButton.SetImageResource(AppSettings.SetTabDarkTheme ? Resource.Drawable.ic_media_pause_light : Resource.Drawable.ic_media_pause_dark);
+
+                                    MediaPlayer?.Start();
+
+                                    if (TimerSound != null)
+                                    {
+                                        TimerSound.Enabled = true;
+                                        TimerSound.Start();
+                                    }
+
+                                    break;
+                                }
+                            case "Pause":
+                                {
+                                    RecordPlayButton.Tag = "Play";
+                                    RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+
+                                    MediaPlayer?.Pause();
+
+                                    if (TimerSound != null)
+                                    {
+                                        TimerSound.Enabled = false;
+                                        TimerSound.Stop();
+                                    }
+
+                                    break;
+                                }
+                        }
+
                         break;
                 }
             }
@@ -250,54 +407,58 @@ namespace WoWonder.Activities.AddPost
             }
         }
 
-        private void TimerSound_Elapsed(object sender, ElapsedEventArgs e)
+        private void StopAudioPlay()
         {
             try
             {
-                if (AudioPlayerClass.Player.CurrentPosition + 50 >= AudioPlayerClass.Player.Duration &&
-                    AudioPlayerClass.Player.CurrentPosition + 50 <= AudioPlayerClass.Player.Duration + 20)
+                RecordPlayButton.Tag = "Play";
+                RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
+
+                if (MediaPlayer != null)
                 {
-                    VoiceSeekBar.Progress = AudioPlayerClass.Player.Duration;
-                    RestPlayButton();
+                    MediaPlayer.Stop();
+                    MediaPlayer.Reset();
+                }
+                MediaPlayer = null!;
+
+
+                if (TimerSound != null)
+                {
+                    TimerSound.Enabled = false;
                     TimerSound.Stop();
                 }
-                else if (VoiceSeekBar.Max != AudioPlayerClass.Player.Duration && AudioPlayerClass.Player.Duration == 0)
-                {
-                    RestPlayButton();
-                    VoiceSeekBar.Max = AudioPlayerClass.Player.Duration;
-                }
-                else
-                {
-                    VoiceSeekBar.Progress = AudioPlayerClass.Player.CurrentPosition;
-                }
+
+                TimerSound = null!;
+
+                VoiceSeekBar.Progress = 0;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(ex);
+                Methods.DisplayReportResultTrack(e); 
             }
         }
-
-        private void RestPlayButton()
+          
+        private int GetProgressSeekBar(int currentDuration, int totalDuration)
         {
             try
             {
-                Activity?.RunOnUiThread(() =>
+                // calculating percentage
+                double progress = (double)currentDuration / totalDuration * 10000;
+                return progress switch
                 {
-                    RecordPlayButton.Tag = "Stop";
-                    RecordPlayButton.SetColor(Color.White);
-                    RecordPlayButton.SetImageResource(Resource.Drawable.ic_play_dark_arrow);
-                    AudioPlayerClass.Player.Stop();
-                    VoiceSeekBar.Progress = 0;
-                });
-
-                TimerSound.Stop();
+                    >= 0 =>
+                        // return percentage
+                        Convert.ToInt32(progress),
+                    _ => 0
+                };
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
+                return 0;
             }
         }
-
+          
         //record voices ( Permissions is 102 )
         private void BtnVoiceOnLongClick(object sender, View.LongClickEventArgs e)
         {
@@ -382,7 +543,7 @@ namespace WoWonder.Activities.AddPost
                                             break;
                                     }
 
-                                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short);
                                     break;
                                 }
                             }

@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.OS; 
+using Android.OS;
 using Android.Views;
 using Android.Widget;
 using Newtonsoft.Json;
@@ -16,12 +16,9 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
-using Google.Android.Material.FloatingActionButton;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Communities.Adapters;
-using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.Search;
-using WoWonder.Activities.Suggested.Groups;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
@@ -44,12 +41,10 @@ namespace WoWonder.Activities.Communities.Groups
         private LinearLayoutManager LayoutManager;
         private ViewStub EmptyStateLayout;
         private View Inflated;
-        private TextView TxtSuggestedGroups; 
+        private TextView CreateButton;
         private AdView MAdView;
         private static GroupsActivity Instance;
-        private FloatingActionButton CreateButton;
-        private RecyclerViewOnScrollListener MainScrollEvent;
-
+        
         #endregion
 
         #region General
@@ -65,7 +60,7 @@ namespace WoWonder.Activities.Communities.Groups
 
                 // Create your application here
                 SetContentView(Resource.Layout.RecyclerDefaultLayout);
-                 
+
                 Instance = this;
 
                 //Get Value And Set Toolbar
@@ -184,14 +179,10 @@ namespace WoWonder.Activities.Communities.Groups
                 SwipeRefreshLayout.SetBackgroundColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#282828") : Color.White);
                 MRecycler.SetBackgroundColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#282828") : Color.White);
 
-                TxtSuggestedGroups = FindViewById<TextView>(Resource.Id.toolbar_title);
-                TxtSuggestedGroups.Text = GetString(Resource.String.Lbl_SuggestedGroups);
-                TxtSuggestedGroups.Visibility = ViewStates.Visible;
-
-                CreateButton = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
+                CreateButton = FindViewById<TextView>(Resource.Id.toolbar_title);
+                CreateButton.Text = GetString(Resource.String.Lbl_Create);
                 CreateButton.Visibility = ViewStates.Visible;
-                CreateButton.SetImageResource(Resource.Drawable.ic_add);
-
+                 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, MRecycler);
             }
@@ -216,8 +207,6 @@ namespace WoWonder.Activities.Communities.Groups
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
-
-                    
                 }
             }
             catch (Exception e)
@@ -230,8 +219,10 @@ namespace WoWonder.Activities.Communities.Groups
         {
             try
             {
-                MAdapter = new SocialAdapter(this, SocialModelType.Groups); 
+                MAdapter = new SocialAdapter(this);
+                MAdapter.ItemClick += MAdapterOnItemClick;
                 LayoutManager = new LinearLayoutManager(this);
+
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.SetAdapter(MAdapter);
                 MRecycler.HasFixedSize = true;
@@ -241,15 +232,34 @@ namespace WoWonder.Activities.Communities.Groups
                 var preLoader = new RecyclerViewPreloader<SocialModelsClass>(this, MAdapter, sizeProvider, 8);
                 MRecycler.AddOnScrollListener(preLoader);
 
-                RecyclerViewOnScrollListener xamarinRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(LayoutManager);
-                MainScrollEvent = xamarinRecyclerViewOnScrollListener;
-                MainScrollEvent.LoadMoreEvent += MainScrollEventOnLoadMoreEvent;
-                MRecycler.AddOnScrollListener(xamarinRecyclerViewOnScrollListener);
-                MainScrollEvent.IsLoading = false; 
+                //RecyclerViewOnScrollListener xamarinRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(LayoutManager);
+                //MainScrollEvent = xamarinRecyclerViewOnScrollListener;
+                //MainScrollEvent.LoadMoreEvent += MainScrollEventOnLoadMoreEvent;
+                //MRecycler.AddOnScrollListener(xamarinRecyclerViewOnScrollListener);
+                //MainScrollEvent.IsLoading = false;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private void MAdapterOnItemClick(object sender, SocialAdapterClickEventArgs e)
+        {
+            try
+            {
+                if (e.Position > -1)
+                {
+                    var item = MAdapter.GetItem(e.Position);
+                    if (item?.TypeView == SocialModelType.MangedGroups || item?.TypeView == SocialModelType.JoinedGroups)
+                    {
+                        MainApplication.GetInstance()?.NavigateTo(this, typeof(GroupProfileActivity), item.Group);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
             }
         }
 
@@ -261,16 +271,12 @@ namespace WoWonder.Activities.Communities.Groups
                 {
                     // true +=  // false -=
                     case true:
-                        TxtSuggestedGroups.Click += TxtSuggestedGroupsOnClick;
-                        MAdapter.GroupItemClick += MAdapterOnItemClick;
-                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
                         CreateButton.Click += CreateButtonOnClick;
+                        SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
                         break;
                     default:
-                        TxtSuggestedGroups.Click -= TxtSuggestedGroupsOnClick;
-                        MAdapter.GroupItemClick -= MAdapterOnItemClick;
-                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
                         CreateButton.Click -= CreateButtonOnClick;
+                        SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
                         break;
                 }
             }
@@ -279,7 +285,7 @@ namespace WoWonder.Activities.Communities.Groups
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private void DestroyBasic()
         {
             try
@@ -291,9 +297,8 @@ namespace WoWonder.Activities.Communities.Groups
                 MRecycler = null!;
                 EmptyStateLayout = null!;
                 Inflated = null!;
-                Instance = null!;
+                Instance = null!; 
                 CreateButton = null!;
-                TxtSuggestedGroups = null!; 
                 MAdView = null!;
             }
             catch (Exception e)
@@ -318,36 +323,23 @@ namespace WoWonder.Activities.Communities.Groups
         #endregion
 
         #region Events
-
-        private void TxtSuggestedGroupsOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                var intent = new Intent(this, typeof(SuggestedGroupActivity));
-                StartActivity(intent);
-            }
-            catch (Exception ex)
-            {
-                Methods.DisplayReportResultTrack(ex);
-            }
-        }
-
-        //Scroll
-        private void MainScrollEventOnLoadMoreEvent(object sender, EventArgs e)
-        {
-            try
-            {
-                //Code get last id where LoadMore >>
-                var item = MAdapter.SocialList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item?.GroupData?.GroupId) && !MainScrollEvent.IsLoading)
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> {  () => GetJoinedGroups(item?.GroupData?.GroupId) });
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
          
+        //Scroll
+        //private void MainScrollEventOnLoadMoreEvent(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        //Code get last id where LoadMore >>
+        //        var item = MAdapter.SocialList.LastOrDefault();
+        //        if (item != null && !string.IsNullOrEmpty(item?.GroupData?.GroupId) && !MainScrollEvent.IsLoading)
+        //            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetJoinedGroups(item?.GroupData?.GroupId), () => GetSuggestedGroup(item?.GroupData?.GroupId) });
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Methods.DisplayReportResultTrack(exception);
+        //    }
+        //}
+
         //Refresh
         private void SwipeRefreshLayoutOnRefresh(object sender, EventArgs e)
         {
@@ -356,7 +348,7 @@ namespace WoWonder.Activities.Communities.Groups
                 MAdapter.SocialList.Clear();
                 MAdapter.NotifyDataSetChanged();
 
-                MainScrollEvent.IsLoading = false;
+                //MainScrollEvent.IsLoading = false;
 
                 StartApiService();
             }
@@ -365,26 +357,7 @@ namespace WoWonder.Activities.Communities.Groups
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
-        private void MAdapterOnItemClick(object sender, GroupsAdapterClickEventArgs e)
-        {
-            try
-            {
-                var item = MAdapter.GetItem(e.Position);
-                if (item != null)
-                {
-                    var intent = new Intent(this, typeof(GroupProfileActivity));
-                    intent.PutExtra("GroupObject", JsonConvert.SerializeObject(item.GroupData));
-                    intent.PutExtra("GroupId", item.GroupData.GroupId);
-                    StartActivity(intent);
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+         
         //Event Create New Group
         private void CreateButtonOnClick(object sender, EventArgs e)
         {
@@ -412,75 +385,87 @@ namespace WoWonder.Activities.Communities.Groups
                 switch (requestCode)
                 {
                     case 200 when resultCode == Result.Ok:
-                    {
-                        string result = data?.GetStringExtra("groupItem") ?? "";
-                        switch (string.IsNullOrEmpty(result))
                         {
-                            case false:
+                            string result = data?.GetStringExtra("groupItem") ?? "";
+                            switch (string.IsNullOrEmpty(result))
                             {
-                                var item = JsonConvert.DeserializeObject<GroupClass>(result);
-                                switch (item)
-                                {
-                                    case null:
-                                        return;
-                                }
-
-                                switch (MAdapter.SocialList.Count)
-                                {
-                                    case > 0:
+                                case false:
                                     {
-                                        var check = MAdapter.SocialList.FirstOrDefault(a => a.TypeView == SocialModelType.MangedGroups);
-                                        if (check != null)
-                                        { 
-                                            MAdapter?.GroupsAdapter?.GroupList?.Insert(0, item);
-                                            MAdapter?.GroupsAdapter?.NotifyDataSetChanged();
-                                            MAdapter.NotifyDataSetChanged();
+                                        var item = JsonConvert.DeserializeObject<GroupClass>(result);
+                                        switch (item)
+                                        {
+                                            case null:
+                                                return;
+                                        }
+
+                                        if (MAdapter.SocialList.Count > 0)
+                                        {
+                                            var check = MAdapter.SocialList.FirstOrDefault(a => a.TypeView == SocialModelType.MangedGroups);
+                                            if (check != null)
+                                            {
+                                                MAdapter.SocialList?.Insert(1, new SocialModelsClass
+                                                {
+                                                    Id = Convert.ToInt32(item.GroupId),
+                                                    Group = item,
+                                                    TypeView = SocialModelType.MangedGroups
+                                                });
+                                                MAdapter?.NotifyDataSetChanged();
+                                            }
+                                            else
+                                            {
+                                                MAdapter.SocialList?.Insert(0, new SocialModelsClass
+                                                {
+                                                    Id = 0001111111,
+                                                    TitleHead = GetString(Resource.String.Lbl_Manage_Groups),
+                                                    TypeView = SocialModelType.Section
+                                                });
+
+                                                MAdapter.SocialList?.Insert(1, new SocialModelsClass
+                                                {
+                                                    Id = Convert.ToInt32(item.GroupId),
+                                                    Group = item,
+                                                    TypeView = SocialModelType.MangedGroups
+                                                });
+
+                                                MAdapter.SocialList?.Insert(2, new SocialModelsClass
+                                                {
+                                                    TypeView = SocialModelType.Divider
+                                                });
+
+                                                MAdapter?.NotifyDataSetChanged();
+                                            }
                                         }
                                         else
                                         {
-                                            var socialSection = new SocialModelsClass
+                                            MAdapter.SocialList?.Add(new SocialModelsClass
                                             {
-                                                MangedGroupsModel = new GroupsModelClass
-                                                {
-                                                    GroupsList = new List<GroupClass> { item },
-                                                    More = "",
-                                                    TitleHead = GetString(Resource.String.Lbl_Manage_Groups)
-                                                },
-                                                Id = 11111111,
+                                                Id = 0001111111,
+                                                TitleHead = GetString(Resource.String.Lbl_Manage_Groups),
+                                                TypeView = SocialModelType.Section
+                                            });
+
+                                            MAdapter.SocialList?.Add(new SocialModelsClass
+                                            {
+                                                Id = Convert.ToInt32(item.GroupId),
+                                                Group = item,
                                                 TypeView = SocialModelType.MangedGroups
-                                            }; 
-                                            MAdapter.SocialList.Insert(0, socialSection);
+                                            });
+
+                                            MAdapter.SocialList?.Add(new SocialModelsClass
+                                            {
+                                                TypeView = SocialModelType.Divider
+                                            });
+
                                             MAdapter.NotifyDataSetChanged();
                                         }
 
+                                        ShowEmptyPage();
                                         break;
                                     }
-                                    default:
-                                    {
-                                        var socialSection = new SocialModelsClass
-                                        {
-                                            MangedGroupsModel = new GroupsModelClass
-                                            {
-                                                GroupsList = new List<GroupClass> { item },
-                                                More = "",
-                                                TitleHead = GetString(Resource.String.Lbl_Manage_Groups)
-                                            },
-                                            Id = 11111111,
-                                            TypeView = SocialModelType.MangedGroups
-                                        };
-                                        MAdapter.SocialList.Insert(0, socialSection);
-                                        MAdapter.NotifyDataSetChanged();
-                                        break;
-                                    }
-                                }
-                         
-                                ShowEmptyPage();
-                                break;
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -496,11 +481,11 @@ namespace WoWonder.Activities.Communities.Groups
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyGroups  });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetMyGroups });
         }
-         
+
         private async Task GetMyGroups()
         {
             if (Methods.CheckConnectivity())
@@ -513,72 +498,42 @@ namespace WoWonder.Activities.Communities.Groups
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
+                    if (respondList > 0)
                     {
-                        case > 0:
+                        result.Data.Reverse();
+
+                        var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.MangedGroups);
+                        if (checkList == null)
                         {
-                            result.Data.Reverse();
-
-                            var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.MangedGroups);
-                            switch (checkList)
+                            MAdapter.SocialList.Insert(0, new SocialModelsClass
                             {
-                                case null:
+                                Id = 0001111111,
+                                TitleHead = GetString(Resource.String.Lbl_Manage_Groups),
+                                TypeView = SocialModelType.Section
+                            });
+
+                            foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Group?.GroupId == item.GroupId) where check == null select item)
+                            {
+                                MAdapter.SocialList.Add(new SocialModelsClass
                                 {
-                                    var socialSection = new SocialModelsClass
-                                    {
-                                        Id = 0001111111,
-                                        MangedGroupsModel = new GroupsModelClass
-                                        {
-                                            GroupsList = new List<GroupClass>(),
-                                            More = "",
-                                            TitleHead = GetString(Resource.String.Lbl_Manage_Groups)
-                                        },
-                                        TypeView = SocialModelType.MangedGroups 
-                                    };
+                                    Id = Convert.ToInt32(item.GroupId),
+                                    Group = item,
+                                    TypeView = SocialModelType.MangedGroups,
+                                });
 
-                                    foreach (var item in from item in result.Data let check = socialSection.MangedGroupsModel.GroupsList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
-                                    {
-                                        socialSection.MangedGroupsModel.GroupsList.Add(item);
-
-                                        switch (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId))
-                                        {
-                                            case null:
-                                                ListUtils.MyGroupList.Add(item);
-                                                break;
-                                        }
-                                    }
-
-                                    MAdapter.SocialList.Insert(0, socialSection);
-                                    break;
-                                }
-                                default:
-                                {
-                                    foreach (var item in from item in result.Data let check = checkList.MangedGroupsModel.GroupsList.FirstOrDefault(a => a.GroupId == item.GroupId) where check == null select item)
-                                    {
-                                        checkList.MangedGroupsModel.GroupsList.Add(item);
-
-                                        switch (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId))
-                                        {
-                                            case null:
-                                                ListUtils.MyGroupList.Add(item);
-                                                break;
-                                        }
-                                    }
-
-                                    break;
-                                }
+                                if (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId) == null)
+                                    ListUtils.MyGroupList.Add(item);
                             }
 
-                            break;
+                            MAdapter.SocialList.Add(new SocialModelsClass
+                            {
+                                TypeView = SocialModelType.Divider
+                            });
                         }
                     }
                 }
 
-                await GetJoinedGroups();
-
-                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); }); 
-
-                RunOnUiThread(ShowEmptyPage);
+                await GetJoinedGroups(); 
             }
             else
             {
@@ -593,118 +548,87 @@ namespace WoWonder.Activities.Communities.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
         private async Task GetJoinedGroups(string offset = "0")
         {
-            switch (MainScrollEvent.IsLoading)
-            {
-                case true:
-                    return;
-            }
+            //switch (MainScrollEvent.IsLoading)
+            //{
+            //    case true:
+            //        return;
+            //}
 
             if (Methods.CheckConnectivity())
             {
-                MainScrollEvent.IsLoading = true;
-                
-                var (apiStatus, respond) = await RequestsAsync.Group.GetJoinedGroupsAsync(UserDetails.UserId ,offset, "10");
+                //MainScrollEvent.IsLoading = true;
+
+                var (apiStatus, respond) = await RequestsAsync.Group.GetJoinedGroupsAsync(UserDetails.UserId, offset, "10");
                 if (apiStatus != 200 || respond is not ListGroupsObject result || result.Data == null)
                 {
-                    MainScrollEvent.IsLoading = false;
+                    //MainScrollEvent.IsLoading = false;
                     Methods.DisplayReportResult(this, respond);
                 }
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
+                    if (respondList > 0)
                     {
-                        case > 0:
+                        var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.JoinedGroups);
+                        if (checkList == null)
                         {
-                            var checkList = MAdapter.SocialList.FirstOrDefault(q => q.TypeView == SocialModelType.JoinedGroups);
-                            switch (checkList)
+                            MAdapter.SocialList.Add(new SocialModelsClass
                             {
-                                case null:
+                                Id = 0001111111,
+                                TitleHead = GetString(Resource.String.Lbl_Joined_Groups),
+                                TypeView = SocialModelType.Section
+                            });
+
+                            foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Group?.GroupId == item.GroupId) where check == null select item)
+                            {
+                                item.IsGroupJoined = 2;
+
+                                item.IsJoined = new IsJoined
                                 {
-                                    var section = new SocialModelsClass
-                                    {
-                                        Id = 000001010101,
-                                        TitleHead = GetString(Resource.String.Lbl_Joined_Groups),
-                                        TypeView = SocialModelType.Section
-                                    };
+                                    Bool = true,
+                                    String = "yes"
+                                };
 
-                                    MAdapter.SocialList.Add(section);
-
-                                    foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Id == Convert.ToInt32(item.GroupId)) where check == null select item)
-                                    {
-                                        item.IsJoined = new IsJoined
-                                        {
-                                            Bool =  true,
-                                            String = "yes"
-                                        };
-                                        MAdapter.SocialList.Add(new SocialModelsClass
-                                        {
-                                            GroupData = item,
-                                            Id = Convert.ToInt32(item.GroupId), 
-                                            TypeView = SocialModelType.JoinedGroups
-                                        });
-
-                                        switch (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId))
-                                        {
-                                            case null:
-                                                ListUtils.MyGroupList.Add(item);
-                                                break;
-                                        }
-                                    }
-
-                                    break;
-                                }
-                                default:
+                                MAdapter.SocialList.Add(new SocialModelsClass
                                 {
-                                    foreach (var item in from item in result.Data let check = MAdapter.SocialList.FirstOrDefault(a => a.Id == Convert.ToInt32(item.GroupId)) where check == null select item)
-                                    {
-                                        item.IsJoined = new IsJoined
-                                        {
-                                            Bool = true,
-                                            String = "yes"
-                                        };
-                                        MAdapter.SocialList.Add(new SocialModelsClass
-                                        {
-                                            GroupData = item,
-                                            Id = Convert.ToInt32(item.GroupId),
-                                            TypeView = SocialModelType.JoinedGroups
-                                        });
+                                    Id = Convert.ToInt32(item.GroupId),
+                                    Group = item,
+                                    TypeView = SocialModelType.JoinedGroups,
+                                });
 
-                                        switch (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId))
-                                        {
-                                            case null:
-                                                ListUtils.MyGroupList.Add(item);
-                                                break;
-                                        }
-                                    }
-
-                                    break;
+                                switch (ListUtils.MyGroupList.FirstOrDefault(a => a.GroupId == item.GroupId))
+                                {
+                                    case null:
+                                        ListUtils.MyGroupList.Add(item);
+                                        break;
                                 }
                             }
 
-                            break;
+                            MAdapter.SocialList.Add(new SocialModelsClass
+                            {
+                                TypeView = SocialModelType.Divider
+                            });
                         }
-                        default:
+                    }
+                    else
+                    {
+                        switch (MAdapter.SocialList.Count)
                         {
-                            switch (MAdapter.SocialList.Count)
-                            {
-                                case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
-                                    break;
-                            }
-
-                            break;
+                            case > 10 when !MRecycler.CanScrollVertically(1):
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short);
+                                break;
                         }
                     }
                 }
 
-                MainScrollEvent.IsLoading = false;
+                //MainScrollEvent.IsLoading = false;
+                GetSuggestedGroup();
                 RunOnUiThread(ShowEmptyPage);
             }
             else
@@ -720,16 +644,39 @@ namespace WoWonder.Activities.Communities.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                MainScrollEvent.IsLoading = false;
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                //MainScrollEvent.IsLoading = false;
             }
         }
-         
+
+        private void GetSuggestedGroup()
+        {
+            try
+            {
+                if (ListUtils.SuggestedGroupList.Count > 0)
+                {
+                    MAdapter.SocialList.Add(new SocialModelsClass
+                    {
+                        Id = 000001010101,
+                        SuggestedGroupList = new List<GroupClass>(ListUtils.SuggestedGroupList),
+                        TitleHead = GetString(Resource.String.Lbl_Discover),
+                        TypeView = SocialModelType.SuggestedGroups
+                    });
+
+                    ShowEmptyPage();
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
         private void ShowEmptyPage()
         {
             try
             {
-                MainScrollEvent.IsLoading = false;
+                //MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
 
                 switch (MAdapter.SocialList.Count)
@@ -741,28 +688,28 @@ namespace WoWonder.Activities.Communities.Groups
                         EmptyStateLayout.Visibility = ViewStates.Gone;
                         break;
                     default:
-                    {
-                        MRecycler.Visibility = ViewStates.Gone;
-
-                        Inflated ??= EmptyStateLayout.Inflate();
-
-                        EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
-                        switch (x.EmptyStateButton.HasOnClickListeners)
                         {
-                            case false:
-                                x.EmptyStateButton.Click += null!;
-                                x.EmptyStateButton.Click += SearchButtonOnClick;
-                                break;
+                            MRecycler.Visibility = ViewStates.Gone;
+
+                            Inflated ??= EmptyStateLayout.Inflate();
+
+                            EmptyStateInflater x = new EmptyStateInflater();
+                            x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroup);
+                            switch (x.EmptyStateButton.HasOnClickListeners)
+                            {
+                                case false:
+                                    x.EmptyStateButton.Click += null!;
+                                    x.EmptyStateButton.Click += SearchButtonOnClick;
+                                    break;
+                            }
+                            EmptyStateLayout.Visibility = ViewStates.Visible;
+                            break;
                         }
-                        EmptyStateLayout.Visibility = ViewStates.Visible;
-                        break;
-                    }
                 }
             }
             catch (Exception e)
             {
-                MainScrollEvent.IsLoading = false;
+                //MainScrollEvent.IsLoading = false;
                 SwipeRefreshLayout.Refreshing = false;
                 Methods.DisplayReportResultTrack(e);
             }
@@ -795,7 +742,8 @@ namespace WoWonder.Activities.Communities.Groups
                 Methods.DisplayReportResultTrack(exception);
             }
         }
+
+        #endregion
          
-        #endregion 
     }
 }

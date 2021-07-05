@@ -205,8 +205,8 @@ namespace WoWonder.Activities.Contacts.Adapters
                 CheckBox = MainView.FindViewById<RadioButton>(Resource.Id.cont);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new SelectContactsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new SelectContactsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new SelectContactsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SelectContactsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
                 
 

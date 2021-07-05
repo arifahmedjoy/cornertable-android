@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Aghajari.EmojiView.Views;
 using Android;
 using Android.App;
@@ -278,7 +278,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     if (item == null) return;
                     if (item.Avatar == "addImage") return;
                     Position = e.Position;
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                     dialog.Title(GetString(Resource.String.Lbl_Remove) + " " + WoWonderTools.GetNameFinal(item));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
@@ -329,32 +329,32 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtGroupName.Text) || string.IsNullOrWhiteSpace(TxtGroupName.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (TxtGroupName.Text.Length < 4 && TxtGroupName.Text.Length > 15)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_ErrorLengthGroupName), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ErrorLengthGroupName), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(GroupPathImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                         return;
                     }
 
                     var list = MAdapter.UserList.Where(a => a.Avatar != "Default").ToList();
                     if (list.Count == 0)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_PleaseSelectUser), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PleaseSelectUser), ToastLength.Long);
                     }
                     else
                     {
@@ -383,7 +383,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     var adapter = GlobalContext?.LastChatTab?.MAdapter;
                                     if (result.Data?.Count > 0 && adapter != null)
                                     {
-                                        adapter.LastChatsList.Insert(0, new Classes.LastChatsClass()
+                                        adapter.LastChatsList.Insert(0, new Classes.LastChatsClass
                                         {
                                             LastChat = result.Data.FirstOrDefault(),
                                             Type = Classes.ItemType.LastChatNewV
@@ -398,7 +398,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     var adapter = GlobalContext?.LastGroupChatsTab?.MAdapter;
                                     if (result.Data?.Count > 0 && adapter != null)
                                     {
-                                        adapter.LastChatsList.Insert(0, new Classes.LastChatsClass()
+                                        adapter.LastChatsList.Insert(0, new Classes.LastChatsClass
                                         {
                                             LastChat = result.Data.FirstOrDefault(),
                                             Type = Classes.ItemType.LastChatNewV
@@ -470,7 +470,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     }
                                     else
                                     {
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                     }
                                 }
                             }
@@ -520,7 +520,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
             }
@@ -619,7 +619,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                 }
                 else if (p1 == DialogAction.Negative)

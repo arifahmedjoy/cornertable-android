@@ -1,5 +1,5 @@
 ﻿using WoWonder.Activities.Live.Page;
-
+  
 namespace WoWonder.Activities.Live.Rtc
 {
     public class EngineConfig
@@ -26,7 +26,7 @@ namespace WoWonder.Activities.Live.Rtc
         }
 
         public string GetChannelName()
-        {
+        { 
             return MChannelName;
         }
 

@@ -4,12 +4,16 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Aghajari.EmojiView.Views;
 using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
-using Android.OS; 
+using Android.Graphics.Drawables;
+using Android.OS;
+using Android.Text;
+using Android.Util;
 using AndroidX.Interpolator.View.Animation; 
 using Android.Views;
 using Android.Widget;
@@ -37,10 +41,15 @@ using SupportFragment = AndroidX.Fragment.App.Fragment;
 using WoWonder.Activities.Tabbes;
 using Bumptech.Glide.Util;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
-using Developer.SEmojis.Actions;
-using Developer.SEmojis.Helper;
+using Java.Util.Regex;
+using WoWonder.Activities.AddPost;
 using WoWonder.Activities.Base;
-using WoWonder.Activities.PostData; 
+using WoWonder.Activities.Contacts.Adapters;
+using WoWonder.Activities.PostData;
+using WoWonder.Library.Anjo.EmojiView;
+using WoWonderClient.Classes.Global;
+using WoWonderClient.Classes.User;
+using Console = System.Console;
 
 namespace WoWonder.Activities.Comment
 {
@@ -52,15 +61,15 @@ namespace WoWonder.Activities.Comment
         private static CommentActivity Instance;
         public CommentAdapter MAdapter;
         private SwipeRefreshLayout SwipeRefreshLayout;
-        private RecyclerView MRecycler;
+        public RecyclerView MRecycler;
         private LinearLayoutManager LayoutManager;
         private RecyclerViewOnScrollListener MainScrollEvent;
-        private EmojiconEditText TxtComment;
+        public AXEmojiEditText TxtComment;
         private TextView LikeCountBox;
-        private ImageView ImgSent, ImgGallery, ImgBack;
+        public ImageView ImgSent, ImgGallery, ImgBack;
         public CircleButton BtnVoice;
-        private PostDataObject PostObject;
-        public string PostId;
+        public PostDataObject PostObject;
+        public string PostId, ImageUrl;
         private string Type, PathImage, PathVoice, TextRecorder = "";
         private FrameLayout TopFragment;
         private RecordSoundFragment RecordSoundFragment;
@@ -93,7 +102,7 @@ namespace WoWonder.Activities.Comment
 
                 Type = Intent?.GetStringExtra("Type") ?? string.Empty;
                 PostId = Intent?.GetStringExtra("PostId") ?? string.Empty;
-                PostObject = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostObject") ?? string.Empty);
+                PostObject = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostObject")  ?? "");
                   
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -212,7 +221,7 @@ namespace WoWonder.Activities.Comment
 
                 LikeCountBox = FindViewById<TextView>(Resource.Id.like_box);
                 EmojisView = FindViewById<ImageView>(Resource.Id.emojiicon);
-                TxtComment = FindViewById<EmojiconEditText>(Resource.Id.commenttext);
+                TxtComment = FindViewById<AXEmojiEditText>(Resource.Id.commenttext);
                 ImgSent = FindViewById<ImageView>(Resource.Id.send);
                 ImgGallery = FindViewById<ImageView>(Resource.Id.image);
                 ImgBack = FindViewById<ImageView>(Resource.Id.back);
@@ -227,25 +236,25 @@ namespace WoWonder.Activities.Comment
 
                 TxtComment.Text = "";
                 PathImage = "";
+                ImageUrl = "";
                 TextRecorder = "";
 
                 Methods.SetColorEditText(TxtComment, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
                 RecordSoundFragment = new RecordSoundFragment();
                 SupportFragmentManager.BeginTransaction().Add(TopFragment.Id, RecordSoundFragment, RecordSoundFragment.Tag);
-                 
-                switch (AppSettings.FlowDirectionRightToLeft)
-                {
-                    case true:
-                        ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-                        break;
-                }
-
+                  
                 ImgGallery.SetImageDrawable(AppSettings.SetTabDarkTheme ? GetDrawable(Resource.Drawable.ic_action_addpost_Ligth) : GetDrawable(Resource.Drawable.ic_action_AddPost));
 
-                var emojisIcon = new EmojIconActions(this, RootView, TxtComment, EmojisView);
-                emojisIcon.ShowEmojIcon();
-                emojisIcon.SetIconsIds(Resource.Drawable.ic_action_keyboard, Resource.Drawable.ic_action_sentiment_satisfied_alt); 
+                if (AppSettings.SetTabDarkTheme)
+                    EmojisViewTools.LoadDarkTheme();
+                else
+                    EmojisViewTools.LoadTheme(AppSettings.MainColor);
+
+                EmojisViewTools.MStickerView = true;
+                AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, TxtComment, "CommentActivity");
+                AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
+                var EmojisViewActions = new EmojisViewActions(this, "", popup, TxtComment, EmojisView); 
             }
             catch (Exception e)
             {
@@ -298,6 +307,7 @@ namespace WoWonder.Activities.Comment
                         BtnVoice.Touch += BtnVoiceOnTouch; 
                         SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
                         LikeCountBox.Click += LikeCountBoxOnClick;
+                        TxtComment.AfterTextChanged += TxtCommentOnAfterTextChanged;  
                         break;
                     default:
                         ImgSent.Click -= ImgSentOnClick;
@@ -307,6 +317,7 @@ namespace WoWonder.Activities.Comment
                         BtnVoice.Touch -= BtnVoiceOnTouch;
                         SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
                         LikeCountBox.Click -= LikeCountBoxOnClick;
+                        TxtComment.AfterTextChanged -= TxtCommentOnAfterTextChanged; 
                         break;
                 }
             }
@@ -315,7 +326,7 @@ namespace WoWonder.Activities.Comment
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         public static CommentActivity GetInstance()
         {
             try
@@ -343,11 +354,12 @@ namespace WoWonder.Activities.Comment
                 BtnVoice = null!;
                 PostObject = null!;
                 PostId = null!;
-                PathImage = null!; PathVoice = null!; TextRecorder = null!;
+                PathImage = null!; ImageUrl = null!; PathVoice = null!; TextRecorder = null!;
                 TopFragment = null!;
                 RecordSoundFragment = null!;
                 RecorderService = null!;
                 CommentLayout = null!;
+                MentionList = null!;
             }
             catch (Exception e)
             {
@@ -358,6 +370,35 @@ namespace WoWonder.Activities.Comment
         #endregion
 
         #region Events
+
+        private void TxtCommentOnAfterTextChanged(object sender, AfterTextChangedEventArgs e)
+        {
+            try
+            {
+                string mentionPattern = "(?:^|\\s|$|[.])@[\\p{L}0-9_]*";
+
+                var pattern = Java.Util.Regex.Pattern.Compile(mentionPattern);
+                Matcher matcher = pattern.Matcher(TxtComment.Text);
+
+                while (matcher.Find())
+                {
+                    string searchText = matcher.Group().Replace(" ", "");
+                    Console.WriteLine(searchText);
+
+                    var check = MentionList.FirstOrDefault(a => a == searchText);
+                    if (check == null)
+                    {
+                        ShowPopup(TxtComment, searchText);
+                        MentionList.Add(searchText);
+                        return;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        }
 
         private void LikeCountBoxOnClick(object sender, EventArgs e)
         {
@@ -451,7 +492,7 @@ namespace WoWonder.Activities.Comment
                                             break;
                                     }
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_HoldToRecord), ToastLength.Short);
                                     break;
                                 }
                             }
@@ -562,7 +603,8 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                OpenDialogGallery(); //requestCode >> 500 => Image Gallery
+                OptionCommentDialog optionCommentDialog =  new OptionCommentDialog(this);
+                optionCommentDialog.Show(SupportFragmentManager, optionCommentDialog.Tag);
             }
             catch (Exception exception)
             {
@@ -590,7 +632,7 @@ namespace WoWonder.Activities.Comment
                     }
                 }
 
-                if (string.IsNullOrEmpty(TxtComment.Text) && string.IsNullOrWhiteSpace(TxtComment.Text) && string.IsNullOrEmpty(PathImage) && string.IsNullOrEmpty(PathVoice))
+                if (string.IsNullOrEmpty(TxtComment.Text) && string.IsNullOrWhiteSpace(TxtComment.Text) && string.IsNullOrEmpty(PathImage) && string.IsNullOrEmpty(PathVoice) && string.IsNullOrEmpty(ImageUrl))
                     return;
 
                 if (Methods.CheckConnectivity())
@@ -601,6 +643,16 @@ namespace WoWonder.Activities.Comment
                     var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     string time2 = unixTimestamp.ToString(CultureInfo.InvariantCulture);
 
+                    var pathFileImage = "";
+                    if (!string.IsNullOrEmpty(PathImage))
+                    {
+                        pathFileImage = PathImage;
+                    }
+                    else if (!string.IsNullOrEmpty(ImageUrl))
+                    {
+                        pathFileImage = ImageUrl;
+                    }
+
                     CommentObjectExtra comment = new CommentObjectExtra
                     {
                         Id = unixTimestamp.ToString(),
@@ -608,7 +660,7 @@ namespace WoWonder.Activities.Comment
                         UserId = UserDetails.UserId,
                         Text = TxtComment.Text,
                         Time = time2,
-                        CFile = PathImage,
+                        CFile = pathFileImage,
                         Record = PathVoice,
                         Publisher = dataUser,
                         Url = dataUser?.Url,
@@ -647,7 +699,7 @@ namespace WoWonder.Activities.Comment
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(PostObject.PostId, text, PathImage, PathVoice);
+                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(PostObject.PostId, text, PathImage, PathVoice, ImageUrl);
                     switch (apiStatus)
                     {
                         case 200:
@@ -677,7 +729,7 @@ namespace WoWonder.Activities.Comment
                                         {
                                             case > 0:
                                             {
-                                                foreach (var dataClass in from dataClass in dataGlobal let indexCom = postFeedAdapter.ListDiffer.IndexOf(dataClass) where indexCom > -1 select dataClass)
+                                                foreach (var dataClass in from dataClass in dataGlobal let indexCom = postFeedAdapter?.ListDiffer?.IndexOf(dataClass) where indexCom > -1 select dataClass)
                                                 {
                                                     dataClass.PostData.PostComments = MAdapter.CommentList.Count.ToString();
 
@@ -700,7 +752,7 @@ namespace WoWonder.Activities.Comment
                                                             break;
                                                     }
 
-                                                    postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
+                                                    postFeedAdapter?.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
                                                 }
 
                                                 break;
@@ -756,6 +808,7 @@ namespace WoWonder.Activities.Comment
                     //Hide keyboard
                     TxtComment.Text = "";
                     PathImage = "";
+                    ImageUrl = "";
                     PathVoice = "";
 
                     BtnVoice.Tag = "Free";
@@ -764,7 +817,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -855,6 +908,11 @@ namespace WoWonder.Activities.Comment
                             MAdapter.NotifyDataSetChanged();
 
                             CommentLayout.Visibility = ViewStates.Gone;
+
+                            MainScrollEvent.IsLoading = false;
+                            SwipeRefreshLayout.Refreshing = false;
+
+
                             break;
                         default:
                             //if (PostObject?.GetPostComments?.Count > 0)
@@ -894,7 +952,7 @@ namespace WoWonder.Activities.Comment
         private void StartApiService(string offset = "0")
         { 
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadDataComment(offset) });
         }
@@ -1037,16 +1095,27 @@ namespace WoWonder.Activities.Comment
                                         break;
                                     }
                                     default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                         break;
                                 }
 
                                 break;
                             }
                             case Result.Ok:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)
-                                    .Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 break;
+                        }
+
+                        break;
+                    }
+                    case 7 when resultCode == Result.Ok:
+                    {
+                        var giflink = data.GetStringExtra("gif") ?? "Data not available";
+                        if (giflink != "Data not available" && !string.IsNullOrEmpty(giflink))
+                        {
+                            ImageUrl = giflink;
+                                  
+                            Glide.With(this).Load(ImageUrl).Apply(new RequestOptions()).Into(ImgGallery); 
                         }
 
                         break;
@@ -1071,13 +1140,13 @@ namespace WoWonder.Activities.Comment
                         OpenDialogGallery(); //requestCode >> 500 => Image Gallery
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                     case 102 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         StartRecording();
                         break;
                     case 102:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -1091,7 +1160,7 @@ namespace WoWonder.Activities.Comment
 
         #region PickiT >> Gert path file
 
-        private void PickiTonCompleteListener(string path)
+        private async void PickiTonCompleteListener(string path)
         {
             //Dismiss dialog and return the path
             try
@@ -1102,12 +1171,12 @@ namespace WoWonder.Activities.Comment
                 //else => "Local file was selected"
 
                 //  Chick if it was successful
-                var check = WoWonderTools.CheckMimeTypesWithServer(path);
+                var check = await WoWonderTools.CheckMimeTypesWithServer(path);
                 switch (check)
                 {
                     case false:
                         //this file not supported on the server , please select another file 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                         return;
                 }
 
@@ -1116,6 +1185,8 @@ namespace WoWonder.Activities.Comment
                 {
                     case "Image":
                     {
+                        PathImage = path;
+                            
                         File file2 = new File(PathImage);
                         var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
                         Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImgGallery);
@@ -1124,7 +1195,7 @@ namespace WoWonder.Activities.Comment
                         break;
                     }
                     default:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
                         break;
                 }
             }
@@ -1169,10 +1240,28 @@ namespace WoWonder.Activities.Comment
             }
         }
          
-        private void OpenDialogGallery()
+        public void OpenGifActivity()
         {
             try
             {
+                StartActivityForResult(new Intent(this, typeof(GifActivity)), 7);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+          
+        public void OpenDialogGallery()
+        {
+            try
+            {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher
@@ -1254,6 +1343,194 @@ namespace WoWonder.Activities.Comment
                 Methods.DisplayReportResultTrack(e);
             }
         }
-          
+         
+        #region Popup Mention User
+         
+        private PopupWindow PopupWindow;
+        private ProgressBar PopupProgressBar;
+        private RecyclerView PopupRecycler;
+        private ContactsAdapter PopupMAdapter;
+        private string SearchText;
+        private List<string> MentionList = new List<string>();
+
+        private async void ShowPopup(AXEmojiEditText v, string searchText)
+        {
+            try
+            {
+                await Task.Delay(500);
+
+                if (PopupWindow != null && PopupWindow.IsShowing)
+                    return;
+                 
+                LayoutInflater layoutInflater = (LayoutInflater)GetSystemService(Context.LayoutInflaterService);
+                View popupView = layoutInflater?.Inflate(Resource.Layout.PopupMentionLayout, null);
+                //popupView?.Measure((int)MeasureSpecMode.Unspecified, (int)MeasureSpecMode.Unspecified);
+
+                int px = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 300, Resources?.DisplayMetrics);
+                PopupWindow = new PopupWindow(popupView, px, ViewGroup.LayoutParams.WrapContent, true);
+
+                InitializingPopupMention(popupView, searchText);
+                 
+                PopupWindow.SetBackgroundDrawable(new ColorDrawable());
+                PopupWindow.AnimationStyle = Resource.Style.Animation;
+                PopupWindow.Focusable = true;
+                PopupWindow.ClippingEnabled = true;
+                PopupWindow.OutsideTouchable = false;
+                PopupWindow.DismissEvent += delegate (object sender, EventArgs args) {
+                    try
+                    {
+                        PopupWindow?.Dismiss();
+
+                        PopupWindow = null;
+                        PopupProgressBar = null;
+                        PopupRecycler = null;
+                        PopupMAdapter = null;
+                    }
+                    catch (Exception exception)
+                    {
+                        Methods.DisplayReportResultTrack(exception);
+                    }
+                };
+
+                int[] location = new int[2];
+                v.GetLocationInWindow(location);
+
+                int offsetX = 0;
+                int offsetY = -500;
+
+                PopupWindow.ShowAtLocation(v, GravityFlags.NoGravity, location[0] + offsetX, location[1] + offsetY);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
+        private void InitializingPopupMention(View view , string searchText)
+        {
+            try
+            {
+                SearchText = searchText;
+                 
+                PopupProgressBar = view.FindViewById<ProgressBar>(Resource.Id.progressBar);
+                PopupRecycler = view.FindViewById<RecyclerView>(Resource.Id.recyler);
+
+                PopupProgressBar.Visibility = ViewStates.Visible;
+
+                PopupMAdapter = new ContactsAdapter(this, false, ContactsAdapter.TypeTextSecondary.None)
+                {
+                    UserList = new ObservableCollection<UserDataObject>(),
+                };
+                PopupMAdapter.ItemClick += PopupMAdapterOnItemClick;
+                PopupRecycler.SetLayoutManager(new LinearLayoutManager(this));
+                PopupRecycler.HasFixedSize = true;
+                PopupRecycler.SetItemViewCacheSize(50);
+                PopupRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                var preLoader = new RecyclerViewPreloader<UserDataObject>(this, PopupMAdapter, sizeProvider, 10);
+                PopupRecycler.AddOnScrollListener(preLoader);
+                PopupRecycler.SetAdapter(PopupMAdapter);
+                  
+                if (!Methods.CheckConnectivity())
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                else
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => StartSearchRequest(searchText) });
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void PopupMAdapterOnItemClick(object sender, ContactsAdapterClickEventArgs e)
+        {
+            try
+            {
+                UserDataObject item = PopupMAdapter?.GetItem(e.Position);
+                if (item != null)
+                {
+                    MentionList?.Add("@" + item.Username);
+
+                    TxtComment.Text = TxtComment.Text?.Replace(SearchText, "@" + item.Username);
+                     
+                    PopupWindow?.Dismiss();
+
+                    PopupWindow = null;
+                    PopupProgressBar = null;
+                    PopupRecycler = null;
+                    PopupMAdapter = null;
+                    SearchText = null;
+                } 
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private async Task StartSearchRequest(string searchText)
+        {
+            int countUserList = PopupMAdapter.UserList.Count;
+
+            var dictionary = new Dictionary<string, string>
+            {
+                {"user_id", UserDetails.UserId},
+                {"limit", "8"},
+                {"user_offset", "0"},
+                {"search_key", searchText.Replace("@" , "")}
+            };
+
+            var (apiStatus, respond) = await RequestsAsync.Global.SearchAsync(dictionary);
+            if (apiStatus == 200)
+            {
+                if (respond is GetSearchObject result)
+                {
+                    var respondUserList = result.Users?.Count;
+                    if (respondUserList is > 0 && countUserList > 0)
+                    {
+                        foreach (var item in from item in result.Users let check = PopupMAdapter.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
+                        {
+                            PopupMAdapter.UserList.Add(item);
+                        }
+
+                        RunOnUiThread(() =>
+                        {
+                            PopupMAdapter.NotifyItemRangeInserted(countUserList - 1, PopupMAdapter.UserList.Count - countUserList);
+                        });
+                    }
+                    else if (respondUserList is > 0)
+                    {
+                        PopupMAdapter.UserList = new ObservableCollection<UserDataObject>(result.Users);
+                        RunOnUiThread(() => { PopupMAdapter.NotifyDataSetChanged(); });
+                    }
+                    else
+                    {
+                        if (PopupMAdapter.UserList.Count is > 10 && !MRecycler.CanScrollVertically(1))
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
+                    }
+                }
+            }
+            else
+                Methods.DisplayReportResult(this, respond);
+            
+            RunOnUiThread(() =>
+            {
+                try
+                {
+                    if (PopupMAdapter?.UserList?.Count > 0)
+                    {
+                        PopupProgressBar.Visibility = ViewStates.Gone;
+                        PopupRecycler.Visibility = ViewStates.Visible; 
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Methods.DisplayReportResultTrack(exception);
+                }
+            });
+        }
+
+        #endregion
+         
     }
 }  

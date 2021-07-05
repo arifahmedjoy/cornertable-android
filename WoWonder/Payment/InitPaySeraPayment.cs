@@ -147,14 +147,14 @@ namespace WoWonder.Payment
                             break;
                     }
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.PaySeraAsync(request, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.PaySeraAsync(request, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
                             switch (request)
                             {
                                 case "fund":
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Donated), ToastLength.Long);
                                     FundingViewActivity.GetInstance()?.StartApiService();
                                     break;
                                 case "upgrade":
@@ -168,10 +168,10 @@ namespace WoWonder.Payment
                                     
                                     }
                                  
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_Upgraded), ToastLength.Long);
                                     break;
                                 case "wallet":
-                                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_PaymentSuccessfully), ToastLength.Long);
                                     break;
                             }
 
@@ -184,7 +184,7 @@ namespace WoWonder.Payment
                 }
                 else
                 {
-                    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)

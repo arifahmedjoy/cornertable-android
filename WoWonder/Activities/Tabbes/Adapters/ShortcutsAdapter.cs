@@ -220,8 +220,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 IconPage = MainView.FindViewById<TextView>(Resource.Id.Icon);
                  
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new ShortcutsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new ShortcutsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new ShortcutsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new ShortcutsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

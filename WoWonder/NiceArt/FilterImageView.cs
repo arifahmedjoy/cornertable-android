@@ -14,7 +14,7 @@ namespace WoWonder.NiceArt
 {
     public class FilterImageView : ImageView
     {
-        private INiceArt.IOnImageChangedListener MOnImageChangedListener;
+        public INiceArt.IOnImageChangedListener MOnImageChangedListener;
 
         protected FilterImageView(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
         {
@@ -43,7 +43,8 @@ namespace WoWonder.NiceArt
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null!; 
+                return null!;
+
             }
         }
 
@@ -186,6 +187,6 @@ namespace WoWonder.NiceArt
                 Methods.DisplayReportResultTrack(e);
 
             }
-        } 
+        }
     }
 }

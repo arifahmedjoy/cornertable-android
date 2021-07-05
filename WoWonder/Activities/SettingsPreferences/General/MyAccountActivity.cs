@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,11 +11,9 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Classes.Global;
@@ -30,7 +28,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
         #region Variables Basic
 
         private EditText TxtUsername,TxtEmail, TxtBirthday, TxtGender, TxtCountry;
-        private TextView TxtSave, IconName, IconEmail, IconBirthday, IconGender, IconCountry;
+        private Button BtnSave;
         private string GenderStatus = "", CountryId , TypeDialog = "";
 
         #endregion
@@ -148,30 +146,19 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                TxtSave = FindViewById<TextView>(Resource.Id.toolbar_title);
-               
-                IconName = FindViewById<TextView>(Resource.Id.IconName);
+                BtnSave = FindViewById<Button>(Resource.Id.SaveButton);
+                
                 TxtUsername = FindViewById<EditText>(Resource.Id.NameEditText);
-
-                IconEmail = FindViewById<TextView>(Resource.Id.IconEmail);
-                TxtEmail = FindViewById<EditText>(Resource.Id.EmailEditText);
                  
-                IconBirthday = FindViewById<TextView>(Resource.Id.IconBirthday);
+                TxtEmail = FindViewById<EditText>(Resource.Id.EmailEditText);
+                  
                 TxtBirthday = FindViewById<EditText>(Resource.Id.BirthdayEditText);
                 TxtBirthday.SetOnClickListener(this);
-
-                IconGender = (TextView)FindViewById(Resource.Id.IconGender);
+                 
                 TxtGender = (EditText)FindViewById(Resource.Id.GenderEditText);
-               
-                IconCountry = FindViewById<TextView>(Resource.Id.IconCountry);
+                
                 TxtCountry = FindViewById<EditText>(Resource.Id.CountryEditText);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconName, FontAwesomeIcon.User);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconEmail, FontAwesomeIcon.PaperPlane);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconBirthday, FontAwesomeIcon.BirthdayCake);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconGender, FontAwesomeIcon.VenusMars);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconCountry, FontAwesomeIcon.MapMarkedAlt);  
-
+                 
                 Methods.SetColorEditText(TxtCountry, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtUsername, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtEmail, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -221,12 +208,12 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     // true +=  // false -=
                     case true:
                         TxtGender.Touch += TxtGenderOnTouch;
-                        TxtSave.Click += SaveData_OnClick;
+                        BtnSave.Click += SaveData_OnClick;
                         TxtCountry.Touch += TxtCountryOnTouch;
                         break;
                     default:
                         TxtGender.Touch -= TxtGenderOnTouch;
-                        TxtSave.Click -= SaveData_OnClick;
+                        BtnSave.Click -= SaveData_OnClick;
                         TxtCountry.Touch -= TxtCountryOnTouch;
                         break;
                 }
@@ -240,16 +227,11 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                TxtSave = null!;
-                IconName = null!;
-                TxtUsername = null!;
-                IconEmail = null!;
-                TxtEmail = null!;
-                IconBirthday = null!;
-                TxtBirthday = null!;
-                IconGender = null!;
-                TxtGender = null!;
-                IconCountry = null!;
+                BtnSave = null!; 
+                TxtUsername = null!; 
+                TxtEmail = null!; 
+                TxtBirthday = null!; 
+                TxtGender = null!; 
                 TxtCountry = null!;
             }
             catch (Exception e)
@@ -271,7 +253,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                 var countriesArray = WoWonderTools.GetCountryList(this);
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
 
@@ -297,7 +279,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 TypeDialog = "Genders";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
@@ -331,32 +313,39 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 {
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
-                     
+
+                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+
                     var dictionary = new Dictionary<string, string>
                     {
                         {"username", TxtUsername.Text.Replace(" ","")},
                         {"email", TxtEmail.Text},
                         {"gender", GenderStatus},
                         {"country_id", CountryId},
+
+                        {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                        {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost?? "1"},
+                        {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted?? "1"},
+                        {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup?? "1"},
+                        {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned?? "1"},
+                        {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited?? "1"},
+                        {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage?? "1"},
+                        {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed?? "1"},
+                        {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared?? "1"},
+                        {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented?? "1"},
+                        {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked?? "1"},
                     };
 
                     string newFormat = "";
-                    switch (string.IsNullOrEmpty(TxtBirthday.Text))
+                    if (!string.IsNullOrEmpty(TxtBirthday.Text))
                     {
-                        case false:
-                        {
-                            var date = TxtBirthday.Text.Split(new char[] {'-' , '/' });
-                            newFormat = date.Length switch
-                            {
-                                > 0 => date[0] + "-" + date[1] + "-" + date[2],
-                                _ => newFormat
-                            };
+                        var date = TxtBirthday.Text.Split(new char[] {'-', '/'});
+                        if (date.Length is > 0)
+                            newFormat = date[0] + "-" + date[1] + "-" + date[2];
 
-                            dictionary.Add("birthday", newFormat);
-                            break;
-                        }
+                        dictionary.Add("birthday", newFormat);
                     }
-                    
+
                     var (apiStatus, respond) = await WoWonderClient.Requests.RequestsAsync.Global.UpdateUserDataAsync(dictionary);
                     switch (apiStatus)
                     {
@@ -366,35 +355,34 @@ namespace WoWonder.Activities.SettingsPreferences.General
                             {
                                 case MessageObject result when result.Message.Contains("updated"):
                                 {
-                                    Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourDetailsWasUpdated), ToastLength.Short);
 
-                                    var local = ListUtils.MyProfileList?.FirstOrDefault();
-                                    if (local != null)
+                                    if (dataUser != null)
                                     {
-                                        local.Username = TxtUsername.Text.Replace(" ", "");
+                                        dataUser.Username = TxtUsername.Text.Replace(" ", "");
 
-                                        local.Birthday = string.IsNullOrEmpty(newFormat) switch
+                                        dataUser.Birthday = string.IsNullOrEmpty(newFormat) switch
                                         {
                                             false => newFormat,
-                                            _ => local.Birthday
+                                            _ => dataUser.Birthday
                                         };
 
-                                        local.Gender = GenderStatus;
-                                        local.GenderText = TxtGender.Text;
-                                        local.CountryId = CountryId;
+                                                dataUser.Gender = GenderStatus;
+                                        dataUser.GenderText = TxtGender.Text;
+                                        dataUser.CountryId = CountryId;
 
                                         switch (ListUtils.SettingsSiteList?.EmailValidation)
                                         {
-                                            case "1" when local.Email != TxtEmail.Text:
+                                            case "1" when dataUser.Email != TxtEmail.Text:
                                                 //wael send code Email Validation
                                                 break;
                                             default:
-                                                local.Email = TxtEmail.Text;
+                                                dataUser.Email = TxtEmail.Text;
                                                 break;
                                         }
                                      
                                         var sqLiteDatabase = new SqLiteDatabase(); 
-                                        sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(local);
+                                        sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
                                     
                                     }
                                 
@@ -416,7 +404,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -442,9 +430,12 @@ namespace WoWonder.Activities.SettingsPreferences.General
 
                     try
                     {
-                        DateTime date = DateTime.Parse(local.Birthday);
-                        string newFormat = date.Day + "/" + date.Month + "/" + date.Year;
-                        TxtBirthday.Text = newFormat;
+                        if (local.Birthday != "0000-00-00")
+                        {
+                            DateTime date = DateTime.Parse(local.Birthday);
+                            string newFormat = date.Day + "/" + date.Month + "/" + date.Year;
+                            TxtBirthday.Text = newFormat;
+                        } 
                     }
                     catch (Exception e)
                     {
@@ -532,7 +523,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
             }
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
@@ -540,25 +531,25 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 {
                     case "Genders" when ListUtils.SettingsSiteList?.Genders?.Count > 0:
                     {
-                        var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString.ToString()).Key;
+                        var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString).Key;
                         if (key != null)
                         {
-                            TxtGender.Text = itemString.ToString();
+                            TxtGender.Text = itemString;
                             GenderStatus = key;
                         }
                         else
                         {
-                            TxtGender.Text = itemString.ToString();
+                            TxtGender.Text = itemString;
                             GenderStatus = "male";
                         }
 
                         break;
                     }
-                    case "Genders" when itemString.ToString() == GetText(Resource.String.Radio_Male):
+                    case "Genders" when itemString == GetText(Resource.String.Radio_Male):
                         TxtGender.Text = GetText(Resource.String.Radio_Male);
                         GenderStatus = "male";
                         break;
-                    case "Genders" when itemString.ToString() == GetText(Resource.String.Radio_Female):
+                    case "Genders" when itemString == GetText(Resource.String.Radio_Female):
                         TxtGender.Text = GetText(Resource.String.Radio_Female);
                         GenderStatus = "female";
                         break;
@@ -569,13 +560,13 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     case "Country":
                     {
                         var countriesArray = WoWonderTools.GetCountryList(this);
-                        var check = countriesArray.FirstOrDefault(a => a.Value == itemString.ToString()).Key;
+                        var check = countriesArray.FirstOrDefault(a => a.Value == itemString).Key;
                         if (check != null)
                         {
                             CountryId = check;
                         }
 
-                        TxtCountry.Text = itemString.ToString();
+                        TxtCountry.Text = itemString;
                         break;
                     }
                 }
@@ -595,8 +586,8 @@ namespace WoWonder.Activities.SettingsPreferences.General
                 if (v.Id == TxtBirthday.Id)
                 {
                     var frag = PopupDialogController.DatePickerFragment.NewInstance(delegate (DateTime time)
-                    {
-                        TxtBirthday.Text = time.Date.ToString("yy-MM-dd");
+                    { 
+                        TxtBirthday.Text = time.Date.ToString("dd-MM-yyyy");
                     });
                     frag.Show(SupportFragmentManager, PopupDialogController.DatePickerFragment.Tag);
                 }

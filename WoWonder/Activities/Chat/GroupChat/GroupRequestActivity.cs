@@ -231,7 +231,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     }
                     else
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                 }
             }
@@ -268,7 +268,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     }
                     else
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                 }
             }
@@ -307,7 +307,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoGroupRequest);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }

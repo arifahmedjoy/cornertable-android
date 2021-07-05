@@ -2,19 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
-using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
-using AndroidX.AppCompat.Widget;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.Tabbes;
@@ -41,13 +38,13 @@ namespace WoWonder.Activities.Jobs
 
         private ImageView JobCoverImage, IconBack;
         private ImageView JobAvatar;
-        private TextView TxtMore, JobTitle, PageName, MaximumNumber, MinimumNumber;
-        private AppCompatTextView JobInfo;
+        private TextView TxtMore, JobTitle, PageName, TxtLocation, TxtFulltime, TxtTimeAgo, TxtCategory, TxtSalary;
         private Button JobButton; 
-        private SuperTextView Description;
+        private SuperTextView Description, Qualification;
         private JobInfoObject DataInfoObject;
         private string DialogType;
         private StReadMoreOption ReadMoreOption;
+        private TextView IconJobType, IconJobTime, IconJobCategory, IconJobSalary;
 
         #endregion
 
@@ -171,23 +168,30 @@ namespace WoWonder.Activities.Jobs
             try
             {
                 IconBack = FindViewById<ImageView>(Resource.Id.iv_back);
-
                 JobCoverImage = FindViewById<ImageView>(Resource.Id.JobCoverImage);
                 JobAvatar = FindViewById<ImageView>(Resource.Id.JobAvatar);
+
                 JobTitle = FindViewById<TextView>(Resource.Id.Jobtitle);
                 PageName = FindViewById<TextView>(Resource.Id.pageName);
-                JobInfo = FindViewById<AppCompatTextView>(Resource.Id.JobInfo);
+
+                TxtFulltime = FindViewById<TextView>(Resource.Id.tv_fulltime);
+                TxtLocation = FindViewById<TextView>(Resource.Id.tv_location);
+                TxtTimeAgo = FindViewById<TextView>(Resource.Id.tv_time_ago);
+                TxtCategory = FindViewById<TextView>(Resource.Id.tv_category);
+                TxtSalary = FindViewById<TextView>(Resource.Id.tv_salary);
+
+                IconJobType = FindViewById<TextView>(Resource.Id.tv_icon_jobtype);
+                IconJobTime = FindViewById<TextView>(Resource.Id.tv_icon_jobtime);
+                IconJobCategory = FindViewById<TextView>(Resource.Id.tv_icon_jobcategory);
+                IconJobSalary = FindViewById<TextView>(Resource.Id.tv_icon_jobsalary);
+
                 JobButton = FindViewById<Button>(Resource.Id.JobButton);
                 JobButton.Tag = "Apply";
 
                 //MinimumTextView = FindViewById<TextView>(Resource.Id.minimum);
                 //MaximumTextView = FindViewById<TextView>(Resource.Id.maximum);
-                MaximumNumber = FindViewById<TextView>(Resource.Id.maximumNumber);
-                MinimumNumber = FindViewById<TextView>(Resource.Id.minimumNumber);
                 Description = FindViewById<SuperTextView>(Resource.Id.description);
-
-                var font = Typeface.CreateFromAsset(Resources?.Assets, "ionicons.ttf");
-                JobInfo.SetTypeface(font, TypefaceStyle.Normal);
+                Qualification = FindViewById<SuperTextView>(Resource.Id.description);
 
                 TxtMore = FindViewById<TextView>(Resource.Id.toolbar_title);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, TxtMore, IonIconsFonts.More);
@@ -202,13 +206,7 @@ namespace WoWonder.Activities.Jobs
                     .LessLabelColor(Color.ParseColor(AppSettings.MainColor))
                     .LabelUnderLine(true)
                     .Build();
-
-                switch (AppSettings.FlowDirectionRightToLeft)
-                {
-                    case true:
-                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-                        break;
-                }
+                
             }
             catch (Exception e)
             {
@@ -275,10 +273,7 @@ namespace WoWonder.Activities.Jobs
                 JobAvatar= null!;
                 JobTitle = null!;
                 PageName = null!;
-                JobInfo = null!;
                 JobButton = null!;
-                MaximumNumber = null!;
-                MinimumNumber = null!;
                 Description = null!;
                 TxtMore = null!;
                 DialogType = null!;
@@ -327,7 +322,7 @@ namespace WoWonder.Activities.Jobs
                 DialogType = "More";
                   
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Edit));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Delete)); 
@@ -361,7 +356,7 @@ namespace WoWonder.Activities.Jobs
                                 switch (DataInfoObject.ApplyCount)
                                 {
                                     case "0":
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
+                                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short);
                                         return;
                                 }
                          
@@ -392,11 +387,11 @@ namespace WoWonder.Activities.Jobs
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetText(Resource.String.Lbl_Edit))
                 {
                     //Open Edit Job
@@ -408,13 +403,13 @@ namespace WoWonder.Activities.Jobs
                 {
                     DialogType = "Delete";
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light); 
-                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
-                    dialog.Content(GetText(Resource.String.Lbl_DeleteJobs));
-                    dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
-                    dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
-                    dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.ItemsCallback(this).Build().Show();
+                    var dialogBuilder = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light); 
+                    dialogBuilder.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
+                    dialogBuilder.Content(GetText(Resource.String.Lbl_DeleteJobs));
+                    dialogBuilder.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
+                    dialogBuilder.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
+                    dialogBuilder.AlwaysCallSingleChoiceCallback();
+                    dialogBuilder.ItemsCallback(this).Build().Show();
                 }
             }
             catch (Exception e)
@@ -456,19 +451,19 @@ namespace WoWonder.Activities.Jobs
                                 }
                             }
                               
-                            var dataJob = JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
+                            var dataJob = JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Job?.Id == DataInfoObject.Id);
                             if (dataJob != null)
                             {
                                 JobsActivity.GetInstance()?.MAdapter?.JobList.Remove(dataJob);
                                 JobsActivity.GetInstance().MAdapter.NotifyItemRemoved(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(dataJob));
                             }
 
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short);
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(DataInfoObject.PostId, "delete") });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
 
                         break;
@@ -562,10 +557,10 @@ namespace WoWonder.Activities.Jobs
                      
                     GlideImageLoader.LoadImage(this, DataInfoObject.Page.Avatar, JobAvatar, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
 
-                    var image = DataInfoObject.Image.Replace(Client.WebsiteUrl + "/", "");
+                    var image = DataInfoObject.Image.Replace(InitializeWoWonder.WebsiteUrl + "/", "");
                     DataInfoObject.Image = image.Contains("http") switch
                     {
-                        false => Client.WebsiteUrl + "/" + image,
+                        false => InitializeWoWonder.WebsiteUrl + "/" + image,
                         _ => image
                     };
 
@@ -591,16 +586,19 @@ namespace WoWonder.Activities.Jobs
 
                     if (DataInfoObject.Page != null)
                     {
-                        PageName.Text = "@" + Methods.FunString.DecodeString(DataInfoObject.Page.PageName.Replace("@" , ""));
+                        PageName.Text = Methods.FunString.DecodeString(DataInfoObject.Page.PageName.Replace("@" , ""));
                         if (DataInfoObject.Page.IsPageOnwer != null && DataInfoObject.Page.IsPageOnwer.Value)
                         {
                             JobButton.Text = GetString(Resource.String.Lbl_show_applies) + " (" + DataInfoObject.ApplyCount + ")";
                         }
                     }
+
+                    // Location
+                    TxtLocation.Text = DataInfoObject.Location;
                      
                     //Set Description
                     var description = Methods.FunString.DecodeString(DataInfoObject.Description);
-                    Description.Text = description; 
+                    //Description.Text = description; 
                     ReadMoreOption.AddReadMoreTo(Description, new String(description));
 
                     //Set Salary Date
@@ -614,37 +612,46 @@ namespace WoWonder.Activities.Jobs
                         _ => GetString(Resource.String.Lbl_Unknown)
                     };
 
-                    MinimumNumber.Text = DataInfoObject.Minimum + " " + salaryDate;
-                    MaximumNumber.Text = DataInfoObject.Maximum + " " + salaryDate;
-
-                    //Set job Time
-                    var jobInfo = IonIconsFonts.Pin + " " + DataInfoObject.Location + "  " + " ";
-                    jobInfo += IonIconsFonts.Time + " " + Methods.Time.TimeAgo(Convert.ToInt32(DataInfoObject.Time), false) + " " + " ";
-
-                    jobInfo += DataInfoObject.JobType switch
+                    // Set time ago
+                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconJobTime, IonIconsFonts.Time);
+                    bool success = int.TryParse(DataInfoObject.Time, out var number);
+                    switch (success)
+                    {
+                        case true:
+                            Console.WriteLine("Converted '{0}' to {1}.", DataInfoObject.Time, number);
+                            TxtTimeAgo.Text = Methods.Time.TimeAgo(number, false);
+                            break;
+                        default:
+                            Console.WriteLine("Attempted conversion of '{0}' failed.", DataInfoObject.Time ?? "<null>");
+                            TxtTimeAgo.Text = Methods.Time.ReplaceTime(DataInfoObject.Time);
+                            break;
+                    }
+                     
+                    //Set job type
+                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconJobType, IonIconsFonts.IosBriefcase);
+                    TxtFulltime.Text = DataInfoObject.JobType switch
                     {
                         //Set job type
-                        "full_time" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_full_time),
-                        "part_time" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_part_time),
-                        "internship" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_internship),
-                        "volunteer" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_volunteer),
-                        "contract" => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_contract),
-                        _ => IonIconsFonts.IosBriefcase + " " + GetString(Resource.String.Lbl_Unknown)
+                        "full_time" => GetString(Resource.String.Lbl_full_time),
+                        "part_time" => GetString(Resource.String.Lbl_part_time),
+                        "internship" => GetString(Resource.String.Lbl_internship),
+                        "volunteer" => GetString(Resource.String.Lbl_volunteer),
+                        "contract" => GetString(Resource.String.Lbl_contract),
+                        _ => GetString(Resource.String.Lbl_Unknown)
+
                     };
 
-                    var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == DataInfoObject.Category)?.CategoriesName;
-                    jobInfo += " " + " " + IonIconsFonts.Pricetag + " " + categoryName;
+                    //TxtFulltime.Text = IonIconsFonts.IosBriefcase + "  " + DataInfoObject.JobType;
 
-                    var woTextDecorator = new WoTextDecorator
-                    {
-                        DecoratedContent = new SpannableString(jobInfo),
-                        Content = jobInfo
-                    };
-                    woTextDecorator.SetTextColor(IonIconsFonts.Pin, "#ff5722");
-                    woTextDecorator.SetTextColor(IonIconsFonts.Time, "#4caf50");
-                    woTextDecorator.SetTextColor(IonIconsFonts.IosBriefcase, "#2196f3");
-                    woTextDecorator.SetTextColor(IonIconsFonts.Pricetag, "#795548");
-                    woTextDecorator.Build(JobInfo, woTextDecorator.DecoratedContent);
+                    // Set category
+                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconJobCategory, IonIconsFonts.Pricetag);
+                    TxtCategory.Text = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == DataInfoObject.Category)?.CategoriesName;
+
+                    // Set salary
+                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconJobSalary, IonIconsFonts.Cash);
+                    TxtSalary.Text = "$" + DataInfoObject.Minimum + " " + GetText(Resource.String.Lbl_To) + " " + "$" + DataInfoObject.Maximum;
+
+                    // Set qualification
                 } 
             }
             catch (Exception e)

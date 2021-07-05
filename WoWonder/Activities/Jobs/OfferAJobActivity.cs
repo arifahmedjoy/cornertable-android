@@ -23,6 +23,7 @@ using WoWonder.Activities.Base;
 using WoWonder.Activities.Jobs.Adapters;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Jobs;
 using WoWonderClient.Requests;
@@ -223,7 +224,7 @@ namespace WoWonder.Activities.Jobs
             {
                 MAdapter = new JobsAdapter(this)
                 {
-                    JobList = new ObservableCollection<JobInfoObject>()
+                    JobList = new ObservableCollection<Classes.JobClass>()
                 };
                 LayoutManager = new LinearLayoutManager(this);
                 MRecycler.SetLayoutManager(LayoutManager);
@@ -338,8 +339,8 @@ namespace WoWonder.Activities.Jobs
             {
                 //Code get last id where LoadMore >>
                 var item = MAdapter.JobList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item.Id) && !MainScrollEvent.IsLoading)
-                    StartApiService(item.Id);
+                if (item != null && !string.IsNullOrEmpty(item.Job.Id) && !MainScrollEvent.IsLoading)
+                    StartApiService(item.Job.Id);
             }
             catch (Exception exception)
             {
@@ -384,7 +385,12 @@ namespace WoWonder.Activities.Jobs
                         var dataObject = JsonConvert.DeserializeObject<JobInfoObject>(jobsItem);
                         if (dataObject != null)
                         {
-                            MAdapter.JobList.Insert(0, dataObject);
+                            MAdapter.JobList.Insert(0, new Classes.JobClass
+                            {
+                                Id = Convert.ToInt64(dataObject.Id),
+                                Type = Classes.ItemType.Job,
+                                Job = dataObject
+                            });
                             MAdapter.NotifyDataSetChanged(); 
                         }
 
@@ -402,10 +408,10 @@ namespace WoWonder.Activities.Jobs
          
         #region Load Jobs 
 
-        private void StartApiService(string offset = "")
+        private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadJobsAsync(offset) });
         }
@@ -432,40 +438,32 @@ namespace WoWonder.Activities.Jobs
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
-                    {
-                        case > 0:
+                    if (respondList > 0)
+                    { 
+                        foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == Convert.ToInt64(item.Id)) where check == null select item)
                         {
-                            foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            MAdapter.JobList.Add(new Classes.JobClass
                             {
-                                if (item.Job != null)
-                                    MAdapter.JobList.Add(WoWonderTools.ListFilterJobs(item.Job.Value.JobInfoClass));
-                            }
-
-                            switch (countList)
-                            {
-                                case > 0:
-                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
-                                    break;
-                                default:
-                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                                    break;
-                            }
-
-                            break;
+                                Id = Convert.ToInt64(item.Id),
+                                Type = Classes.ItemType.Job,
+                                Job = WoWonderTools.ListFilterJobs(item.Job.Value.JobInfoClass)
+                            });
                         }
-                        default:
-                        {
-                            switch (MAdapter.JobList.Count)
-                            {
-                                case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
-                                    break;
-                            }
 
-                            break;
+                        if (countList > 0)
+                        {
+                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
+                        }
+                        else
+                        {
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
                         }
                     }
+                    else
+                    {
+                        if (MAdapter.JobList.Count > 10 && !MRecycler.CanScrollVertically(1))
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short);
+                    } 
                 }
 
                 RunOnUiThread(ShowEmptyPage);
@@ -483,7 +481,7 @@ namespace WoWonder.Activities.Jobs
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

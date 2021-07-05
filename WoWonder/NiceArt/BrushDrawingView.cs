@@ -12,31 +12,27 @@ namespace WoWonder.NiceArt
 {
     public class BrushDrawingView : View
     {
-        static readonly float DEFAULT_BRUSH_SIZE = 25.0f;
-        static readonly float DEFAULT_ERASER_SIZE = 50.0f;
-        static readonly int DEFAULT_OPACITY = 255;
+        public float MBrushSize = 25;
+        public float MBrushEraserSize = 50;
+        public int MOpacity = 255;
 
-        private float MBrushSize = DEFAULT_BRUSH_SIZE;
-        private float MBrushEraserSize = DEFAULT_ERASER_SIZE;
-        private int MOpacity = DEFAULT_OPACITY;
+        public List<LinePath> MLinePaths = new List<LinePath>();
+        public List<LinePath> MRedoLinePaths = new List<LinePath>();
+        public Paint MDrawPaint;
 
-        public List<LinePath> MDrawnPaths = new List<LinePath>();
-        public List<LinePath> MRedoPaths = new List<LinePath>();
-        private Paint MDrawPaint;
+        public Canvas MDrawCanvas;
+        public bool MBrushDrawMode;
 
-        private Canvas MDrawCanvas;
-        private bool MBrushDrawMode;
+        public Path MPath;
+        public float MTouchX, MTouchY;
+        public static readonly float TouchTolerance = 4;
 
-        private Path MPath;
-        private float MTouchX, MTouchY;
-        private static readonly float TouchTolerance = 4;
-
-        private INiceArt.IBrushViewChangeListener MBrushViewChangeListener;
+        public INiceArt.IBrushViewChangeListener MBrushViewChangeListener;
 
         public class LinePath
         {
-            private readonly Paint MDrawPaint;
-            private readonly Path MDrawPath;
+            public Paint MDrawPaint;
+            public Path MDrawPath;
 
             public LinePath(Path drawPath, Paint drawPaints)
             {
@@ -63,7 +59,8 @@ namespace WoWonder.NiceArt
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
+
             }
         }
 
@@ -75,7 +72,8 @@ namespace WoWonder.NiceArt
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
+
             }
         }
 
@@ -87,7 +85,8 @@ namespace WoWonder.NiceArt
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e);  
+                Methods.DisplayReportResultTrack(e);
+
             }
         }
 
@@ -197,11 +196,6 @@ namespace WoWonder.NiceArt
 
             }
 
-        }
-
-        public int getOpacity()
-        {
-            return MOpacity;
         }
 
         public bool GetBrushDrawingMode()
@@ -322,14 +316,15 @@ namespace WoWonder.NiceArt
         {
             try
             {
-                MDrawnPaths.Clear();
-                MRedoPaths.Clear();
+                MLinePaths.Clear();
+                MRedoLinePaths.Clear();
                 MDrawCanvas?.DrawColor(Color.Black, PorterDuff.Mode.Clear);
                 Invalidate();
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
+
             }
         }
 
@@ -341,7 +336,8 @@ namespace WoWonder.NiceArt
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e); 
+                Methods.DisplayReportResultTrack(e);
+
             }
         }
 
@@ -367,7 +363,7 @@ namespace WoWonder.NiceArt
             {
                 base.OnDraw(canvas);
 
-                foreach (var linePath in MDrawnPaths)
+                foreach (var linePath in MLinePaths)
                 {
                     canvas.DrawPath(linePath.GetDrawPath(), linePath.GetDrawPaint());
                 }
@@ -424,24 +420,24 @@ namespace WoWonder.NiceArt
         {
             try
             {
-                if (MDrawnPaths.Count > 0)
+                if (MLinePaths.Count > 0)
                 {
-                    var last = MDrawnPaths.LastOrDefault();
+                    var last = MLinePaths.LastOrDefault();
                     if (last != null)
                     {
-                        var lastLinePaths = MDrawnPaths.LastOrDefault();
+                        var lastLinePaths = MLinePaths.LastOrDefault();
                         if (lastLinePaths != null)
                         {
-                            MRedoPaths.Add(lastLinePaths);
+                            MRedoLinePaths.Add(lastLinePaths);
                         }
-                        MDrawnPaths.Remove(last);
+                        MLinePaths.Remove(last);
                     }
                     Invalidate();
                 }
 
                 MBrushViewChangeListener?.OnViewRemoved(this);
 
-                return MDrawnPaths?.Count != 0;
+                return MLinePaths?.Count != 0;
             }
             catch (Exception e)
             {
@@ -455,24 +451,24 @@ namespace WoWonder.NiceArt
         {
             try
             {
-                if (MRedoPaths.Count > 0)
+                if (MRedoLinePaths.Count > 0)
                 {
-                    var last = MRedoPaths.LastOrDefault();
+                    var last = MRedoLinePaths.LastOrDefault();
                     if (last != null)
                     {
-                        var lastLinePaths = MRedoPaths.LastOrDefault();
+                        var lastLinePaths = MRedoLinePaths.LastOrDefault();
                         if (lastLinePaths != null)
                         {
-                            MDrawnPaths.Add(lastLinePaths);
+                            MLinePaths.Add(lastLinePaths);
                         }
-                        MRedoPaths.Remove(last);
+                        MRedoLinePaths.Remove(last);
                     }
                     Invalidate();
                 }
 
                 MBrushViewChangeListener?.OnViewAdd(this);
 
-                return MRedoPaths.Count != 0;
+                return MRedoLinePaths.Count != 0;
             }
             catch (Exception e)
             {
@@ -486,7 +482,7 @@ namespace WoWonder.NiceArt
         {
             try
             {
-                MRedoPaths.Clear();
+                MRedoLinePaths.Clear();
                 MPath.Reset();
                 MPath.MoveTo(x, y);
                 MTouchX = x;
@@ -528,7 +524,7 @@ namespace WoWonder.NiceArt
                 // Commit the path to our offscreen
                 MDrawCanvas.DrawPath(MPath, MDrawPaint);
                 // kill this so we don't double draw
-                MDrawnPaths.Add(new LinePath(MPath, MDrawPaint));
+                MLinePaths.Add(new LinePath(MPath, MDrawPaint));
 
                 MPath = new Path();
                 if (MBrushViewChangeListener != null)
@@ -539,18 +535,9 @@ namespace WoWonder.NiceArt
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e);  
+                Methods.DisplayReportResultTrack(e);
+
             }
-        }
-
-        public Paint getDrawingPaint()
-        {
-            return MDrawPaint;
-        }
-
-        public Dictionary<List<LinePath>, List<LinePath>> getDrawingPath()
-        {  
-            return new Dictionary<List<LinePath>, List<LinePath>> { { MDrawnPaths, MRedoPaths } };
         }
     }
 }

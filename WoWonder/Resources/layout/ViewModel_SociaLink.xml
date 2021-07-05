@@ -8,8 +8,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/textTitle"
-            android:textSize="14dp"
+            android:textSize="14sp" 
             android:textStyle="bold"
+            android:textAllCaps="true"
             android:padding="8dp"
             android:text="@string/Lbl_SocialLinks"
             android:layout_gravity="start|center"
@@ -85,4 +86,11 @@
             android:layout_weight="0"
             android:layout_gravity="center" />
     </LinearLayout>
+
+    <View
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:layout_marginTop="5dp"
+      android:background="?attr/colorDivider" />
+
 </LinearLayout>

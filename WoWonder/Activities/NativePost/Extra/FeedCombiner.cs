@@ -756,18 +756,12 @@ namespace WoWonder.Activities.NativePost.Extra
                         default:
                         {
                             CountIndex = 0;
-                            var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                            var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                            var model3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                            var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                            var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
                             var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                            var model5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-
-                            if (model5 != null)
-                                CountIndex += PostList.IndexOf(model5) + 1;
-                            else if (model4 != null)
+                            
+                            if (model4 != null)
                                 CountIndex += PostList.IndexOf(model4) + 1;
-                            else if (model3 != null)
-                                CountIndex += PostList.IndexOf(model3) + 1;
                             else if (model2 != null)
                                 CountIndex += PostList.IndexOf(model2) + 1;
                             else if (model1 != null)
@@ -825,7 +819,7 @@ namespace WoWonder.Activities.NativePost.Extra
             }
         }
 
-        public void AddStoryPostView(string typePost, int index, PostDataObject postData = null)
+        public void AddStoryPostView(List<StoryDataObject> storyList)
         {
             try
             {
@@ -840,38 +834,14 @@ namespace WoWonder.Activities.NativePost.Extra
                             Id = 545454545
                         };
 
+                        if (storyList?.Count > 0)
+                            story.StoryList = new ObservableCollection<StoryDataObject>(storyList);
+                        
                         PostList.Add(story);
                         AddPostDivider();
                         break;
                     }
-                }
-
-                //if (typePost != "feed") return;
-                //var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                //switch (check)
-                //{
-                //    case null:
-                //    {
-                //        string filter = WRecyclerView.GetInstance()?.GetFilter() ?? "";
-                //        string titleHead = filter switch
-                //        {
-                //            "0" => MainContext.GetString(Resource.String.Lbl_All),
-                //            "1" => MainContext.GetString(Resource.String.Lbl_People_i_Follow),
-                //            _ => MainContext.GetString(Resource.String.Lbl_All)
-                //        };
-
-                //        var modelsClass = new AdapterModelsClass
-                //        {
-                //            TypeView = PostModelType.FilterSection,
-                //            Id = 521,
-                //            AboutModel = new AboutModelClass { TitleHead = titleHead },
-                //        };
-
-                //        PostList.Add(modelsClass);
-                //        AddPostDivider();
-                //        break;
-                //    }
-                //}
+                } 
             }
             catch (Exception e)
             {
@@ -894,11 +864,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -952,11 +922,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -1010,11 +980,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -1039,11 +1009,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -1068,11 +1038,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -1097,11 +1067,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -1126,11 +1096,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case -1:
                         PostList.Add(item);
-                        AddPostDivider();
+                        //AddPostDivider();
                         break;
                     default:
                         PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
+                        //AddPostDivider(PostList.IndexOf(item) + 1);
                         break;
                 }
             }
@@ -1161,40 +1131,17 @@ namespace WoWonder.Activities.NativePost.Extra
                         {
                             case -1:
                                 PostList.Add(item);
-                                AddPostDivider();
+                                //AddPostDivider();
                                 break;
                             default:
                                 PostList.Insert(index, item);
-                                AddPostDivider(index);
+                                //AddPostDivider(index + 1);
                                 break;
                         }
 
                         break;
                     }
-                }
-
-                /*if (typePost != "feed") return;
-                var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                if (check == null)
-                { 
-                    string filter = WRecyclerView.GetInstance()?.GetFilter() ?? "";
-                    string titleHead = filter switch
-                    {
-                        "0" => MainContext.GetString(Resource.String.Lbl_All),
-                        "1" => MainContext.GetString(Resource.String.Lbl_People_i_Follow),
-                        _ => MainContext.GetString(Resource.String.Lbl_All)
-                    };
-
-                    var modelsClass = new AdapterModelsClass
-                    {
-                        TypeView = PostModelType.FilterSection,
-                        Id = 521,
-                        AboutModel = new AboutModelClass { TitleHead = titleHead },
-                    };
-                         
-                    PostList.Add(modelsClass);
-                    AddPostDivider();
-                }*/
+                } 
             }
             catch (Exception e)
             {
@@ -1202,34 +1149,34 @@ namespace WoWonder.Activities.NativePost.Extra
             }
         }
 
-        public void SearchForPostsView(string type, PostDataObject postData = null)
-        {
-            try
-            {
-                var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
-                switch (check)
-                {
-                    case null:
-                    {
-                        var item = new AdapterModelsClass
-                        {
-                            TypeView = PostModelType.SearchForPosts,
-                            TypePost = type,
-                            Id = 2321,
-                            PostData = postData
-                        };
+        //public void SearchForPostsView(string type, PostDataObject postData = null)
+        //{
+        //    try
+        //    {
+        //        var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+        //        switch (check)
+        //        {
+        //            case null:
+        //            {
+        //                var item = new AdapterModelsClass
+        //                {
+        //                    TypeView = PostModelType.SearchForPosts,
+        //                    TypePost = type,
+        //                    Id = 2321,
+        //                    PostData = postData
+        //                };
 
-                        PostList.Add(item);
-                        AddPostDivider();
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e); 
-            }
-        }
+        //                PostList.Add(item);
+        //                AddPostDivider();
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Methods.DisplayReportResultTrack(e); 
+        //    }
+        //}
 
         public void SetAnnouncementAlertView(string subText, string color, int? resource = null)
         {
@@ -1393,11 +1340,18 @@ namespace WoWonder.Activities.NativePost.Extra
                             Id = 3216545,
                         });
                         break;
-                    default:
+                    case PostModelType.SuggestedUsersBox:
                         PostList.Add(new AdapterModelsClass
                         {
                             TypeView = PostModelType.SuggestedUsersBox,
                             Id = 3228546,
+                        });
+                        break;
+                    case PostModelType.SuggestedPagesBox:
+                        PostList.Add(new AdapterModelsClass
+                        {
+                            TypeView = PostModelType.SuggestedPagesBox,
+                            Id = 3216547,
                         });
                         break;
                 }
@@ -2094,25 +2048,42 @@ namespace WoWonder.Activities.NativePost.Extra
                     default:
                     {
                         CountIndex = 0;
-                        var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                        var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                        var model3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                        var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                        var model5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                            
+                        var check7 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.SocialLinks);
+                        var check = PostList.FirstOrDefault(a => a.TypeView == PostModelType.PagesBox);
+                        var check2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.GroupsBox);
+                        var check3 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.FollowersBox);
+                        var check4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.ImagesBox);
+                        var check5 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AboutBox);
+                        var check6 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.InfoUserBox);
 
-                        if (model5 != null)
-                            CountIndex += PostList.IndexOf(model5) + 1;
-                        else if (model4 != null)
+                        var model1 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                        var model2 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                        var model4 = PostList.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+
+                        if (model4 != null)
                             CountIndex += PostList.IndexOf(model4) + 1;
-                        else if (model3 != null)
-                            CountIndex += PostList.IndexOf(model3) + 1;
                         else if (model2 != null)
                             CountIndex += PostList.IndexOf(model2) + 1;
                         else if (model1 != null)
                             CountIndex += PostList.IndexOf(model1) + 1;
+                        else if (check7 != null)
+                            CountIndex += PostList.IndexOf(check7) + 1;
+                        else if (check != null)
+                            CountIndex += PostList.IndexOf(check) + 1;
+                        else if (check2 != null)
+                            CountIndex += PostList.IndexOf(check2) + 1;
+                        else if (check3 != null)
+                            CountIndex += PostList.IndexOf(check3) + 1;
+                        else if (check4 != null)
+                            CountIndex += PostList.IndexOf(check4) + 1;
+                        else if (check5 != null)
+                            CountIndex += PostList.IndexOf(check5) + 1;
+                        else if (check6 != null)
+                            CountIndex += PostList.IndexOf(check6) + 1; 
                         else
                             CountIndex = 0;
-
+                         
                         InsertOnTopPostPromote();
                         InsertOnTopPostHeader();
                         InsertOnTopPostTextSection();
@@ -2131,28 +2102,70 @@ namespace WoWonder.Activities.NativePost.Extra
             }
         }
 
-        public void ProfileHeaderView(UserDataObject userData, int index)
+        public void ProfileDetailsView(UserDataObject userData, int index , string type)
         {
             try
             {
-                var item = new AdapterModelsClass
+                if (type == "MyProfile")
                 {
-                    TypeView = PostModelType.ProfileHeaderSection,
-                    Id = 0000,
-                    headerSectionClass = new InfoUserModelClass { UserData = userData }
-                };
+                    var itemDetails = new AdapterModelsClass
+                    {
+                        TypeView = PostModelType.ProfileDetailsSection,
+                        Id = 0000,
+                        InfoUserModel = new InfoUserModelClass { UserData = userData }
+                    };
+                    
+                    var itemInfoHeader = new AdapterModelsClass
+                    {
+                        TypeView = PostModelType.MyProfileInfoHeaderSection,
+                        Id = 0001,
+                        InfoUserModel = new InfoUserModelClass { UserData = userData }
+                    };
 
-                switch (index)
-                {
-                    case -1:
-                        PostList.Add(item);
-                        AddPostDivider();
-                        break;
-                    default:
-                        PostList.Insert(index, item);
-                        AddPostDivider(PostList.IndexOf(item) + 1);
-                        break;
+                    switch (index)
+                    {
+                        case -1:
+                            PostList.Add(itemInfoHeader);
+                            PostList.Add(itemDetails);
+                            //AddPostDivider();
+                            break;
+                        default:
+                            PostList.Insert(index, itemInfoHeader);
+                            PostList.Insert(index + 1, itemDetails);
+                            //AddPostDivider(PostList.IndexOf(item) + 1);
+                            break;
+                    }
                 }
+                else
+                {
+                    var itemDetails = new AdapterModelsClass
+                    {
+                        TypeView = PostModelType.ProfileDetailsSection,
+                        Id = 0000,
+                        InfoUserModel = new InfoUserModelClass { UserData = userData }
+                    };
+
+                    var itemInfoHeader = new AdapterModelsClass
+                    {
+                        TypeView = PostModelType.UserProfileInfoHeaderSection,
+                        Id = 0001,
+                        InfoUserModel = new InfoUserModelClass { UserData = userData }
+                    };
+
+                    switch (index)
+                    {
+                        case -1:
+                            PostList.Add(itemInfoHeader);
+                            PostList.Add(itemDetails);
+                            //AddPostDivider();
+                            break;
+                        default:
+                            PostList.Insert(index, itemInfoHeader);
+                            PostList.Insert(index + 1, itemDetails);
+                            //AddPostDivider(PostList.IndexOf(item) + 1);
+                            break;
+                    }
+                } 
             }
             catch (Exception e)
             {

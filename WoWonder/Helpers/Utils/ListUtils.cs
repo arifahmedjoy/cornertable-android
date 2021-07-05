@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using WoWonder.Helpers.Model;
 using WoWonder.SQLite;
@@ -7,7 +8,6 @@ using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.Message;
 using WoWonderClient.Classes.Movies;
 using WoWonderClient.Classes.Posts;
-using WoWonderClient.Classes.Product;
 
 namespace WoWonder.Helpers.Utils
 {
@@ -24,23 +24,25 @@ namespace WoWonder.Helpers.Utils
         public static ObservableCollection<UserDataObject> MyProfileList = new ObservableCollection<UserDataObject>();
         public static ObservableCollection<UserDataObject> MyFollowersList = new ObservableCollection<UserDataObject>();
         public static ObservableCollection<PageClass> MyPageList = new ObservableCollection<PageClass>();
+        public static ObservableCollection<PageClass> InvitesPagesList = new ObservableCollection<PageClass>();
         public static ObservableCollection<GroupClass> MyGroupList = new ObservableCollection<GroupClass>();
        
         public static ObservableCollection<Classes.Family> FamilyList = new ObservableCollection<Classes.Family>();
          
         public static ObservableCollection<PostDataObject> ListCachedDataAlbum = new ObservableCollection<PostDataObject>();
         public static ObservableCollection<ArticleDataObject> ListCachedDataArticle = new ObservableCollection<ArticleDataObject>();
-        public static ObservableCollection<ProductDataObject> ListCachedDataProduct = new ObservableCollection<ProductDataObject>();
-        public static ObservableCollection<ProductDataObject> ListCachedDataMyProduct = new ObservableCollection<ProductDataObject>();
+        public static ObservableCollection<Classes.ProductClass> ListCachedDataMyProduct = new ObservableCollection<Classes.ProductClass>();
         public static ObservableCollection<GetMoviesObject.Movie> ListCachedDataMovie = new ObservableCollection<GetMoviesObject.Movie>();
         public static ObservableCollection<UserDataObject> ListCachedDataNearby = new ObservableCollection<UserDataObject>();
         public static ObservableCollection<GiftObject.DataGiftObject> GiftsList = new ObservableCollection<GiftObject.DataGiftObject>();
         public static ObservableCollection<PostDataObject> ListCachedDataMyPhotos = new ObservableCollection<PostDataObject>();
         public static ObservableCollection<PostDataObject> ListCachedDataMyVideos = new ObservableCollection<PostDataObject>();
-        public static ObservableCollection<GamesDataObject> ListCachedDataGames = new ObservableCollection<GamesDataObject>();
+        public static ObservableCollection<Classes.GameClass> ListCachedDataGames = new ObservableCollection<Classes.GameClass>();
+        public static ObservableCollection<GamesDataObject> ListCachedDataPopularGames = new ObservableCollection<GamesDataObject>();
         public static ObservableCollection<GamesDataObject> ListCachedDataMyGames = new ObservableCollection<GamesDataObject>();
         public static ObservableCollection<GroupClass> SuggestedGroupList = new ObservableCollection<GroupClass>();
         public static ObservableCollection<UserDataObject> SuggestedUserList = new ObservableCollection<UserDataObject>();
+        public static ObservableCollection<PageClass> SuggestedPageList = new ObservableCollection<PageClass>();
 
         public static ObservableCollection<UserDataObject> FriendRequestsList = new ObservableCollection<UserDataObject>();
         public static ObservableCollection<TrendingHashtag> HashTagList = new ObservableCollection<TrendingHashtag>();
@@ -55,6 +57,7 @@ namespace WoWonder.Helpers.Utils
         public static ObservableCollection<Classes.OptionLastChat> PinList = new ObservableCollection<Classes.OptionLastChat>();
         public static ObservableCollection<Classes.LastChatArchive> ArchiveList = new ObservableCollection<Classes.LastChatArchive>();
         public static ObservableCollection<DataTables.StickersTb> StickersList = new ObservableCollection<DataTables.StickersTb>();
+        public static List<PostDataObject> NewPostList = new List<PostDataObject>();
 
         public static void ClearAllList()
         {
@@ -64,11 +67,11 @@ namespace WoWonder.Helpers.Utils
                 MyProfileList.Clear();
                 MyFollowersList.Clear();
                 MyPageList.Clear();
+                InvitesPagesList.Clear();
                 MyGroupList.Clear(); 
                 FamilyList.Clear();
                 ListCachedDataAlbum.Clear();
                 ListCachedDataArticle.Clear();
-                ListCachedDataProduct.Clear();
                 ListCachedDataMyProduct.Clear();
                 ListCachedDataMovie.Clear();
                 ListCachedDataNearby.Clear();
@@ -76,22 +79,16 @@ namespace WoWonder.Helpers.Utils
                 ListCachedDataMyPhotos.Clear();
                 ListCachedDataMyVideos.Clear();
                 ListCachedDataGames.Clear();
+                ListCachedDataPopularGames.Clear();
                 ListCachedDataMyGames.Clear();
                 SuggestedGroupList.Clear();
                 SuggestedUserList.Clear();
                 FriendRequestsList.Clear();
                 HashTagList.Clear();
                 ShortCutsList.Clear();
-
-                UserList.Clear();
-                UserChatList.Clear();
-                ListSharedFiles.Clear();
-                LastSharedFiles = new ObservableCollection<Classes.SharedFile>();
-                GroupRequestsList.Clear();
-                MuteList.Clear();
-                PinList.Clear();
-                ArchiveList.Clear();
+                SuggestedPageList.Clear();
                 StickersList.Clear();
+                NewPostList.Clear(); 
             }
             catch (Exception e)
             {

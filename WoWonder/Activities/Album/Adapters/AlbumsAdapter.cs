@@ -69,7 +69,7 @@ namespace WoWonder.Activities.Album.Adapters
                         {
                             GlideImageLoader.LoadImage(ActivityContext, item.PhotoAlbum[0]?.Image, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
                             holder.TxtTitle.Text = Methods.FunString.DecodeString(item.AlbumName); 
-                            holder.TxtCounter.Text = item.PhotoAlbum.Count.ToString();
+                            holder.TxtCounter.Text = item.PhotoAlbum.Count + " " + ActivityContext.GetText(Resource.String.Lbl_Photos);
                         }
 
                         break;
@@ -196,8 +196,8 @@ namespace WoWonder.Activities.Album.Adapters
                 TxtCounter = MainView.FindViewById<TextView>(Resource.Id.counter);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new AlbumsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new AlbumsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new AlbumsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new AlbumsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

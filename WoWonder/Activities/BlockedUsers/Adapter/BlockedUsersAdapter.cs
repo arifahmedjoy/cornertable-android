@@ -6,7 +6,6 @@ using Android.App;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using AT.Markushi.UI;
 using Bumptech.Glide;
 using Bumptech.Glide.Load.Engine;
 using Bumptech.Glide.Request;
@@ -51,7 +50,7 @@ namespace WoWonder.Activities.BlockedUsers.Adapter
             try
             {
                 //Setup your layout here >> Style_BlockedUsersView
-                var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_FriendRequestsView, parent, false);
+                var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_BlockedUsersView, parent, false);
                 var vh = new BlockedUsersAdapterViewHolder(itemView, DeleteButtonClick, AddButtonClick, Click, LongClick);
                 return vh;
             }
@@ -218,17 +217,14 @@ namespace WoWonder.Activities.BlockedUsers.Adapter
                 Image = MainView.FindViewById<ImageView>(Resource.Id.card_pro_pic);
                 Name = MainView.FindViewById<TextView>(Resource.Id.card_name);
                 About = MainView.FindViewById<TextView>(Resource.Id.card_dist);
-                AddButton = MainView.FindViewById<CircleButton>(Resource.Id.Add_button);
-                DeleteButton = MainView.FindViewById<CircleButton>(Resource.Id.delete_button);
-                AddButton.Visibility = ViewStates.Gone;
-                About.Visibility = ViewStates.Gone;
+                UnblockButton = MainView.FindViewById<Button>(Resource.Id.BtnUnblock);
+                About.Visibility = ViewStates.Visible;
 
                 //Event
-                AddButton.Click += (sender, e) => addButtonClickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                DeleteButton.Click += (sender, e) => deleteButtonClickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                UnblockButton.Click += (sender, e) => addButtonClickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
-                //itemView.Click += (sender, e) => clickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                //itemView.LongClick += (sender, e) => longClickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = AdapterPosition }); 
+                //itemView.Click += (sender, e) => clickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                //itemView.LongClick += (sender, e) => longClickListener(new BlockedUsersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition }); 
             }
             catch (Exception e)
             {
@@ -243,8 +239,7 @@ namespace WoWonder.Activities.BlockedUsers.Adapter
         public ImageView Image { get; private set; }
         public TextView Name { get; private set; }
         public TextView About { get; private set; }
-        public CircleButton AddButton { get; private set; }
-        public CircleButton DeleteButton { get; private set; }
+        public Button UnblockButton { get; private set; } 
 
         #endregion
     }

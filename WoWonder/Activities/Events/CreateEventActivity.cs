@@ -7,7 +7,6 @@ using Android.Content.PM;
 using Android.Gms.Ads.DoubleClick;
 using Android.Graphics;
 using Android.OS;
-
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
@@ -15,11 +14,11 @@ using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
+using ImageViews.Rounded;
 using TheArtOfDev.Edmodo.Cropper;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Event;
 using WoWonderClient.Requests;
@@ -34,12 +33,18 @@ namespace WoWonder.Activities.Events
     {
         #region Variables Basic
 
-        private TextView IconStartDate, IconEndDate, IconLocation, TxtAdd;
-        private EditText TxtEventName, TxtStartDate, TxtStartTime,TxtEndDate, TxtEndTime, TxtLocation, TxtDescription;
-        private ImageView ImageEvent;
-        private Button BtnImage; 
+        private EditText TxtEventName, TxtStartDate, TxtStartTime, TxtEndDate, TxtEndTime, TxtLocation, TxtDescription;
         private string EventPathImage = "";
         private PublisherAdView PublisherAdView;
+        private LinearLayout llStep1, llStep2, llStep3, llStep5, llStep6;
+        private RelativeLayout rlStep4;
+        private Button BtnSave;
+        private ImageView ImgSelect;
+        private RoundedImageView RivImageEvent;
+        private View ViewStep1, ViewStep2, ViewStep3, ViewStep4, ViewStep5, ViewStep6;
+        private TextView TxtStep;
+        private int nStep = 1;
+        private readonly int nMaxStep = 6;
 
         #endregion
 
@@ -60,6 +65,8 @@ namespace WoWonder.Activities.Events
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
+
+                SetStep();
             }
             catch (Exception e)
             {
@@ -156,25 +163,34 @@ namespace WoWonder.Activities.Events
         {
             try
             {
+                ViewStep1 = FindViewById<View>(Resource.Id.view_step1);
+                ViewStep2 = FindViewById<View>(Resource.Id.view_step2);
+                ViewStep3 = FindViewById<View>(Resource.Id.view_step3);
+                ViewStep4 = FindViewById<View>(Resource.Id.view_step4);
+                ViewStep5 = FindViewById<View>(Resource.Id.view_step5);
+                ViewStep6 = FindViewById<View>(Resource.Id.view_step6);
+
+                TxtStep = FindViewById<TextView>(Resource.Id.tv_step);
+
+                llStep1 = FindViewById<LinearLayout>(Resource.Id.ll_step1);
+                llStep2 = FindViewById<LinearLayout>(Resource.Id.ll_step2);
+                llStep3 = FindViewById<LinearLayout>(Resource.Id.ll_step3);
+                llStep5 = FindViewById<LinearLayout>(Resource.Id.ll_step5);
+                llStep6 = FindViewById<LinearLayout>(Resource.Id.ll_step6);
+                rlStep4 = FindViewById<RelativeLayout>(Resource.Id.rl_step4);
+
+                BtnSave = FindViewById<Button>(Resource.Id.btn_next);
+
                 TxtEventName = FindViewById<EditText>(Resource.Id.eventname);
-                IconStartDate = FindViewById<TextView>(Resource.Id.StartIcondate);
                 TxtStartDate = FindViewById<EditText>(Resource.Id.StartDateTextview);
                 TxtStartTime = FindViewById<EditText>(Resource.Id.StartTimeTextview);
-                IconEndDate = FindViewById<TextView>(Resource.Id.EndIcondate);
                 TxtEndDate = FindViewById<EditText>(Resource.Id.EndDateTextview);
                 TxtEndTime = FindViewById<EditText>(Resource.Id.EndTimeTextview);
-                IconLocation = FindViewById<TextView>(Resource.Id.IconLocation);
                 TxtLocation = FindViewById<EditText>(Resource.Id.LocationTextview);
                 TxtDescription = FindViewById<EditText>(Resource.Id.description);
 
-                ImageEvent = FindViewById<ImageView>(Resource.Id.EventCover);
-                BtnImage = FindViewById<Button>(Resource.Id.btn_selectimage);
-
-                TxtAdd = FindViewById<TextView>(Resource.Id.toolbar_title);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconStartDate, IonIconsFonts.Time);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconEndDate, IonIconsFonts.Time);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconLocation, IonIconsFonts.Pin);
+                RivImageEvent = FindViewById<RoundedImageView>(Resource.Id.fundingCover);
+                ImgSelect = FindViewById<ImageView>(Resource.Id.btn_selectimage);
 
                 Methods.SetColorEditText(TxtEventName, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtStartTime, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -183,14 +199,19 @@ namespace WoWonder.Activities.Events
                 Methods.SetColorEditText(TxtEndTime, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtLocation, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtDescription, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                 
+
+                Methods.SetFocusable(TxtStartTime);
+                Methods.SetFocusable(TxtEndTime);
+                Methods.SetFocusable(TxtStartDate);
+                Methods.SetFocusable(TxtEndDate);
+
                 TxtStartTime.SetOnClickListener(this);
                 TxtEndTime.SetOnClickListener(this);
                 TxtStartDate.SetOnClickListener(this);
                 TxtEndDate.SetOnClickListener(this);
                 TxtLocation.ClearFocus();
 
-                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view); 
+                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view);
                 AdsGoogle.InitPublisherAdView(PublisherAdView);
             }
             catch (Exception e)
@@ -214,7 +235,7 @@ namespace WoWonder.Activities.Events
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
- 
+
                 }
             }
             catch (Exception e)
@@ -222,7 +243,7 @@ namespace WoWonder.Activities.Events
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -231,14 +252,14 @@ namespace WoWonder.Activities.Events
                 {
                     // true +=  // false -=
                     case true:
-                        TxtAdd.Click += TxtAddOnClick;
-                        TxtLocation.OnFocusChangeListener = this;  
-                        BtnImage.Click += BtnImageOnClick;
+                        BtnSave.Click += TxtAddOnClick;
+                        TxtLocation.OnFocusChangeListener = this;
+                        ImgSelect.Click += BtnImageOnClick;
                         break;
                     default:
-                        TxtAdd.Click -= TxtAddOnClick;
-                        TxtLocation.OnFocusChangeListener = null!; 
-                        BtnImage.Click -= BtnImageOnClick;
+                        BtnSave.Click -= TxtAddOnClick;
+                        TxtLocation.OnFocusChangeListener = null!;
+                        ImgSelect.Click -= BtnImageOnClick;
                         break;
                 }
             }
@@ -255,21 +276,25 @@ namespace WoWonder.Activities.Events
                 PublisherAdView?.Destroy();
 
                 TxtEventName = null!;
-                IconStartDate= null!;
                 TxtStartDate = null!;
                 TxtStartTime = null!;
-                IconEndDate = null!;
                 TxtEndDate = null!;
                 TxtEndTime = null!;
-                IconLocation = null!;
                 TxtLocation = null!;
-                TxtDescription = null!; 
-                ImageEvent = null!;
-                BtnImage = null!; 
-                TxtAdd = null!;
+                TxtDescription = null!;
+                RivImageEvent = null!;
+                ImgSelect = null!;
+                BtnSave = null!;
                 EventPathImage = null!;
 
                 PublisherAdView = null!;
+
+                llStep1 = null!;
+                llStep2 = null!;
+                llStep3 = null!;
+                llStep5 = null!;
+                llStep6 = null!;
+                rlStep4 = null!;
             }
             catch (Exception e)
             {
@@ -304,19 +329,19 @@ namespace WoWonder.Activities.Events
                         new IntentController(this).OpenIntentLocation();
                         break;
                     default:
-                    {
-                        if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
                         {
-                            //Open intent Location when the request code of result is 502
-                            new IntentController(this).OpenIntentLocation();
-                        }
-                        else
-                        {
-                            new PermissionsController(this).RequestPermission(105);
-                        }
+                            if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted && CheckSelfPermission(Manifest.Permission.AccessCoarseLocation) == Permission.Granted)
+                            {
+                                //Open intent Location when the request code of result is 502
+                                new IntentController(this).OpenIntentLocation();
+                            }
+                            else
+                            {
+                                new PermissionsController(this).RequestPermission(105);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception exception)
@@ -325,119 +350,137 @@ namespace WoWonder.Activities.Events
             }
         }
 
-        private async void TxtAddOnClick(object sender, EventArgs e)
+        private async void CreateEventFromSave()
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtEventName.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtStartDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtEndDate.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtLocation.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtStartTime.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_start_time), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_time), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtEndTime.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_end_time), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_time), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(EventPathImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                     }
                     else
                     {
                         //Show a progress
                         AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading) + "...");
 
-                        var (apiStatus, respond) = await RequestsAsync.Event.CreateEventAsync(TxtEventName.Text, TxtLocation.Text,TxtDescription.Text, TxtStartDate.Text.Replace("/","-"), TxtEndDate.Text.Replace("/", ""), TxtStartTime.Text.Replace("AM","").Replace("PM", "").Replace(" ", ""), TxtEndTime.Text.Replace(" ", "-").Replace("AM", "").Replace("PM", ""), EventPathImage);
+                        var (apiStatus, respond) = await RequestsAsync.Event.CreateEventAsync(TxtEventName.Text, TxtLocation.Text, TxtDescription.Text, TxtStartDate.Text.Replace("/", "-"), TxtEndDate.Text.Replace("/", ""), TxtStartTime.Text.Replace("AM", "").Replace("PM", "").Replace(" ", ""), TxtEndTime.Text.Replace(" ", "-").Replace("AM", "").Replace("PM", ""), EventPathImage);
                         switch (apiStatus)
                         {
                             case 200:
-                            {
-                                switch (respond)
                                 {
-                                    case CreateEvent result:
+                                    switch (respond)
                                     {
-                                        AndHUD.Shared.Dismiss(this); 
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
-                                        //wael
-                                        //Add new item to my Event list
-                                        var user = ListUtils.MyProfileList?.FirstOrDefault();
-                                        EventDataObject data = new EventDataObject
-                                        {
-                                            Id = result.EventId.ToString(),
-                                            Description = TxtDescription.Text,
-                                            Cover = EventPathImage,
-                                            EndDate = TxtEndDate.Text,
-                                            EndTime = TxtEndTime.Text,
-                                            IsOwner = true,
-                                            Location = TxtLocation.Text,
-                                            Name = TxtEventName.Text,
-                                            StartDate = TxtStartDate.Text,
-                                            StartTime = TxtStartTime.Text,
-                                            UserData = user,
-                                        };
+                                        case CreateEvent result:
+                                            {
+                                                AndHUD.Shared.Dismiss(this);
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short);
 
-                                        if (EventMainActivity.GetInstance()?.MyEventTab?.MAdapter?.EventList != null)
-                                        {
-                                            EventMainActivity.GetInstance()?.MyEventTab.MAdapter?.EventList?.Insert(0, data);
-                                            EventMainActivity.GetInstance()?.MyEventTab.MAdapter?.NotifyItemInserted(EventMainActivity.GetInstance().MyEventTab.MAdapter.EventList.IndexOf(data));
-                                        }
+                                                var instance = EventMainActivity.GetInstance();
+                                                //Add new item to my Event list
+                                                if (result.Data != null)
+                                                {
+                                                    if (instance?.MyEventTab?.MAdapter?.EventList != null)
+                                                    {
+                                                        instance?.MyEventTab.MAdapter?.EventList?.Insert(0, result.Data);
+                                                        instance?.MyEventTab.MAdapter?.NotifyItemInserted(0);
+                                                    }
 
-                                        if (EventMainActivity.GetInstance()?.EventTab?.MAdapter?.EventList != null)
-                                        {
-                                            EventMainActivity.GetInstance()?.EventTab.MAdapter?.EventList?.Insert(0, data);
-                                            EventMainActivity.GetInstance()?.EventTab.MAdapter?.NotifyItemInserted(EventMainActivity.GetInstance().EventTab.MAdapter.EventList.IndexOf(data));
-                                        }
-                                  
-                                        Finish();
-                                        break;
+                                                    if (instance?.EventTab?.MAdapter?.EventList != null)
+                                                    {
+                                                        instance?.EventTab.MAdapter?.EventList?.Insert(0, result.Data);
+                                                        instance?.EventTab.MAdapter?.NotifyItemInserted(0);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    var user = ListUtils.MyProfileList?.FirstOrDefault();
+                                                    EventDataObject data = new EventDataObject
+                                                    {
+                                                        Id = result.EventId.ToString(),
+                                                        Description = TxtDescription.Text,
+                                                        Cover = EventPathImage,
+                                                        EndDate = TxtEndDate.Text,
+                                                        EndTime = TxtEndTime.Text,
+                                                        IsOwner = true,
+                                                        Location = TxtLocation.Text,
+                                                        Name = TxtEventName.Text,
+                                                        StartDate = TxtStartDate.Text,
+                                                        StartTime = TxtStartTime.Text,
+                                                        UserData = user,
+                                                    };
+
+                                                    if (instance?.MyEventTab?.MAdapter?.EventList != null)
+                                                    {
+                                                        instance?.MyEventTab.MAdapter?.EventList?.Insert(0, data);
+                                                        instance?.MyEventTab.MAdapter?.NotifyItemInserted(0);
+                                                    }
+
+                                                    if (instance?.EventTab?.MAdapter?.EventList != null)
+                                                    {
+                                                        instance?.EventTab.MAdapter?.EventList?.Insert(0, data);
+                                                        instance?.EventTab.MAdapter?.NotifyItemInserted(0);
+                                                    }
+                                                }
+
+                                                Finish();
+                                                break;
+                                            }
                                     }
-                                }
 
-                                break;
-                            }
+                                    break;
+                                }
                             default:
                                 Methods.DisplayAndHudErrorResult(this, respond);
                                 break;
-                        }                        
+                        }
                     }
                 }
             }
@@ -446,6 +489,69 @@ namespace WoWonder.Activities.Events
                 Methods.DisplayReportResultTrack(exception);
                 AndHUD.Shared.Dismiss(this);
             }
+        }
+
+        private void TxtAddOnClick(object sender, EventArgs e)
+        {
+            switch (nStep)
+            {
+                case 1: // Event name
+                    if (string.IsNullOrEmpty(TxtEventName.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
+                        return;
+                    }
+                    break;
+                case 2: // Event start date and time
+                    if (string.IsNullOrEmpty(TxtStartDate.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_date), ToastLength.Short);
+                        return;
+                    }
+                    if (string.IsNullOrEmpty(TxtStartTime.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_start_time), ToastLength.Short);
+                        return;
+                    }
+                    break;
+                case 3: // Event end date and time
+                    if (string.IsNullOrEmpty(TxtEndDate.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_date), ToastLength.Short);
+                        return;
+                    }
+                    if (string.IsNullOrEmpty(TxtEndTime.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_end_time), ToastLength.Short);
+                        return;
+                    }
+                    break;
+                case 4: // Event Photo
+                    if (string.IsNullOrEmpty(EventPathImage))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
+                    }
+                    break;
+                case 5:
+                    if (string.IsNullOrEmpty(TxtLocation.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short);
+                        return;
+                    }
+                    break;
+                case 6:
+                    if (string.IsNullOrEmpty(TxtDescription.Text))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short);
+                        return;
+                    }
+                    break;
+                default:
+                    CreateEventFromSave();
+                    return;
+            }
+            nStep += 1;
+            SetStep();
         }
 
         #endregion
@@ -462,53 +568,53 @@ namespace WoWonder.Activities.Events
                 {
                     //If its from Camera or Gallery
                     case CropImage.CropImageActivityRequestCode:
-                    {
-                        var result = CropImage.GetActivityResult(data);
-
-                        switch (resultCode)
                         {
-                            case Result.Ok when result.IsSuccessful:
+                            var result = CropImage.GetActivityResult(data);
+
+                            switch (resultCode)
                             {
-                                var resultUri = result.Uri;
-
-                                switch (string.IsNullOrEmpty(resultUri.Path))
-                                {
-                                    case false:
+                                case Result.Ok when result.IsSuccessful:
                                     {
-                                        EventPathImage = resultUri.Path;
+                                        var resultUri = result.Uri;
 
-                                        File file2 = new File(resultUri.Path);
-                                        var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
-                                        Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(ImageEvent);
+                                        switch (string.IsNullOrEmpty(resultUri.Path))
+                                        {
+                                            case false:
+                                                {
+                                                    EventPathImage = resultUri.Path;
+
+                                                    File file2 = new File(resultUri.Path);
+                                                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                                                    Glide.With(this).Load(photoUri).Apply(new RequestOptions()).Into(RivImageEvent);
+                                                    break;
+                                                }
+                                            default:
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
+                                                break;
+                                        }
+
                                         break;
                                     }
-                                    default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),ToastLength.Long)?.Show();
-                                        break;
-                                }
-
-                                break;
+                                case Result.Ok:
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
+                                    break;
                             }
-                            case Result.Ok:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                                break;
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     // Location
                     case 502 when resultCode == Result.Ok:
-                    {
-                        var placeAddress = data.GetStringExtra("Address") ?? "";
-                        TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
                         {
-                            //var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                            false => placeAddress,
-                            _ => TxtLocation.Text
-                        };
+                            var placeAddress = data.GetStringExtra("Address") ?? "";
+                            TxtLocation.Text = string.IsNullOrEmpty(placeAddress) switch
+                            {
+                                //var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                                false => placeAddress,
+                                _ => TxtLocation.Text
+                            };
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -530,14 +636,14 @@ namespace WoWonder.Activities.Events
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                     //Open intent Location when the request code of result is 502
                     case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -546,9 +652,9 @@ namespace WoWonder.Activities.Events
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         #endregion
-         
+
         public void OnClick(View v)
         {
             try
@@ -599,28 +705,16 @@ namespace WoWonder.Activities.Events
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher
                     case < 23:
-                    {
-                        Methods.Path.Chack_MyFolder();
-
-                        //Open Image 
-                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                        CropImage.Activity()
-                            .SetInitialCropWindowPaddingRatio(0)
-                            .SetAutoZoomEnabled(true)
-                            .SetMaxZoom(4)
-                            .SetGuidelines(CropImageView.Guidelines.On)
-                            .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
-                            .SetOutputUri(myUri).Start(this);
-                        break;
-                    }
-                    default:
-                    {
-                        if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
-                            CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
                         {
                             Methods.Path.Chack_MyFolder();
 
@@ -633,14 +727,32 @@ namespace WoWonder.Activities.Events
                                 .SetGuidelines(CropImageView.Guidelines.On)
                                 .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
                                 .SetOutputUri(myUri).Start(this);
+                            break;
                         }
-                        else
+                    default:
                         {
-                            new PermissionsController(this).RequestPermission(108);
-                        }
+                            if (!CropImage.IsExplicitCameraPermissionRequired(this) && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted &&
+                                CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted && CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted)
+                            {
+                                Methods.Path.Chack_MyFolder();
 
-                        break;
-                    }
+                                //Open Image 
+                                var myUri = Uri.FromFile(new File(Methods.Path.FolderDiskImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                                CropImage.Activity()
+                                    .SetInitialCropWindowPaddingRatio(0)
+                                    .SetAutoZoomEnabled(true)
+                                    .SetMaxZoom(4)
+                                    .SetGuidelines(CropImageView.Guidelines.On)
+                                    .SetCropMenuCropButtonTitle(GetText(Resource.String.Lbl_Crop))
+                                    .SetOutputUri(myUri).Start(this);
+                            }
+                            else
+                            {
+                                new PermissionsController(this).RequestPermission(108);
+                            }
+
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -656,5 +768,112 @@ namespace WoWonder.Activities.Events
                 TxtLocationOnFocusChange();
             }
         }
+
+        public void SetStep()
+        {
+            TxtStep.Text = nStep + "/" + nMaxStep;
+
+            switch (nStep)
+            {
+                case 1:
+                    llStep1.Visibility = ViewStates.Visible;
+                    llStep2.Visibility = ViewStates.Gone;
+                    llStep3.Visibility = ViewStates.Gone;
+                    rlStep4.Visibility = ViewStates.Gone;
+                    llStep5.Visibility = ViewStates.Gone;
+                    llStep6.Visibility = ViewStates.Gone;
+                    ViewStep1.Background.SetTint(Color.ParseColor("#4E586E"));
+                    ViewStep2.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep3.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep6.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    break;
+                case 2:
+                    llStep1.Visibility = ViewStates.Gone;
+                    llStep2.Visibility = ViewStates.Visible;
+                    llStep3.Visibility = ViewStates.Gone;
+                    rlStep4.Visibility = ViewStates.Gone;
+                    llStep5.Visibility = ViewStates.Gone;
+                    llStep6.Visibility = ViewStates.Gone;
+                    ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep2.Background.SetTint(Color.ParseColor("#4E586E"));
+                    ViewStep3.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep6.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    break;
+                case 3:
+                    llStep1.Visibility = ViewStates.Gone;
+                    llStep2.Visibility = ViewStates.Gone;
+                    llStep3.Visibility = ViewStates.Visible;
+                    rlStep4.Visibility = ViewStates.Gone;
+                    llStep5.Visibility = ViewStates.Gone;
+                    llStep6.Visibility = ViewStates.Gone;
+                    ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep3.Background.SetTint(Color.ParseColor("#4E586E"));
+                    ViewStep4.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep6.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    break;
+                case 4:
+                    llStep1.Visibility = ViewStates.Gone;
+                    llStep2.Visibility = ViewStates.Gone;
+                    llStep3.Visibility = ViewStates.Gone;
+                    rlStep4.Visibility = ViewStates.Visible;
+                    llStep5.Visibility = ViewStates.Gone;
+                    llStep6.Visibility = ViewStates.Gone;
+                    ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep3.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep4.Background.SetTint(Color.ParseColor("#4E586E"));
+                    ViewStep5.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    ViewStep6.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    break;
+                case 5:
+                    llStep1.Visibility = ViewStates.Gone;
+                    llStep2.Visibility = ViewStates.Gone;
+                    llStep3.Visibility = ViewStates.Gone;
+                    rlStep4.Visibility = ViewStates.Gone;
+                    llStep5.Visibility = ViewStates.Visible;
+                    llStep6.Visibility = ViewStates.Gone;
+                    ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep3.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep4.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep5.Background.SetTint(Color.ParseColor("#4E586E"));
+                    ViewStep6.Background.SetTint(Color.ParseColor("#C6CBC7"));
+                    break;
+                case 6:
+                    llStep1.Visibility = ViewStates.Gone;
+                    llStep2.Visibility = ViewStates.Gone;
+                    llStep3.Visibility = ViewStates.Gone;
+                    rlStep4.Visibility = ViewStates.Gone;
+                    llStep5.Visibility = ViewStates.Gone;
+                    llStep6.Visibility = ViewStates.Visible;
+                    ViewStep1.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep2.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep3.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep4.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep5.Background.SetTint(Color.ParseColor("#00E711"));
+                    ViewStep6.Background.SetTint(Color.ParseColor("#4E586E"));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public override void OnBackPressed()
+        {
+            if (nStep > 1)
+            {
+                nStep -= 1;
+                SetStep();
+                return;
+            }
+            base.OnBackPressed();
+        }
+
     }
 }

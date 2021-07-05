@@ -1,25 +1,34 @@
-﻿using System;
-using Android.App;
+﻿using Android.App;
+using Android.Content;
 using Android.Content.Res;
 using Android.Graphics;
-using Android.Graphics.Drawables; 
+using Android.Graphics.Drawables;
+using Android.Renderscripts;
 using Android.Widget;
 using AndroidX.Core.Content;
+using AndroidX.Palette.Graphics;
 using Bumptech.Glide;
 using Bumptech.Glide.Load;
 using Bumptech.Glide.Load.Engine;
 using Bumptech.Glide.Load.Engine.BitmapRecycle;
 using Bumptech.Glide.Load.Resource.Bitmap;
+using Bumptech.Glide.Load.Resource.Drawable;
 using Bumptech.Glide.Request;
+using Bumptech.Glide.Request.Target;
+using Bumptech.Glide.Request.Transition;
 using Java.IO;
+using Java.Lang;
 using Java.Security;
 using WoWonder.Helpers.Utils;
+using Exception = System.Exception;
+using Math = System.Math;
+using Object = Java.Lang.Object;
 
 namespace WoWonder.Helpers.CacheLoaders
 {
     public enum ImageStyle
     {
-        CenterCrop, CircleCrop, RoundedCrop, FitCenter , CircleCropWithBorder
+        CenterCrop, CircleCrop, RoundedCrop, FitCenter , CircleCropWithBorder, Blur, PaletteBitmapColor
     }
 
     public enum ImagePlaceholders
@@ -63,6 +72,23 @@ namespace WoWonder.Helpers.CacheLoaders
                         break;
                 }
 
+                if (style == ImageStyle.Blur)
+                {
+                    //options.Transform(new BlurTransformation(activity));
+                    newImage.Load(imageUri).Apply(options)
+                        .Transition(DrawableTransitionOptions.WithCrossFade())
+                        .Transform(new BlurTransformation(activity), new CenterCrop())
+                        .Into(image);
+                    return;
+                }
+                 
+                //if (style == ImageStyle.PaletteBitmapColor)
+                //{
+                //    newImage.Load(imageUri).Apply(options) 
+                //        .Into(new ColorGenerate(activity ,image));
+                //     return;
+                //}
+                 
                 if (imageUri.Contains("no_profile_image") || imageUri.Contains("blackdefault") || imageUri.Contains("no_profile_image_circle")
                     || imageUri.Contains("ImagePlacholder") || imageUri.Contains("ImagePlacholder_circle") || imageUri.Contains("Grey_Offline")
                     || imageUri.Contains("Image_File")|| imageUri.Contains("Audio_File") || imageUri.Contains("addImage") || imageUri.Contains("d-group")
@@ -160,6 +186,7 @@ namespace WoWonder.Helpers.CacheLoaders
 
                 switch (style)
                 {
+                    case ImageStyle.Blur:
                     case ImageStyle.CenterCrop:
                         options = new RequestOptions().Apply(RequestOptions.CenterCropTransform()
                             .CenterCrop()
@@ -199,8 +226,8 @@ namespace WoWonder.Helpers.CacheLoaders
                             .Transform(new MultiTransformation(new CenterCrop(), new RoundedCorners(20)))
                             .SetPriority(Priority.High)
                             .SetUseAnimationPool(false).SetDiskCacheStrategy(DiskCacheStrategy.All)
-                            .Error(Resource.Drawable.ImagePlacholder_circle)
-                            .Placeholder(Resource.Drawable.ImagePlacholder_circle));
+                            .Error(Resource.Drawable.ImagePlacholder)
+                            .Placeholder(Resource.Drawable.ImagePlacholder));
                         break;
 
                     default:
@@ -405,4 +432,118 @@ namespace WoWonder.Helpers.CacheLoaders
             }
         }
     }
+     
+    public class BlurTransformation : BitmapTransformation
+    {
+        private readonly RenderScript RenderScript;
+    
+        public BlurTransformation(Context context)
+        {
+            RenderScript = RenderScript.Create(context);
+        }
+         
+        protected override Bitmap Transform(IBitmapPool pool, Bitmap toTransform, int outWidth, int outHeight)
+        {
+            Bitmap blurredBitmap = toTransform.Copy(Bitmap.Config.Argb8888, true);
+
+            Bitmap outputBitmap = Bitmap.CreateBitmap(blurredBitmap);
+            //RenderScript renderScript = RenderScript.Create(ActivityContext);
+            Allocation tmpIn = Allocation.CreateFromBitmap(RenderScript, blurredBitmap);
+            Allocation tmpOut = Allocation.CreateFromBitmap(RenderScript, outputBitmap);
+            //Intrinsic Gausian blur filter
+            ScriptIntrinsicBlur theIntrinsic = ScriptIntrinsicBlur.Create(RenderScript, Element.U8_4(RenderScript));
+            theIntrinsic.SetRadius(25);
+            theIntrinsic.SetInput(tmpIn);
+            theIntrinsic.ForEach(tmpOut);
+            tmpOut.CopyTo(outputBitmap);
+            return outputBitmap;
+        }
+
+        public override void UpdateDiskCacheKey(MessageDigest p0)
+        {
+
+        }
+    }
+
+    public class ColorGenerate : CustomTarget, Palette.IPaletteAsyncListener
+    {
+        private readonly ImageView Image; 
+        private readonly Activity Context;
+         
+        public ColorGenerate(Activity context, ImageView image)
+        {
+            try
+            {
+                Context = context;
+                Image = image;
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        public override void OnResourceReady(Object resource, ITransition transition)
+        {
+            try
+            {
+                if (resource is BitmapDrawable bitmapDrawable)
+                {
+                     Palette.From(bitmapDrawable.Bitmap).MaximumColorCount(2).Generate(this); 
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        public override void OnLoadCleared(Drawable p0) { }
+        public void OnGenerated(Palette palette)
+        {
+            try
+            {
+                if (Context?.IsDestroyed != false)
+                    return;
+
+                var display = Context.WindowManager.DefaultDisplay;
+                var size = new Point();
+                display.GetRealSize(size);
+                int width = size.X;
+                int height = size.Y;
+                 
+                if (palette.Swatches.Count == 2)
+                {
+                    string hex1 = "#" + Integer.ToHexString(palette.Swatches[0].Rgb).Remove(0, 2);
+                    string hex2 = "#" + Integer.ToHexString(palette.Swatches[1].Rgb).Remove(0, 2);
+
+                    int[] color = { Color.ParseColor(hex1), Color.ParseColor(hex2) };
+                     
+                    var (gradient, bitmap) = ColorUtils.GetGradientDrawable(color, width, height , false , true);
+                    if (bitmap != null)
+                    {
+                        Glide.With(Context).Load(bitmap).Apply(new RequestOptions().Transform(new MultiTransformation(new CenterCrop(), new RoundedCorners(25)))).Into(Image); 
+                    }
+                }
+                else if (palette.Swatches.Count > 0)
+                {
+                    string hex1 = "#" + Integer.ToHexString(palette.Swatches[0].Rgb).Remove(0, 2);
+                    
+                    int[] color = { Color.ParseColor(hex1), Color.ParseColor("#444444") };
+
+                    var (gradient, bitmap) = ColorUtils.GetGradientDrawable(color, width, height, false, true);
+                    if (bitmap != null)
+                    {
+                        Glide.With(Context).Load(bitmap).Apply(new RequestOptions().Transform(new MultiTransformation(new CenterCrop(), new RoundedCorners(25)))).Into(Image);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+    }
+
+
 }

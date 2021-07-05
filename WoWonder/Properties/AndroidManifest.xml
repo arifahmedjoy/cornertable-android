@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.cornertable.app" android:installLocation="auto" android:versionCode="6" android:versionName="2.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.cornertable.app" android:installLocation="preferExternal" android:versionCode="7" android:versionName="3.0">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="30" />
-	<uses-feature android:name="android.hardware.camera" />
+	<uses-feature android:name="android.hardware.camera" android:required="true" />
 	<uses-feature android:name="android.hardware.camera.autofocus" />
 	<uses-feature android:name="android.hardware.location.gps" />
 	<uses-feature android:glEsVersion="0x00020000" android:required="true" />
@@ -13,9 +13,8 @@
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.CAMERA" />
-	<!--<uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />-->
+	<uses-permission android:name="android.permission.READ_CONTACTS" />
+	<uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 	<uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
@@ -29,13 +28,13 @@
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
-	<uses-permission android:name="com.android.vending.BILLING" />
+	<!--<uses-permission android:name="com.android.vending.BILLING" />-->
 	<!--one signal-->
-	<permission android:name="com.cornertable.app.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-	<uses-permission android:name="com.cornertable.app.permission.C2D_MESSAGE" />
+	<permission android:name="com.wowondertimeline.chat.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+	<uses-permission android:name="com.wowondertimeline.chat.permission.C2D_MESSAGE" />
 	<!-- Allow the application to access Google web-based services. -->
-	<permission android:name="com.cornertable.app.permission.MAPS_RECEIVE" android:protectionLevel="signature" />
-	<application android:name=".MainApplication" android:allowBackup="false" android:label="The Corner Table Social Media App" android:networkSecurityConfig="@xml/network_security_config" android:largeHeap="true" android:hardwareAccelerated="true" android:requestLegacyExternalStorage="true" android:appComponentFactory="androidx" android:supportsRtl="true" android:icon="@mipmap/icon" android:roundIcon="@mipmap/icon_round" android:theme="@style/MyTheme" tools:ignore="GoogleAppIndexingWarning" tools:replace="android:icon, android:label, android:theme, android:name, android:allowBackup, android:supportsRtl, android:appComponentFactory">
+	<permission android:name="com.wowondertimeline.chat.permission.MAPS_RECEIVE" android:protectionLevel="signature" />
+	<application android:name=".MainApplication" android:allowBackup="false" android:label="CornerTable" android:networkSecurityConfig="@xml/network_security_config" android:largeHeap="true" android:hardwareAccelerated="true" android:requestLegacyExternalStorage="true" android:appComponentFactory="androidx" android:supportsRtl="true" android:icon="@mipmap/icon" android:roundIcon="@mipmap/icon_round" android:theme="@style/MyTheme" tools:ignore="GoogleAppIndexingWarning" tools:replace="android:icon, android:label, android:theme, android:name, android:allowBackup, android:supportsRtl, android:appComponentFactory">
 		<!--Google Maps /Places  API Key-->
 		<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="@string/google_key" />
 		<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
@@ -48,7 +47,7 @@
 		<receiver android:name="com.onesignal.GcmBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND">
 			<intent-filter>
 				<action android:name="com.google.android.c2dm.intent.RECEIVE" />
-				<category android:name="com.cornertable.app" />
+				<category android:name="com.wowondertimeline.chat" />
 			</intent-filter>
 		</receiver>
 		<!-- Facebook login / API Key -->
@@ -66,6 +65,9 @@
 				<data android:scheme="@string/fb_login_protocol_scheme" />
 			</intent-filter>
 		</activity>
+		<!--adcolony-->
+		<activity android:name="com.adcolony.sdk.AdColonyInterstitialActivity" android:configChanges="keyboardHidden|orientation|screenSize" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:hardwareAccelerated="true" />
+		<activity android:name="com.adcolony.sdk.AdColonyAdViewActivity" android:configChanges="keyboardHidden|orientation|screenSize" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:hardwareAccelerated="true" />
 		<activity android:name=".TabbedMainActivity" android:theme="@style/MyTheme" android:label="appname">
 			<intent-filter>
 				<data android:scheme="https" android:host="appname" />
@@ -76,15 +78,15 @@
 		</activity>
 		<activity android:name=".ChatWindowActivity" android:exported="true">
 			<intent-filter>
-				<action android:name="com.cornertable.app.FOO" />
+				<action android:name="com.wowondertimeline.chat.FOO" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="com.cornertable.app.action" />
+				<action android:name="com.wowondertimeline.chat.action" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
-		<provider android:name="androidx.core.content.FileProvider" android:authorities="com.cornertable.app.fileprovider" android:exported="false" android:grantUriPermissions="true">
+		<provider android:name="androidx.core.content.FileProvider" android:authorities="com.wowondertimeline.chat.fileprovider" android:exported="false" android:grantUriPermissions="true">
 			<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
 		</provider>
 		<meta-data android:name="firebase_performance_logcat_enabled" android:value="true" />
@@ -100,6 +102,18 @@
 		<intent>
 			<action android:name="android.intent.action.GET_CONTENT" />
 			<data android:mimeType="*/*" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.VIEW" />
+			<data android:mimeType="*/*" />
+		</intent>
+		<intent>
+			<action android:name="android.media.browse.MediaBrowserService" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.BROWSABLE" />
+			<data android:scheme="https" />
 		</intent>
 		<intent>
 			<action android:name="android.media.action.IMAGE_CAPTURE" />

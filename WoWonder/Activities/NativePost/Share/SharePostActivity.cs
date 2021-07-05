@@ -232,7 +232,7 @@ namespace WoWonder.Activities.NativePost.Share
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                     return;
                 }
 
@@ -317,36 +317,36 @@ namespace WoWonder.Activities.NativePost.Share
 
                                 //var globalContextTabbed = TabbedMainActivity.GetInstance();
 
-                                //var countList = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ItemCount;
+                                //var countList = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ItemCount;
 
                                 //var combine = new FeedCombiner(result.Data, globalContextTabbed?.NewsFeedTab?.PostFeedAdapter?.ListDiffer, this);
                                 //combine.CombineDefaultPostSections("Top");
 
                                 //int countIndex = 1;
-                                //var model1 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                //var model2 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                //var model3 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                //var model4 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                //var model5 = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                //var model1 = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                //var model2 = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                //var model3 = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
+                                //var model4 = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
+                                //var model5 = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
 
                                 //if (model5 != null)
-                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model5) + 1;
+                                //    countIndex += globalContextTabbed.NewsFeedTab.postFeedAdapter.ListDiffer.IndexOf(model5) + 1;
                                 //else if (model4 != null)
-                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model4) + 1;
+                                //    countIndex += globalContextTabbed.NewsFeedTab.postFeedAdapter.ListDiffer.IndexOf(model4) + 1;
                                 //else if (model3 != null)
-                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model3) + 1;
+                                //    countIndex += globalContextTabbed.NewsFeedTab.postFeedAdapter.ListDiffer.IndexOf(model3) + 1;
                                 //else if (model2 != null)
-                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model2) + 1;
+                                //    countIndex += globalContextTabbed.NewsFeedTab.postFeedAdapter.ListDiffer.IndexOf(model2) + 1;
                                 //else if (model1 != null)
-                                //    countIndex += globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(model1) + 1;
+                                //    countIndex += globalContextTabbed.NewsFeedTab.postFeedAdapter.ListDiffer.IndexOf(model1) + 1;
                                 //else
                                 //    countIndex = 0;
 
-                                //var emptyStateChecker = globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                //if (emptyStateChecker != null && globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count > 1)
+                                //var emptyStateChecker = globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                //if (emptyStateChecker != null && globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.Count > 1)
                                 //    globalContextTabbed.NewsFeedTab.MainRecyclerView.RemoveByRowIndex(emptyStateChecker);
 
-                                //globalContextTabbed.NewsFeedTab.PostFeedAdapter.NotifyItemRangeInserted(countIndex, globalContextTabbed.NewsFeedTab.PostFeedAdapter.ListDiffer.Count - countList);
+                                //globalContextTabbed.NewsFeedTab.PostFeedAdapter?.NotifyItemRangeInserted(countIndex, globalContextTabbed.NewsFeedTab.PostFeedAdapter?.ListDiffer?.Count - countList);
 
                                 switch (TypePost)
                                 {
@@ -355,29 +355,23 @@ namespace WoWonder.Activities.NativePost.Share
                                         MyProfileActivity myProfileActivity = MyProfileActivity.GetInstance();
                                         if (myProfileActivity != null)
                                         {
-                                            var countList1 = myProfileActivity.PostFeedAdapter.ItemCount;
+                                            var countList1 = myProfileActivity.PostFeedAdapter?.ItemCount ?? 0;
 
-                                            var combine1 = new FeedCombiner(result.Data, myProfileActivity.PostFeedAdapter.ListDiffer, this);
+                                            var combine1 = new FeedCombiner(result.Data, myProfileActivity.PostFeedAdapter?.ListDiffer, this);
 
-                                            var check1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                                            var check1 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox /*&& a.TypeView != PostModelType.SearchForPosts*/);
                                             if (check1 != null)
                                                 combine1.CombineDefaultPostSections("Top");
                                             else
                                                 combine1.CombineDefaultPostSections();
 
                                             int countIndex1 = 1;
-                                            var model11 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.Story);
-                                            var model21 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
-                                            var model31 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.FilterSection);
-                                            var model41 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
-                                            var model51 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SearchForPosts);
+                                            var model11 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.Story);
+                                            var model21 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AddPostBox);
+                                            var model41 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.AlertBox);
 
-                                            if (model51 != null)
-                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model51) + 1;
-                                            else if (model41 != null)
+                                            if (model41 != null)
                                                 countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model41) + 1;
-                                            else if (model31 != null)
-                                                countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model31) + 1;
                                             else if (model21 != null)
                                                 countIndex1 += myProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(model21) + 1;
                                             else if (model11 != null)
@@ -385,18 +379,18 @@ namespace WoWonder.Activities.NativePost.Share
                                             else
                                                 countIndex1 = 0;
 
-                                            var emptyStateChecker1 = myProfileActivity.PostFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
-                                            if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter.ListDiffer.Count > 1)
+                                            var emptyStateChecker1 = myProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
+                                            if (emptyStateChecker1 != null && myProfileActivity.PostFeedAdapter?.ListDiffer?.Count > 1)
                                                 myProfileActivity.MainRecyclerView.RemoveByRowIndex(emptyStateChecker1);
 
-                                            myProfileActivity.PostFeedAdapter.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
+                                            myProfileActivity.PostFeedAdapter?.NotifyItemRangeInserted(countIndex1, myProfileActivity.PostFeedAdapter.ListDiffer.Count - countList1);
                                         }
 
                                         break;
                                     }
                                 }
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_PostSuccessfullyShared), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PostSuccessfullyShared), ToastLength.Short);
 
                                 switch (UserDetails.SoundControl)
                                 {
@@ -512,10 +506,10 @@ namespace WoWonder.Activities.NativePost.Share
                         }
                     }
                      
-                    var combine = new FeedCombiner(PostData, PostFeedAdapter.ListDiffer, this);
+                    var combine = new FeedCombiner(PostData, PostFeedAdapter?.ListDiffer, this);
                     combine.CombineDefaultPostSections();
 
-                    PostFeedAdapter.NotifyDataSetChanged();
+                    PostFeedAdapter?.NotifyDataSetChanged();
                 }
             }
             catch (Exception e)

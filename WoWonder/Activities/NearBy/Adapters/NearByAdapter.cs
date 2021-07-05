@@ -1,7 +1,6 @@
 ﻿
 using Android.Views;
 using Android.Widget;
-using Refractored.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -74,7 +73,7 @@ namespace WoWonder.Activities.NearBy.Adapters
                                 return;
                         }
 
-                        GlideImageLoader.LoadImage(ActivityContext, users.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Color);
+                        GlideImageLoader.LoadImage(ActivityContext, users.Avatar, holder.Image, ImageStyle.RoundedCrop, ImagePlaceholders.Drawable);
 
                         var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(users.LastseenUnixTime), users.LastseenStatus);
 
@@ -83,12 +82,10 @@ namespace WoWonder.Activities.NearBy.Adapters
                             //Online Or offline
                             case true:
                                 //Online
-                                holder.ImageOnline.SetImageResource(Resource.Drawable.Green_Color);
-                                holder.LastTimeOnline.Text = ActivityContext.GetString(Resource.String.Lbl_Online);
+                                holder.Distance.Text = ActivityContext.GetString(Resource.String.Lbl_Online);
                                 break;
                             default:
-                                holder.ImageOnline.SetImageResource(Resource.Drawable.Grey_Offline);
-                                holder.LastTimeOnline.Text = Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), false);
+                                holder.Distance.Text = Methods.Time.TimeAgo(Convert.ToInt32(users.LastseenUnixTime), false);
                                 break;
                         }
 
@@ -101,8 +98,9 @@ namespace WoWonder.Activities.NearBy.Adapters
                                 break;
                         }
 
-                        WoWonderTools.SetAddFriendCondition(users.IsFollowing, holder.Button);
-                        break;
+                        WoWonderTools.SetAddFriendConditionWithImage(users , users.IsFollowing, holder.Button, holder.FollowImage);
+
+                            break;
                     }
                 }
             }
@@ -210,18 +208,17 @@ namespace WoWonder.Activities.NearBy.Adapters
             {
                 MainView = itemView;
 
-                Image = MainView.FindViewById<CircleImageView>(Resource.Id.people_profile_sos);
-                ImageOnline = MainView.FindViewById<CircleImageView>(Resource.Id.ImageLastseen);
+                Image = MainView.FindViewById<ImageView>(Resource.Id.people_profile_sos);
                 Name = MainView.FindViewById<TextView>(Resource.Id.people_profile_name);
-                LastTimeOnline = MainView.FindViewById<TextView>(Resource.Id.people_profile_time);
+                Distance = MainView.FindViewById<TextView>(Resource.Id.tv_distance);
                 Button = MainView.FindViewById<Button>(Resource.Id.btn_follow_people);
-
+                FollowImage = MainView.FindViewById<ImageView>(Resource.Id.iv_follow);
 
 
                 //Event
-                Button.Click += (sender, e) => followButtonClickListener(new NearByAdapterClickEventArgs { View = itemView, Position = AdapterPosition, BtnAddUser = Button });
-                itemView.Click += (sender, e) => clickListener(new NearByAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new NearByAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => followButtonClickListener(new NearByAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, BtnAddUser = Button , Image = FollowImage});
+                itemView.Click += (sender, e) => clickListener(new NearByAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, BtnAddUser = Button, Image = FollowImage });
+                itemView.LongClick += (sender, e) => longClickListener(new NearByAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, BtnAddUser = Button, Image = FollowImage });
             }
             catch (Exception exception)
             {
@@ -232,11 +229,11 @@ namespace WoWonder.Activities.NearBy.Adapters
         #region Variables Basic
 
         public View MainView { get; }
-        public CircleImageView Image { get; set; }
-        public CircleImageView ImageOnline { get; set; }
+        public ImageView Image { get; set; }
         public TextView Name { get; set; }
-        public TextView LastTimeOnline { get; set; }
+        public TextView Distance { get; set; }
         public Button Button { get; set; }
+        public ImageView FollowImage { get; set; }
 
         #endregion Variables Basic
     }
@@ -246,5 +243,6 @@ namespace WoWonder.Activities.NearBy.Adapters
         public View View { get; set; }
         public int Position { get; set; }
         public Button BtnAddUser { get; set; }
+        public ImageView Image { get; set; }
     }
 }

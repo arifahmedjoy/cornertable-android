@@ -16,20 +16,21 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
+using System.Linq;
 
 namespace WoWonder.Activities.SettingsPreferences.TellFriend
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class MyAffiliatesActivity : BaseActivity 
+    public class MyAffiliatesActivity : BaseActivity
     {
         #region Variables Basic
 
         private ImageView ImageUser;
-        private TextView TxtLink , TxtMyAffiliates;
-        private Button BtnShare; 
+        private TextView TxtLink, TxtMyAffiliates, TxtName, TxtSubname;
+        private Button BtnShare;
 
         #endregion
-         
+
         #region General
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -144,17 +145,27 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 ImageUser = FindViewById<ImageView>(Resource.Id.ImageUser);
                 TxtLink = FindViewById<TextView>(Resource.Id.linkText);
                 TxtMyAffiliates = FindViewById<TextView>(Resource.Id.myAffiliatesText);
+                TxtName = FindViewById<TextView>(Resource.Id.name);
+                TxtSubname = FindViewById<TextView>(Resource.Id.tv_subname);
                 BtnShare = FindViewById<Button>(Resource.Id.cont);
 
-                GlideImageLoader.LoadImage(this, UserDetails.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                var myProfile = ListUtils.MyProfileList?.FirstOrDefault();
+                if (myProfile != null)
+                {
+                    GlideImageLoader.LoadImage(this, myProfile.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    TxtName.Text = WoWonderTools.GetNameFinal(myProfile);
+                    TxtSubname.Text = "@" + UserDetails.Username;
+                }
+                //GlideImageLoader.LoadImage(this, UserDetails.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                //TxtName.Text = WoWonderTools.GetNameFinal(myProfile); ;
 
                 //https://demo.wowonder.com/register?ref=waelanjo
-                TxtLink.Text = Client.WebsiteUrl + "/register?ref=" + UserDetails.Username;
-                 
+                TxtLink.Text = InitializeWoWonder.WebsiteUrl + "/register?ref=" + UserDetails.Username;
+
                 switch (Convert.ToInt32(ListUtils.SettingsSiteList?.AmountPercentRef ?? "0"))
                 {
                     case > 0:
-                        TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + "%" + ListUtils.SettingsSiteList?.AmountPercentRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs)  + " !";
+                        TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + "%" + ListUtils.SettingsSiteList?.AmountPercentRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs) + " !";
                         break;
                     default:
                         var (currency, currencyIcon) = WoWonderTools.GetCurrency(ListUtils.SettingsSiteList?.AdsCurrency);
@@ -162,7 +173,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
 
                         TxtMyAffiliates.Text = GetString(Resource.String.Lbl_EarnUpTo) + " " + currencyIcon + ListUtils.SettingsSiteList?.AmountRef + " " + GetString(Resource.String.Lbl_forEachUserYourReferToUs) + " !";
                         break;
-                } 
+                }
             }
             catch (Exception e)
             {
@@ -193,7 +204,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -220,10 +231,10 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
         {
             try
             {
-                ImageUser= null!;
+                ImageUser = null!;
                 TxtLink = null!;
                 TxtMyAffiliates = null!;
-                BtnShare = null!; 
+                BtnShare = null!;
             }
             catch (Exception e)
             {
@@ -273,7 +284,7 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
             }
         }
 
-        #endregion 
-         
+        #endregion
+
     }
 }

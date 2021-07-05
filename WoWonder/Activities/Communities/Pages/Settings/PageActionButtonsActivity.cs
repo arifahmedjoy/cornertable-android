@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -12,7 +12,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
@@ -264,7 +263,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 DialogType = "CallToAction";
                 var arrayAdapter = CallToAction.ToList();
@@ -287,7 +286,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -297,7 +296,6 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                     var dictionary = new Dictionary<string, string>
                     {
                         {"call_action_type", CallToActionId},
-                        {"call_action_type_text", TxtCallToAction.Text},
                         {"call_action_type_url", TxtCallToTargetUrl.Text},
                     };
 
@@ -319,7 +317,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
                                     PageProfileActivity.PageData = PageData;
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short);
                              
                                     Intent returnIntent = new Intent();
                                     returnIntent.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
@@ -348,15 +346,15 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (DialogType)
                 {
                     case "CallToAction":
-                        TxtCallToAction.Text = itemString.ToString();
-                        CallToActionId = (itemId + 1).ToString();
+                        TxtCallToAction.Text = itemString;
+                        CallToActionId = (position + 1).ToString();
                         break;
                 }
             }

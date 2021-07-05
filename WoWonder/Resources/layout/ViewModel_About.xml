@@ -10,14 +10,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|start"
-        android:text="@string/Lbl_aboutMe"
-        android:textSize="16sp"
-        android:textColor="@color/gnt_black"/>
+        android:text="@string/Lbl_About"
+        android:textSize="14sp" 
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        />
     <WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView
         android:id="@+id/tv_aboutdescUser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:textColor="@color/colorCommentText"
+        
         android:textSize="14sp" />
+
 </LinearLayout>

@@ -770,7 +770,7 @@
   <string name="Lbl_ChangedProfilePicture">تغيير صورة الملف الشخصي</string>
   <string name="Lbl_AddedNewProductForSell">وأضاف منتج جديد للبيع</string>
   <string name="Lbl_CreatedNewArticle">انشاء مقال جديد</string>
-  <string name="Lbl_addedNewPhotosTo">إضافة صور جديدة إلى</string>
+  <string name="Lbl_AddedNewPhotosTo">إضافة صور جديدة إلى</string>
   <string name="Lbl_SharedPost">شارك منشور</string>
   <string name="Lbl_IsTravelingTo">يسافر إلى</string>
   <string name="Lbl_IsWatching">هو يراقب</string>
@@ -1102,7 +1102,7 @@
   <string name="Lbl_AddPicturesToAlbum">هل تريد إضافة صور إلى ألبوم؟</string>
   <string name="Lbl_Earnings">الأرباح</string>
   <string name="Lbl_ChooseRelationshipStatus">اختر حالة علاقتك</string>
-  <string name="Lbl_Theme">الموضوع</string>
+  <string name="Lbl_Theme">المظهر</string>
   <string name="Lbl_CreateAsAlbum">إنشاء كألبوم</string>
   <string name="Lbl_Story_Added">تمت إضافة القصة</string>
   <string name="Lbl_UploadingPost">تحميل المنشور</string>
@@ -1211,7 +1211,7 @@
   <string name="Lbl_RequestWithdrawal">طلب سحب</string>
   <string name="Lbl_Bank">البنك</string>
 
-  <string name="Lbl_addedNewPhoto">تمت إضافة صورة جديدة</string>
+  <string name="Lbl_AddedNewPhoto">تمت إضافة صورة جديدة</string>
   <string name="Lbl_Publish">نشر</string>
 
   <string name="Lbl_CommentsAreDisabledBy">تم تعطيل التعليقات بواسطة</string>
@@ -1270,7 +1270,7 @@
   <string name="Lbl_PayNow">الدفع الآن</string>
   <string name="Lbl_PayWith">الدفع باستخدام</string>
   <string name="Lbl_Upgraded">تمت ترقيته</string>
-  <string name="Lbl_added">مضاف</string>
+  <string name="Lbl_Added">مضاف</string>
   <string name="Lbl_Rated">مصنّف</string>
   <string name="Lbl_PaymentSuccessfully">الدفع بنجاح</string>
   <string name="Lbl_RazorPay">RazorPay</string>

@@ -195,7 +195,7 @@ namespace WoWonder.Activities.AddPost
                 MAdapter.NotifyDataSetChanged();
 
                 if (!Methods.CheckConnectivity())
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 else
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGif() });
                  
@@ -385,7 +385,7 @@ namespace WoWonder.Activities.AddPost
                 else
                 {
                     if (!Methods.CheckConnectivity())
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     else
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGif(MAdapter.ItemCount.ToString()) });
                 }
@@ -405,6 +405,8 @@ namespace WoWonder.Activities.AddPost
                 {
                     var resultIntent = new Intent();
                     resultIntent?.PutExtra("gif", item.Images.FixedHeightDownsampled.Url);
+                    resultIntent.PutExtra("MediaGif", item.Images.FixedHeightSmall.Mp4);
+                    resultIntent.PutExtra("UrlGif", item.Images.FixedHeightDownsampled.Url);
                     SetResult(Result.Ok, resultIntent);
                     Finish();
                 }
@@ -422,7 +424,7 @@ namespace WoWonder.Activities.AddPost
         private void StartApiService(string offset = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadTrendingGif(offset) });
         }
@@ -476,7 +478,7 @@ namespace WoWonder.Activities.AddPost
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -529,7 +531,7 @@ namespace WoWonder.Activities.AddPost
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
          

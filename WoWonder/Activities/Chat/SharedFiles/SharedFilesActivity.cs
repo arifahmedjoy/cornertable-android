@@ -59,7 +59,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 //Get Value And Set Toolbar
                 InitComponent();
                 InitToolbar();
-                SetRecyclerViewAdapters(); 
+                SetRecyclerViewAdapters();
 
                 GetFiles();
 
@@ -98,7 +98,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         protected override void OnDestroy()
         {
             try
@@ -111,9 +111,9 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         #endregion
-         
+
         #region Functions
 
         private void InitComponent()
@@ -130,7 +130,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
-                AdsGoogle.InitAdView(MAdView, MRecycler); 
+                AdsGoogle.InitAdView(MAdView, MRecycler);
             }
             catch (Exception e)
             {
@@ -165,8 +165,8 @@ namespace WoWonder.Activities.Chat.SharedFiles
         {
             try
             {
-                MAdapter = new SharedFilesAdapter(this,UserId, "Vertical"){SharedFilesList = new ObservableCollection<Classes.SharedFile>()};
-                LayoutManager = new GridLayoutManager(this, 3); 
+                MAdapter = new SharedFilesAdapter(this, UserId, "Vertical") { SharedFilesList = new ObservableCollection<Classes.SharedFile>() };
+                LayoutManager = new GridLayoutManager(this, 3);
                 MRecycler.AddItemDecoration(new GridSpacingItemDecoration(1, 1, true));
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
@@ -174,15 +174,15 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<Classes.SharedFile>(this, MAdapter, sizeProvider, 8);
-                MRecycler.AddOnScrollListener(preLoader);  
-                MRecycler.SetAdapter(MAdapter); 
+                MRecycler.AddOnScrollListener(preLoader);
+                MRecycler.SetAdapter(MAdapter);
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
- 
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -206,7 +206,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
         #endregion
 
         #region Events
-         
+
         private void MAdapterOnItemClick(object sender, SharedFilesAdapterViewHolderClickEventArgs e)
         {
             try
@@ -224,7 +224,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
                     intent.SetFlags(ActivityFlags.NewTask);
                     intent.SetFlags(ActivityFlags.GrantReadUriPermission);
                     intent.SetAction(Intent.ActionView);
-                    intent.SetDataAndType(mediaUri, mimeType); 
+                    intent.SetDataAndType(mediaUri, mimeType);
                     StartActivity(intent);
                 }
             }
@@ -233,7 +233,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         #endregion
 
         private async void GetFiles()
@@ -242,14 +242,14 @@ namespace WoWonder.Activities.Chat.SharedFiles
             {
                 await WoWonderTools.GetSharedFiles(UserId);
 
-                ShowEmptyPage(); 
+                ShowEmptyPage();
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         private void ShowEmptyPage()
         {
             try
@@ -275,7 +275,7 @@ namespace WoWonder.Activities.Chat.SharedFiles
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoFiles);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }

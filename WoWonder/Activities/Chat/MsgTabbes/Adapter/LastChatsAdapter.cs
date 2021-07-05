@@ -9,6 +9,7 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
+using Com.Airbnb.Lottie;
 using Refractored.Controls;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Fonts;
@@ -320,7 +321,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                                                 case false when item.LastChatPage.LastMessage.Media.Contains("image"):
                                                     holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                                                     Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
-                                                    holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                                                     break;
                                                 case false when item.LastChatPage.LastMessage.Media.Contains("video"):
                                                     holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -552,7 +552,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                     case false when item.LastMessage.Media.Contains("image"):
                         holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                         Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
-                        holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                         break;
                     case false when item.LastMessage.Media.Contains("video"):
                         holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -705,7 +704,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                             case false when lastMessage.Media.Contains("image"):
                                 holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                                 Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
-                                holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                                 break;
                             case false when lastMessage.Media.Contains("video"):
                                 holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -931,7 +929,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                         case false when item.LastMessage.Media.Contains("image"):
                             holder.LastMessagesIcon.Visibility = ViewStates.Visible;
                             Glide.With(ActivityContext).Load(Resource.Drawable.ic_image_vector).Into(holder.LastMessagesIcon);
-                            holder.LastMessagesIcon.SetColorFilter(Color.Gray);
                             break;
                         case false when item.LastMessage.Media.Contains("video"):
                             holder.LastMessagesIcon.Visibility = ViewStates.Visible;
@@ -1176,8 +1173,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                 IconMute = (ImageView)MainView.FindViewById(Resource.Id.IconMute);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1219,8 +1216,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                 TxtAllFriendRequest = (TextView)itemView.FindViewById(Resource.Id.tv_Friends);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1247,8 +1244,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                 ArchiveText = (TextView)itemView.FindViewById(Resource.Id.ArchiveText);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new LastChatsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -1266,6 +1263,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
         public TextView EmptyStateIcon { get; private set; }
         public TextView DescriptionText { get; private set; }
         public TextView TitleText { get; private set; }
+        public LottieAnimationView AnimationView { get; private set; }
+        public ImageView EmptyImage { get; private set; }
 
         #endregion
 
@@ -1279,9 +1278,12 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Adapter
                 TitleText = (TextView)itemView.FindViewById(Resource.Id.headText);
                 DescriptionText = (TextView)itemView.FindViewById(Resource.Id.seconderyText);
                 EmptyStateButton = (Button)itemView.FindViewById(Resource.Id.button);
+                AnimationView = itemView.FindViewById<LottieAnimationView>(Resource.Id.animation_view);
+                EmptyImage = itemView.FindViewById<ImageView>(Resource.Id.iv_empty);
 
                 EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
                 EmptyStateButton.Visibility = ViewStates.Gone;
+                EmptyStateIcon.Visibility = ViewStates.Visible;
             }
             catch (Exception exception)
             {

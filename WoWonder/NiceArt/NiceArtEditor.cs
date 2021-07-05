@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Android.Content;
@@ -14,44 +13,40 @@ using Java.Lang;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonder.NiceArt.Models;
-using WoWonder.NiceArt.Utils;
-using Bitmap = Android.Graphics.Bitmap;
-using Color = Android.Graphics.Color;
 using Exception = System.Exception;
-using Object = Java.Lang.Object;
 
 namespace WoWonder.NiceArt
 {
     public class NiceArtEditor : Java.Lang.Object, INiceArt.IBrushViewChangeListener, INiceArt.IOnGestureControl, INiceArt.IOnSaveBitmap, INiceArt.IOnMultiTouchListener
     {
-        private static readonly string Tag = "NiceArtEditor";
-        private readonly LayoutInflater MLayoutInflater;
-        private readonly Context Context;
-        private readonly NiceArtEditorView ParentView;
-        private View ImageRootView;
-        private View TextRootView;
-        private View EmojiRootView;
-        private ImageView ImageView;
-        private FrameLayout FrmBorder;
-        private TextView ImgClose, ImgEdit;
-        private TextView TextInputTv;
-        private TextView InputTextView;
-        private TextView EmojiTextView;
-        private readonly View DeleteView;
-        private readonly BrushDrawingView BrushDrawingView;
-        private readonly List<View> AddedViews;
-        private readonly List<View> RedoViews;
-        private INiceArt.IOnNiceArtEditorListener MOnNiceArtEditorListener;
-        private readonly bool IsTextPinchZoomable;
-        private readonly Typeface MDefaultTextTypeface;
-        private readonly Typeface MDefaultEmojiTypeface;
-        private View FinalRootView;
-        private string ImagePath;
-        private INiceArt.IOnSaveListener OnSaveListener;
-        private SaveSettings SaveSettings;
-        private static ContentResolver Resolver;
-
-        private NiceArtEditor(Builder builder, ContentResolver resolver)
+        public static readonly string Tag = "NiceArtEditor";
+        public readonly LayoutInflater MLayoutInflater;
+        public Context Context;
+        public NiceArtEditorView ParentView;
+        public View ImageRootView;
+        public View TextRootView;
+        public View EmojiRootView;
+        public ImageView ImageView;
+        public FrameLayout FrmBorder;
+        public TextView ImgClose, ImgEdit;
+        public TextView TextInputTv;
+        public TextView InputTextView;
+        public TextView EmojiTextView;
+        public View DeleteView;
+        public BrushDrawingView BrushDrawingView;
+        public List<View> AddedViews;
+        public List<View> RedoViews;
+        public INiceArt.IOnNiceArtEditorListener MOnNiceArtEditorListener;
+        public bool IsTextPinchZoomable;
+        public Typeface MDefaultTextTypeface;
+        public Typeface MDefaultEmojiTypeface;
+        public View FinalRootView;
+        public string ImagePath;
+        public INiceArt.IOnSaveListener OnSaveListener;
+        public SaveSettings SaveSettings;
+        public static ContentResolver Resolver;
+       
+        public NiceArtEditor(Builder builder, ContentResolver resolver)
         {
             try
             {
@@ -68,6 +63,8 @@ namespace WoWonder.NiceArt
                 AddedViews = new List<View>();
                 RedoViews = new List<View>();
                 Resolver = resolver;
+                //wael
+                //ParentView.DrawingCacheEnabled = true;
             }
             catch (Exception e)
             {
@@ -86,42 +83,36 @@ namespace WoWonder.NiceArt
             {
                 View rootView = null!;
 
-                switch (viewType)
+                if (viewType == ViewType.Text)
                 {
-                    case ViewType.Text:
+                    rootView = MLayoutInflater.Inflate(Resource.Layout.Style_NiceArt_TextView, null);
+                    TextView txtText = rootView.FindViewById<TextView>(Resource.Id.tvNiceArtText);
+                    if (txtText != null && MDefaultTextTypeface != null)
                     {
-                        rootView = MLayoutInflater.Inflate(Resource.Layout.Style_NiceArt_TextView, null);
-                        TextView txtText = rootView.FindViewById<TextView>(Resource.Id.tvNiceArtText);
-                        if (txtText != null && MDefaultTextTypeface != null)
+                        //txtText.Gravity = GravityFlags.Center;
+                        if (MDefaultEmojiTypeface != null)
                         {
-                            //txtText.Gravity = GravityFlags.Center;
-                            if (MDefaultEmojiTypeface != null)
-                            {
-                                txtText.SetTypeface(MDefaultTextTypeface, TypefaceStyle.Normal);
-                            }
+                            txtText.SetTypeface(MDefaultTextTypeface, TypefaceStyle.Normal);
                         }
-
-                        break;
                     }
-                    case ViewType.Image:
-                        rootView = MLayoutInflater.Inflate(Resource.Layout.Style_NiceArt_ImageView, null);
-                        break;
-                    case ViewType.Emojis:
+                }
+                else if (viewType == ViewType.Image)
+                {
+                    rootView = MLayoutInflater.Inflate(Resource.Layout.Style_NiceArt_ImageView, null);
+                }
+                else if (viewType == ViewType.Emojis)
+                {
+                    rootView = MLayoutInflater.Inflate(Resource.Layout.Style_NiceArt_TextView, null);
+                    TextView txtTextEmojis = rootView.FindViewById<TextView>(Resource.Id.tvNiceArtText);
+                    if (txtTextEmojis != null)
                     {
-                        rootView = MLayoutInflater.Inflate(Resource.Layout.Style_NiceArt_TextView, null);
-                        TextView txtTextEmojis = rootView.FindViewById<TextView>(Resource.Id.tvNiceArtText);
-                        if (txtTextEmojis != null)
+                        if (MDefaultEmojiTypeface != null)
                         {
-                            if (MDefaultEmojiTypeface != null)
-                            {
-                                //txtTextEmojis.SetTypeface(mDefaultEmojiTypeface, TypefaceStyle.Normal);
-                            }
-                            //txtTextEmojis.Gravity = GravityFlags.Center;
-
-                            txtTextEmojis.SetLayerType(LayerType.Software, null);
+                            //txtTextEmojis.SetTypeface(mDefaultEmojiTypeface, TypefaceStyle.Normal);
                         }
+                        //txtTextEmojis.Gravity = GravityFlags.Center;
 
-                        break;
+                        txtTextEmojis.SetLayerType(LayerType.Software, null);
                     }
                 }
 
@@ -236,7 +227,7 @@ namespace WoWonder.NiceArt
         public void AddText(string text, string colorCodeTextView)
         {
             try
-            { 
+            {
                 AddText(null, text, colorCodeTextView);
             }
             catch (Exception e)
@@ -708,6 +699,7 @@ namespace WoWonder.NiceArt
                         RedoViews.Add(removedView);
                         if (MOnNiceArtEditorListener != null)
                         {
+                            MOnNiceArtEditorListener.OnRemoveViewListener(AddedViews.Count);
                             MOnNiceArtEditorListener.OnRemoveViewListener(viewType, AddedViews.Count);
                         }
                     }
@@ -749,6 +741,7 @@ namespace WoWonder.NiceArt
 
                     if (MOnNiceArtEditorListener != null)
                     {
+                        MOnNiceArtEditorListener?.OnRemoveViewListener(AddedViews.Count);
                         MOnNiceArtEditorListener.OnRemoveViewListener(viewType, AddedViews.Count);
                     }
                 }
@@ -993,7 +986,7 @@ namespace WoWonder.NiceArt
                     SaveSettings = saveSettings;
                     SaveBitmap = saveBitmap;
 
-                    Editor?.ClearHelperBox(); 
+                    Editor?.ClearHelperBox();
                 }
                 catch (Exception e)
                 {
@@ -1014,7 +1007,7 @@ namespace WoWonder.NiceArt
                         if (ParentView != null)
                         { 
                             if (SaveSettings.IsTransparencyEnabled())
-                            { 
+                            {
                                 Bitmap drawingCache = BitmapUtil.LoadBitmapFromView(ParentView);
                                 drawingCache.Compress(Bitmap.CompressFormat.Png, 100, stream);
                                 SavedResultBitmap = drawingCache;
@@ -1043,7 +1036,7 @@ namespace WoWonder.NiceArt
                     return e.Message;
                 }
             }
-             
+
             protected override void OnPostExecute(string result)
             {
                 try
@@ -1059,8 +1052,9 @@ namespace WoWonder.NiceArt
                     else
                     {
                         OnSaveListener.OnFailure("Failed to load the bitmap");
-                    } 
-                   
+                    }
+
+                    Editor?.ClearHelperBox();
                     Dispose(true); 
                 }
                 catch (Exception e)
@@ -1241,6 +1235,7 @@ namespace WoWonder.NiceArt
 
                 if (MOnNiceArtEditorListener != null)
                 {
+                    MOnNiceArtEditorListener?.OnRemoveViewListener(AddedViews.Count);
                     MOnNiceArtEditorListener?.OnRemoveViewListener(ViewType.BrushDrawing, AddedViews.Count);
                 }
             }

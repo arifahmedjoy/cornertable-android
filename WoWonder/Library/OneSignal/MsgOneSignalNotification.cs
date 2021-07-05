@@ -122,7 +122,7 @@ namespace WoWonder.Library.OneSignal
                             ListUtils.MuteList = sqLiteDatabase.Get_MuteList();
                         }
 
-                        var check = ListUtils.MuteList.FirstOrDefault(a => a.IdChat == IdChat && a.ChatType == chatType);
+                        var check = ListUtils.MuteList.FirstOrDefault(a => a.ChatId == IdChat && a.ChatType == chatType);
                         if (check != null)
                         {
                             notification.shown = false;
@@ -142,7 +142,7 @@ namespace WoWonder.Library.OneSignal
             }
             catch (Exception ex)
             {
-                Toast.MakeText(Application.Context, ex.ToString(), ToastLength.Long)?.Show(); //Allen
+                ToastUtils.ShowToast(Application.Context, ex.ToString(), ToastLength.Long); //Allen
                 Methods.DisplayReportResultTrack(ex);
             }
         }

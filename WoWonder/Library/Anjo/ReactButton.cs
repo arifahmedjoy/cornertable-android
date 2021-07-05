@@ -10,6 +10,7 @@ using Android.Graphics.Drawables;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
+using Android.Views.Animations;
 using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Content.Res;
@@ -18,19 +19,18 @@ using Bumptech.Glide.Request;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
-using WoWonder.Helpers.Utils;
-using WoWonderClient.Requests;
-using AlertDialog = AndroidX.AppCompat.App.AlertDialog;
+using WoWonder.Helpers.Utils; 
+using WoWonderClient.Requests; 
 
 namespace WoWonder.Library.Anjo
 {
-    public class ReactButton : TextView
+    public class ReactButton : TextView, PopupWindow.IOnDismissListener
     {
         //ReactButton custom view object to make easy to change attribute
         private ReactButton MReactButton;
 
         //Reaction Alert Dialog to show Reaction layout with 6 Reactions
-        private AlertDialog MReactAlertDialog;
+        private PopupWindow PopupWindow;
 
         //react current state as boolean variable is false in default state and true in all other states
         private bool MCurrentReactState;
@@ -42,6 +42,8 @@ namespace WoWonder.Library.Anjo
         private ImageView MImgButtonFour;
         private ImageView MImgButtonFive;
         private ImageView MImgButtonSix;
+
+        private TextView ReactionLabel;
 
         //Number of Valid Reactions
         private static readonly int ReactionsNumber = 6;
@@ -57,14 +59,13 @@ namespace WoWonder.Library.Anjo
 
         //Array of six Reaction one for every ImageButton Icon
         private List<Reaction> MReactionPack = XReactions.GetReactions();
-
-        //Integer variable to change react dialog shape Default value is react_dialog_shape
-        private int MReactDialogShape = Resource.Xml.react_dialog_shape;
-
+         
         private GlobalClickEventArgs PostData;
         private string NamePage;
         private readonly Context MainContext;
         private NativePostAdapter NativeFeedAdapter;
+        
+        //private static int screen_width;
 
         protected ReactButton(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
         {
@@ -106,8 +107,12 @@ namespace WoWonder.Library.Anjo
                 MReactButton = this;
                 MDefaultReaction = XReactions.GetDefaultReact();
                 MCurrentReaction = MDefaultReaction;
-
                 AppCompatDelegate.CompatVectorFromResourcesEnabled = true;
+
+                //DisplayMetrics metrics = new DisplayMetrics();
+                //var display = Context?.GetSystemService(Context.WindowService).JavaCast<IWindowManager>();
+                //display.DefaultDisplay.GetRealMetrics(metrics);
+                //screen_width = metrics.WidthPixels; 
             }
             catch (Exception e)
             {
@@ -131,261 +136,261 @@ namespace WoWonder.Library.Anjo
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 switch (UserDetails.SoundControl)
                 {
                     case true:
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("reaction.mp3");
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("down.mp3");
                         break;
                 }
 
                 switch (MCurrentReactState)
                 {
                     case true:
-                    {
-                        PostData.NewsFeedClass.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
-
-                        UpdateReactButtonByReaction(MDefaultReaction);
-
-                        switch (AppSettings.PostButton)
                         {
-                            case PostButtonSystem.ReactionDefault:
-                            case PostButtonSystem.ReactionSubShine:
+                            PostData.NewsFeedClass.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
+
+                            UpdateReactButtonByReaction(MDefaultReaction);
+
+                            switch (AppSettings.PostButton)
                             {
-                                if (PostData.NewsFeedClass.Reaction != null)
-                                {
-                                    switch (PostData.NewsFeedClass.Reaction.Count)
+                                case PostButtonSystem.ReactionDefault:
+                                case PostButtonSystem.ReactionSubShine:
                                     {
-                                        case > 0:
-                                            PostData.NewsFeedClass.Reaction.Count--;
-                                            break;
-                                        default:
-                                            PostData.NewsFeedClass.Reaction.Count = 0;
-                                            break;
-                                    }
-
-                                    PostData.NewsFeedClass.Reaction.Type = "";
-                                    PostData.NewsFeedClass.Reaction.IsReacted = false;
-                                }
-
-                                break;
-                            }
-                            default:
-                            {
-                                var x = Convert.ToInt32(PostData.NewsFeedClass.PostLikes);
-                                switch (x)
-                                {
-                                    case > 0:
-                                        x--;
-                                        break;
-                                    default:
-                                        x = 0;
-                                        break;
-                                }
-
-                                PostData.NewsFeedClass.IsLiked = false;
-                                PostData.NewsFeedClass.PostLikes = Convert.ToString(x, CultureInfo.InvariantCulture);
-                                break;
-                            }
-                        }
-
-                        switch (NamePage)
-                        {
-                            case "ImagePostViewerActivity":
-                            case "MultiImagesPostViewerActivity":
-                            {
-                                //var ImgLike = PostData.View?.FindViewById<ImageView>(Resource.Id.image_like1);
-                                var likeCount = PostData.View?.FindViewById<TextView>(Resource.Id.LikeText1);
-                                if (likeCount != null && !likeCount.Text.Contains("K") && !likeCount.Text.Contains("M"))
-                                {
-                                    var x = Convert.ToInt32(likeCount.Text);
-                                    switch (x)
-                                    {
-                                        case > 0:
-                                            x--;
-                                            break;
-                                        default:
-                                            x = 0;
-                                            break;
-                                    }
-
-                                    likeCount.Text = Convert.ToString(x, CultureInfo.InvariantCulture);
-                                }
-
-                                break;
-                            }
-                            default:
-                            {
-                                var dataGlobal = nativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostData.NewsFeedClass.PostId).ToList();
-                                switch (dataGlobal?.Count)
-                                {
-                                    case > 0:
-                                    {
-                                        foreach (var dataClass in from dataClass in dataGlobal let index = nativeFeedAdapter.ListDiffer.IndexOf(dataClass) where index > -1 select dataClass)
+                                        if (PostData.NewsFeedClass.Reaction != null)
                                         {
-                                            dataClass.PostData = postData.NewsFeedClass;
-                                            switch (AppSettings.PostButton)
+                                            switch (PostData.NewsFeedClass.Reaction.Count)
                                             {
-                                                case PostButtonSystem.ReactionDefault:
-                                                case PostButtonSystem.ReactionSubShine:
-                                                    dataClass.PostData.PostLikes = PostData.NewsFeedClass.Reaction.Count.ToString();
+                                                case > 0:
+                                                    PostData.NewsFeedClass.Reaction.Count--;
                                                     break;
                                                 default:
-                                                    dataClass.PostData.PostLikes = PostData.NewsFeedClass.PostLikes;
+                                                    PostData.NewsFeedClass.Reaction.Count = 0;
                                                     break;
                                             }
-                                            nativeFeedAdapter.NotifyItemChanged(nativeFeedAdapter.ListDiffer.IndexOf(dataClass), "reaction");
+
+                                            PostData.NewsFeedClass.Reaction.Type = "";
+                                            PostData.NewsFeedClass.Reaction.IsReacted = false;
                                         }
 
                                         break;
                                     }
-                                }
-
-                                var likeCount = PostData.View?.FindViewById<ReactButton>(Resource.Id.ReactButton);
-                                //var likeCount = PostData.View?.FindViewById<TextView>(Resource.Id.Likecount);
-                                if (likeCount != null)
-                                {
-                                    switch (AppSettings.PostButton)
+                                default:
                                     {
-                                        case PostButtonSystem.ReactionDefault:
-                                        case PostButtonSystem.ReactionSubShine:
-                                            likeCount.Text = PostData.NewsFeedClass.Reaction.Count.ToString();
-                                            break;
-                                        default:
-                                            likeCount.Text = PostData.NewsFeedClass.PostLikes;
-                                            break;
+                                        var x = Convert.ToInt32(PostData.NewsFeedClass.PostLikes);
+                                        switch (x)
+                                        {
+                                            case > 0:
+                                                x--;
+                                                break;
+                                            default:
+                                                x = 0;
+                                                break;
+                                        }
+
+                                        PostData.NewsFeedClass.IsLiked = false;
+                                        PostData.NewsFeedClass.PostLikes = Convert.ToString(x, CultureInfo.InvariantCulture);
+                                        break;
                                     }
-                                }
-
-                                break;
                             }
-                        }
 
-                        switch (AppSettings.PostButton)
-                        {
-                            case PostButtonSystem.ReactionDefault:
-                            case PostButtonSystem.ReactionSubShine:
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction") });
-                                break;
-                            default:
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "like") });
-                                break;
+                            switch (NamePage)
+                            {
+                                case "ImagePostViewerActivity":
+                                case "MultiImagesPostViewerActivity":
+                                    {
+                                        //var ImgLike = PostData.View?.FindViewById<ImageView>(Resource.Id.image_like1);
+                                        var likeCount = PostData.View?.FindViewById<TextView>(Resource.Id.LikeText1);
+                                        if (likeCount != null && !likeCount.Text.Contains("K") && !likeCount.Text.Contains("M"))
+                                        {
+                                            var x = Convert.ToInt32(likeCount.Text);
+                                            switch (x)
+                                            {
+                                                case > 0:
+                                                    x--;
+                                                    break;
+                                                default:
+                                                    x = 0;
+                                                    break;
+                                            }
+
+                                            likeCount.Text = Convert.ToString(x, CultureInfo.InvariantCulture);
+                                        }
+
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        var dataGlobal = nativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostData.NewsFeedClass.PostId).ToList();
+                                        switch (dataGlobal?.Count)
+                                        {
+                                            case > 0:
+                                                {
+                                                    foreach (var dataClass in from dataClass in dataGlobal let index = nativeFeedAdapter.ListDiffer.IndexOf(dataClass) where index > -1 select dataClass)
+                                                    {
+                                                        dataClass.PostData = postData.NewsFeedClass;
+                                                        switch (AppSettings.PostButton)
+                                                        {
+                                                            case PostButtonSystem.ReactionDefault:
+                                                            case PostButtonSystem.ReactionSubShine:
+                                                                dataClass.PostData.PostLikes = PostData.NewsFeedClass.Reaction.Count.ToString();
+                                                                break;
+                                                            default:
+                                                                dataClass.PostData.PostLikes = PostData.NewsFeedClass.PostLikes;
+                                                                break;
+                                                        }
+                                                        nativeFeedAdapter.NotifyItemChanged(nativeFeedAdapter.ListDiffer.IndexOf(dataClass), "reaction");
+                                                    }
+
+                                                    break;
+                                                }
+                                        }
+
+                                        var likeCount = PostData.View?.FindViewById<ReactButton>(Resource.Id.ReactButton);
+                                        //var likeCount = PostData.View?.FindViewById<TextView>(Resource.Id.Likecount);
+                                        if (likeCount != null)
+                                        {
+                                            switch (AppSettings.PostButton)
+                                            {
+                                                case PostButtonSystem.ReactionDefault:
+                                                case PostButtonSystem.ReactionSubShine:
+                                                    likeCount.Text = PostData.NewsFeedClass.Reaction.Count.ToString();
+                                                    break;
+                                                default:
+                                                    likeCount.Text = PostData.NewsFeedClass.PostLikes;
+                                                    break;
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            switch (AppSettings.PostButton)
+                            {
+                                case PostButtonSystem.ReactionDefault:
+                                case PostButtonSystem.ReactionSubShine:
+                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction") });
+                                    break;
+                                default:
+                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "like") });
+                                    break;
+                            }
+                            break;
                         }
-                        break;
-                    }
                     default:
-                    {
-                        UpdateReactButtonByReaction(MReactionPack[0]);
-
-                        switch (AppSettings.PostButton)
                         {
-                            case PostButtonSystem.ReactionDefault:
-                            case PostButtonSystem.ReactionSubShine:
+                            UpdateReactButtonByReaction(MReactionPack[0]);
+
+                            switch (AppSettings.PostButton)
                             {
-                                PostData.NewsFeedClass.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
-
-                                if (PostData.NewsFeedClass.Reaction.IsReacted != null && !PostData.NewsFeedClass.Reaction.IsReacted.Value)
-                                {
-                                    PostData.NewsFeedClass.Reaction.Count++;
-                                    PostData.NewsFeedClass.Reaction.Type = "1";
-                                    PostData.NewsFeedClass.Reaction.IsReacted = true;
-                                }
-
-                                break;
-                            }
-                            default:
-                            {
-                                var x = Convert.ToInt32(PostData.NewsFeedClass.PostLikes);
-                                x++;
-
-                                PostData.NewsFeedClass.IsLiked = true;
-                                PostData.NewsFeedClass.PostLikes = Convert.ToString(x, CultureInfo.InvariantCulture);
-                                break;
-                            }
-                        }
-
-                        switch (NamePage)
-                        {
-                            case "ImagePostViewerActivity":
-                            case "MultiImagesPostViewerActivity":
-                            {
-                                var likeCount = PostData.View?.FindViewById<TextView>(Resource.Id.LikeText1);
-
-                                if (likeCount != null && !likeCount.Text.Contains("K") && !likeCount.Text.Contains("M"))
-                                {
-                                    var x = Convert.ToInt32(likeCount.Text);
-                                    x++;
-
-                                    likeCount.Text = Convert.ToString(x, CultureInfo.InvariantCulture);
-                                }
-
-                                break;
-                            }
-                            default:
-                            {
-                                var dataGlobal = nativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostData.NewsFeedClass.PostId).ToList();
-                                switch (dataGlobal?.Count)
-                                {
-                                    case > 0:
+                                case PostButtonSystem.ReactionDefault:
+                                case PostButtonSystem.ReactionSubShine:
                                     {
-                                        foreach (var dataClass in from dataClass in dataGlobal let index = nativeFeedAdapter.ListDiffer.IndexOf(dataClass) where index > -1 select dataClass)
+                                        PostData.NewsFeedClass.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
+
+                                        if (PostData.NewsFeedClass.Reaction.IsReacted != null && !PostData.NewsFeedClass.Reaction.IsReacted.Value)
                                         {
-                                            dataClass.PostData = postData.NewsFeedClass;
-                                            switch (AppSettings.PostButton)
-                                            {
-                                                case PostButtonSystem.ReactionDefault:
-                                                case PostButtonSystem.ReactionSubShine:
-                                                    dataClass.PostData.PostLikes = PostData.NewsFeedClass.Reaction.Count.ToString();
-                                                    break;
-                                                default:
-                                                    dataClass.PostData.PostLikes = PostData.NewsFeedClass.PostLikes;
-                                                    break;
-                                            }
-                                            nativeFeedAdapter.NotifyItemChanged(nativeFeedAdapter.ListDiffer.IndexOf(dataClass), "reaction");
+                                            PostData.NewsFeedClass.Reaction.Count++;
+                                            PostData.NewsFeedClass.Reaction.Type = "1";
+                                            PostData.NewsFeedClass.Reaction.IsReacted = true;
                                         }
 
                                         break;
                                     }
-                                }
-
-                                var likeCount = PostData.View?.FindViewById<ReactButton>(Resource.Id.ReactButton);
-                                if (likeCount != null)
-                                {
-                                    switch (AppSettings.PostButton)
+                                default:
                                     {
-                                        case PostButtonSystem.ReactionDefault:
-                                        case PostButtonSystem.ReactionSubShine:
-                                            likeCount.Text = PostData.NewsFeedClass.Reaction.Count.ToString();
-                                            break;
-                                        default:
-                                            likeCount.Text = PostData.NewsFeedClass.PostLikes;
-                                            break;
+                                        var x = Convert.ToInt32(PostData.NewsFeedClass.PostLikes);
+                                        x++;
+
+                                        PostData.NewsFeedClass.IsLiked = true;
+                                        PostData.NewsFeedClass.PostLikes = Convert.ToString(x, CultureInfo.InvariantCulture);
+                                        break;
                                     }
-                                }
-
-                                break;
                             }
-                        }
 
-                        switch (AppSettings.PostButton)
-                        {
-                            case PostButtonSystem.ReactionDefault:
-                            case PostButtonSystem.ReactionSubShine:
+                            switch (NamePage)
                             {
-                                string like = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Like").Value?.Id ?? "1";
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", like) });
-                                break;
-                            }
-                            default:
-                                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "like") });
-                                break;
-                        }
+                                case "ImagePostViewerActivity":
+                                case "MultiImagesPostViewerActivity":
+                                    {
+                                        var likeCount = PostData.View?.FindViewById<TextView>(Resource.Id.LikeText1);
 
-                        break;
-                    }
+                                        if (likeCount != null && !likeCount.Text.Contains("K") && !likeCount.Text.Contains("M"))
+                                        {
+                                            var x = Convert.ToInt32(likeCount.Text);
+                                            x++;
+
+                                            likeCount.Text = Convert.ToString(x, CultureInfo.InvariantCulture);
+                                        }
+
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        var dataGlobal = nativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == PostData.NewsFeedClass.PostId).ToList();
+                                        switch (dataGlobal?.Count)
+                                        {
+                                            case > 0:
+                                                {
+                                                    foreach (var dataClass in from dataClass in dataGlobal let index = nativeFeedAdapter.ListDiffer.IndexOf(dataClass) where index > -1 select dataClass)
+                                                    {
+                                                        dataClass.PostData = postData.NewsFeedClass;
+                                                        switch (AppSettings.PostButton)
+                                                        {
+                                                            case PostButtonSystem.ReactionDefault:
+                                                            case PostButtonSystem.ReactionSubShine:
+                                                                dataClass.PostData.PostLikes = PostData.NewsFeedClass.Reaction.Count.ToString();
+                                                                break;
+                                                            default:
+                                                                dataClass.PostData.PostLikes = PostData.NewsFeedClass.PostLikes;
+                                                                break;
+                                                        }
+                                                        nativeFeedAdapter.NotifyItemChanged(nativeFeedAdapter.ListDiffer.IndexOf(dataClass), "reaction");
+                                                    }
+
+                                                    break;
+                                                }
+                                        }
+
+                                        var likeCount = PostData.View?.FindViewById<ReactButton>(Resource.Id.ReactButton);
+                                        if (likeCount != null)
+                                        {
+                                            switch (AppSettings.PostButton)
+                                            {
+                                                case PostButtonSystem.ReactionDefault:
+                                                case PostButtonSystem.ReactionSubShine:
+                                                    likeCount.Text = PostData.NewsFeedClass.Reaction.Count.ToString();
+                                                    break;
+                                                default:
+                                                    likeCount.Text = PostData.NewsFeedClass.PostLikes;
+                                                    break;
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            switch (AppSettings.PostButton)
+                            {
+                                case PostButtonSystem.ReactionDefault:
+                                case PostButtonSystem.ReactionSubShine:
+                                    {
+                                        string like = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Name == "Like").Value?.Id ?? "1";
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "reaction", like) });
+                                        break;
+                                    }
+                                default:
+                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.NewsFeedClass.PostId, "like") });
+                                    break;
+                            }
+
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -405,33 +410,64 @@ namespace WoWonder.Library.Anjo
                 NamePage = namePage;
                 NativeFeedAdapter = nativeFeedAdapter;
 
-                //Show Dialog With 6 React
-                 AlertDialog.Builder dialogBuilder = new  AlertDialog.Builder(Context);
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("appear.mp3");
+                        break;
+                }
+                 
+                LayoutInflater layoutInflater = (LayoutInflater)Context?.GetSystemService(Context.LayoutInflaterService);
+                View popupView = layoutInflater?.Inflate(Resource.Layout.XReactDialogLayout, null);
+                popupView?.Measure((int)MeasureSpecMode.Unspecified, (int)MeasureSpecMode.Unspecified);
 
-                //Irrelevant code for customizing the buttons and title
-                LayoutInflater inflater = (LayoutInflater)Context.GetSystemService(Context.LayoutInflaterService);
-                View dialogView = inflater.Inflate(Resource.Layout.XReactDialogLayout, null);
+                PopupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent, true);
 
-                InitializingReactImages(dialogView);
+                InitializingReactImages(popupView);
                 SetReactionsArray();
                 ResetReactionsIcons();
                 ClickImageButtons();
 
-                dialogBuilder.SetView(dialogView);
-                MReactAlertDialog = dialogBuilder.Create();
-                MReactAlertDialog.Window?.SetBackgroundDrawableResource(MReactDialogShape);
+                PopupWindow.SetBackgroundDrawable(new ColorDrawable());
+                PopupWindow.AnimationStyle = Resource.Style.Animation;
+                PopupWindow.Focusable = true;
+                PopupWindow.ClippingEnabled = true;
+                PopupWindow.OutsideTouchable = false;
+                PopupWindow.SetOnDismissListener(this);
+                  
+                int[] location = new int[2]; 
+                GetLocationInWindow(location);
+                 
+                int OFFSET_X = 0;
+                int OFFSET_Y = -400;
 
-                Window window = MReactAlertDialog.Window;
-                window?.SetLayout(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
-
-                MReactAlertDialog.Show();
+                PopupWindow.ShowAtLocation(this, GravityFlags.NoGravity, location[0] + OFFSET_X, location[1] + OFFSET_Y); 
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+           
+        public void OnDismiss()
+        {
+            try
+            {
+                PopupWindow?.Dismiss();
+                switch (UserDetails.SoundControl)
+                {
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("leave.mp3");
+                        break;
+                }
+               
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
         public void SetReactionPack(string type)
         {
             try
@@ -486,6 +522,16 @@ namespace WoWonder.Library.Anjo
                 MImgButtonFive = view.FindViewById<ImageView>(Resource.Id.imgButtonFive);
                 MImgButtonSix = view.FindViewById<ImageView>(Resource.Id.imgButtonSix);
 
+                ReactionLabel = view.FindViewById<TextView>(Resource.Id.reactLabel);
+                ReactionLabel.Visibility = ViewStates.Invisible;
+                 
+                MImgButtonOne.Visibility = ViewStates.Gone;
+                MImgButtonTwo.Visibility = ViewStates.Gone;
+                MImgButtonThree.Visibility = ViewStates.Gone;
+                MImgButtonFour.Visibility = ViewStates.Gone;
+                MImgButtonFive.Visibility = ViewStates.Gone;
+                MImgButtonSix.Visibility = ViewStates.Gone;
+                 
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.ReactionDefault:
@@ -505,13 +551,45 @@ namespace WoWonder.Library.Anjo
                         Glide.With(Context).Load(Resource.Drawable.angry).Apply(new RequestOptions().FitCenter()).Into(MImgButtonSix);
                         break;
                 }
+
+                SetTranslateAnimation(MImgButtonOne);
+                SetTranslateAnimation(MImgButtonTwo);
+                SetTranslateAnimation(MImgButtonThree);
+                SetTranslateAnimation(MImgButtonFour);
+                SetTranslateAnimation(MImgButtonFive);
+                SetTranslateAnimation(MImgButtonSix);
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
+        private async void SetTranslateAnimation(View view)
+        {
+            try
+            {  
+                var animation = new TranslateAnimation(0, 0, view.Height, 0) { Duration = 400 };
+                animation.AnimationEnd += (sender, args) =>
+                {
+                    try
+                    {
+                        view.Visibility = ViewStates.Visible;
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+                };
+                view.StartAnimation(animation);
+                await Task.Delay(300);
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+        
         /// <summary>
         /// Put all ImagesButton on Array
         /// </summary>
@@ -562,8 +640,13 @@ namespace WoWonder.Library.Anjo
         {
             try
             {
+                //if (imgButton != null && !imgButton.HasOnClickListeners)
+                //{
+                //    imgButton.Click += (sender, e) => ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = imgButton, Position = reactIndex });
+                //}
+
                 if (imgButton != null && !imgButton.HasOnClickListeners)
-                    imgButton.Click += (sender, e) => ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = imgButton, Position = reactIndex });
+                    imgButton.Touch += (sender, e) => ImgButtonOnTouch(new ReactionsTouchEventArgs(e.Handled, e.Event) { ImgButton = imgButton, Position = reactIndex });
             }
             catch (Exception e)
             {
@@ -571,26 +654,140 @@ namespace WoWonder.Library.Anjo
             }
         }
 
-        private void ImgButtonOnClick(ReactionsClickEventArgs e)
+        private long Then;
+        private readonly int longClickDuration = 500; //for long click to trigger after 0.5 seconds
+        private int PositionSelect = -1;
+
+        private void ImgButtonOnTouch(ReactionsTouchEventArgs e)
         {
             try
             {
+                switch (e.Event.Action)
+                {
+                    case MotionEventActions.Down:
+                        {
+                            Then = Methods.Time.CurrentTimeMillis();
+                            //ImgButtonOnLongClick(new ReactionsClickLongClickEventArgs(e.Handled) { ImgButton = e.ImgButton, Position = e.Position });
+
+                            if (ReactionLabel != null)
+                            {
+                                PositionSelect = e.Position;
+                                Reaction data = MReactionPack[e.Position];
+                                ReactionLabel.Text = data.GetReactText();
+                                ReactionLabel.Visibility = ViewStates.Visible;
+                            }
+
+                            switch (UserDetails.SoundControl)
+                            {
+                                case true:
+                                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("select.mp3");
+                                    break;
+                            }
+                            break;
+                        }
+
+                    case MotionEventActions.Up:
+                        if (Methods.Time.CurrentTimeMillis() - Then > longClickDuration)
+                        {
+                            /* Implement long click behavior here */
+                            //ImgButtonOnLongClick(new ReactionsClickLongClickEventArgs(e.Handled) { ImgButton = e.ImgButton, Position = e.Position });
+
+                            if (ReactionLabel != null)
+                                ReactionLabel.Visibility = ViewStates.Invisible;
+                        }
+                        else
+                        {
+                            /* Implement short click behavior here or do nothing */
+                            ImgButtonOnClick(new ReactionsClickEventArgs { ImgButton = e.ImgButton, Position = e.Position });
+                        }
+                        break;
+                    case MotionEventActions.Move when PositionSelect != e.Position:
+                        {
+                            Then = Methods.Time.CurrentTimeMillis();
+                            //ImgButtonOnLongClick(new ReactionsClickLongClickEventArgs(e.Handled) { ImgButton = e.ImgButton, Position = e.Position });
+
+                            if (ReactionLabel != null)
+                            {
+                                PositionSelect = e.Position;
+                                Reaction data = MReactionPack[e.Position];
+                                ReactionLabel.Text = data.GetReactText();
+                                ReactionLabel.Visibility = ViewStates.Visible;
+                            }
+
+                            switch (UserDetails.SoundControl)
+                            {
+                                case true:
+                                    Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("down.mp3");
+                                    break;
+                            }
+                            break;
+                        }
+                    case MotionEventActions.Cancel:
+
+                        PositionSelect = -1;
+                         
+                        if (ReactionLabel != null)
+                            ReactionLabel.Visibility = ViewStates.Invisible;
+
+                        switch (UserDetails.SoundControl)
+                        {
+                            case true:
+                                Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("cancel.mp3");
+                                break;
+                        }
+                        break;
+                    default:
+                        return;  
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        }
+        
+        //private void ImgButtonOnLongClick(ReactionsClickLongClickEventArgs e)
+        //{
+        //    try
+        //    {
+        //        float scale = screen_width / e.ImgButton.Width;
+        //        if (e.ImgButton.ScaleX == 1)
+        //        {
+        //            e.ImgButton.ScaleY = scale;
+        //            e.ImgButton.ScaleX = scale;
+        //        }
+        //        else
+        //        {
+        //            e.ImgButton.ScaleY = 1;
+        //            e.ImgButton.ScaleX = 1;
+        //        }
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Console.WriteLine(exception); 
+        //    }
+        //}
+
+        private void ImgButtonOnClick(ReactionsClickEventArgs e)
+        {
+            try
+            { 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 switch (UserDetails.SoundControl)
                 {
                     case true:
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("reaction.mp3");
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("down.mp3");
                         break;
                 }
 
                 Reaction data = MReactionPack[e.Position];
                 UpdateReactButtonByReaction(data);
-                MReactAlertDialog.Dismiss();
+                PopupWindow?.Dismiss();
 
                 PostData.NewsFeedClass.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
 
@@ -906,17 +1103,7 @@ namespace WoWonder.Library.Anjo
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="shapeId">Get xml Shape for react dialog layout</param>
-        public void SetReactionDialogShape(int shapeId)
-        {
-            //Set Shape for react dialog layout
-            MReactDialogShape = shapeId;
-        }
-
+         
         /// <summary>
         /// 
         /// </summary>
@@ -1177,5 +1364,6 @@ namespace WoWonder.Library.Anjo
         {
             return MCurrentReaction.Equals(MDefaultReaction);
         }
+
     }
 }

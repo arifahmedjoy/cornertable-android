@@ -2,18 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.Content;
 using Android.OS;
-
-
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Google.Android.Material.BottomSheet;
-using Java.Lang;
 using WoWonder.Adapters;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.RangeSlider;
@@ -22,12 +19,13 @@ using Exception = System.Exception;
 
 namespace WoWonder.Activities.Search
 {
-    public class FilterSearchDialogFragment : BottomSheetDialogFragment, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
+    public class FilterSearchDialogFragment : BottomSheetDialogFragment, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, IDialogInterfaceOnShowListener
     {
         #region Variables Basic
 
         private SearchTabbedActivity ContextSearch;
-        private TextView IconBack, TxtAge, LocationPlace, LocationMoreIcon, TxtVerified, VerifiedMoreIcon, TxtStatus, StatusMoreIcon, TxtProfilePicture, ProfilePictureMoreIcon;
+        private TextView TxtAge, LocationPlace, TxtVerified, TxtStatus, TxtProfilePicture;
+        private ImageButton IconBack;
         private Button BtnApply;
         private Switch AgeSwitch;
         private RecyclerView GenderRecycler;
@@ -60,7 +58,7 @@ namespace WoWonder.Activities.Search
                 // clone the inflater using the ContextThemeWrapper
                 LayoutInflater localInflater = inflater.CloneInContext(contextThemeWrapper);
 
-                View view = localInflater?.Inflate(Resource.Layout.ButtomSheetSearchFilter, container, false); 
+                View view = localInflater?.Inflate(Resource.Layout.ButtomSheetSearchFilter, container, false);
                 return view;
             }
             catch (Exception e)
@@ -78,6 +76,8 @@ namespace WoWonder.Activities.Search
 
                 InitComponent(view);
                 SetRecyclerViewAdapters();
+
+                Dialog.SetOnShowListener(this);
 
                 IconBack.Click += IconBackOnClick;
 
@@ -123,7 +123,7 @@ namespace WoWonder.Activities.Search
         {
             try
             {
-                IconBack = view.FindViewById<TextView>(Resource.Id.IconBack);
+                IconBack = view.FindViewById<ImageButton>(Resource.Id.ib_back);
 
                 GenderRecycler = view.FindViewById<RecyclerView>(Resource.Id.GenderRecyler);
 
@@ -132,19 +132,15 @@ namespace WoWonder.Activities.Search
 
 
                 LocationPlace = view.FindViewById<TextView>(Resource.Id.LocationPlace);
-                LocationMoreIcon = view.FindViewById<TextView>(Resource.Id.LocationMoreIcon);
 
 
                 TxtVerified = view.FindViewById<TextView>(Resource.Id.textVerified);
-                VerifiedMoreIcon = view.FindViewById<TextView>(Resource.Id.VerifiedMoreIcon);
 
 
                 TxtStatus = view.FindViewById<TextView>(Resource.Id.textStatus);
-                StatusMoreIcon = view.FindViewById<TextView>(Resource.Id.StatusMoreIcon);
 
 
                 TxtProfilePicture = view.FindViewById<TextView>(Resource.Id.txtProfilePicture);
-                ProfilePictureMoreIcon = view.FindViewById<TextView>(Resource.Id.ProfilePictureMoreIcon);
 
                 LayoutLocation = view.FindViewById<RelativeLayout>(Resource.Id.LayoutLocation);
                 LayoutVerified = view.FindViewById<RelativeLayout>(Resource.Id.LayoutVerified);
@@ -156,13 +152,6 @@ namespace WoWonder.Activities.Search
                 AgeSwitch = view.FindViewById<Switch>(Resource.Id.togglebutton);
 
                 BtnApply = view.FindViewById<Button>(Resource.Id.ApplyButton);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconBack, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropright : IonIconsFonts.IosArrowDropleft);
-                 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, LocationMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, VerifiedMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, StatusMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ProfilePictureMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
 
             }
             catch (Exception e)
@@ -198,20 +187,20 @@ namespace WoWonder.Activities.Search
                 switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
                     case > 0:
-                    {
-                        foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
                         {
-                            GenderAdapter.GenderList.Add(new Classes.Gender
+                            foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
                             {
-                                GenderId = key,
-                                GenderName = value,
-                                GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
-                                GenderSelect = false
-                            });
-                        }
+                                GenderAdapter.GenderList.Add(new Classes.Gender
+                                {
+                                    GenderId = key,
+                                    GenderName = value,
+                                    GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                                    GenderSelect = false
+                                });
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
                         GenderAdapter.GenderList.Add(new Classes.Gender
                         {
@@ -283,12 +272,12 @@ namespace WoWonder.Activities.Search
                     AgeTo = AgeMax.ToString(),
                 };
                 dbDatabase.InsertOrUpdate_SearchFilter(newSettingsFilter);
-                
+
 
                 ContextSearch.UserTab.MainScrollEvent.IsLoading = false;
                 ContextSearch.PagesTab.MainScrollEvent.IsLoading = false;
                 ContextSearch.GroupsTab.MainScrollEvent.IsLoading = false;
-                 
+
                 ContextSearch.Search(ContextSearch.SearchText);
 
                 Dismiss();
@@ -308,29 +297,29 @@ namespace WoWonder.Activities.Search
                 switch (position)
                 {
                     case >= 0:
-                    {
-                        var item = GenderAdapter.GetItem(position);
-                        if (item != null)
                         {
-                            var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                            switch (check.Count)
+                            var item = GenderAdapter.GetItem(position);
+                            if (item != null)
                             {
-                                case > 0:
+                                var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
+                                switch (check.Count)
                                 {
-                                    foreach (var all in check)
-                                        all.GenderSelect = false;
-                                    break;
+                                    case > 0:
+                                        {
+                                            foreach (var all in check)
+                                                all.GenderSelect = false;
+                                            break;
+                                        }
                                 }
+
+                                item.GenderSelect = true;
+                                GenderAdapter.NotifyDataSetChanged();
+
+                                Gender = item.GenderId;
                             }
 
-                            item.GenderSelect = true;
-                            GenderAdapter.NotifyDataSetChanged();
-
-                            Gender = item.GenderId;
+                            break;
                         }
-
-                        break;
-                    }
                 }
             }
             catch (Exception exception)
@@ -349,7 +338,7 @@ namespace WoWonder.Activities.Search
                 TypeDialog = "ProfilePicture";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_All));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Yes));
@@ -375,7 +364,7 @@ namespace WoWonder.Activities.Search
                 TypeDialog = "Status";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_All));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Offline));
@@ -401,7 +390,7 @@ namespace WoWonder.Activities.Search
                 TypeDialog = "Verified";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_All));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Verified));
@@ -428,10 +417,10 @@ namespace WoWonder.Activities.Search
 
                 var countriesArray = WoWonderTools.GetCountryList(Activity);
 
-                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 var arrayAdapter = countriesArray.Select(item => item.Value).ToList();
-                arrayAdapter.Insert(0 , GetText(Resource.String.Lbl_All));
+                arrayAdapter.Insert(0, GetText(Resource.String.Lbl_All));
 
                 dialogList.Title(GetText(Resource.String.Lbl_Location)).TitleColorRes(Resource.Color.primary);
                 dialogList.Items(arrayAdapter);
@@ -478,7 +467,7 @@ namespace WoWonder.Activities.Search
                     default:
                         //Switch Off
                         SwitchState = false;
-                        SeekbarLayout.Visibility = ViewStates.Invisible;
+                        SeekbarLayout.Visibility = ViewStates.Gone;
                         break;
                 }
 
@@ -546,28 +535,28 @@ namespace WoWonder.Activities.Search
                             LocationPlace.Text = GetText(Resource.String.Lbl_All);
                             break;
                         default:
-                        {
-                            bool success = int.TryParse(Location, out var number);
-                            switch (success)
                             {
-                                case true:
+                                bool success = int.TryParse(Location, out var number);
+                                switch (success)
                                 {
-                                    var check = countriesArray.FirstOrDefault(a => a.Key == number.ToString()).Value;
-                                    LocationPlace.Text = string.IsNullOrEmpty(check) switch
-                                    {
-                                        false => check,
-                                        _ => LocationPlace.Text
-                                    };
+                                    case true:
+                                        {
+                                            var check = countriesArray.FirstOrDefault(a => a.Key == number.ToString()).Value;
+                                            LocationPlace.Text = string.IsNullOrEmpty(check) switch
+                                            {
+                                                false => check,
+                                                _ => LocationPlace.Text
+                                            };
 
-                                    break;
+                                            break;
+                                        }
+                                    default:
+                                        LocationPlace.Text = GetText(Resource.String.Lbl_All);
+                                        break;
                                 }
-                                default:
-                                    LocationPlace.Text = GetText(Resource.String.Lbl_All);
-                                    break;
-                            }
 
-                            break;
-                        }
+                                break;
+                            }
                     }
 
                     switch (SwitchState)
@@ -589,11 +578,11 @@ namespace WoWonder.Activities.Search
                     switch (check1.Count)
                     {
                         case > 0:
-                        {
-                            foreach (var all in check1)
-                                all.GenderSelect = false;
-                            break;
-                        }
+                            {
+                                foreach (var all in check1)
+                                    all.GenderSelect = false;
+                                break;
+                            }
                     }
 
                     var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == data.Gender);
@@ -648,7 +637,7 @@ namespace WoWonder.Activities.Search
                     dbDatabase.InsertOrUpdate_SearchFilter(newSettingsFilter);
                 }
 
-                
+
             }
             catch (Exception e)
             {
@@ -658,66 +647,66 @@ namespace WoWonder.Activities.Search
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
 
                 switch (TypeDialog)
                 {
                     case "Status":
-                    {
-                        TxtStatus.Text = text;
-                        if (text == GetText(Resource.String.Lbl_All))
-                            Status = "all";
-                        else if (text == GetText(Resource.String.Lbl_Offline))
-                            Status = "off";
-                        else if (text == GetText(Resource.String.Lbl_Online))
-                            Status = "on";
-                        break;
-                    }
+                        {
+                            TxtStatus.Text = text;
+                            if (text == GetText(Resource.String.Lbl_All))
+                                Status = "all";
+                            else if (text == GetText(Resource.String.Lbl_Offline))
+                                Status = "off";
+                            else if (text == GetText(Resource.String.Lbl_Online))
+                                Status = "on";
+                            break;
+                        }
                     case "Verified":
-                    {
-                        TxtVerified.Text = text;
-                        if (text == GetText(Resource.String.Lbl_All))
-                            Verified = "all";
-                        else if (text == GetText(Resource.String.Lbl_UnVerified))
-                            Verified = "off";
-                        else if (text == GetText(Resource.String.Lbl_Verified))
-                            Verified = "on";
-                        break;
-                    }
+                        {
+                            TxtVerified.Text = text;
+                            if (text == GetText(Resource.String.Lbl_All))
+                                Verified = "all";
+                            else if (text == GetText(Resource.String.Lbl_UnVerified))
+                                Verified = "off";
+                            else if (text == GetText(Resource.String.Lbl_Verified))
+                                Verified = "on";
+                            break;
+                        }
                     case "ProfilePicture":
-                    {
-                        TxtProfilePicture.Text = text;
-                        if (text == GetText(Resource.String.Lbl_All))
-                            ProfilePicture = "all";
-                        else if (text == GetText(Resource.String.Lbl_Yes))
-                            ProfilePicture = "yes";
-                        else if (text == GetText(Resource.String.Lbl_No))
-                            ProfilePicture = "no";
-                        break;
-                    }
+                        {
+                            TxtProfilePicture.Text = text;
+                            if (text == GetText(Resource.String.Lbl_All))
+                                ProfilePicture = "all";
+                            else if (text == GetText(Resource.String.Lbl_Yes))
+                                ProfilePicture = "yes";
+                            else if (text == GetText(Resource.String.Lbl_No))
+                                ProfilePicture = "no";
+                            break;
+                        }
                     case "Location":
-                    {
-                        if (text == GetText(Resource.String.Lbl_All))
                         {
-                            Location = "all";
-                        }
-                        else
-                        {
-                            var countriesArray = WoWonderTools.GetCountryList(Activity);
-                            var check = countriesArray.FirstOrDefault(a => a.Value == text).Key;
-                            if (check != null)
+                            if (text == GetText(Resource.String.Lbl_All))
                             {
-                                Location = check;
+                                Location = "all";
                             }
+                            else
+                            {
+                                var countriesArray = WoWonderTools.GetCountryList(Activity);
+                                var check = countriesArray.FirstOrDefault(a => a.Value == text).Key;
+                                if (check != null)
+                                {
+                                    Location = check;
+                                }
+                            }
+
+                            LocationPlace.Text = itemString;
+                            break;
                         }
-                  
-                        LocationPlace.Text = itemString.ToString();
-                        break;
-                    }
                 }
             }
             catch (Exception e)
@@ -747,5 +736,33 @@ namespace WoWonder.Activities.Search
 
         #endregion
 
+        public void OnShow(IDialogInterface dialog)
+        {
+            try
+            {
+                var d = dialog as BottomSheetDialog;
+                var bottomSheet = d.FindViewById<View>(Resource.Id.design_bottom_sheet) as FrameLayout;
+                var bottomSheetBehavior = BottomSheetBehavior.From(bottomSheet);
+                var layoutParams = bottomSheet.LayoutParameters;
+
+                int height = GetWindowHeight();
+                if (layoutParams != null)
+                    layoutParams.Height = height;
+                bottomSheet.LayoutParameters = layoutParams;
+                bottomSheetBehavior.State = BottomSheetBehavior.StateExpanded;
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private int GetWindowHeight()
+        {
+            var displayMetrics = new DisplayMetrics();
+            ContextSearch.WindowManager.DefaultDisplay.GetRealMetrics(displayMetrics);
+
+            return displayMetrics.HeightPixels;
+        }
     }
 }

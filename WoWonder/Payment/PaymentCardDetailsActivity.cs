@@ -17,7 +17,6 @@ using Com.Stripe.Android.View;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Fundings;
 using WoWonder.Activities.Wallet;
-using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
 using WoWonderClient.Requests;
@@ -28,7 +27,7 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Payment
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class PaymentCardDetailsActivity : BaseActivity, ITokenCallback ,  PaymentSession.IPaymentSessionListener, IEphemeralKeyProvider, IPaymentCompletionProvider , ISourceCallback
+    public class PaymentCardDetailsActivity : BaseActivity, ITokenCallback
     {
         #region Variables Basic
 
@@ -38,10 +37,8 @@ namespace WoWonder.Payment
         private CardMultilineWidget MultilineWidget;
 
         private Stripe Stripe;
-        private PaymentSession PaymentSession;
-
         private string Price, PayType, Id, TokenId;
-      
+
         #endregion
 
         #region General
@@ -60,8 +57,8 @@ namespace WoWonder.Payment
                 SetContentView(Resource.Layout.PaymentCardDetailsLayout);
 
                 Id = Intent?.GetStringExtra("Id") ?? "";
-                Price = Intent?.GetStringExtra("Price");
-                PayType = Intent?.GetStringExtra("payType");
+                Price = Intent?.GetStringExtra("Price") ?? "";
+                PayType = Intent?.GetStringExtra("payType") ?? "";
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -196,19 +193,18 @@ namespace WoWonder.Payment
         {
             try
             {
-                switch (addEvent)
+                // true +=  // false -=
+                if (addEvent)
                 {
-                    // true +=  // false -=
-                    case true:
-                        MultilineWidget.CvcComplete += MultilineWidgetOnCvcComplete;
-                        EtName.TextChanged += EtNameOnTextChanged;
-                        BtnApply.Click += BtnApplyOnClick;
-                        break;
-                    default:
-                        MultilineWidget.CvcComplete -= MultilineWidgetOnCvcComplete;
-                        EtName.TextChanged -= EtNameOnTextChanged;
-                        BtnApply.Click -= BtnApplyOnClick;
-                        break;
+                    MultilineWidget.CvcComplete += MultilineWidgetOnCvcComplete;
+                    EtName.TextChanged += EtNameOnTextChanged;
+                    BtnApply.Click += BtnApplyOnClick;
+                }
+                else
+                {
+                    MultilineWidget.CvcComplete -= MultilineWidgetOnCvcComplete;
+                    EtName.TextChanged -= EtNameOnTextChanged;
+                    BtnApply.Click -= BtnApplyOnClick;
                 }
             }
             catch (Exception e)
@@ -227,24 +223,24 @@ namespace WoWonder.Payment
             {
                 if (MultilineWidget.Card != null && MultilineWidget.Card.ValidateCard() && MultilineWidget.ValidateAllFields())
                 {
-                    switch (MultilineWidget.Card.Number.Trim().Length)
+                    if (MultilineWidget.Card.Number.Trim().Length == 0)
                     {
-                        case 0:
-                            CardNumber.Text = "**** **** **** ****";
-                            break;
-                        default:
-                        {
-                            string number = InsertPeriodically(MultilineWidget.Card.Number.Trim(), " ", 4);
-                            CardNumber.Text = number;
-                            break;
-                        }
+                        CardNumber.Text = "**** **** **** ****";
+                    }
+                    else
+                    {
+                        string number = InsertPeriodically(MultilineWidget.Card.Number.Trim(), " ", 4);
+                        CardNumber.Text = number;
                     }
 
-                    CardExpire.Text = MultilineWidget.Card.ExpMonth.ToString().Trim().Length switch
+                    if (MultilineWidget.Card.ExpMonth.ToString().Trim().Length == 0 && MultilineWidget.Card.ExpYear.ToString().Trim().Length == 0)
                     {
-                        0 when MultilineWidget.Card.ExpYear.ToString().Trim().Length == 0 => "MM/YY",
-                        _ => MultilineWidget.Card.ExpMonth + "/" + MultilineWidget.Card.ExpYear
-                    };
+                        CardExpire.Text = "MM/YY";
+                    }
+                    else
+                    {
+                        CardExpire.Text = MultilineWidget.Card.ExpMonth + "/" + MultilineWidget.Card.ExpYear;
+                    }
 
                     CardCvv.Text = MultilineWidget.Card.CVC.Trim().Length == 0 ? "***" : MultilineWidget.Card.CVC.Trim();
                 }
@@ -254,12 +250,12 @@ namespace WoWonder.Payment
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         private void EtNameOnTextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-                CardName.Text = e.Text.ToString().Trim().Length == 0 ? GetString(Resource.String.Lbl_YourName) : e.Text.ToString().Trim();
+                CardName.Text = e?.Text?.ToString().Trim().Length == 0 ? GetString(Resource.String.Lbl_YourName) : e?.Text?.ToString().Trim();
             }
             catch (Exception exception)
             {
@@ -272,16 +268,17 @@ namespace WoWonder.Payment
         {
             try
             {
-                //Show a progress
-                //AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading)); 
                 if (MultilineWidget.Card.ValidateCard() && !string.IsNullOrEmpty(EtName.Text))
                 {
+                    //Show a progress
+                    AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
+
                     Card card = MultilineWidget.Card;
                     Stripe.CreateToken(card, PaymentConfiguration.Instance.PublishableKey, this);
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_PleaseVerifyDataCard), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_PleaseVerifyDataCard), ToastLength.Long);
                 }
             }
             catch (Exception exception)
@@ -308,37 +305,16 @@ namespace WoWonder.Payment
 
         public static IEnumerable<string> SplitInParts(string s, int partLength)
         {
-            switch (s)
-            {
-                case null:
-                    throw new ArgumentNullException("s");
-            }
-            switch (partLength)
-            {
-                case <= 0:
-                    throw new ArgumentException("Part length has to be positive.", "partLength");
-            }
+            if (s == null)
+                throw new ArgumentNullException("s");
+            if (partLength <= 0)
+                throw new ArgumentException("Part length has to be positive.", "partLength");
 
             for (var i = 0; i < s.Length; i += partLength)
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
         }
 
         #endregion
-
-        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
-        {
-            try
-            {
-                base.OnActivityResult(requestCode, resultCode, data);
-                if (data != null)
-                    PaymentSession?.HandlePaymentData(requestCode, (int)resultCode, data);
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e); 
-            }
-        }
-
 
         #region Stripe
 
@@ -347,15 +323,14 @@ namespace WoWonder.Payment
             try
             {
                 var stripePublishableKey = ListUtils.SettingsSiteList?.StripeId ?? "";
-                switch (string.IsNullOrEmpty(stripePublishableKey))
+                if (!string.IsNullOrEmpty(stripePublishableKey))
                 {
-                    case false:
-                        PaymentConfiguration.Init(stripePublishableKey);
-                        Stripe = new Stripe(this, stripePublishableKey);
-                        break;
-                    default:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_ErrorConnectionSystemStripe), ToastLength.Long)?.Show();
-                        break;
+                    PaymentConfiguration.Init(stripePublishableKey);
+                    Stripe = new Stripe(this, stripePublishableKey);
+                }
+                else
+                {
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ErrorConnectionSystemStripe), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -363,13 +338,13 @@ namespace WoWonder.Payment
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
         public void OnError(Java.Lang.Exception error)
         {
             try
             {
                 AndHUD.Shared.Dismiss(this);
-                Toast.MakeText(this, error.Message, ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(this, error.Message, ToastLength.Long);
             }
             catch (Exception e)
             {
@@ -377,118 +352,7 @@ namespace WoWonder.Payment
             }
         }
 
-        public async void OnSuccess(Source p0)
-        {
-            try
-            {
-                Console.WriteLine(p0);
-                Console.WriteLine(p0.Status);
-                
-                if (p0.Status.Contains("succeeded"))
-                {
-                    switch (PayType)
-                    {
-                        //send api  
-                        case "Funding":
-                        {
-                            var (apiStatus, respond) = await RequestsAsync.Funding.FundingPayAsync(Id, Price);
-                            switch (apiStatus)
-                            {
-                                case 200:
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
-                                    FundingViewActivity.GetInstance()?.StartApiService();
-                                    break;
-                                default:
-                                    Methods.DisplayReportResult(this, respond);
-                                    break;
-                            }
-
-                            break;
-                        }
-                        case "membership" when Methods.CheckConnectivity():
-                        {
-                            var (apiStatus, respond) = await RequestsAsync.Global.SetProAsync(Id);
-                            switch (apiStatus)
-                            {
-                                case 200:
-                                {
-                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                                    if (dataUser != null)
-                                    {
-                                        dataUser.IsPro = "1";
-
-                                        var sqlEntity = new SqLiteDatabase();
-                                        sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
-                                    
-                                    }
-
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long)?.Show();
-                                    break;
-                                }
-                                default:
-                                    Methods.DisplayReportResult(this, respond);
-                                    break;
-                            }
-
-                            break;
-                        }
-                        case "membership":
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                            break;
-                        case "AddFunds":
-                        {
-                            var tabbedWallet = TabbedWalletActivity.GetInstance();
-                            if (Methods.CheckConnectivity() && tabbedWallet != null)
-                            {
-                                var (apiStatus, respond) = await RequestsAsync.Global.SendMoneyWalletAsync(tabbedWallet.SendMoneyFragment?.UserId, tabbedWallet.SendMoneyFragment?.TxtAmount.Text);
-                                switch (apiStatus)
-                                {
-                                    case 200:
-                                        tabbedWallet.SendMoneyFragment.TxtAmount.Text = string.Empty;
-                                        tabbedWallet.SendMoneyFragment.TxtEmail.Text = string.Empty;
-
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Long)?.Show();
-                                        break;
-                                    default:
-                                        Methods.DisplayReportResult(this, respond);
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                            }
-
-                            break;
-                        }
-                    }
-
-                    AndHUD.Shared.Dismiss(this);
-                    Finish();
-                }
-                 
-                //await Task.Run(() =>
-                //{
-                //    try
-                //    {
-                //      var sourceIdParams =  PaymentIntentParams.CreateConfirmPaymentIntentWithSourceIdParams(p0.Id, p0.ClientSecret, "stripe://payment_intent_return");
-
-                //        PaymentIntent paymentIntent = Stripe.ConfirmPaymentIntentSynchronous(sourceIdParams, "pk_test_1ujWeV5SjafkpuEK7NMpURNz");
-                //        Methods.DisplayReportResultTrack(paymentIntent);
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        Methods.DisplayReportResultTrack(e); 
-                //    } 
-                //}); 
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e); 
-            }
-        }
-
-        public  void OnSuccess(Token token)
+        public async void OnSuccess(Token token)
         {
             try
             {
@@ -500,112 +364,101 @@ namespace WoWonder.Payment
                 //var stripeLiveMode = token.Livemode;
                 //var stripeType = token.Type;
                 //var stripeUsed = token.Used;
-                var currencyCode = ListUtils.SettingsSiteList?.StripeCurrency ?? "USD";
-                 
-                CustomerSession.InitCustomerSession(this);
-                CustomerSession.Instance.SetCustomerShippingInformation(this, new ShippingInformation());
-                CustomerSession.Instance.AddProductUsageTokenIfValid(TokenId);
 
-                // Create the PaymentSession
-                PaymentSession = new PaymentSession(this);
-                PaymentSession.Init(this, GetPaymentSessionConfig());
-                 
-                var priceInt = Convert.ToInt32(Price) * 100;
-                Stripe.CreateSource(SourceParams.CreateAlipaySingleUseParams(priceInt, currencyCode.ToLower(), EtName.Text,UserDetails.Email, "stripe://payment_intent_return"), this); 
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-                AndHUD.Shared.Dismiss(this);
-            }
-        }
-
-        #endregion
-
-        public PaymentSessionConfig GetPaymentSessionConfig()
-        {
-            try
-            {
-                PaymentSessionConfig config = new PaymentSessionConfig.Builder()
-                    .SetShippingMethodsRequired(true)
-                    .SetShippingInfoRequired(true)
-                    .SetPrepopulatedShippingInfo(new ShippingInformation(
-                        new Address.Builder()
-                            .SetLine1("123 Market St")
-                            .SetCity("San Francisco")
-                            .SetState("CA")
-                            .SetPostalCode("94107")
-                            .SetCountry("US")
-                            .Build(),
-                        "Jenny Rosen",
-                        "4158675309"
-                    ))
-                    .Build();
-                return config;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-                return null;
-            }
-        }
-
-        public void OnCommunicatingStateChanged(bool isCommunicating)
-        {
-             
-        }
-
-        public void OnError(int errorCode, string errorMessage)
-        {
-            try
-            {
-                AndHUD.Shared.Dismiss(this);
-                Toast.MakeText(this, errorMessage, ToastLength.Long)?.Show();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnPaymentSessionDataChanged(PaymentSessionData data)
-        {
-            try
-            {
-                switch (data.PaymentReadyToCharge)
+                if (Methods.CheckConnectivity())
                 {
-                    case true:
-                        break;
+                    switch (PayType)
+                    {
+                        //send api  
+                        case "Funding":
+                            {
+                                var (apiStatus, respond) = await RequestsAsync.Payments.StripeAsync(TokenId, "fund", Id);
+                                switch (apiStatus)
+                                {
+                                    case 200:
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long);
+                                        FundingViewActivity.GetInstance()?.StartApiService();
+                                        break;
+                                    default:
+                                        Methods.DisplayReportResult(this, respond);
+                                        break;
+                                }
+
+                                break;
+                            }
+                        case "membership" when Methods.CheckConnectivity():
+                        {
+                            var (apiStatus, respond) = await RequestsAsync.Payments.StripeAsync(TokenId, "pro", Id);
+                                switch (apiStatus)
+                                {
+                                    case 200:
+                                        {
+                                            var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                                            if (dataUser != null)
+                                            {
+                                                dataUser.IsPro = "1";
+
+                                                var sqlEntity = new SqLiteDatabase();
+                                                sqlEntity.Insert_Or_Update_To_MyProfileTable(dataUser);
+
+                                            }
+
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Upgraded), ToastLength.Long);
+                                            break;
+                                        }
+                                    default:
+                                        Methods.DisplayReportResult(this, respond);
+                                        break;
+                                }
+
+                                break;
+                            }
+                        case "membership":
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                            break;
+                        case "AddFunds":
+                            {
+                                var tabbedWallet = TabbedWalletActivity.GetInstance();
+                                if (Methods.CheckConnectivity() && tabbedWallet != null)
+                                {
+                                    var (apiStatus, respond) = await RequestsAsync.Payments.StripeAsync(TokenId, "wallet", "");
+                                    switch (apiStatus)
+                                    {
+                                        case 200:
+                                            tabbedWallet.SendMoneyFragment.TxtAmount.Text = string.Empty;
+                                            tabbedWallet.SendMoneyFragment.TxtEmail.Text = string.Empty;
+
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Long);
+                                            break;
+                                        default:
+                                            Methods.DisplayReportResult(this, respond);
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                                }
+
+                                break;
+                            }
+                    }
+
+                    AndHUD.Shared.Dismiss(this);
+                    Finish();
+                }
+                else
+                {
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
             {
+                AndHUD.Shared.Dismiss(this);
                 Methods.DisplayReportResultTrack(e);
             }
         }
 
-        public void CreateEphemeralKey(string p0, IEphemeralKeyUpdateListener p1)
-        {
-            try
-            {
-
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void CompletePayment(PaymentSessionData p0, IPaymentResultListener p1)
-        {
-            try
-            {
-
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
+        #endregion  
     }
 }

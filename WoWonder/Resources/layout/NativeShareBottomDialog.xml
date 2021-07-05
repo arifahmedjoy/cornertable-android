@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:text="@string/Lbl_ShareToMyTimeline"
-            android:textColor="@color/colorCommentText"
+            
             android:gravity="start|center"
             android:textSize="16sp"/>
     </LinearLayout>
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:text="@string/Lbl_ShareToGroup"
-            android:textColor="@color/colorCommentText"
+            
             android:gravity="start|center"
             android:textSize="16sp"/>
     </LinearLayout>
@@ -105,7 +105,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:text="@string/Lbl_MoreOptions"
-            android:textColor="@color/colorCommentText"
+            
             android:gravity="start|center"
             android:textSize="16sp"/>
     </LinearLayout>
@@ -140,7 +140,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:text="@string/Lbl_ShareToPage"
-            android:textColor="@color/colorCommentText"
+            
             android:gravity="start|center"
             android:textSize="16sp" />
     </LinearLayout>

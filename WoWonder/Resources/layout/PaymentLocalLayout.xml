@@ -253,7 +253,7 @@
                         app:cb_pressedRingWidth="1dip"
                         android:tint="@color/gnt_white"
                         android:src="@drawable/icon_close_vector" 
-                        android:layout_alignTop="@id/Image"
+                        android:layout_alignTop="@+id/Image"
                         android:layout_alignParentEnd="true"
                         app:cb_color="@color/accent"
                         android:layout_marginEnd="0dp"

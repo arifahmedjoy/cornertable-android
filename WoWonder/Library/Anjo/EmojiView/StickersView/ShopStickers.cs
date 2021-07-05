@@ -60,7 +60,7 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
 
         public View GetEmptyView(ViewGroup viewGroup)
         {
-            return null;
+            return null!;
         }
 
         public Sticker[] GetStickers()
@@ -103,7 +103,7 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 

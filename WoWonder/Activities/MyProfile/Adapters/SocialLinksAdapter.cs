@@ -71,7 +71,7 @@ namespace WoWonder.Activities.MyProfile.Adapters
                             SocialName = activityContext.GetText(Resource.String.Lbl_GooglePlus) + "+",
                             SocialLinkName = "",
                             Checkvisibilty = false,
-                            SocialIcon = IonIconsFonts.LogoGoogle,
+                            SocialIcon = IonIconsFonts.LogoGoogleplus,
                             IconColor = Color.ParseColor("#dd4b39")
                         });
                         break;
@@ -180,23 +180,26 @@ namespace WoWonder.Activities.MyProfile.Adapters
                             string name = Methods.FunString.DecodeString(item.SocialName);
                             holder.NameSocial.Text = Methods.FunString.SubStringCutOf(name, 20);
 
-                            FontUtils.SetTextViewIcon(item.Id == 4 ? FontsIconFrameWork.FontAwesomeBrands : FontsIconFrameWork.IonIcons,holder.IconSocial, item.SocialIcon);
+                            holder.NameSocial.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#4E586E"));
+                            holder.NameLink.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#DDDDDD"));
+
+                            FontUtils.SetTextViewIcon(item.Id == 4 ? FontsIconFrameWork.FontAwesomeBrands : FontsIconFrameWork.IonIcons, holder.IconSocial, item.SocialIcon);
 
                             holder.IconSocial.SetTextColor(item.IconColor);
 
                             switch (item.Checkvisibilty)
                             {
                                 case true:
-                                    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconCheck, IonIconsFonts.Checkmark);
-                                    holder.IconCheck.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-
                                     holder.NameLink.Text = item.SocialLinkName;
-                                    holder.NameLink.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-
-                                    holder.LayoutCheckvisibilty.Visibility = ViewStates.Visible;
+                                    holder.AddLink.Background.SetTint(Color.ParseColor("#F6F6F6"));
+                                    holder.AddLink.Text = "Edit";
+                                    holder.AddLink.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#525252"));
                                     break;
                                 default:
-                                    holder.LayoutCheckvisibilty.Visibility = ViewStates.Invisible;
+                                    holder.NameLink.Text = "No Social Link";
+                                    holder.AddLink.Text = "Add Link";
+                                    holder.AddLink.Background.SetTint(Color.ParseColor("#FFEFEF"));
+                                    holder.AddLink.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                     break;
                             }
                         }
@@ -290,16 +293,11 @@ namespace WoWonder.Activities.MyProfile.Adapters
 
                 IconSocial = MainView.FindViewById<TextView>(Resource.Id.Social_Icon);
                 NameSocial = MainView.FindViewById<TextView>(Resource.Id.Social_name);
-                IconCheck = MainView.FindViewById<TextView>(Resource.Id.Icon_Check);
+                AddLink = MainView.FindViewById<TextView>(Resource.Id.AddLinkText);
                 NameLink = MainView.FindViewById<TextView>(Resource.Id.Link_name);
-
-                LayoutCheckvisibilty = MainView.FindViewById<RelativeLayout>(Resource.Id.icon_container);
-
-                itemView.Click += (sender, e) => clickListener(new SocialLinksAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new SocialLinksAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
-
-                
-
+                 
+                itemView.Click += (sender, e) => clickListener(new SocialLinksAdapterClickEventArgs{ View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SocialLinksAdapterClickEventArgs{ View = itemView, Position = BindingAdapterPosition }); 
             }
             catch (Exception exception)
             {
@@ -312,11 +310,10 @@ namespace WoWonder.Activities.MyProfile.Adapters
         public View MainView { get; }
 
 
-        public TextView IconSocial { get; private set; }
-        public TextView IconCheck { get; private set; }
+        public TextView IconSocial { get; private set; } 
         public TextView NameSocial { get; private set; }
         public TextView NameLink { get; private set; }
-        public RelativeLayout LayoutCheckvisibilty { get; private set; }
+        public TextView AddLink { get; private set; }
 
         #endregion
     }

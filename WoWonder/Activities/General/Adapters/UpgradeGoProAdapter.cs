@@ -217,7 +217,7 @@ namespace WoWonder.Activities.General.Adapters
                             dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_6), IonIconsFonts.Close);
                             break;
                         default:
-                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion?.ToString() + " " + ActivityContext.GetText(Resource.String.Lbl_Posts), IonIconsFonts.Checkmark);
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion + " " + ActivityContext.GetText(Resource.String.Lbl_Posts), IonIconsFonts.Checkmark);
                             break;
                     }
                   
@@ -227,7 +227,7 @@ namespace WoWonder.Activities.General.Adapters
                             dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_go_pro_3), IonIconsFonts.Close);
                             break;
                         default:
-                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion?.ToString() + " " + ActivityContext.GetText(Resource.String.Lbl_Pages), IonIconsFonts.Checkmark);
+                            dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_BoostUpTo) + " " + packages.PostsPromotion + " " + ActivityContext.GetText(Resource.String.Lbl_Pages), IonIconsFonts.Checkmark);
                             break;
                     }
                    
@@ -237,7 +237,7 @@ namespace WoWonder.Activities.General.Adapters
                             dictionary.Add(ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Close);
                             break;
                         default:
-                            dictionary.Add(packages.Discount?.ToString() + "% " + ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Checkmark);
+                            dictionary.Add(packages.Discount + "% " + ActivityContext.GetText(Resource.String.Lbl_Discount), IonIconsFonts.Checkmark);
                             break;
                     } 
                 }
@@ -440,9 +440,9 @@ namespace WoWonder.Activities.General.Adapters
                 UpgradeButton = MainView.FindViewById<Button>(Resource.Id.UpgradeButton);
                 RelativeLayout = MainView.FindViewById<RelativeLayout>(Resource.Id.relativeLayout1);
 
-                UpgradeButton.Click += (sender, e) => upgradeButtonClickListener(new UpgradeGoProAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new UpgradeGoProAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new UpgradeGoProAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                UpgradeButton.Click += (sender, e) => upgradeButtonClickListener(new UpgradeGoProAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new UpgradeGoProAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new UpgradeGoProAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
             }
             catch (Exception e)

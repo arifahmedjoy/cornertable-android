@@ -188,8 +188,8 @@ namespace WoWonder.Activities.MyPhoto.Adapters
                 Image = MainView.FindViewById<ImageView>(Resource.Id.image);
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new MyPhotosAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new MyPhotosAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new MyPhotosAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new MyPhotosAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

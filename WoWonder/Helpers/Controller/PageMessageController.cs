@@ -32,7 +32,7 @@ namespace WoWonder.Helpers.Controller
         private static MsgTabbedMainActivity GlobalContext;
 
         //========================= Functions ========================= 
-        public static async Task SendMessageTask(PageChatWindowActivity windowActivity, string pageId, string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
+        public static async Task SendMessageTask(PageChatWindowActivity windowActivity, string pageId, string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "", string replyId = "")
         {
             try
             {
@@ -55,28 +55,28 @@ namespace WoWonder.Helpers.Controller
                 }
                 else
                 {
-                    StartApiService(pageId, id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+                    StartApiService(pageId, id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng, replyId);
                 }
-                 
+
                 await Task.Delay(0);
             }
             catch (Exception ex)
             {
-               Methods.DisplayReportResultTrack(ex);
+                Methods.DisplayReportResultTrack(ex);
             }
         }
 
-        private static void StartApiService(string pageId ,string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
+        private static void StartApiService(string pageId, string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "", string replyId = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(MainWindowActivity, MainWindowActivity.GetString(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(MainWindowActivity, MainWindowActivity.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => SendMessage(pageId ,id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => SendMessage(pageId, id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng, replyId) });
         }
 
-        private static async Task SendMessage(string pageId ,string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "")
+        private static async Task SendMessage(string pageId, string id, string messageId, string text = "", string contact = "", string pathFile = "", string imageUrl = "", string stickerId = "", string gifUrl = "", string lat = "", string lng = "", string replyId = "")
         {
-            var (apiStatus, respond) = await RequestsAsync.PageChat.SendMessageToPageChatAsync(pageId ,id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng);
+            var (apiStatus, respond) = await RequestsAsync.PageChat.SendMessageToPageChatAsync(pageId, id, messageId, text, contact, pathFile, imageUrl, stickerId, gifUrl, lat, lng, replyId);
             if (apiStatus == 200)
             {
                 if (respond is PageSendMessageObject result)
@@ -91,59 +91,25 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                foreach (var messageInfo in chatMessages)
+                MessageData messageInfo = chatMessages?.FirstOrDefault();
+                if (messageInfo != null)
                 {
                     var typeModel = Holders.GetTypeModel(messageInfo);
                     if (typeModel == MessageModelType.None)
-                        continue;
-
-                    var message = WoWonderTools.MessageFilter(messageInfo.PageId, messageInfo, typeModel);
-                    
-                    message.ModelType = typeModel;
-                    message.SendFile = false;
-
-                    var checker = MainWindowActivity?.MAdapter.DifferList?.FirstOrDefault(a => a.MesData.Id == message.MessageHashId);
+                        return;
+                      
+                    var checker = MainWindowActivity?.MAdapter.DifferList?.FirstOrDefault(a => a.MesData.Id == messageInfo.MessageHashId);
                     if (checker != null)
-                    { 
-                        //checker.TypeView = typeModel;
+                    {
+                        var message = WoWonderTools.MessageFilter(messageInfo.ToId, messageInfo, typeModel, true);
+                        message.ModelType = typeModel;
+
                         checker.MesData = message;
                         checker.Id = Java.Lang.Long.ParseLong(message.Id);
                         checker.TypeView = typeModel;
-
-                        checker.MesData.Id = message.Id;
-                        checker.MesData.FromId = message.FromId;
-                        checker.MesData.GroupId = message.GroupId;
-                        checker.MesData.ToId = message.ToId;
-                        checker.MesData.Text = message.Text;
-                        checker.MesData.Media = message.Media;
-                        checker.MesData.MediaFileName = message.MediaFileName;
-                        checker.MesData.MediaFileNames = message.MediaFileNames;
-                        checker.MesData.Time = message.Time;
-                        checker.MesData.Seen = message.Seen;
-                        checker.MesData.DeletedOne = message.DeletedOne;
-                        checker.MesData.DeletedTwo = message.DeletedTwo;
-                        checker.MesData.SentPush = message.SentPush;
-                        checker.MesData.NotificationId = message.NotificationId;
-                        checker.MesData.TypeTwo = message.TypeTwo;
-                        checker.MesData.Stickers = message.Stickers;
-                        checker.MesData.TimeText = message.TimeText;
-                        checker.MesData.Position = message.Position;
-                        checker.MesData.ModelType = message.ModelType;
-                        checker.MesData.FileSize = message.FileSize;
-                        checker.MesData.MediaDuration = message.MediaDuration;
-                        checker.MesData.MediaIsPlaying = message.MediaIsPlaying;
-                        checker.MesData.ContactNumber = message.ContactNumber;
-                        checker.MesData.ContactName = message.ContactName;
-                        checker.MesData.ProductId = message.ProductId;
-                        checker.MesData.MessageUser = message.MessageUser;
-                        checker.MesData.Product = message.Product;
-                        checker.MesData.MessageHashId = message.MessageHashId;
-                        checker.MesData.Lat = message.Lat;
-                        checker.MesData.Lng = message.Lng;
-                        checker.MesData.SendFile = false;
-
-                        #region LastChat
                          
+                        #region LastChat
+
                         //if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                         //{
                         //    var updaterUser = GlobalContext?.LastChatTab?.MAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == message.ToId);
@@ -153,7 +119,7 @@ namespace WoWonder.Helpers.Controller
                         //        updaterUser.LastChat.IsMute = WoWonderTools.CheckMute(pageId + id, "page");
                         //        updaterUser.LastChat.IsPin = WoWonderTools.CheckPin(pageId + id, "page");
                         //        var archiveObject = WoWonderTools.CheckArchive(pageId + id, "page");
-                        //        updaterUser.LastChat.IsArchive = archiveObject != null;
+                        //        updaterUser.LastChat.IsArchive = archiveObject != null!;
 
                         //        var index = GlobalContext.LastChatTab.MAdapter.LastChatsList.IndexOf(GlobalContext.LastChatTab.MAdapter.LastChatsList.FirstOrDefault(x => x.LastChat?.PageId == message.PageId));
                         //        if (index > -1)
@@ -220,7 +186,7 @@ namespace WoWonder.Helpers.Controller
                         //                    PageData.IsMute = WoWonderTools.CheckMute(pageId + id, "page");
                         //                    PageData.IsPin = WoWonderTools.CheckPin(pageId + id, "page");
                         //                    var archiveObject = WoWonderTools.CheckArchive(pageId + id, "page");
-                        //                    PageData.IsArchive = archiveObject != null;
+                        //                    PageData.IsArchive = archiveObject != null!;
 
                         //                    if (!PageData.IsArchive)
                         //                    {
@@ -271,7 +237,7 @@ namespace WoWonder.Helpers.Controller
                         //        updaterUser.LastChatPage.IsMute = WoWonderTools.CheckMute(pageId + id, "page");
                         //        updaterUser.LastChatPage.IsPin = WoWonderTools.CheckPin(pageId + id, "page");
                         //        var archiveObject = WoWonderTools.CheckArchive(pageId + id, "page");
-                        //        updaterUser.LastChatPage.IsArchive = archiveObject != null;
+                        //        updaterUser.LastChatPage.IsArchive = archiveObject != null!;
 
                         //        var index = GlobalContext.LastPageChatsTab.MAdapter.LastChatsList.IndexOf(GlobalContext.LastPageChatsTab.MAdapter.LastChatsList.FirstOrDefault(x => x.LastChatPage?.PageId == message.PageId));
                         //        if (index > -1)
@@ -335,7 +301,7 @@ namespace WoWonder.Helpers.Controller
                         //                if (DataProfilePage != null)
                         //                {
                         //                    var archiveObject = WoWonderTools.CheckArchive(pageId + id, "page");
-                        //                    DataProfilePage.IsArchive = archiveObject != null;
+                        //                    DataProfilePage.IsArchive = archiveObject != null!;
 
                         //                    if (!DataProfilePage.IsArchive)
                         //                    {
@@ -380,10 +346,10 @@ namespace WoWonder.Helpers.Controller
                         //        });
                         //    }
                         //}
-                         
+
                         #endregion
 
-                        GlobalContext.Activity?.RunOnUiThread(() =>
+                        GlobalContext?.RunOnUiThread(() =>
                         {
                             try
                             {
@@ -398,11 +364,11 @@ namespace WoWonder.Helpers.Controller
                             {
                                 Methods.DisplayReportResultTrack(e);
                             }
-                        }); 
+                        });
                     }
 
-                    PageData = null;
-                    DataProfilePage = null;
+                    PageData = null!;
+                    DataProfilePage = null!;
                 }
             }
             catch (Exception e)
@@ -489,7 +455,7 @@ namespace WoWonder.Helpers.Controller
                     if (attach != null)
                     {
                         FilePath = imageFile.Path;
-                        StartApiService(PageId ,Id, MessageHashId, Text, "", FilePath);
+                        StartApiService(PageId, Id, MessageHashId, Text, "", FilePath);
                     }
                 }
                 catch (Exception e)
@@ -498,6 +464,6 @@ namespace WoWonder.Helpers.Controller
                 }
             }
         }
-           
+
     }
 }

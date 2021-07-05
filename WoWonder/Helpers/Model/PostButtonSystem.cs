@@ -8,14 +8,32 @@
         ReactionDefault,
         ReactionSubShine
     }
-
-
+     
+    public enum BottomNavigationSystem
+    {
+        MeowBottomNavigation,
+        Default,
+    }
+     
     public enum MoreTheme
     {
-        Default,
-        BeautyTheme
+        Card,
+        Grid,
     }
-
+     
+    public enum ToastTheme
+    {
+        Default,
+        Custom,
+    }
+     
+    public enum StyleRowMore
+    {
+        Row = 0,
+        Card = 1,
+        Grid = 2,
+    }
+     
     public enum VideoPostTypeSystem
     {
         EmbedVideo,
@@ -24,6 +42,19 @@
     }
 
 
+    public enum CoverImageStyle
+    {
+        CenterCrop,
+        FitCenter,
+        Default
+    }
+    
+    public enum ImagePostStyle
+    {
+        FullWidth,
+        Default
+    }
+    
     public enum SystemApiGetLastChat
     {
         Old,

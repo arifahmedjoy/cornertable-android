@@ -6,8 +6,6 @@ using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
@@ -56,7 +54,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 PageId = Intent?.GetStringExtra("PagesId");
 
                 if (!string.IsNullOrEmpty(Intent?.GetStringExtra("PageData")))
-                    PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData"));
+                    PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData") ?? "");
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -363,18 +361,15 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                 {
                     case 2019 when resultCode == Result.Ok:
                     {
-                        var manged = PagesActivity.GetInstance().MAdapter.SocialList.FirstOrDefault(a => a.TypeView == SocialModelType.MangedPages);
-                        var dataListGroup = manged?.PagesModelClass.PagesList?.FirstOrDefault(a => a.PageId == PageId);
-                        if (dataListGroup != null)
+                        var manged = PagesActivity.GetInstance()?.MAdapter?.SocialList?.FirstOrDefault(a => a.Page?.PageId == PageId && a.TypeView == SocialModelType.MangedPages);
+                        if (manged?.Page != null)
                         {
-                            manged.PagesModelClass.PagesList.Remove(dataListGroup);
+                            PagesActivity.GetInstance().MAdapter.SocialList.Remove(manged);
                             PagesActivity.GetInstance().MAdapter.NotifyDataSetChanged();
 
-                            ListUtils.MyPageList.Remove(dataListGroup);
-
-                            Finish();
-                        } 
-
+                            ListUtils.MyPageList.Remove(manged.Page);
+                        }
+                         
                         Intent returnIntent = new Intent();
                         SetResult(Result.Ok, returnIntent);
                         Finish();
@@ -385,7 +380,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
                         var pageItem = data.GetStringExtra("pageItem") ?? "";
                         if (string.IsNullOrEmpty(pageItem))
                         {
-                            PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("pageItem"));
+                            PageData = JsonConvert.DeserializeObject<PageClass>(pageItem);
                             PageProfileActivity.PageData = PageData;
                         }
 

@@ -61,7 +61,7 @@
             android:visibility="gone"
             app:cb_color="#00ffffff" /> 
 	
-		<WoWonder.Library.Anjo.StoriesProgressView.StoriesProgressView
+		<WoWonder.Library.Anjo.Stories.StoriesProgressView.StoriesProgressView
 			android:id="@+id/stories"
             android:layout_width="match_parent"
             android:layout_height="3dp"
@@ -85,7 +85,7 @@
 				android:layout_gravity="center"
 				android:gravity="center" 
 	     		android:layout_marginStart="8dp" />
-	     	<developer.semojis.Helper.EmojiconEditText
+	     	<com.aghajari.emojiview.view.AXEmojiEditText
 	     		android:id="@+id/EmojiconEditText5"
 	     		android:layout_width="match_parent"
 	     		android:layout_height="60dp"
@@ -93,7 +93,6 @@
 	     		android:layout_marginStart="6dp"
 	     		android:textSize="17dp"
 	     		android:hint="@string/Lbl_Add_caption"
-	     		app:emojiconSize="23sp"
 	     		android:backgroundTint="@android:color/transparent"
 	     		android:background="@android:color/transparent"
 	     		android:layout_gravity="center"

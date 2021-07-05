@@ -50,7 +50,7 @@ namespace WoWonder.Activities.Chat.Call.Adapters
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -98,8 +98,8 @@ namespace WoWonder.Activities.Chat.Call.Adapters
                             ListOnline.Add(item.Name);
 
                             Toast toast = Toast.MakeText(ActivityContext, item.Name + " " + ActivityContext.GetString(Resource.String.Lbl_Online), ToastLength.Short);
-                            toast.SetGravity(GravityFlags.Center, 0, 0);
-                            toast.Show();
+                            toast?.SetGravity(GravityFlags.Center, 0, 0);
+                            toast?.Show();
                         }
                     }
                 }
@@ -186,10 +186,10 @@ namespace WoWonder.Activities.Chat.Call.Adapters
                 TxtIconAudioCall = (TextView)MainView.FindViewById(Resource.Id.IconAudioCall);
                 TxtIconVideoCall = (TextView)MainView.FindViewById(Resource.Id.IconVideoCall);
 
-                itemView.Click += (sender, e) => clickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                TxtIconAudioCall.Click += (sender, e) => audioCallclickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                TxtIconVideoCall.Click += (sender, e) => videoCallclickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                TxtIconAudioCall.Click += (sender, e) => audioCallclickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                TxtIconVideoCall.Click += (sender, e) => videoCallclickListener(new AddNewCallAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
                 if (AppSettings.EnableVideoCall)
                 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Views;
@@ -11,6 +11,7 @@ using Com.Google.Android.Exoplayer2;
 using Com.Google.Android.Exoplayer2.Drm;
 using Com.Google.Android.Exoplayer2.Ext.Ima;
 using Com.Google.Android.Exoplayer2.Extractor.TS;
+using Com.Google.Android.Exoplayer2.Offline;
 using Com.Google.Android.Exoplayer2.Source;
 using Com.Google.Android.Exoplayer2.Source.Ads;
 using Com.Google.Android.Exoplayer2.Source.Dash;
@@ -420,14 +421,19 @@ namespace WoWonder.Helpers.Controller
                 DrmSessionManager = drmSessionManager ?? IDrmSessionManager.DummyDrmSessionManager;
                 return this;
             }
+
+            public IMediaSourceFactory SetStreamKeys(IList<StreamKey> streamKeys)
+            {
+                return this;
+            }
         }
 
         private IMediaSource GetMediaSourceFromUrl(Uri uri, string extension, string tag)
         {
-            var BandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(ActivityContext);
+            var bandwidthMeter = DefaultBandwidthMeter.GetSingletonInstance(ActivityContext);
             //DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(ActivityContext, Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName), mBandwidthMeter);
-            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(ActivityContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
-            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(ActivityContext, BandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactory = new DefaultDataSourceFactory(ActivityContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
+            var buildHttpDataSourceFactoryNull = new DefaultDataSourceFactory(ActivityContext, bandwidthMeter, new DefaultHttpDataSourceFactory(Util.GetUserAgent(ActivityContext, AppSettings.ApplicationName)));
             int type = Util.InferContentType(uri, extension);
             try
             {
@@ -643,11 +649,11 @@ namespace WoWonder.Helpers.Controller
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == ActivityContext.GetString(Resource.String.Lbl_CopeLink))
                 {
                     OnMenu_CopeLink_Click(VideoData);

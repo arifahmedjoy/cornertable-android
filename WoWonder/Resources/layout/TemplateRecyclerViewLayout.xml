@@ -31,26 +31,35 @@
                 android:id="@+id/textTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@+id/textTitle"
-                android:textSize="14dp"
-                android:textStyle="bold"
-                android:layout_gravity="start|center"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="0dp" />
+                android:layout_toEndOf="@+id/iconTitle"
+                android:inputType="textMultiLine" 
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="25dp"
+                android:layout_alignParentTop="true"
+                android:textSize="18sp" 
+                android:maxLines="1"
+                android:lineSpacingExtra="3dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp" />
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="30dp">
                 <TextView
                     android:id="@+id/textMore"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="25dp"
                     android:textSize="12sp"
-					android:visibility="gone"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/accent"
                     android:text="@string/Lbl_SeeAll"
                     android:layout_alignParentEnd="true"
-                    android:layout_centerInParent="true"
-                    android:layout_marginEnd="12dp"
-					android:padding="8dp" />
+                    android:layout_centerVertical="true"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="2dp"
+                    android:layout_marginEnd="8dp" 
+					android:visibility="gone" />
             </RelativeLayout>
         </LinearLayout>
         <TextView
@@ -75,4 +84,11 @@
         android:scrollbars="vertical"
         android:padding="8dp"
         android:layout_marginTop="5dp" />
+    <View
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:layout_marginTop="5dp"
+      android:visibility="gone"
+      android:background="?attr/colorDivider"
+      android:layout_below="@+id/recyler" />
 </LinearLayout>

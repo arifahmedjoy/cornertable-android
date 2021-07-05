@@ -262,7 +262,7 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                     return;
                 }
 
@@ -369,7 +369,7 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadData });
         }
@@ -428,7 +428,7 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
                                         switch (MAdapter.LinksList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short);
                                                 break;
                                         }
 
@@ -451,7 +451,7 @@ namespace WoWonder.Activities.SettingsPreferences.InvitationLinks
             }
             else
             {
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 

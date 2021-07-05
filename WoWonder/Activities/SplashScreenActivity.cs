@@ -2,8 +2,7 @@
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.OS; 
-using Android.Widget;
+using Android.OS;
 using AndroidX.AppCompat.App;
 using Java.Lang;
 using WoWonder.Activities.Default;
@@ -18,7 +17,7 @@ namespace WoWonder.Activities
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/SplashScreenTheme", NoHistory = true, MainLauncher = true, ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "http", "https" }, DataHost = "@string/ApplicationUrlWeb", AutoVerify = false)]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "http", "https" }, DataHost = "@string/ApplicationUrlWeb", DataPathPrefixes = new[] { "/register/", "/post/" }, AutoVerify = false)]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "http", "https" }, DataHost = "@string/ApplicationUrlWeb", DataPathPrefixes = new[] { "/register", "/post/", "/index.php?link1=reset-password", "/index.php?link1=activate" }, AutoVerify = false)]
     public class SplashScreenActivity : AppCompatActivity
     { 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -50,55 +49,78 @@ namespace WoWonder.Activities
                         LangController.SetApplicationLang(this, UserDetails.LangName);
                         break;
                 }
-                  
-                switch (string.IsNullOrEmpty(UserDetails.AccessToken))
+
+                if (string.IsNullOrEmpty(UserDetails.AccessToken) && Intent?.Data != null)
                 {
-                    case false when Intent?.Data?.Path != null:
+                    if (Intent.Data.ToString()!.Contains("register") && UserDetails.Status != "Active" && UserDetails.Status != "Pending")
                     {
-                        if (Intent.Data.Path.Contains("register") && UserDetails.Status != "Active" && UserDetails.Status != "Pending")
-                        {
-                            StartActivity(new Intent(Application.Context, typeof(RegisterActivity)));
-                        }
-                        else if (Intent.Data.Path.Contains("post") && (UserDetails.Status == "Active" || UserDetails.Status == "Pending"))
-                        {
-                            var postId = Intent.Data.Path.Split("/").Last().Replace("/", "").Split("_").First();
+                        //https://demo.wowonder.com/register?ref=waelanjo
+                        var referral = Intent.Data.ToString()!.Split("?ref=")?.Last() ?? "";
 
-                            var intent = new Intent(Application.Context, typeof(ViewFullPostActivity));
-                            intent.PutExtra("Id", postId);
-                            StartActivity(intent);
-                        }
-                        else
-                        {
-                            switch (UserDetails.Status)
-                            {
-                                case "Active":
-                                case "Pending":
-                                    StartActivity(new Intent(Application.Context, typeof(TabbedMainActivity)));
-                                    break;
-                                default: 
-                                    StartActivity(new Intent(Application.Context, typeof(LoginActivity))); 
-                                    break;
-                            }
-                        }
-
-                        break;
+                        var intent = new Intent(Application.Context, typeof(RegisterActivity));
+                        intent.PutExtra("Referral", referral);
+                        StartActivity(intent);
                     }
-                    case false:
+                    else if (Intent.Data.ToString()!.Contains("index.php?link1=reset-password"))
+                    {
+                        //https://demo.wowonder.com/index.php?link1=reset-password&code=15801_c034152d790b951f7d30d8f389c502a7
+                        var code = Intent.Data.ToString()!.Split("code=").Last();
+
+                        var intent = new Intent(Application.Context, typeof(ResetPasswordActivity));
+                        intent.PutExtra("Code", code);
+                        StartActivity(intent);
+                    }
+                    else if (Intent.Data.ToString()!.Contains("index.php?link1=activate"))
+                    {
+                        //https://demo.wowonder.com/index.php?link1=activate&email=wael.dev1994@gmail.com&code=7833d88964191faac34b5780e3ffe78a
+                        var email = Intent.Data.ToString()!.Split("&email=").Last().Split("&code=").First();
+                        var code = Intent.Data.ToString()!.Split("&code=").Last();
+
+                        var intent = new Intent(Application.Context, typeof(ValidationUserActivity));
+                        intent.PutExtra("Code", code);
+                        intent.PutExtra("Email", email);
+                        StartActivity(intent);
+                    } 
+                    else
+                    {
                         switch (UserDetails.Status)
                         {
                             case "Active":
                             case "Pending":
                                 StartActivity(new Intent(Application.Context, typeof(TabbedMainActivity)));
                                 break;
-                            default: 
-                                StartActivity(new Intent(Application.Context, typeof(LoginActivity))); 
+                            default:
+                                StartActivity(new Intent(Application.Context, typeof(LoginActivity)));
                                 break;
-                        } 
-                        break;
-                    default: 
-                        StartActivity(new Intent(Application.Context, typeof(LoginActivity))); 
-                        break;
+                        }
+                    }
                 }
+                else  
+                {
+                    if (Intent?.Data != null && Intent.Data.ToString()!.Contains("post"))
+                    {
+                        //https://beta.wowonder.com/post/230744_.html
+                        var postId = Intent.Data.ToString()!.Split("/").Last().Replace("/", "").Split("_").First();
+
+                        var intent = new Intent(Application.Context, typeof(ViewFullPostActivity));
+                        intent.PutExtra("Id", postId);
+                        StartActivity(intent);
+                    }
+                    else
+                    {
+                        switch (UserDetails.Status)
+                        {
+                            case "Active":
+                            case "Pending":
+                                StartActivity(new Intent(Application.Context, typeof(TabbedMainActivity)));
+                                break;
+                            default:
+                                StartActivity(new Intent(Application.Context, typeof(LoginActivity)));
+                                break;
+                        }
+                    }
+                   
+                } 
 
                 OverridePendingTransition(Resource.Animation.abc_fade_in, Resource.Animation.abc_fade_out);
                 Finish();
@@ -106,7 +128,6 @@ namespace WoWonder.Activities
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                Toast.MakeText(this, exception.Message, ToastLength.Short)?.Show();
             }
         }
     }

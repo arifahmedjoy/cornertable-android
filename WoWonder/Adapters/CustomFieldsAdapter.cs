@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Graphics;
 using Android.Views;
@@ -251,8 +251,8 @@ namespace WoWonder.Adapters
                 Methods.SetColorEditText(EdtField2, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                  
                 //Event  
-                itemView.Click += (sender, e) => clickListener(new CustomFieldsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new CustomFieldsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new CustomFieldsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new CustomFieldsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

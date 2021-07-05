@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -12,7 +13,6 @@ using AndroidX.AppCompat.Content.Res;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Default;
 using WoWonder.Helpers.Ads;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Global;
@@ -28,7 +28,8 @@ namespace WoWonder.Activities.SettingsPreferences.General
         #region Variables Basic
 
         private EditText TxtCurrentPassword, TxtNewPassword, TxtRepeatPassword;
-        private TextView TxtSave, IconCurrentPassword, IconNewPassword, IconRepeatPassword, TxtLinkForget;
+        private TextView TxtLinkForget;
+        private Button BtnSave;
 
         #endregion
 
@@ -143,23 +144,16 @@ namespace WoWonder.Activities.SettingsPreferences.General
         {
             try
             {
-                TxtSave = FindViewById<TextView>(Resource.Id.toolbar_title);
+                BtnSave = FindViewById<Button>(Resource.Id.SaveButton);
 
-                IconCurrentPassword = FindViewById<TextView>(Resource.Id.IconCurrentPassword);
                 TxtCurrentPassword = FindViewById<EditText>(Resource.Id.CurrentPasswordEditText);
-
-                IconNewPassword = FindViewById<TextView>(Resource.Id.IconNewPassword);
+                 
                 TxtNewPassword = FindViewById<EditText>(Resource.Id.NewPasswordEditText);
-
-                IconRepeatPassword = (TextView)FindViewById(Resource.Id.IconRepeatPassword);
+                 
                 TxtRepeatPassword = (EditText)FindViewById(Resource.Id.RepeatPasswordEditText);
 
                 TxtLinkForget = FindViewById<TextView>(Resource.Id.linkText);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconCurrentPassword, FontAwesomeIcon.Key);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconNewPassword, FontAwesomeIcon.UnlockAlt);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconRepeatPassword, FontAwesomeIcon.LockAlt);
-
+                 
                 Methods.SetColorEditText(TxtCurrentPassword, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtNewPassword, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtRepeatPassword, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -205,11 +199,11 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     // true +=  // false -=
                     case true:
                         TxtLinkForget.Click += TxtLinkForget_OnClick;
-                        TxtSave.Click += SaveData_OnClick;
+                        BtnSave.Click += SaveData_OnClick;
                         break;
                     default:
                         TxtLinkForget.Click -= TxtLinkForget_OnClick;
-                        TxtSave.Click -= SaveData_OnClick;
+                        BtnSave.Click -= SaveData_OnClick;
                         break;
                 }
             }
@@ -221,13 +215,10 @@ namespace WoWonder.Activities.SettingsPreferences.General
         private void DestroyBasic()
         {
             try
-            { 
-                TxtSave = null!;
-                IconCurrentPassword = null!;
+            {
+                BtnSave = null!;
                 TxtCurrentPassword = null!;
-                IconNewPassword = null!;
                 TxtNewPassword = null!;
-                IconRepeatPassword = null!;
                 TxtRepeatPassword = null!;
                 TxtLinkForget = null!;
             }
@@ -259,29 +250,42 @@ namespace WoWonder.Activities.SettingsPreferences.General
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 if (string.IsNullOrEmpty(TxtCurrentPassword.Text) || string.IsNullOrEmpty(TxtNewPassword.Text) || string.IsNullOrEmpty(TxtRepeatPassword.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_check_your_details), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_check_your_details), ToastLength.Long);
                     return;
                 }
 
                 if (TxtNewPassword.Text != TxtRepeatPassword.Text)
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Your_password_dont_match), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Your_password_dont_match), ToastLength.Long);
                     return;
                 }
 
                 //Show a progress
                 AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
+                var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
 
                 var dataPrivacy = new Dictionary<string, string>
                 {
                     {"new_password", TxtNewPassword.Text},
-                    {"current_password", TxtCurrentPassword.Text}
+                    {"current_password", TxtCurrentPassword.Text},
+
+                    {"e_memory", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMemory ?? "1"},
+                    {"e_profile_wall_post", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EProfileWallPost ?? "1"},
+                    {"e_accepted", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EAccepted ?? "1"},
+                    {"e_joined_group", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EJoinedGroup ?? "1"},
+                    {"e_mentioned", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EMentioned ?? "1"},
+                    {"e_visited", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EVisited ?? "1"},
+                    {"e_liked_page", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELikedPage ?? "1"},
+                    {"e_followed", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EFollowed ?? "1"},
+                    {"e_shared", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.EShared ?? "1"},
+                    {"e_commented", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ECommented ?? "1"},
+                    {"e_liked", dataUser?.ApiNotificationSettings.NotificationSettingsClass?.ELiked ?? "1"},
                 };
 
                 var (apiStatus, respond) = await RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy);
@@ -294,7 +298,7 @@ namespace WoWonder.Activities.SettingsPreferences.General
                             case MessageObject result when result.Message.Contains("updated"):
                                 UserDetails.Password = TxtNewPassword.Text;
 
-                                Toast.MakeText(this, result.Message, ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourDetailsWasUpdated), ToastLength.Short);
                                 AndHUD.Shared.Dismiss(this);
                                 break;
                             case MessageObject result:

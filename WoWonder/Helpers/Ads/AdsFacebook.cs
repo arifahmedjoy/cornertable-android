@@ -19,31 +19,32 @@ namespace WoWonder.Helpers.Ads
 
         #region Banner
 
-        public static AdView InitAdView(Activity activity, LinearLayout adContainer)
+        public static AdView InitAdView(Activity activity, LinearLayout adContainer, RecyclerView recyclerView)
         {
             try
             {
-                switch (AppSettings.ShowFbBannerAds)
+                if (AppSettings.ShowFbBannerAds)
                 {
-                    case true:
-                    {
-                        InitializeFacebook.Initialize(activity);
+                    InitializeFacebook.Initialize(activity);
 
-                        AdView adView = new AdView(activity, AppSettings.AdsFbBannerKey, AdSize.BannerHeight50);
-                        // Add the ad view to your activity layout
-                        adContainer.AddView(adView);
+                    AdView adView = new AdView(activity, AppSettings.AdsFbBannerKey, AdSize.BannerHeight50);
+                    // Add the ad view to your activity layout
+                    adContainer.AddView(adView);
 
 #pragma warning disable 618
-                        adView.SetAdListener(new BannerAdListener());
+                    adView.SetAdListener(new BannerAdListener(recyclerView));
 #pragma warning restore 618
-                        // Request an ad
-                        adView.LoadAd();
+                    // Request an ad
+                    adView.LoadAd();
 
-                        return adView;
-                    }
-                    default:
-                        return null!;
+                    return adView;
                 }
+                else
+                {
+                    if (recyclerView != null)
+                        Methods.SetMargin(recyclerView, 0, 0, 0, 0);
+                }
+                return null!;
             }
             catch (Exception e)
             {
@@ -54,7 +55,11 @@ namespace WoWonder.Helpers.Ads
 
         private class BannerAdListener : Java.Lang.Object, IAdListener
         {
-
+            private RecyclerView MRecycler;
+            public BannerAdListener(RecyclerView recyclerView)
+            {
+                MRecycler = recyclerView;
+            }
             /// <summary>
             /// Ad clicked callback
             /// </summary>
@@ -84,6 +89,7 @@ namespace WoWonder.Helpers.Ads
                 {
                     var error = adError.ErrorMessage;
                     Console.WriteLine(error);
+                    if (MRecycler != null) Methods.SetMargin(MRecycler, 0, 0, 0, 0);
                 }
                 catch (Exception e)
                 {
@@ -112,20 +118,20 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowFbInterstitialAds)
                 {
                     case true when CountInterstitial == AppSettings.ShowAdMobInterstitialCount:
-                    {
-                        InitializeFacebook.Initialize(activity);
+                        {
+                            InitializeFacebook.Initialize(activity);
 
-                        CountInterstitial = 0;
-                        var interstitialAd = new InterstitialAd(activity, AppSettings.AdsFbInterstitialKey);
+                            CountInterstitial = 0;
+                            var interstitialAd = new InterstitialAd(activity, AppSettings.AdsFbInterstitialKey);
 
 #pragma warning disable 618
-                        interstitialAd.SetAdListener(new MyInterstitialAdListener(activity, interstitialAd));
+                            interstitialAd.SetAdListener(new MyInterstitialAdListener(activity, interstitialAd));
 #pragma warning restore 618
-                        // Request an ad
-                        interstitialAd.LoadAd();
+                            // Request an ad
+                            interstitialAd.LoadAd();
 
-                        return interstitialAd;
-                    }
+                            return interstitialAd;
+                        }
                     case true:
                         CountInterstitial++;
                         break;
@@ -234,21 +240,21 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowFbRewardVideoAds)
                 {
                     case true when CountRewarded == AppSettings.ShowAdMobRewardedVideoCount:
-                    {
-                        InitializeFacebook.Initialize(activity);
+                        {
+                            InitializeFacebook.Initialize(activity);
 
-                        CountRewarded = 0;
+                            CountRewarded = 0;
 
-                        var rewardVideoAd = new RewardedVideoAd(activity, AppSettings.AdsFbRewardVideoKey);
+                            var rewardVideoAd = new RewardedVideoAd(activity, AppSettings.AdsFbRewardVideoKey);
 
 #pragma warning disable 618
-                        rewardVideoAd.SetAdListener(new MyRRewardVideoAdListener(activity, rewardVideoAd));
+                            rewardVideoAd.SetAdListener(new MyRRewardVideoAdListener(activity, rewardVideoAd));
 #pragma warning restore 618
-                        rewardVideoAd.LoadAd();
-                        //RewardVideoAd.SetRewardData(new RewardData("YOUR_USER_ID", "YOUR_REWARD"));
+                            rewardVideoAd.LoadAd();
+                            //RewardVideoAd.SetRewardData(new RewardData("YOUR_USER_ID", "YOUR_REWARD"));
 
-                        return rewardVideoAd;
-                    }
+                            return rewardVideoAd;
+                        }
                     case true:
                         CountRewarded++;
                         break;
@@ -371,32 +377,32 @@ namespace WoWonder.Helpers.Ads
                 switch (AppSettings.ShowFbNativeAds)
                 {
                     case true:
-                    {
-                        InitializeFacebook.Initialize(activity);
-
-                        switch (ad)
                         {
-                            case null:
+                            InitializeFacebook.Initialize(activity);
+
+                            switch (ad)
                             {
-                                var nativeAd = new NativeAd(activity, AppSettings.AdsFbNativeKey);
+                                case null:
+                                    {
+                                        var nativeAd = new NativeAd(activity, AppSettings.AdsFbNativeKey);
 #pragma warning disable 618
-                                nativeAd.SetAdListener(new NativeAdListener(activity, nativeAd, nativeAdLayout));
+                                        nativeAd.SetAdListener(new NativeAdListener(activity, nativeAd, nativeAdLayout));
 #pragma warning restore 618
 
-                                // Initiate a request to load an ad.
-                                nativeAd.LoadAd();
-                                break;
+                                        // Initiate a request to load an ad.
+                                        nativeAd.LoadAd();
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        var holder = new AdHolder(nativeAdLayout);
+                                        LoadAd(activity, holder, ad, nativeAdLayout);
+                                        break;
+                                    }
                             }
-                            default:
-                            {
-                                var holder = new AdHolder(nativeAdLayout);
-                                LoadAd(activity, holder, ad, nativeAdLayout);
-                                break;
-                            }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception e)

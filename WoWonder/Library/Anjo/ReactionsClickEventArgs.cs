@@ -28,7 +28,7 @@ namespace WoWonder.Library.Anjo
         public int Position { get; set; } 
         public string React { get; set; }
          
-        public ReactionsTouchEventArgs(bool handled, MotionEvent? e) : base(handled, e)
+        public ReactionsTouchEventArgs(bool handled, MotionEvent e) : base(handled, e)
         {
         }
     }

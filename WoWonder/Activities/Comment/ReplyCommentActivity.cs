@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Aghajari.EmojiView.Views;
 using Android;
 using Android.App;
 using Android.Content;
@@ -17,8 +18,6 @@ using Bumptech.Glide;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Request;
 using Bumptech.Glide.Util;
-using Developer.SEmojis.Actions;
-using Developer.SEmojis.Helper;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.IO;
 using Newtonsoft.Json;
@@ -30,6 +29,7 @@ using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo.EmojiView;
 using WoWonderClient.Classes.Comments;
 using WoWonderClient.Requests;
 using Console = System.Console;
@@ -50,12 +50,11 @@ namespace WoWonder.Activities.Comment
         private RecyclerViewOnScrollListener MainScrollEvent;
         private View CommentLayoutView;
         private TextView ReplyCountTextView;
-        public EmojiconEditText TxtComment;
+        public AXEmojiEditText TxtComment;
         private ImageView ImgBack, ImgSent, ImgGallery;
         private CommentObjectExtra CommentObject;
         private string CommentId, PathImage;
         private ImageView EmojisView;
-        private LinearLayout RootView;
 
         #endregion
 
@@ -186,26 +185,17 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
-                RootView = FindViewById<LinearLayout>(Resource.Id.main_content);
-
                 MRecycler = (RecyclerView)FindViewById(Resource.Id.recycler_view);
 
                 EmojisView = FindViewById<ImageView>(Resource.Id.emojiicon);
-                TxtComment = FindViewById<EmojiconEditText>(Resource.Id.commenttext);
+                TxtComment = FindViewById<AXEmojiEditText>(Resource.Id.commenttext);
                 ImgSent = FindViewById<ImageView>(Resource.Id.send);
                 ImgGallery = FindViewById<ImageView>(Resource.Id.image);
                 ImgBack = FindViewById<ImageView>(Resource.Id.back);
                 CommentLayout = FindViewById<ViewStub>(Resource.Id.comment_layout);
 
                 ReplyCountTextView = FindViewById<TextView>(Resource.Id.replyCountTextview);
-                 
-                switch (AppSettings.FlowDirectionRightToLeft)
-                {
-                    case true:
-                        ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-                        break;
-                }
-
+                  
                 ImgGallery.SetImageDrawable(AppSettings.SetTabDarkTheme ? GetDrawable(Resource.Drawable.ic_action_addpost_Ligth) : GetDrawable(Resource.Drawable.ic_action_AddPost));
 
                 var repliesCount = !string.IsNullOrEmpty(CommentObject.RepliesCount) ? CommentObject.RepliesCount : CommentObject.Replies ?? ""; 
@@ -216,9 +206,13 @@ namespace WoWonder.Activities.Comment
                 TxtComment.Text = "@" + CommentObject?.Publisher?.Username + " " ?? "";
                 PathImage = "";
 
-                var emojisIcon = new EmojIconActions(this, RootView, TxtComment, EmojisView);
-                emojisIcon.ShowEmojIcon();
-                emojisIcon.SetIconsIds(Resource.Drawable.ic_action_keyboard, Resource.Drawable.ic_action_sentiment_satisfied_alt);
+                EmojisViewTools.MStickerView = false;
+                AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, TxtComment, "");
+                AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
+                var emojisViewActions = new EmojisViewActions(this, "", popup, TxtComment, EmojisView);
+
+                int pos = TxtComment.Text.Length;
+                TxtComment.SetSelection(pos); 
             }
             catch (Exception e)
             {
@@ -431,7 +425,7 @@ namespace WoWonder.Activities.Comment
                     //Hide keyboard
                     TxtComment.Text = "";
 
-                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(CommentId, text, PathImage, "", "create_reply");
+                    var (apiStatus, respond) = await RequestsAsync.Comment.CreatePostCommentsAsync(CommentId, text, PathImage, "","", "create_reply");
                     switch (apiStatus)
                     {
                         case 200:
@@ -487,7 +481,7 @@ namespace WoWonder.Activities.Comment
                                                         }
                                                     }
 
-                                                    postFeedAdapter.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
+                                                    postFeedAdapter?.NotifyItemChanged(postFeedAdapter.ListDiffer.IndexOf(dataClass), "commentReplies");
                                                 }
 
                                                 break;
@@ -540,7 +534,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -602,7 +596,7 @@ namespace WoWonder.Activities.Comment
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadDataCommentReply(offset) });
         }
@@ -743,14 +737,14 @@ namespace WoWonder.Activities.Comment
                                         break;
                                     }
                                     default:
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                         break;
                                 }
 
                                 break;
                             }
                             case Result.Ok:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 break;
                         }
 
@@ -776,7 +770,7 @@ namespace WoWonder.Activities.Comment
                         OpenDialogGallery(); //requestCode >> 500 => Image Gallery
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -790,7 +784,7 @@ namespace WoWonder.Activities.Comment
 
         #region PickiT >> Gert path file
 
-        private void PickiTonCompleteListener(string path)
+        private async void PickiTonCompleteListener(string path)
         {
             //Dismiss dialog and return the path
             try
@@ -801,12 +795,12 @@ namespace WoWonder.Activities.Comment
                 //else => "Local file was selected"
 
                 //  Chick if it was successful
-                var check = WoWonderTools.CheckMimeTypesWithServer(path);
+                var check = await WoWonderTools.CheckMimeTypesWithServer(path);
                 switch (check)
                 {
                     case false:
                         //this file not supported on the server , please select another file 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                         return;
                 }
 
@@ -823,7 +817,7 @@ namespace WoWonder.Activities.Comment
                         break;
                     }
                     default:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
                         break;
                 }
             }
@@ -872,6 +866,12 @@ namespace WoWonder.Activities.Comment
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher

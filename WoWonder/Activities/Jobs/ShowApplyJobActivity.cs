@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -25,7 +25,6 @@ using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Jobs;
-using WoWonderClient.Classes.Message;
 using WoWonderClient.Requests;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
@@ -342,7 +341,7 @@ namespace WoWonder.Activities.Jobs
                     {
                         case true when AppSettings.ShowDialogAskOpenMessenger:
                         {
-                            var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                             dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                             dialog.Content(GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
@@ -405,7 +404,7 @@ namespace WoWonder.Activities.Jobs
         private void StartApiService(string offset = "")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadJobsAsync(offset) });
         }
@@ -451,7 +450,7 @@ namespace WoWonder.Activities.Jobs
                             switch (MAdapter.JobList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short);
                                     break;
                             }
 
@@ -475,7 +474,7 @@ namespace WoWonder.Activities.Jobs
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

@@ -10,9 +10,6 @@ using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
-
-
-
 using Android.Views;
 using Android.Views.Animations;
 using Android.Views.InputMethods;
@@ -80,7 +77,10 @@ namespace WoWonder.Activities.NearbyShops
 
                 StartApiService();
 
-                RewardedVideo =  AdsFacebook.InitRewardVideo(this);
+                if (AppSettings.ShowFbRewardVideoAds)
+                    RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                else
+                    AdsColony.Ad_Rewarded(this);
             }
             catch (Exception e)
             {
@@ -284,8 +284,6 @@ namespace WoWonder.Activities.NearbyShops
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
-
-
                 }
             }
             catch (Exception e)
@@ -461,7 +459,7 @@ namespace WoWonder.Activities.NearbyShops
         public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadShopsAsync(offset) });
         }
@@ -508,7 +506,7 @@ namespace WoWonder.Activities.NearbyShops
                             switch (MAdapter.NearbyShopsList.Count)
                             {
                                 case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreProducts), ToastLength.Short);
                                     break;
                             }
 
@@ -532,7 +530,7 @@ namespace WoWonder.Activities.NearbyShops
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }

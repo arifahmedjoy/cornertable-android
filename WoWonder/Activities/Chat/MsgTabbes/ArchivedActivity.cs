@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -7,7 +10,7 @@ using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
-using AndroidX.AppCompat.Content.Res;
+using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Newtonsoft.Json;
@@ -17,8 +20,12 @@ using WoWonder.Activities.Chat.GroupChat;
 using WoWonder.Activities.Chat.MsgTabbes.Adapter;
 using WoWonder.Activities.Chat.PageChat;
 using WoWonder.Helpers.Ads;
+using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.SQLite;
+using WoWonderClient.Classes.Message;
+using WoWonderClient.Requests;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace WoWonder.Activities.Chat.MsgTabbes
@@ -59,7 +66,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 InitToolbar();
                 SetRecyclerViewAdapters();
 
-                GetArchivedList();
+                StartApiService();
                 AdsGoogle.Ad_Interstitial(this);
             }
             catch (Exception e)
@@ -149,7 +156,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
-                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
 
                 }
             }
@@ -211,7 +217,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -280,7 +286,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         }
                                     });
 
-                                    Intent intent = null;
+                                    Intent intent = null!;
                                     switch (item.LastChat.ChatType)
                                     {
                                         case "user":
@@ -381,6 +387,147 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
         #endregion
 
+        #region Load Archived
+
+        private void StartApiService()
+        {
+            if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+            {
+                if (!Methods.CheckConnectivity())
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                else
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadArchived });
+            } 
+            else
+            {
+                GetArchivedList();
+            } 
+        }
+
+        private async Task LoadArchived()
+        {
+            if (Methods.CheckConnectivity())
+            {
+                var countList = MAdapter.LastChatsList.Count;
+                var (apiStatus, respond) = await RequestsAsync.Message.GetArchivedChatsAsync();
+                if (apiStatus != 200 || respond is not LastChatObject result || result.Data == null)
+                {
+                    Methods.DisplayReportResult(this, respond);
+                }
+                else
+                {
+                    var respondList = result.Data?.Count;
+                    if (respondList > 0)
+                    {
+                        foreach (var item in from item in result.Data let check = MAdapter.LastChatsList.FirstOrDefault(a => a.LastChat?.ChatId == item.ChatId) where check == null select item)
+                        {
+                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass
+                            {
+                                LastChat = item,
+                                Type = Classes.ItemType.LastChatNewV
+                            });
+                        }
+
+                        if (countList > 0)
+                        { 
+                            RunOnUiThread(() =>
+                            {
+                                MAdapter.NotifyItemRangeInserted(countList, MAdapter.LastChatsList.Count - countList);
+                            });
+                        }
+                        else
+                        { 
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                        }
+                    }
+                }
+
+                RunOnUiThread(ShowEmptyPage);
+            }
+            else
+            {
+                Inflated = EmptyStateLayout.Inflate();
+                EmptyStateInflater x = new EmptyStateInflater();
+                x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
+                switch (x.EmptyStateButton.HasOnClickListeners)
+                {
+                    case false:
+                        x.EmptyStateButton.Click += null!;
+                        x.EmptyStateButton.Click += EmptyStateButtonOnClick;
+                        break;
+                }
+
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+            }
+        }
+
+        private void ShowEmptyPage()
+        {
+            try
+            {
+                SwipeRefreshLayout.Refreshing = false;
+
+                if (MAdapter.LastChatsList.Count > 0)
+                {
+                    ListUtils.ArchiveList = new ObservableCollection<Classes.LastChatArchive>();
+                    foreach (var archive in MAdapter.LastChatsList)
+                    {
+                        ListUtils.ArchiveList.Add(new Classes.LastChatArchive()
+                        {
+                            ChatType = archive.LastChat.ChatType,
+                            ChatId = archive.LastChat.ChatId,
+                            UserId = archive.LastChat.UserId,
+                            GroupId = archive.LastChat.GroupId,
+                            PageId = archive.LastChat.PageId,
+                            Name = archive.LastChat.Name,
+                            IdLastMessage = archive.LastChat?.LastMessage.LastMessageClass?.Id ?? "", 
+                            LastChat = archive.LastChat, 
+                        }); 
+                    }
+
+                    SqLiteDatabase dbDatabase = new SqLiteDatabase();
+                    dbDatabase.InsertORUpdateORDelete_ListArchive(new List<Classes.LastChatArchive>(ListUtils.ArchiveList));
+
+                    MRecycler.Visibility = ViewStates.Visible;
+                    SwipeRefreshLayout.Refreshing = false;
+                }
+                else
+                {
+                    MRecycler.Visibility = ViewStates.Gone;
+
+                    Inflated ??= EmptyStateLayout.Inflate();
+
+                    EmptyStateInflater x = new EmptyStateInflater();
+                    x.InflateLayout(Inflated, EmptyStateInflater.Type.NoArchive);
+                    if (!x.EmptyStateButton.HasOnClickListeners)
+                    {
+                        x.EmptyStateButton.Click += null!;
+                    }
+                    EmptyStateLayout.Visibility = ViewStates.Visible;
+                }
+            }
+            catch (Exception e)
+            {
+                SwipeRefreshLayout.Refreshing = false;
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        //No Internet Connection 
+        private void EmptyStateButtonOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                StartApiService();
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        #endregion
+
         public void GetArchivedList()
         {
             try
@@ -392,7 +539,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     {
                         if (archive.LastChatPage != null)
                         {
-                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass()
+                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass
                             {
                                 LastChatPage = archive.LastChatPage,
                                 Type = Classes.ItemType.LastChatPage
@@ -400,7 +547,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         }
                         else if (archive.LastMessagesUser != null)
                         {
-                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass()
+                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass
                             {
                                 LastMessagesUser = archive.LastMessagesUser,
                                 Type = Classes.ItemType.LastChatOldV
@@ -408,7 +555,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         }
                         else if (archive.LastChat != null)
                         {
-                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass()
+                            MAdapter.LastChatsList.Add(new Classes.LastChatsClass
                             {
                                 LastChat = archive.LastChat,
                                 Type = Classes.ItemType.LastChatNewV
@@ -431,7 +578,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoArchive);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }

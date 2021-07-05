@@ -11,7 +11,7 @@
 		<item name="android:windowActionBar">true</item>
 	</style>
 
-	<style name="MyTheme" parent="MyTheme.Base"> </style>
+  <style name="MyTheme" parent="MyTheme.Base"> </style>
 
 	<style name="MyTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
 		<item name="android:windowBackground">@color/background</item>
@@ -23,7 +23,7 @@
 		<item name="colorAccent">@color/accent</item>
 		<item name="colorPrimaryDark">@color/primaryDark</item>
 		<item name="preferenceTheme">@style/SettingsTheme</item>
-		<item name="android:textColor">#444444</item>
+		<item name="android:textColor">#1a1a1a</item>
 		<item name="android:textColorSecondary">#8888</item>
 		<item name="android:textSize">18sp</item>
 		<item name="android:logo">@mipmap/icon</item>
@@ -34,13 +34,13 @@
 		<item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
 		<item name="android:textViewStyle">@style/AppTextView</item>
 		<item name="colorDivider">#F7F8FA</item>
-    <!--    <item name="colorBubble">#efefef</item>-->
     <item name="colorBubble">#F7F8FA</item>
 		<item name="colorFill">#FFFEFE</item>
-		<item name="colorReact">#888888</item>
+    <item name="colorReact">#888888</item>
+    <item name="colorBgApp">@color/bgApp_color</item>
 		<item name="android:fontFamily">@font/wowonder</item>
 		<item name="fontFamily">@font/wowonder</item>
-    <item name="android:actionOverflowButtonStyle">@style/Overflow</item>
+    <!--<item name="android:actionOverflowButtonStyle">@style/Overflow</item>-->
     <item name="colorHint">#282828</item>
     <item name="ShapeCircleColor1">#00E2E2E2</item>
     <item name="ShapeCircleColor2">#05E2E2E2</item>
@@ -48,7 +48,7 @@
     <item name="ShapeCircleColor4">#0fE2E2E2</item>
     <item name="ShapeCircleColor5">#14E2E2E2</item>
     <item name="ShapeCircleColor6">#ffffff</item>
-  </style>
+	</style>
 
 	<style name="MyTheme_Dark.Base" parent="Theme.AppCompat.Light.DarkActionBar">
 		<!--<item name="android:windowActivityTransitions">true</item>-->
@@ -74,6 +74,7 @@
 		<item name="colorBubble">#363636</item>
 		<item name="colorFill">#282828</item>
 		<item name="colorReact">@color/textLight_color</item>
+    <item name="colorBgApp">@color/bgApp_Dark_color</item>
 		<item name="android:fontFamily">@font/wowonder</item>
 		<item name="fontFamily">@font/wowonder</item>
     <item name="colorHint">#efefef</item>
@@ -83,7 +84,7 @@
     <item name="ShapeCircleColor4">#0f232323</item>
     <item name="ShapeCircleColor5">#14232323</item>
     <item name="ShapeCircleColor6">#000000</item>
-  </style>
+	</style>
 	<style name="CustomTextdrawableStyle">
 		<item name="android:layout_width">match_parent</item>
 		<item name="android:layout_height">wrap_content</item>
@@ -106,12 +107,16 @@
 		<item name="android:windowContentOverlay">@null</item>
 		<item name="windowNoTitle">true</item>
 		<item name="windowActionBar">false</item>
-		<item name="android:colorBackgroundCacheHint">@null</item>
+		<item name="android:colorBackgroundCacheHint">@null</item> 
+    <item name="android:textColor">@color/textLight_color</item>
+    <item name="android:textColorSecondary">#efefef</item>
+    <item name="android:textSize">18sp</item> 
 		<item name="colorDivider">#efefef</item>
     <!--    <item name="colorBubble">#efefef</item>-->
     <item name="colorBubble">#F7F8FA</item>
 		<item name="colorFill">#FFFEFE</item>
 		<item name="colorReact">#282828</item>
+    <item name="colorBgApp">@color/bgApp_Dark_color</item>
 	</style>
 
 	<style name="TransparentBlack_Dark" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -125,6 +130,7 @@
 		<item name="colorBubble">#363636</item>
 		<item name="colorFill">#282828</item>
 		<item name="colorReact">@color/textLight_color</item>
+    <item name="colorBgApp">@color/bgApp_Dark_color</item>
 	</style>
 
 	<style name="AppBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
@@ -148,7 +154,7 @@
 		<item name="colorPrimary">@color/primary</item>
 		<item name="colorAccent">@color/accent</item>
 		<item name="colorPrimaryDark">@color/primaryDark</item>
-		<item name="android:textColor">#444444</item>
+		<item name="android:textColor">#1a1a1a</item>
 		<item name="android:textColorSecondary">#888</item>
 		<item name="android:textSize">16sp</item>
 		<item name="windowNoTitle">true</item>
@@ -164,7 +170,7 @@
 		<item name="colorPrimaryDark">@color/primaryDark</item>
 		<item name="android:textColor">@color/textLight_color</item>
 		<item name="android:textColorSecondary">#efefef</item>
-		<item name="android:textSize">16sp</item>
+		<item name="android:textSize">14sp</item>
 		<item name="windowNoTitle">true</item>
 		<item name="windowActionBar">true</item>
 		<item name="android:fontFamily">@font/wowonder</item>
@@ -260,7 +266,7 @@
 		<item name="colorAccent">@color/accent</item>
 		<item name="colorPrimaryDark">@color/primaryDark</item>
 		<!--title-->
-		<item name="android:textColor">#444444</item>
+		<item name="android:textColor">#1a1a1a</item>
 		<item name="android:textColorHint">#444444</item>
 		<!--text-->
 		<!--<item name="android:textColorPrimary">#444444</item>-->
@@ -453,12 +459,69 @@
     <item name="android:src">@drawable/ic_action_circle_more</item>
   </style>
 
+
+  <style name="Overlap_Light" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowTranslucentStatus">true</item>
+    <!--<item name="android:windowTranslucentNavigation">true</item>-->
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:windowBackground">@color/background</item>
+    <item name="android:windowActivityTransitions">true</item>
+    <item name="android:forceDarkAllowed">true</item>
+    <item name="colorPrimary">#dfdfdf</item>
+    <item name="colorAccent">@color/accent</item>
+    <item name="colorPrimaryDark">@color/primaryDark</item>
+    <item name="preferenceTheme">@style/SettingsTheme</item>
+    <item name="android:textColor">#1a1a1a</item>
+    <item name="android:textColorSecondary">#8888</item>
+    <item name="android:textSize">18sp</item>
+    <item name="android:logo">@mipmap/icon</item>
+    <item name="android:alertDialogTheme">@style/AlertDialogCustom</item>
+    <item name="android:actionMenuTextAppearance">@style/MenuTextStyle</item>
+    <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
+    <item name="android:textViewStyle">@style/AppTextView</item>
+    <item name="colorDivider">#F7F8FA</item>
+    <item name="colorBubble">#F7F8FA</item>
+    <item name="colorFill">#FFFEFE</item>
+    <item name="colorReact">#888888</item>
+    <item name="colorBgApp">@color/bgApp_color</item>
+    <item name="android:fontFamily">@font/wowonder</item>
+    <item name="fontFamily">@font/wowonder</item>
+    <item name="android:actionOverflowButtonStyle">@style/Overflow</item>
+  </style>
+
+  <style name="Overlap_Dark" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowTranslucentStatus">true</item>
+    <!--<item name="android:windowTranslucentNavigation">true</item>-->
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:windowBackground">@drawable/window_background</item>
+    <item name="android:forceDarkAllowed">true</item>
+    <item name="colorPrimary">#444444</item>
+    <item name="colorAccent">@color/accent</item>
+    <item name="colorPrimaryDark">@color/primaryDark</item>
+    <item name="preferenceTheme">@style/SettingsThemeDark</item>
+    <item name="android:textColor">@color/textLight_color</item>
+    <item name="android:textColorSecondary">#efefef</item>
+    <item name="android:textSize">18sp</item>
+    <item name="android:logo">@mipmap/icon</item>
+    <item name="android:alertDialogTheme">@style/AlertDialogCustomDark</item>
+    <item name="android:actionMenuTextAppearance">@style/MenuTextStyle</item>
+    <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
+    <item name="android:textViewStyle">@style/AppTextView</item>
+    <item name="colorDivider">#333333</item>
+    <item name="colorBubble">#363636</item>
+    <item name="colorFill">#282828</item>
+    <item name="colorReact">@color/textLight_color</item>
+    <item name="colorBgApp">@color/bgApp_Dark_color</item>
+    <item name="android:fontFamily">@font/wowonder</item>
+    <item name="fontFamily">@font/wowonder</item>
+  </style>
+ 
   <style name="Animation">
     <item name="android:windowEnterAnimation">@anim/emoji_default_in_animation</item>
     <item name="android:windowExitAnimation">@anim/emoji_default_out_animation</item>
   </style>
-
-  <style name="Chatththemeb582af" parent="Theme.AppCompat.Light.DarkActionBar">
+ 
+  <style name="Chatththemeb582af" parent="MyTheme.Base">
     <item name="colorPrimary">#b582af</item>
     <item name="colorAccent">#b582af</item>
     <item name="colorPrimaryDark">#b582af</item>
@@ -467,7 +530,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemea84849" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemea84849" parent="MyTheme.Base">
     <item name="colorPrimary">#a84849</item>
     <item name="colorAccent">#a84849</item>
     <item name="colorPrimaryDark">#a84849</item>
@@ -476,7 +539,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemef9c270" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemef9c270" parent="MyTheme.Base">
     <item name="colorPrimary">#f9c270</item>
     <item name="colorAccent">#f9c270</item>
     <item name="colorPrimaryDark">#f9c270</item>
@@ -485,8 +548,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme70a0e0"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme70a0e0" parent="MyTheme.Base">
     <item name="colorPrimary">#70a0e0</item>
     <item name="colorAccent">#70a0e0</item>
     <item name="colorPrimaryDark">#70a0e0</item>
@@ -495,8 +557,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme56c4c5"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme56c4c5" parent="MyTheme.Base">
     <item name="colorPrimary">#56c4c5</item>
     <item name="colorAccent">#56c4c5</item>
     <item name="colorPrimaryDark">#56c4c5</item>
@@ -505,8 +566,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemef33d4c"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemef33d4c" parent="MyTheme.Base">
     <item name="colorPrimary">#f33d4c</item>
     <item name="colorAccent">#f33d4c</item>
     <item name="colorPrimaryDark">#f33d4c</item>
@@ -515,8 +575,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemea1ce79"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemea1ce79" parent="MyTheme.Base">
     <item name="colorPrimary">#a1ce79</item>
     <item name="colorAccent">#a1ce79</item>
     <item name="colorPrimaryDark">#a1ce79</item>
@@ -525,8 +584,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemea085e2"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemea085e2" parent="MyTheme.Base">
     <item name="colorPrimary">#a085e2</item>
     <item name="colorAccent">#a085e2</item>
     <item name="colorPrimaryDark">#a085e2</item>
@@ -535,8 +593,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemeed9e6a"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemeed9e6a" parent="MyTheme.Base">
     <item name="colorPrimary">#ed9e6a</item>
     <item name="colorAccent">#ed9e6a</item>
     <item name="colorPrimaryDark">#ed9e6a</item>
@@ -545,8 +602,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme2b87ce"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme2b87ce" parent="MyTheme.Base">
     <item name="colorPrimary">#2b87ce</item>
     <item name="colorAccent">#2b87ce</item>
     <item name="colorPrimaryDark">#2b87ce</item>
@@ -555,8 +611,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemef2812b"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemef2812b" parent="MyTheme.Base">
     <item name="colorPrimary">#f2812b</item>
     <item name="colorAccent">#f2812b</item>
     <item name="colorPrimaryDark">#f2812b</item>
@@ -565,8 +620,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme0ba05d"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme0ba05d" parent="MyTheme.Base">
     <item name="colorPrimary">#0ba05d</item>
     <item name="colorAccent">#0ba05d</item>
     <item name="colorPrimaryDark">#0ba05d</item>
@@ -575,8 +629,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme0e71ea"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme0e71ea" parent="MyTheme.Base">
     <item name="colorPrimary">#0e71ea</item>
     <item name="colorAccent">#0e71ea</item>
     <item name="colorPrimaryDark">#0e71ea</item>
@@ -585,8 +638,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemeaa2294"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemeaa2294" parent="MyTheme.Base">
     <item name="colorPrimary">#aa2294</item>
     <item name="colorAccent">#aa2294</item>
     <item name="colorPrimaryDark">#aa2294</item>
@@ -596,8 +648,7 @@
   </style>
 
 
-  <style name="Chatththemef9a722"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemef9a722" parent="MyTheme.Base">
     <item name="colorPrimary">#f9a722</item>
     <item name="colorAccent">#f9a722</item>
     <item name="colorPrimaryDark">#f9a722</item>
@@ -606,8 +657,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme008484"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme008484" parent="MyTheme.Base">
     <item name="colorPrimary">#008484</item>
     <item name="colorAccent">#008484</item>
     <item name="colorPrimaryDark">#008484</item>
@@ -617,8 +667,7 @@
   </style>
 
 
-  <style name="Chatththeme5462a5"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme5462a5" parent="MyTheme.Base">
     <item name="colorPrimary">#5462a5</item>
     <item name="colorAccent">#5462a5</item>
     <item name="colorPrimaryDark">#5462a5</item>
@@ -628,8 +677,7 @@
   </style>
 
 
-  <style name="Chatththemefc9cde"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemefc9cde" parent="MyTheme.Base">
     <item name="colorPrimary">#fc9cde</item>
     <item name="colorAccent">#fc9cde</item>
     <item name="colorPrimaryDark">#fc9cde</item>
@@ -638,7 +686,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme51bcbc" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme51bcbc" parent="MyTheme.Base">
     <item name="colorPrimary">#51bcbc</item>
     <item name="colorAccent">#51bcbc</item>
     <item name="colorPrimaryDark">#51bcbc</item>
@@ -648,7 +696,7 @@
   </style>
 
 
-  <style name="Chatththemec9605e" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemec9605e" parent="MyTheme.Base">
     <item name="colorPrimary">#c9605e</item>
     <item name="colorAccent">#c9605e</item>
     <item name="colorPrimaryDark">#c9605e</item>
@@ -657,7 +705,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme01a5a5" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme01a5a5" parent="MyTheme.Base">
     <item name="colorPrimary">#01a5a5</item>
     <item name="colorAccent">#01a5a5</item>
     <item name="colorPrimaryDark">#01a5a5</item>
@@ -665,7 +713,7 @@
     <item name="windowActionBar">true</item>
   </style>
 
-  <style name="Chatththeme056bba" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme056bba" parent="MyTheme.Base">
     <item name="colorPrimary">#056bba</item>
     <item name="colorAccent">#056bba</item>
     <item name="colorPrimaryDark">#056bba</item>
@@ -674,7 +722,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme8ec96c" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme8ec96c" parent="MyTheme.Base">
     <item name="colorPrimary">#8ec96c</item>
     <item name="colorAccent">#8ec96c</item>
     <item name="colorPrimaryDark">#8ec96c</item>
@@ -683,8 +731,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththeme609b41"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththeme609b41" parent="MyTheme.Base">
     <item name="colorPrimary">#609b41</item>
     <item name="colorAccent">#609b41</item>
     <item name="colorPrimaryDark">#609b41</item>
@@ -694,8 +741,7 @@
   </style>
 
 
-  <style name="Chatththemeff72d2"
-		   parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemeff72d2" parent="MyTheme.Base">
     <item name="colorPrimary">#ff72d2</item>
     <item name="colorAccent">#ff72d2</item>
     <item name="colorPrimaryDark">#ff72d2</item>
@@ -704,7 +750,7 @@
     <item name="android:popupMenuStyle">@style/CustomPopupTheme</item>
   </style>
 
-  <style name="Chatththemedefault" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Chatththemedefault" parent="MyTheme.Base">
     <item name="colorPrimary">@color/accent</item>
     <item name="colorAccent">@color/accent</item>
     <item name="colorPrimaryDark">@color/primaryDark</item>
@@ -722,29 +768,34 @@
     <item name="android:inputType">textCapWords</item>
   </style>
 
-  <style name="DragTransparentBlack" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="DragTransparentBlack" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowBackground">@color/DragTransparentBlack</item>
+    <item name="android:forceDarkAllowed">true</item>
+    <item name="windowNoTitle">true</item>
+    <item name="windowActionBar">false</item>
+    <item name="colorPrimary">#444444</item>
     <item name="colorAccent">@color/accent</item>
-    <item name="android:textColor">@color/textIcon</item>
+    <item name="colorPrimaryDark">@color/primaryDark</item>
+    <item name="preferenceTheme">@style/SettingsThemeDark</item>
+    <item name="android:textColor">@color/textLight_color</item>
     <item name="android:textColorSecondary">#efefef</item>
     <item name="android:textSize">18sp</item>
     <item name="android:logo">@mipmap/icon</item>
-    <item name="android:windowIsTranslucent">true</item>
-    <item name="android:windowBackground">@color/DragTransparentBlack</item>
-    <item name="android:windowContentOverlay">@null</item>
-    <item name="windowNoTitle">true</item>
-    <item name="windowActionBar">false</item>
-    <item name="android:colorBackgroundCacheHint">@null</item>
-    <item name="colorFill">#282828</item>
-    <item name="colorHint">#efefef</item>
+    <item name="android:statusBarColor">#444444</item>
+    <item name="android:windowLightStatusBar">false</item>
+    <item name="android:alertDialogTheme">@style/AlertDialogCustomDark</item>
+    <item name="android:actionMenuTextAppearance">@style/MenuTextStyle</item>
     <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
-    <item name="android:popupMenuStyle">@style/CustomPopupThemeDark</item>
-    <item name="colorBubble">#363636</item>
+    <item name="android:textViewStyle">@style/AppTextView</item>
     <item name="colorDivider">#333333</item>
+    <item name="colorBubble">#363636</item>
+    <item name="colorFill">#282828</item>
+    <item name="colorReact">@color/textLight_color</item>
+    <item name="colorBgApp">@color/bgApp_Dark_color</item>
     <item name="android:fontFamily">@font/wowonder</item>
-    <item name="fontFamily">@font/wowonder</item>
-    <item name="ShapeCircleColor6">#000000</item>
-    <item name="android:windowIsFloating">false</item>
-    <item name="android:backgroundDimEnabled">false</item>
+    <item name="fontFamily">@font/wowonder</item>  
+    <item name="android:windowIsTranslucent">true</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="android:backgroundDimEnabled">false</item>  
   </style>
-
 </resources>

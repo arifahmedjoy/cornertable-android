@@ -49,7 +49,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -147,8 +147,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             try
             {
                 //Code get last id where LoadMore >>
-                var item = MAdapter.LastChatsList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item?.LastChat?.GroupId) && !MainScrollEvent.IsLoading)
+                var item = MAdapter.LastChatsList.LastOrDefault(a => a.Type == Classes.ItemType.LastChatNewV);
+                if (item != null && !string.IsNullOrEmpty(item.LastChat.GroupId) && !MainScrollEvent.IsLoading)
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGroupChatAsync(item.LastChat.GroupId) });
             }
             catch (Exception exception)
@@ -272,7 +272,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             if (Methods.CheckConnectivity())
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGroupChatAsync(offset), LoadGeneralData });
             else
-                Toast.MakeText(Context, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(Context, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
         }
 
         private async Task LoadGroupChatAsync(string offset = "0")
@@ -296,7 +296,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                             chatObject.ChatType = "group";
                             var item = WoWonderTools.FilterDataLastChatNewV(chatObject);
 
-                            MAdapter?.LastChatsList.Add(new Classes.LastChatsClass()
+                            MAdapter?.LastChatsList.Add(new Classes.LastChatsClass
                             {
                                 LastChat = item,
                                 Type = Classes.ItemType.LastChatNewV
@@ -315,7 +315,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                     else
                     {
                         if (MAdapter?.LastChatsList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short);
                     }
                 }
             }
@@ -412,7 +412,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                                 var checkList = MAdapter.LastChatsList.FirstOrDefault(q => q.Type == Classes.ItemType.GroupRequest);
                                 if (checkList == null)
                                 {
-                                    var groupRequests = new Classes.LastChatsClass()
+                                    var groupRequests = new Classes.LastChatsClass
                                     {
                                         GroupRequestList = new List<GroupChatRequest>(),
                                         Type = Classes.ItemType.GroupRequest

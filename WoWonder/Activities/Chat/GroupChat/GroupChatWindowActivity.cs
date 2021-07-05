@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Aghajari.EmojiView.Views;
 using Android;
 using Android.App;
@@ -45,6 +45,7 @@ using WoWonder.Activities.Chat.ChatWindow.Adapters;
 using WoWonder.Activities.Chat.GroupChat.Fragment;
 using WoWonder.Activities.Chat.MsgTabbes;
 using WoWonder.Activities.Chat.Viewer;
+using WoWonder.Activities.NativePost.Pages;
 using WoWonder.Activities.SettingsPreferences;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.CacheLoaders;
@@ -85,7 +86,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         //public GroupChatStickersTabFragment ChatStickersTabBoxFragment;
         private FrameLayout ButtonFragmentHolder;
         public FrameLayout TopFragmentHolder;
-        private LinearLayoutManager LayoutManager;
+        private Holders.MsgPreCachingLayoutManager LayoutManager;
         public MessageAdapter MAdapter;
         private SupportFragment MainFragmentOpened;
         private Methods.AudioRecorderAndPlayer RecorderService;
@@ -96,7 +97,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         private Timer Timer;
         private bool IsRecording;
         public ChatObject GroupData;
-        public string GroupId = "";
+        public string GroupId, ReplyId;
         private static GroupChatWindowActivity Instance;
         private MsgTabbedMainActivity GlobalContext;
         private LinearLayout FirstLiner, FirstBoxOnButton;
@@ -130,24 +131,22 @@ namespace WoWonder.Activities.Chat.GroupChat
         {
             try
             {
-                Window.SetSoftInputMode(SoftInput.AdjustResize);
+                Window?.SetSoftInputMode(SoftInput.AdjustResize);
 
                 base.OnCreate(savedInstanceState);
                 SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
+                GroupId = Intent?.GetStringExtra("GroupId") ?? "";
+                ShowEmpty = Intent?.GetStringExtra("ShowEmpty") ?? "";
 
                 Methods.App.FullScreenApp(this);
 
-                Window.SetStatusBarColor(Color.ParseColor(MainChatColor));
+                //Window?.SetStatusBarColor(Color.ParseColor(MainChatColor));
 
-                // Set our view from the "ChatWindowLayout" layout resource
+                // Set our view from the "ChatWindow" layout resource
                 SetContentView(Resource.Layout.ChatWindowLayout);
 
                 Instance = this;
-
                 GlobalContext = MsgTabbedMainActivity.GetInstance();
-
-                GroupId = Intent?.GetStringExtra("GroupId") ?? "";
-                ShowEmpty = Intent?.GetStringExtra("ShowEmpty") ?? "";
 
                 //Get Value And Set Toolbar
                 InitComponent();
@@ -260,7 +259,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     Timer.Enabled = false;
                     Timer.Stop();
                     Timer.Dispose();
-                    Timer = null;
+                    Timer = null!;
                 }
 
                 ResetMediaPlayer();
@@ -302,7 +301,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         }
 
         #endregion
-
+         
         #region Functions
 
         private void InitComponent()
@@ -313,7 +312,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 RecorderService = new Methods.AudioRecorderAndPlayer(GroupId);
 
                 Interpolation = new FastOutSlowInInterpolator();
-
+                
                 ChatRecordSoundBoxFragment = new GroupChatRecordSoundFragment();
                 //ChatStickersTabBoxFragment = new GroupChatStickersTabFragment();
 
@@ -368,6 +367,9 @@ namespace WoWonder.Activities.Chat.GroupChat
                 FabScrollDown = FindViewById<FloatingActionButton>(Resource.Id.fab_scroll);
                 FabScrollDown.Visibility = ViewStates.Gone;
 
+                //PinMessageView = FindViewById<LinearLayout>(Resource.Id.pin_message_view);
+                //ShortPinMessage = FindViewById<TextView>(Resource.Id.short_pin_message);
+
                 LoadingLayout = FindViewById<LinearLayout>(Resource.Id.Loading_LinearLayout);
                 LoadingLayout.Visibility = ViewStates.Gone;
 
@@ -391,13 +393,12 @@ namespace WoWonder.Activities.Chat.GroupChat
                     SayHiLayout.Visibility = ViewStates.Gone;
                     SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
                 }
-
+                  
                 if (AppSettings.SetTabDarkTheme)
                 {
                     TopFragmentHolder.SetBackgroundColor(Color.ParseColor("#282828"));
                     FirstLiner.SetBackgroundColor(Color.ParseColor("#282828"));
                     FirstBoxOnButton.SetBackgroundColor(Color.ParseColor("#282828"));
-
                 }
                 else
                 {
@@ -421,6 +422,8 @@ namespace WoWonder.Activities.Chat.GroupChat
                 }
 
                 RecordButton.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(MainChatColor));
+                FabScrollDown.BackgroundTintList = ColorStateList.ValueOf(Color.ParseColor(MainChatColor));
+                FabScrollDown.SetRippleColor(ColorStateList.ValueOf(Color.ParseColor(MainChatColor)));
 
                 //if (AppSettings.ShowButtonStickers)
                 //{
@@ -431,7 +434,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 //{
                 //    ChatStickerButton.Visibility = ViewStates.Gone;
                 //}
-
+                 
 
                 Methods.SetColorEditText(EmojIconEditTextView, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 ChatEmojImage.SetColorFilter(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#444444"));
@@ -444,7 +447,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 EmojisViewTools.MStickerView = AppSettings.ShowButtonStickers;
                 AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, EmojIconEditTextView, "GroupChatWindowActivity");
                 AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
-                var EmojisViewActions = new EmojisViewActions(this, "GroupChatWindowActivity", popup, EmojIconEditTextView, ChatEmojImage);
+                var emojisViewActions = new EmojisViewActions(this, "GroupChatWindowActivity", popup, EmojIconEditTextView, ChatEmojImage);
 
                 EmojIconEditTextView.AddTextChangedListener(new MyTextWatcher(this));
             }
@@ -471,11 +474,17 @@ namespace WoWonder.Activities.Chat.GroupChat
             try
             {
                 MAdapter = new MessageAdapter(this, GroupId, true) { DifferList = new ObservableCollection<AdapterModelsClassMessage>() };
-                LayoutManager = new LinearLayoutManager(this);
+
+                LayoutManager = new Holders.MsgPreCachingLayoutManager(this) { Orientation = RecyclerView.Vertical };
+                LayoutManager.AutoMeasureEnabled = false;
+                LayoutManager.SetExtraLayoutSpace(2000);
+                LayoutManager.StackFromEnd = true;
+
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                ((SimpleItemAnimator)MRecycler.GetItemAnimator()).SupportsChangeAnimations = false;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
                 var preLoader = new RecyclerViewPreloader<AdapterModelsClassMessage>(this, MAdapter, sizeProvider, 10);
                 MRecycler.AddOnScrollListener(preLoader);
@@ -514,7 +523,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 if (addEvent)
                 {
                     ChatMediaButton.Click += ChatMediaButtonOnClick;
-                    //ChatStickerButton.Click += ChatStickerButtonOnClick;
+                    //ChatStickerButton.Click += ChatStickerButtonOnClick; 
                     //ActionBar Buttons
                     BackButton.Click += BackButton_Click;
                     MoreButton.Click += MoreButton_Click;
@@ -525,13 +534,12 @@ namespace WoWonder.Activities.Chat.GroupChat
                     MAdapter.ItemClick += MAdapterOnItemClick;
                     MAdapter.ItemLongClick += MAdapterOnItemLongClick;
                     FabScrollDown.Click += FabScrollDownOnClick;
-                    BtnCloseReply.Click += BtnCloseReplyOnClick;
+                    BtnCloseReply.Click += BtnCloseReplyOnClick; 
                 }
                 else
                 {
                     ChatMediaButton.Click -= ChatMediaButtonOnClick;
-                    //ChatStickerButton.Click -= ChatStickerButtonOnClick;
-
+                    //ChatStickerButton.Click -= ChatStickerButtonOnClick; 
                     //ActionBar Buttons
                     BackButton.Click -= BackButton_Click;
                     MoreButton.Click -= MoreButton_Click;
@@ -542,7 +550,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     MAdapter.ItemClick -= MAdapterOnItemClick;
                     MAdapter.ItemLongClick -= MAdapterOnItemLongClick;
                     FabScrollDown.Click -= FabScrollDownOnClick;
-                    BtnCloseReply.Click -= BtnCloseReplyOnClick;
+                    BtnCloseReply.Click -= BtnCloseReplyOnClick; 
                 }
             }
             catch (Exception e)
@@ -560,32 +568,19 @@ namespace WoWonder.Activities.Chat.GroupChat
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
         #endregion
 
         #region Events
-
+         
         private void BtnCloseReplyOnClick(object sender, EventArgs e)
         {
             try
             {
-                Animation animation = new TranslateAnimation(0, 0, 0, RepliedMessageView.Top + RepliedMessageView.Height);
-                animation.Duration = 300;
-                animation.AnimationEnd += (o, args) =>
-                {
-                    try
-                    {
-                        RepliedMessageView.Visibility = ViewStates.Gone;
-                    }
-                    catch (Exception exception)
-                    {
-                        Methods.DisplayReportResultTrack(exception);
-                    }
-                };
-                RepliedMessageView.StartAnimation(animation);
+                CloseReplyUi();
             }
             catch (Exception exception)
             {
@@ -613,22 +608,22 @@ namespace WoWonder.Activities.Chat.GroupChat
                 var position = e.Position;
                 var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 string time2 = unixTimestamp.ToString(CultureInfo.InvariantCulture);
-
                 MessageData m1 = new MessageData
                 {
                     Id = time2,
                     FromId = UserDetails.UserId,
                     GroupId = GroupId,
                     Text = SuggestionAdapter.GetItem(position).RealMessage,
+                    Position = "right",
                     Seen = "0",
                     Time = time2,
-                    Position = "right",
                     ModelType = MessageModelType.RightText,
                     TimeText = DateTime.Now.ToShortTimeString(),
                     SendFile = true,
+                    ChatColor = MainChatColor
                 };
 
-                MAdapter.DifferList.Add(new AdapterModelsClassMessage()
+                MAdapter.DifferList.Add(new AdapterModelsClassMessage
                 {
                     TypeView = MessageModelType.RightText,
                     Id = Long.ParseLong(m1.Id),
@@ -650,11 +645,13 @@ namespace WoWonder.Activities.Chat.GroupChat
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
 
                 SayHiLayout.Visibility = ViewStates.Gone;
                 SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
+
+                CloseReplyUi();
             }
             catch (Exception exception)
             {
@@ -709,7 +706,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     i.SetData(Uri.Parse(item.MesData.Media));
                                     i.SetType(mimeType);
                                     StartActivity(i);
-                                    // Toast.MakeText(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                    // ToastUtils.ShowToast(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 }
 
                                 break;
@@ -819,29 +816,14 @@ namespace WoWonder.Activities.Chat.GroupChat
                 {
                     SelectedItemPositions = MAdapter.GetItem(e.Position);
                     if (SelectedItemPositions != null)
-                    {
-                        var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        if (e.Type == Holders.TypeClick.Text)
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_Copy));
-
-                        if (SelectedItemPositions.MesData.Position == "right")
-                        {
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_MessageInfo));
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_DeleteMessage));
-                        }
-
-                        if (AppSettings.EnableReplyMessageSystem)
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_Reply));
-
-                        if (AppSettings.EnableForwardMessageSystem)
-                            arrayAdapter.Add(GetText(Resource.String.Lbl_Forward));
-
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
+                    { 
+                        OptionsChatWindowBottomSheet bottomSheet = new OptionsChatWindowBottomSheet();
+                        Bundle bundle = new Bundle();
+                        bundle.PutString("Type", JsonConvert.SerializeObject(e.Type));
+                        bundle.PutString("Page", "GroupChatWindow");
+                        bundle.PutString("ItemObject", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
+                        bottomSheet.Arguments = bundle;
+                        bottomSheet.Show(SupportFragmentManager, bottomSheet.Tag);
                     }
                 }
             }
@@ -871,7 +853,7 @@ namespace WoWonder.Activities.Chat.GroupChat
             try
             {
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 if (GroupData.Owner != null && GroupData.Owner.Value)
                     arrayAdapter.Add(GetText(Resource.String.Lbl_AddMembers));
@@ -884,7 +866,6 @@ namespace WoWonder.Activities.Chat.GroupChat
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialogList.AlwaysCallSingleChoiceCallback();
                 dialogList.ItemsCallback(this).Build().Show();
-
             }
             catch (Exception exception)
             {
@@ -945,7 +926,14 @@ namespace WoWonder.Activities.Chat.GroupChat
 
                         EditTextClose();
 
-                        //RequestsAsync.Message.Set_Chat_Typing_Status(GroupId, "stopped").ConfigureAwait(false);
+                        //if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                        //{
+                        //    //Socket.EmitAsync_TypingEvent(GroupId, UserDetails.AccessToken, "stopped");
+                        //}
+                        //else
+                        //{
+                        //    RequestsAsync.Message.SetChatTypingStatusAsync(GroupId, "stopped").ConfigureAwait(false);
+                        //}
                     }
                 }
                 else
@@ -998,7 +986,14 @@ namespace WoWonder.Activities.Chat.GroupChat
                 layoutParams.Height = 42;
                 ChatMediaButton.LayoutParameters = layoutParams;
 
-                //RequestsAsync.Message.Set_Chat_Typing_Status(GroupId, "typing").ConfigureAwait(false);
+                if (AppSettings.ConnectionTypeChat == InitializeWoWonder.ConnectionType.Socket)
+                {
+                    UserDetails.Socket?.EmitAsync_TypingEvent(GroupId, UserDetails.AccessToken);
+                }
+                else
+                {
+                    RequestsAsync.Message.SetChatTypingStatusAsync(GroupId, "typing").ConfigureAwait(false);
+                }
             }
             catch (Exception exception)
             {
@@ -1019,7 +1014,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 //SwipeRefreshLayout.Enabled = true;
 
                 //Code get first Message id where LoadMore >>
-                var firstMessageid = MAdapter.DifferList.FirstOrDefault()?.MesData?.Id;
+                var firstMessageid = MAdapter.DifferList.FirstOrDefault()?.MesData?.Id ?? "";
                 if (firstMessageid != "")
                     await LoadMoreMessages_API();
 
@@ -1137,42 +1132,39 @@ namespace WoWonder.Activities.Chat.GroupChat
         {
             try
             {
-                switch (ChatMediaButton?.Tag?.ToString())
+                if (ChatMediaButton?.Tag?.ToString() == "attachment")
                 {
-                    case "attachment":
-                        {
-                            var arrayAdapter = new List<string>();
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var arrayAdapter = new List<string>();
+                    var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
-                            if (AppSettings.ShowButtonImage)
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_ImageGallery));
-                            if (AppSettings.ShowButtonCamera)
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_TakeImageFromCamera));
-                            if (AppSettings.ShowButtonVideo && WoWonderTools.CheckAllowedFileSharingInServer("Video"))
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_VideoGallery));
-                            if (AppSettings.ShowButtonVideo && WoWonderTools.CheckAllowedFileSharingInServer("Video"))
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_RecordVideoFromCamera));
-                            if (AppSettings.ShowButtonAttachFile && WoWonderTools.CheckAllowedFileSharingInServer("File"))
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_File));
-                            if (AppSettings.ShowButtonMusic && WoWonderTools.CheckAllowedFileSharingInServer("Audio"))
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_Music));
-                            if (AppSettings.ShowButtonGif)
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_Gif));
-                            if (AppSettings.ShowButtonContact)
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_Contact));
-                            if (AppSettings.ShowButtonLocation)
-                                arrayAdapter.Add(GetText(Resource.String.Lbl_Location));
+                    if (AppSettings.ShowButtonImage)
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_ImageGallery));
+                    if (AppSettings.ShowButtonCamera)
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_TakeImageFromCamera));
+                    if (AppSettings.ShowButtonVideo && WoWonderTools.CheckAllowedFileSharingInServer("Video"))
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_VideoGallery));
+                    if (AppSettings.ShowButtonVideo && WoWonderTools.CheckAllowedFileSharingInServer("Video"))
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_RecordVideoFromCamera));
+                    if (AppSettings.ShowButtonAttachFile && WoWonderTools.CheckAllowedFileSharingInServer("File"))
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_File));
+                    if (AppSettings.ShowButtonMusic && WoWonderTools.CheckAllowedFileSharingInServer("Audio"))
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Music));
+                    if (AppSettings.ShowButtonGif)
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Gif));
+                    if (AppSettings.ShowButtonContact)
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Contact));
+                    if (AppSettings.ShowButtonLocation)
+                        arrayAdapter.Add(GetText(Resource.String.Lbl_Location));
 
-                            dialogList.Title(GetString(Resource.String.Lbl_Select_what_you_want));
-                            dialogList.Items(arrayAdapter);
-                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                            dialogList.AlwaysCallSingleChoiceCallback();
-                            dialogList.ItemsCallback(this).Build().Show();
-                            break;
-                        }
-                    case "arrow":
-                        EditTextClose();
-                        break;
+                    dialogList.Title(GetString(Resource.String.Lbl_Select_what_you_want));
+                    dialogList.Items(arrayAdapter);
+                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                    dialogList.AlwaysCallSingleChoiceCallback();
+                    dialogList.ItemsCallback(this).Build().Show();
+                }
+                else if (ChatMediaButton?.Tag?.ToString() == "arrow")
+                {
+                    EditTextClose();
                 }
             }
             catch (Exception exception)
@@ -1191,138 +1183,137 @@ namespace WoWonder.Activities.Chat.GroupChat
                 var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 string time2 = unixTimestamp.ToString(CultureInfo.InvariantCulture);
 
-                switch (RecordButton?.Tag?.ToString())
+                if (RecordButton?.Tag?.ToString() == "Audio")
                 {
-                    case "Audio":
+                    var interTortola = new FastOutSlowInInterpolator();
+                    TopFragmentHolder.Animate().SetInterpolator(interTortola).TranslationY(1200).SetDuration(300);
+                    SupportFragmentManager.BeginTransaction().Remove(ChatRecordSoundBoxFragment)?.Commit();
+
+                    string filePath = RecorderService.GetRecorded_Sound_Path();
+                    if (!string.IsNullOrEmpty(filePath))
+                    {
+                        MessageData m1 = new MessageData
                         {
-                            var interTortola = new FastOutSlowInInterpolator();
-                            TopFragmentHolder.Animate().SetInterpolator(interTortola).TranslationY(1200).SetDuration(300);
-                            SupportFragmentManager.BeginTransaction().Remove(ChatRecordSoundBoxFragment)?.Commit();
+                            Id = time2,
+                            FromId = UserDetails.UserId,
+                            GroupId = GroupId,
+                            Media = filePath,
+                            Seen = "0",
+                            Time = time2,
+                            Position = "right",
+                            TimeText = GetText(Resource.String.Lbl_Uploading),
+                            MediaDuration = Methods.AudioRecorderAndPlayer.GetTimeString(Methods.AudioRecorderAndPlayer.Get_MediaFileDuration(filePath)),
+                            ModelType = MessageModelType.RightAudio,
+                            SendFile = true,
+                            ChatColor = MainChatColor,
+                        };
 
-                            string filePath = RecorderService.GetRecorded_Sound_Path();
-                            if (!string.IsNullOrEmpty(filePath))
-                            {
-                                MessageData m1 = new MessageData
-                                {
-                                    Id = time2,
-                                    FromId = UserDetails.UserId,
-                                    GroupId = GroupId,
-                                    Media = filePath,
-                                    Seen = "0",
-                                    Time = time2,
-                                    Position = "right",
-                                    TimeText = GetText(Resource.String.Lbl_Uploading),
-                                    MediaDuration = Methods.AudioRecorderAndPlayer.GetTimeString(Methods.AudioRecorderAndPlayer.Get_MediaFileDuration(filePath)),
-                                    ModelType = MessageModelType.RightAudio,
-                                    SendFile = true,
-                                };
-
-                                MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                {
-                                    TypeView = MessageModelType.RightAudio,
-                                    Id = Long.ParseLong(m1.Id),
-                                    MesData = m1
-                                });
-
-                                var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                MAdapter.NotifyItemInserted(indexMes);
-
-                                //Scroll Down >> 
-                                MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                //Here on This function will send Selected audio file to the Group 
-                                if (Methods.CheckConnectivity())
-                                {
-                                    Task.Factory.StartNew(() =>
-                                    {
-                                        GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", filePath).ConfigureAwait(false);
-                                    });
-                                }
-                                else
-                                {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                }
-                            }
-
-                            RecordButton.Tag = "Free";
-                            RecordButton.SetTheImageResource(Resource.Drawable.icon_mic_vector);
-                            RecordButton.SetListenForRecord(true);
-                            break;
-                        }
-                    case "Text":
+                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
                         {
-                            if (string.IsNullOrEmpty(EmojIconEditTextView.Text))
+                            TypeView = MessageModelType.RightAudio,
+                            Id = Long.ParseLong(m1.Id),
+                            MesData = m1
+                        });
+
+                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                        MAdapter.NotifyItemInserted(indexMes);
+
+                        //Scroll Down >> 
+                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                        //Here on This function will send Selected audio file to the Group 
+                        if (Methods.CheckConnectivity())
+                        {
+                            Task.Factory.StartNew(() =>
                             {
-
-                            }
-                            else
-                            {
-                                //Hide SayHi And Suggestion
-                                SayHiLayout.Visibility = ViewStates.Gone;
-                                SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
-                                //Here on This function will send Text Messages to the Group 
-
-                                //remove \n in a string
-                                string replacement = Regex.Replace(EmojIconEditTextView.Text, @"\t|\n|\r", "");
-
-                                MessageData m1 = new MessageData
-                                {
-                                    Id = time2,
-                                    FromId = UserDetails.UserId,
-                                    GroupId = GroupId,
-                                    Text = replacement,
-                                    Seen = "0",
-                                    Time = time2,
-                                    Position = "right",
-                                    ModelType = MessageModelType.RightText,
-                                    TimeText = DateTime.Now.ToShortTimeString(),
-                                    SendFile = true,
-                                };
-
-                                MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                {
-                                    TypeView = MessageModelType.RightText,
-                                    Id = Long.ParseLong(m1.Id),
-                                    MesData = m1
-                                });
-
-                                var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                MAdapter.NotifyItemInserted(indexMes);
-
-                                //Scroll Down >> 
-                                MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                if (Methods.CheckConnectivity())
-                                {
-                                    Task.Factory.StartNew(() =>
-                                    {
-                                        GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text).ConfigureAwait(false);
-                                    });
-                                }
-                                else
-                                {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                }
-
-                                EmojIconEditTextView.Text = "";
-                            }
-
-                            if (AppSettings.ShowButtonRecordSound)
-                            {
-                                RecordButton.Tag = "Free";
-                                RecordButton.SetTheImageResource(Resource.Drawable.icon_mic_vector);
-                                RecordButton.SetListenForRecord(true);
-                            }
-                            else
-                            {
-                                RecordButton.Tag = "Text";
-                                RecordButton.SetTheImageResource(Resource.Drawable.SendLetter);
-                                RecordButton.SetListenForRecord(false);
-                            }
-
-                            break;
+                                GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filePath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                            });
                         }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                        }
+                    }
+
+                    RecordButton.Tag = "Free";
+                    RecordButton.SetTheImageResource(Resource.Drawable.icon_mic_vector);
+                    RecordButton.SetListenForRecord(true);
+
                 }
+                else if (RecordButton?.Tag?.ToString() == "Text")
+                {
+                    if (string.IsNullOrEmpty(EmojIconEditTextView.Text))
+                    {
+
+                    }
+                    else
+                    {
+                        //Hide SayHi And Suggestion
+                        SayHiLayout.Visibility = ViewStates.Gone;
+                        SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
+                        //Here on This function will send Text Messages to the Group 
+
+                        //remove \n in a string
+                        string replacement = Regex.Replace(EmojIconEditTextView.Text, @"\t|\n|\r", "");
+
+                        MessageData m1 = new MessageData
+                        {
+                            Id = time2,
+                            FromId = UserDetails.UserId,
+                            GroupId = GroupId,
+                            Text = replacement,
+                            Position = "right",
+                            Seen = "0",
+                            Time = time2,
+                            ModelType = MessageModelType.RightText,
+                            TimeText = DateTime.Now.ToShortTimeString(),
+                            SendFile = true,
+                            ChatColor = MainChatColor,
+                        };
+
+                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                        {
+                            TypeView = MessageModelType.RightText,
+                            Id = Long.ParseLong(m1.Id),
+                            MesData = m1
+                        });
+
+                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                        MAdapter.NotifyItemInserted(indexMes);
+
+                        //Scroll Down >> 
+                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                        if (Methods.CheckConnectivity())
+                        {
+                            Task.Factory.StartNew(() =>
+                            {
+                                GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                            });
+                        }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                        }
+
+                        EmojIconEditTextView.Text = "";
+                    }
+
+                    if (AppSettings.ShowButtonRecordSound)
+                    {
+                        RecordButton.Tag = "Free";
+                        RecordButton.SetTheImageResource(Resource.Drawable.icon_mic_vector);
+                        RecordButton.SetListenForRecord(true);
+                    }
+                    else
+                    {
+                        RecordButton.Tag = "Text";
+                        RecordButton.SetTheImageResource(Resource.Drawable.SendLetter);
+                        RecordButton.SetListenForRecord(false);
+                    }
+                }
+
+                CloseReplyUi();
             }
             catch (Exception e)
             {
@@ -1335,7 +1326,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         #region Permissions && Result
 
         //Result
-        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
+        protected override async void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             try
             {
@@ -1345,34 +1336,155 @@ namespace WoWonder.Activities.Chat.GroupChat
                 var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 string time2 = Convert.ToString(unixTimestamp);
 
-                switch (requestCode)
+                if (requestCode == 506 && resultCode == Result.Ok) // right_contact
                 {
-                    // right_contact
-                    case 506 when resultCode == Result.Ok:
-                        {
-                            var contact = Methods.PhoneContactManager.Get_ContactInfoBy_Id(data.Data.LastPathSegment);
-                            if (contact != null)
-                            {
-                                var name = contact.UserDisplayName;
-                                var phone = contact.PhoneNumber;
+                    var contact = Methods.PhoneContactManager.Get_ContactInfoBy_Id(data.Data.LastPathSegment);
+                    if (contact != null)
+                    {
+                        var name = contact.UserDisplayName;
+                        var phone = contact.PhoneNumber;
 
+                        MessageData m1 = new MessageData
+                        {
+                            Id = time2,
+                            FromId = UserDetails.UserId,
+                            GroupId = GroupId,
+                            ContactName = name,
+                            ContactNumber = phone,
+                            TimeText = timeNow,
+                            Position = "right",
+                            Seen = "0",
+                            Time = time2,
+                            ModelType = MessageModelType.RightContact,
+                            SendFile = true,
+                            ChatColor = MainChatColor,
+                        };
+
+                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                        {
+                            TypeView = MessageModelType.RightContact,
+                            Id = Long.ParseLong(m1.Id),
+                            MesData = m1
+                        });
+
+                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                        MAdapter.NotifyItemInserted(indexMes);
+
+                        //Scroll Down >> 
+                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                        var dictionary = new Dictionary<string, string>();
+
+                        if (!dictionary.ContainsKey(name))
+                        {
+                            dictionary.Add(name, phone);
+                        }
+
+                        string dataContact = JsonConvert.SerializeObject(dictionary.ToArray().FirstOrDefault(a => a.Key == name));
+
+                        if (Methods.CheckConnectivity())
+                        {
+                            //Send contact function
+                            await Task.Factory.StartNew(() =>
+                            {
+                                GroupMessageController.SendMessageTask(this, GroupId, time2, dataContact, "1", "", "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                            });
+                        }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                        }
+                    }
+                }
+                else if (requestCode == 500 && resultCode == Result.Ok) // right_image 
+                {
+                    var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                    if (filepath != null)
+                    {
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        if (!check)
+                        {
+                            //this file not supported on the server , please select another file 
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
+                            return;
+                        }
+
+                        var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
+                        if (type == "Image")
+                        {
+                            MessageData m1 = new MessageData
+                            {
+                                Id = time2,
+                                FromId = UserDetails.UserId,
+                                GroupId = GroupId,
+                                Media = filepath,
+                                Position = "right",
+                                Seen = "0",
+                                Time = time2,
+                                ModelType = MessageModelType.RightImage,
+                                TimeText = timeNow,
+                                SendFile = true,
+                                ChatColor = MainChatColor,
+                            };
+                            MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                            {
+                                TypeView = MessageModelType.RightImage,
+                                Id = Long.ParseLong(m1.Id),
+                                MesData = m1
+                            });
+                            var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                            MAdapter.NotifyItemInserted(indexMes);
+
+                            //Scroll Down >> 
+                            MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                            //Send image function
+                            if (Methods.CheckConnectivity())
+                            {
+                                await Task.Factory.StartNew(() =>
+                                {
+                                    GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filepath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                                });
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                            }
+                        }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Please_check_your_details), ToastLength.Long);
+                        }
+                    }
+                }
+                else if (requestCode == CropImage.CropImageActivityRequestCode && resultCode == Result.Ok) // right_image 
+                {
+                    var result = CropImage.GetActivityResult(data);
+                    if (resultCode == Result.Ok)
+                    {
+                        if (result.IsSuccessful)
+                        {
+                            var resultUri = result.Uri;
+
+                            if (!string.IsNullOrEmpty(resultUri.Path))
+                            {
                                 MessageData m1 = new MessageData
                                 {
                                     Id = time2,
                                     FromId = UserDetails.UserId,
                                     GroupId = GroupId,
-                                    ContactName = name,
-                                    ContactNumber = phone,
-                                    TimeText = timeNow,
+                                    Media = resultUri.Path,
+                                    Position = "right",
                                     Seen = "0",
                                     Time = time2,
-                                    Position = "right",
-                                    ModelType = MessageModelType.RightContact,
+                                    ModelType = MessageModelType.RightImage,
+                                    TimeText = timeNow,
                                     SendFile = true,
+                                    ChatColor = MainChatColor,
                                 };
                                 MAdapter.DifferList.Add(new AdapterModelsClassMessage
                                 {
-                                    TypeView = MessageModelType.RightContact,
+                                    TypeView = MessageModelType.RightImage,
                                     Id = Long.ParseLong(m1.Id),
                                     MesData = m1
                                 });
@@ -1383,314 +1495,230 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 //Scroll Down >> 
                                 MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
 
-                                var dictionary = new Dictionary<string, string>();
-
-                                if (!dictionary.ContainsKey(name))
-                                {
-                                    dictionary.Add(name, phone);
-                                }
-
-                                string dataContact = JsonConvert.SerializeObject(dictionary.ToArray().FirstOrDefault(a => a.Key == name));
-
+                                //Send image function
                                 if (Methods.CheckConnectivity())
                                 {
-                                    //Send contact function
-                                    Task.Factory.StartNew(() =>
+                                    await Task.Factory.StartNew(() =>
                                     {
-                                        GroupMessageController.SendMessageTask(this, GroupId, time2, dataContact, "1").ConfigureAwait(false);
+                                        GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", resultUri.Path, "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                     });
                                 }
                                 else
                                 {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                                 }
-                            }
-
-                            break;
-                        }
-                    // right_image 
-                    case 500 when resultCode == Result.Ok:
-                        {
-                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                            if (filepath != null)
-                            {
-                                var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
-                                if (!check)
-                                {
-                                    //this file not supported on the server , please select another file 
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                                    return;
-                                }
-
-                                var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                                if (type == "Image")
-                                {
-                                    MessageData m1 = new MessageData
-                                    {
-                                        Id = time2,
-                                        FromId = UserDetails.UserId,
-                                        GroupId = GroupId,
-                                        Media = filepath,
-                                        Seen = "0",
-                                        Time = time2,
-                                        Position = "right",
-                                        ModelType = MessageModelType.RightImage,
-                                        TimeText = timeNow,
-                                        SendFile = true,
-                                    };
-                                    MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                    {
-                                        TypeView = MessageModelType.RightImage,
-                                        Id = Long.ParseLong(m1.Id),
-                                        MesData = m1
-                                    });
-                                    var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                    MAdapter.NotifyItemInserted(indexMes);
-
-                                    //Scroll Down >> 
-                                    MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                    //Send image function
-                                    if (Methods.CheckConnectivity())
-                                    {
-                                        Task.Factory.StartNew(() =>
-                                        {
-                                            GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                    }
-                                }
-                                else
-                                {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_Please_check_your_details), ToastLength.Long)?.Show();
-                                }
-                            }
-
-                            break;
-                        }
-                    // right_image 
-                    case CropImage.CropImageActivityRequestCode when resultCode == Result.Ok:
-                        {
-                            var result = CropImage.GetActivityResult(data);
-                            if (resultCode == Result.Ok)
-                            {
-                                if (result.IsSuccessful)
-                                {
-                                    var resultUri = result.Uri;
-
-                                    if (!string.IsNullOrEmpty(resultUri.Path))
-                                    {
-                                        MessageData m1 = new MessageData
-                                        {
-                                            Id = time2,
-                                            FromId = UserDetails.UserId,
-                                            GroupId = GroupId,
-                                            Media = resultUri.Path,
-                                            Seen = "0",
-                                            Time = time2,
-                                            Position = "right",
-                                            ModelType = MessageModelType.RightImage,
-                                            TimeText = timeNow,
-                                            SendFile = true,
-                                        };
-                                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                        {
-                                            TypeView = MessageModelType.RightImage,
-                                            Id = Long.ParseLong(m1.Id),
-                                            MesData = m1
-                                        });
-
-                                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                        MAdapter.NotifyItemInserted(indexMes);
-
-                                        //Scroll Down >> 
-                                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                        //Send image function
-                                        if (Methods.CheckConnectivity())
-                                        {
-                                            Task.Factory.StartNew(() =>
-                                            {
-                                                GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", resultUri.Path).ConfigureAwait(false);
-                                            });
-                                        }
-                                        else
-                                        {
-                                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
-                                    }
-                                }
-                            }
-
-                            break;
-                        }
-                    // Add right_image using camera   
-                    case 503 when resultCode == Result.Ok:
-                        {
-                            if (string.IsNullOrEmpty(IntentController.CurrentPhotoPath))
-                            {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
                             }
                             else
                             {
-                                //var thumbnail = MediaStore.Images.Media.GetBitmap(ContentResolver, IntentController.ImageCameraUri); 
-                                //Bitmap bitmap = BitmapFactory.DecodeFile(IntentController.currentPhotoPath);
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
+                            }
+                        }
+                    }
+                }
+                else if (requestCode == 503 && resultCode == Result.Ok) // Add right_image using camera   
+                {
+                    if (string.IsNullOrEmpty(IntentController.CurrentPhotoPath))
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
+                    }
+                    else
+                    {
+                        //var thumbnail = MediaStore.Images.Media.GetBitmap(ContentResolver, IntentController.ImageCameraUri); 
+                        //Bitmap bitmap = BitmapFactory.DecodeFile(IntentController.currentPhotoPath);
 
-                                if (Methods.MultiMedia.CheckFileIfExits(IntentController.CurrentPhotoPath) != "File Dont Exists")
+                        if (Methods.MultiMedia.CheckFileIfExits(IntentController.CurrentPhotoPath) != "File Dont Exists")
+                        {
+                            MessageData m1 = new MessageData
+                            {
+                                Id = time2,
+                                FromId = UserDetails.UserId,
+                                GroupId = GroupId,
+                                Media = IntentController.CurrentPhotoPath,
+                                Position = "right",
+                                Seen = "0",
+                                Time = time2,
+                                ModelType = MessageModelType.RightImage,
+                                TimeText = timeNow,
+                                SendFile = true,
+                                ChatColor = MainChatColor,
+                            };
+                            MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                            {
+                                TypeView = MessageModelType.RightImage,
+                                Id = Long.ParseLong(m1.Id),
+                                MesData = m1
+                            });
+
+                            var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                            MAdapter.NotifyItemInserted(indexMes);
+
+                            //Scroll Down >> 
+                            MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                            //Send image function
+                            if (Methods.CheckConnectivity())
+                            {
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    MessageData m1 = new MessageData
-                                    {
-                                        Id = time2,
-                                        FromId = UserDetails.UserId,
-                                        GroupId = GroupId,
-                                        Media = IntentController.CurrentPhotoPath,
-                                        Seen = "0",
-                                        Time = time2,
-                                        Position = "right",
-                                        ModelType = MessageModelType.RightImage,
-                                        TimeText = timeNow,
-                                        SendFile = true,
-                                    };
-                                    MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                    {
-                                        TypeView = MessageModelType.RightImage,
-                                        Id = Long.ParseLong(m1.Id),
-                                        MesData = m1
-                                    });
+                                    GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", IntentController.CurrentPhotoPath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                                });
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                            }
+                        }
+                        else
+                        {
+                            //ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load),ToastLength.Short);
+                        }
+                    }
+                }
+                else if (requestCode == 501 && resultCode == Result.Ok) // right_video 
+                {
+                    var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                    if (filepath != null)
+                    {
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        if (!check)
+                        {
+                            //this file not supported on the server , please select another file 
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
+                            return;
+                        }
 
-                                    var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                    MAdapter.NotifyItemInserted(indexMes);
+                        var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
+                        if (type == "Video")
+                        {
+                            var fileName = filepath.Split('/').Last();
+                            var fileNameWithoutExtension = fileName.Split('.').First();
+                            var pathWithoutFilename = Methods.Path.FolderDcimVideo + GroupId;
+                            var fullPathFile = new File(Methods.Path.FolderDcimVideo + GroupId, fileNameWithoutExtension + ".png");
 
-                                    //Scroll Down >> 
-                                    MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+                            var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
+                            if (videoPlaceHolderImage == "File Dont Exists")
+                            {
+                                var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
+                                Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
+                            }
+                            //wael
+                            //var newCopyedFilepath = Methods.MultiMedia.CopyMediaFileTo(filepath, Methods.Path.FolderDcimVideo + GroupId, false, true);
+                            //if (newCopyedFilepath != "Path File Dont exits")
+                            //{
 
-                                    //Send image function
-                                    if (Methods.CheckConnectivity())
-                                    {
-                                        Task.Factory.StartNew(() =>
-                                        {
-                                            GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", IntentController.CurrentPhotoPath).ConfigureAwait(false);
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                    }
-                                }
-                                else
+                            MessageData m1 = new MessageData
+                            {
+                                Id = time2,
+                                FromId = UserDetails.UserId,
+                                GroupId = GroupId,
+                                Media = filepath,
+                                Position = "right",
+                                Seen = "0",
+                                Time = time2,
+                                ModelType = MessageModelType.RightVideo,
+                                TimeText = timeNow,
+                                SendFile = true,
+                                ChatColor = MainChatColor,
+                            };
+                            MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                            {
+                                TypeView = MessageModelType.RightVideo,
+                                Id = Long.ParseLong(m1.Id),
+                                MesData = m1
+                            });
+
+                            var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                            MAdapter.NotifyItemInserted(indexMes);
+
+                            //Scroll Down >> 
+                            MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                            //Send Video function
+                            if (Methods.CheckConnectivity())
+                            {
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    //Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load),ToastLength.Short)?.Show();
-                                }
+                                    GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filepath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                                });
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                             }
 
-                            break;
+                            //}
                         }
-                    // right_video 
-                    case 501 when resultCode == Result.Ok:
+                    }
+                }
+                else if (requestCode == 513 && resultCode == Result.Ok) // right_video camera 
+                {
+                    if (Methods.MultiMedia.CheckFileIfExits(IntentController.CurrentVideoPath) != "File Dont Exists" && Build.VERSION.SdkInt <= BuildVersionCodes.OMr1)
+                    {
+                        var fileName = IntentController.CurrentVideoPath.Split('/').Last();
+                        var fileNameWithoutExtension = fileName.Split('.').First();
+                        var path = Methods.Path.FolderDcimVideo + "/" + fileNameWithoutExtension + ".png";
+
+                        MessageData m1 = new MessageData
                         {
-                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                            if (filepath != null)
+                            Id = time2,
+                            FromId = UserDetails.UserId,
+                            GroupId = GroupId,
+                            Media = IntentController.CurrentVideoPath,
+                            Seen = "0",
+                            Time = time2,
+                            Position = "right",
+                            ModelType = MessageModelType.RightVideo,
+                            TimeText = timeNow,
+                            SendFile = true,
+                            ChatColor = MainChatColor,
+                        };
+                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                        {
+                            TypeView = MessageModelType.RightVideo,
+                            Id = Long.ParseLong(m1.Id),
+                            MesData = m1
+                        });
+
+                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                        MAdapter.NotifyItemInserted(indexMes);
+
+                        //Scroll Down >> 
+                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                        //Send Video function
+                        if (Methods.CheckConnectivity())
+                        {
+                            await Task.Factory.StartNew(() =>
                             {
-                                var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
-                                if (!check)
-                                {
-                                    //this file not supported on the server , please select another file 
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                                    return;
-                                }
-
-                                var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                                if (type == "Video")
-                                {
-                                    var fileName = filepath.Split('/').Last();
-                                    var fileNameWithoutExtension = fileName.Split('.').First();
-                                    var pathWithoutFilename = Methods.Path.FolderDcimVideo + GroupId;
-                                    //var fullPathFile = new File(Methods.Path.FolderDcimVideo + GroupId, fileNameWithoutExtension + ".png");
-
-                                    var videoPlaceHolderImage = Methods.MultiMedia.GetMediaFrom_Gallery(pathWithoutFilename, fileNameWithoutExtension + ".png");
-                                    if (videoPlaceHolderImage == "File Dont Exists")
-                                    {
-                                        var bitmapImage = Methods.MultiMedia.Retrieve_VideoFrame_AsBitmap(this, data.Data.ToString());
-                                        Methods.MultiMedia.Export_Bitmap_As_Image(bitmapImage, fileNameWithoutExtension, pathWithoutFilename);
-                                    }
-                                    //wael
-                                    //var newCopyedFilepath = Methods.MultiMedia.CopyMediaFileTo(filepath, Methods.Path.FolderDcimVideo + GroupId, false, true);
-                                    //if (newCopyedFilepath != "Path File Dont exits")
-                                    //{
-
-                                    MessageData m1 = new MessageData
-                                    {
-                                        Id = time2,
-                                        FromId = UserDetails.UserId,
-                                        GroupId = GroupId,
-                                        Media = filepath,
-                                        Seen = "0",
-                                        Time = time2,
-                                        Position = "right",
-                                        ModelType = MessageModelType.RightVideo,
-                                        TimeText = timeNow,
-                                        SendFile = true,
-                                    };
-                                    MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                    {
-                                        TypeView = MessageModelType.RightVideo,
-                                        Id = Long.ParseLong(m1.Id),
-                                        MesData = m1
-                                    });
-
-                                    var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                    MAdapter.NotifyItemInserted(indexMes);
-
-                                    //Scroll Down >> 
-                                    MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                    //Send Video function
-                                    if (Methods.CheckConnectivity())
-                                    {
-                                        Task.Factory.StartNew(() =>
-                                        {
-                                            GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                    }
-
-                                    //}
-                                }
-                            }
-
-                            break;
+                                GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", IntentController.CurrentVideoPath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                            });
                         }
-                    // right_video camera 
-                    case 513 when resultCode == Result.Ok:
+                        else
                         {
-                            if (Methods.MultiMedia.CheckFileIfExits(IntentController.CurrentVideoPath) != "File Dont Exists" && Build.VERSION.SdkInt <= BuildVersionCodes.OMr1)
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                        }
+                    }
+                    else
+                    {
+                        var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                        if (filepath != null)
+                        {
+                            var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
+                            if (type == "Video")
                             {
-                                var fileName = IntentController.CurrentVideoPath.Split('/').Last();
-                                var fileNameWithoutExtension = fileName.Split('.').First();
-                                var path = Methods.Path.FolderDcimVideo + "/" + fileNameWithoutExtension + ".png";
-
                                 MessageData m1 = new MessageData
                                 {
                                     Id = time2,
                                     FromId = UserDetails.UserId,
                                     GroupId = GroupId,
-                                    Media = IntentController.CurrentVideoPath,
+                                    Media = filepath,
                                     Seen = "0",
                                     Time = time2,
                                     Position = "right",
                                     ModelType = MessageModelType.RightVideo,
                                     TimeText = timeNow,
                                     SendFile = true,
+                                    ChatColor = MainChatColor,
                                 };
                                 MAdapter.DifferList.Add(new AdapterModelsClassMessage
                                 {
@@ -1708,333 +1736,274 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 //Send Video function
                                 if (Methods.CheckConnectivity())
                                 {
-                                    Task.Factory.StartNew(() =>
+                                    await Task.Factory.StartNew(() =>
                                     {
-                                        GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", IntentController.CurrentVideoPath).ConfigureAwait(false);
+                                        GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filepath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
                                     });
                                 }
                                 else
                                 {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                                 }
                             }
-                            else
-                            {
-                                var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                                if (filepath != null)
-                                {
-                                    var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                                    if (type == "Video")
-                                    {
-                                        MessageData m1 = new MessageData
-                                        {
-                                            Id = time2,
-                                            FromId = UserDetails.UserId,
-                                            GroupId = GroupId,
-                                            Media = filepath,
-                                            Seen = "0",
-                                            Time = time2,
-                                            Position = "right",
-                                            ModelType = MessageModelType.RightVideo,
-                                            TimeText = timeNow,
-                                            SendFile = true,
-                                        };
-                                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                        {
-                                            TypeView = MessageModelType.RightVideo,
-                                            Id = Long.ParseLong(m1.Id),
-                                            MesData = m1
-                                        });
-
-                                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                        MAdapter.NotifyItemInserted(indexMes);
-
-                                        //Scroll Down >> 
-                                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                        //Send Video function
-                                        if (Methods.CheckConnectivity())
-                                        {
-                                            Task.Factory.StartNew(() =>
-                                            {
-                                                GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
-                                            });
-                                        }
-                                        else
-                                        {
-                                            Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                        }
-                                    }
-                                }
-                            }
-
-                            break;
                         }
-                    // right_file
-                    case 504 when resultCode == Result.Ok:
-                        {
-                            string filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                            if (filepath != null)
-                            {
-                                var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
-                                if (!check)
-                                {
-                                    //this file not supported on the server , please select another file 
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                                    return;
-                                }
-
-                                string totalSize = Methods.FunString.Format_byte_size(filepath);
-                                MessageData m1 = new MessageData
-                                {
-                                    Id = time2,
-                                    FromId = UserDetails.UserId,
-                                    GroupId = GroupId,
-                                    Media = filepath,
-                                    FileSize = totalSize,
-                                    TimeText = timeNow,
-                                    Seen = "0",
-                                    Time = time2,
-                                    Position = "right",
-                                    ModelType = MessageModelType.RightFile,
-                                    SendFile = true,
-                                };
-                                MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                {
-                                    TypeView = MessageModelType.RightFile,
-                                    Id = Long.ParseLong(m1.Id),
-                                    MesData = m1
-                                });
-
-                                var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                MAdapter.NotifyItemInserted(indexMes);
-
-                                //Scroll Down >> 
-                                MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                //Send Video function
-                                if (Methods.CheckConnectivity())
-                                {
-                                    Task.Factory.StartNew(() =>
-                                    {
-                                        GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", filepath).ConfigureAwait(false);
-                                    });
-                                }
-                                else
-                                {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                }
-                            }
-
-                            break;
-                        }
-                    // right_audio
-                    case 505 when resultCode == Result.Ok:
-                        {
-                            var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
-                            if (filepath != null)
-                            {
-                                var check = WoWonderTools.CheckMimeTypesWithServer(filepath);
-                                if (!check)
-                                {
-                                    //this file not supported on the server , please select another file 
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
-                                    return;
-                                }
-
-                                var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
-                                if (type == "Audio")
-                                {
-                                    //wael 
-                                    //var newCopyedFilepath = Methods.MultiMedia.CopyMediaFileTo(filepath, Methods.Path.FolderDcimSound + "/" + GroupId, false, true);
-                                    //if (newCopyedFilepath != "Path File Dont exits")
-                                    //{
-                                    string totalSize = Methods.FunString.Format_byte_size(filepath);
-                                    MessageData m1 = new MessageData
-                                    {
-                                        Id = time2,
-                                        FromId = UserDetails.UserId,
-                                        GroupId = GroupId,
-                                        Media = filepath,
-                                        FileSize = totalSize,
-                                        Seen = "0",
-                                        Time = time2,
-                                        Position = "right",
-                                        TimeText = GetText(Resource.String.Lbl_Uploading),
-                                        MediaDuration = Methods.AudioRecorderAndPlayer.GetTimeString(Methods.AudioRecorderAndPlayer.Get_MediaFileDuration(filepath)),
-                                        ModelType = MessageModelType.RightAudio,
-                                        SendFile = true,
-                                    };
-
-                                    MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                    {
-                                        TypeView = MessageModelType.RightAudio,
-                                        Id = Long.ParseLong(m1.Id),
-                                        MesData = m1
-                                    });
-
-                                    var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                    MAdapter.NotifyItemInserted(indexMes);
-
-                                    //Scroll Down >> 
-                                    MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                    //Send Video function
-                                    if (Methods.CheckConnectivity())
-                                    {
-                                        Task.Factory.StartNew(() =>
-                                        {
-                                            GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filepath).ConfigureAwait(false);
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                    }
-                                    //}
-                                }
-                                else
-                                {
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
-                                }
-                            }
-                            else
-                            {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
-                            }
-
-                            break;
-                        }
-                    // right_gif
-                    case 300 when resultCode == Result.Ok:
-                        {
-                            // G_fixed_height_small_url, // UrlGif - view  >>  mediaFileName
-                            // G_fixed_height_small_mp4, //MediaGif - sent >>  media
-
-                            var gifLink = data.GetStringExtra("MediaGif") ?? "Data not available";
-                            if (gifLink != "Data not available" && !string.IsNullOrEmpty(gifLink))
-                            {
-                                var gifUrl = data.GetStringExtra("UrlGif") ?? "Data not available";
-                                GifFile = gifLink;
-
-                                MessageData m1 = new MessageData
-                                {
-                                    Id = time2,
-                                    FromId = UserDetails.UserId,
-                                    GroupId = GroupId,
-                                    Media = GifFile,
-                                    MediaFileName = gifUrl,
-                                    Seen = "0",
-                                    Time = time2,
-                                    Position = "right",
-                                    ModelType = MessageModelType.RightGif,
-                                    TimeText = timeNow,
-                                    Stickers = gifUrl,
-                                    SendFile = true,
-                                };
-
-                                MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                {
-                                    TypeView = MessageModelType.RightGif,
-                                    Id = Long.ParseLong(m1.Id),
-                                    MesData = m1
-                                });
-
-                                var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                MAdapter.NotifyItemInserted(indexMes);
-
-                                //Scroll Down >> 
-                                MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                //Send image function
-                                if (Methods.CheckConnectivity())
-                                {
-                                    Task.Factory.StartNew(() =>
-                                    {
-                                        GroupMessageController.SendMessageTask(this, GroupId, time2, EmojIconEditTextView.Text, "", "", "", "", gifUrl).ConfigureAwait(false);
-                                    });
-                                }
-                                else
-                                {
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                }
-                            }
-                            else
-                            {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_Please_check_your_details) + " ", ToastLength.Long)?.Show();
-                            }
-
-                            break;
-                        }
-                    // Location
-                    case 502 when resultCode == Result.Ok:
-                        {
-                            //var placeAddress = data.GetStringExtra("Address") ?? "";
-                            var placeLatLng = data.GetStringExtra("latLng") ?? "";
-                            if (!string.IsNullOrEmpty(placeLatLng))
-                            {
-                                string[] latLng = placeLatLng.Split(',');
-                                if (latLng?.Length > 0)
-                                {
-                                    string lat = latLng[0];
-                                    string lng = latLng[1];
-
-                                    MessageData m1 = new MessageData
-                                    {
-                                        Id = time2,
-                                        FromId = UserDetails.UserId,
-                                        GroupId = GroupId,
-                                        Lat = lat,
-                                        Lng = lng,
-                                        Seen = "0",
-                                        Time = time2,
-                                        Position = "right",
-                                        ModelType = MessageModelType.RightMap,
-                                        TimeText = timeNow,
-                                        SendFile = true,
-                                    };
-                                    MAdapter.DifferList.Add(new AdapterModelsClassMessage
-                                    {
-                                        TypeView = MessageModelType.RightMap,
-                                        Id = Long.ParseLong(m1.Id),
-                                        MesData = m1
-                                    });
-                                    var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                    MAdapter.NotifyItemInserted(indexMes);
-
-                                    //Scroll Down >> 
-                                    MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
-
-                                    //Send image function
-                                    if (Methods.CheckConnectivity())
-                                    {
-                                        Task.Factory.StartNew(() =>
-                                        {
-                                            GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", "", "", "", "", lat, lng).ConfigureAwait(false);
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                                    }
-                                }
-                            }
-
-                            break;
-                        }
-                    // Update name 
-                    case 202 when resultCode == Result.Ok:
-                        {
-                            var groupName = data.GetStringExtra("GroupName") ?? "Data not available";
-                            if (groupName != "Data not available" && !string.IsNullOrEmpty(groupName))
-                            {
-                                ActionBarTitle.Text = Methods.FunString.DecodeString(groupName);
-                                SayHiToTextView.Text = Methods.FunString.DecodeString(groupName);
-                            }
-
-                            break;
-                        }
+                    }
                 }
+                else if (requestCode == 504 && resultCode == Result.Ok) // right_file
+                {
+                    string filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                    if (filepath != null)
+                    {
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        if (!check)
+                        {
+                            //this file not supported on the server , please select another file 
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
+                            return;
+                        }
+
+                        string totalSize = Methods.FunString.Format_byte_size(filepath);
+                        MessageData m1 = new MessageData
+                        {
+                            Id = time2,
+                            FromId = UserDetails.UserId,
+                            GroupId = GroupId,
+                            Media = filepath,
+                            FileSize = totalSize,
+                            TimeText = timeNow,
+                            Seen = "0",
+                            Time = time2,
+                            Position = "right",
+                            ModelType = MessageModelType.RightFile,
+                            SendFile = true,
+                            ChatColor = MainChatColor,
+                        };
+                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                        {
+                            TypeView = MessageModelType.RightFile,
+                            Id = Long.ParseLong(m1.Id),
+                            MesData = m1
+                        });
+
+                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                        MAdapter.NotifyItemInserted(indexMes);
+
+                        //Scroll Down >> 
+                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                        //Send Video function
+                        if (Methods.CheckConnectivity())
+                        {
+                            await Task.Factory.StartNew(() =>
+                            {
+                                GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filepath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                            });
+                        }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                        }
+                    }
+                }
+                else if (requestCode == 505 && resultCode == Result.Ok) // right_audio
+                {
+                    var filepath = Methods.AttachmentFiles.GetActualPathFromFile(this, data.Data);
+                    if (filepath != null)
+                    {
+                        var check = await WoWonderTools.CheckMimeTypesWithServer(filepath);
+                        if (!check)
+                        {
+                            //this file not supported on the server , please select another file 
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
+                            return;
+                        }
+
+                        var type = Methods.AttachmentFiles.Check_FileExtension(filepath);
+                        if (type == "Audio")
+                        {
+                            //wael 
+                            //var newCopyedFilepath = Methods.MultiMedia.CopyMediaFileTo(filepath, Methods.Path.FolderDcimSound + "/" + GroupId, false, true);
+                            //if (newCopyedFilepath != "Path File Dont exits")
+                            //{
+                            string totalSize = Methods.FunString.Format_byte_size(filepath);
+                            MessageData m1 = new MessageData
+                            {
+                                Id = time2,
+                                FromId = UserDetails.UserId,
+                                GroupId = GroupId,
+                                Media = filepath,
+                                FileSize = totalSize,
+                                Seen = "0",
+                                Time = time2,
+                                Position = "right",
+                                TimeText = GetText(Resource.String.Lbl_Uploading),
+                                MediaDuration = Methods.AudioRecorderAndPlayer.GetTimeString(Methods.AudioRecorderAndPlayer.Get_MediaFileDuration(filepath)),
+                                ModelType = MessageModelType.RightAudio,
+                                SendFile = true,
+                                ChatColor = MainChatColor,
+                            };
+
+                            MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                            {
+                                TypeView = MessageModelType.RightAudio,
+                                Id = Long.ParseLong(m1.Id),
+                                MesData = m1
+                            });
+
+                            var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                            MAdapter.NotifyItemInserted(indexMes);
+
+                            //Scroll Down >> 
+                            MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                            //Send Video function
+                            if (Methods.CheckConnectivity())
+                            {
+                                await Task.Factory.StartNew(() =>
+                                {
+                                    GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", filepath, "", "", "", "", "", ReplyId).ConfigureAwait(false);
+                                });
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                            }
+                            //}
+                        }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
+                        }
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
+                    }
+                }
+                else if (requestCode == 300 && resultCode == Result.Ok) // right_gif
+                {
+                    // G_fixed_height_small_url, // UrlGif - view  >>  mediaFileName
+                    // G_fixed_height_small_mp4, //MediaGif - sent >>  media
+
+                    var gifLink = data.GetStringExtra("MediaGif") ?? "Data not available";
+                    if (gifLink != "Data not available" && !string.IsNullOrEmpty(gifLink))
+                    {
+                        var gifUrl = data.GetStringExtra("UrlGif") ?? "Data not available";
+                        GifFile = gifLink;
+
+                        MessageData m1 = new MessageData
+                        {
+                            Id = time2,
+                            FromId = UserDetails.UserId,
+                            GroupId = GroupId,
+                            Media = GifFile,
+                            MediaFileName = gifUrl,
+                            Seen = "0",
+                            Time = time2,
+                            Position = "right",
+                            ModelType = MessageModelType.RightGif,
+                            TimeText = timeNow,
+                            Stickers = gifUrl,
+                            SendFile = true,
+                            ChatColor = MainChatColor,
+                        };
+
+                        MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                        {
+                            TypeView = MessageModelType.RightGif,
+                            Id = Long.ParseLong(m1.Id),
+                            MesData = m1
+                        });
+
+                        var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                        MAdapter.NotifyItemInserted(indexMes);
+
+                        //Scroll Down >> 
+                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                        //Send image function
+                        if (Methods.CheckConnectivity())
+                        {
+                            await Task.Factory.StartNew(() =>
+                            {
+                                GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", "", "", "", gifUrl, "", "", ReplyId).ConfigureAwait(false);
+                            });
+                        }
+                        else
+                        {
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                        }
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Please_check_your_details) + " ", ToastLength.Long);
+                    }
+                }
+                else if (requestCode == 502 && resultCode == Result.Ok) // Location
+                {
+                    //var placeAddress = data.GetStringExtra("Address") ?? "";
+                    var placeLatLng = data.GetStringExtra("latLng") ?? "";
+                    if (!string.IsNullOrEmpty(placeLatLng))
+                    {
+                        string[] latLng = placeLatLng.Split(',');
+                        if (latLng?.Length > 0)
+                        {
+                            string lat = latLng[0];
+                            string lng = latLng[1];
+
+                            MessageData m1 = new MessageData
+                            {
+                                Id = time2,
+                                FromId = UserDetails.UserId,
+                                GroupId = GroupId,
+                                Lat = lat,
+                                Lng = lng,
+                                Position = "right",
+                                Seen = "0",
+                                Time = time2,
+                                ModelType = MessageModelType.RightMap,
+                                TimeText = timeNow,
+                                SendFile = true,
+                                ChatColor = MainChatColor
+                            };
+                            MAdapter.DifferList.Add(new AdapterModelsClassMessage
+                            {
+                                TypeView = MessageModelType.RightMap,
+                                Id = Long.ParseLong(m1.Id),
+                                MesData = m1
+                            });
+                            var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
+                            MAdapter.NotifyItemInserted(indexMes);
+
+                            //Scroll Down >> 
+                            MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+
+                            //Send image function
+                            if (Methods.CheckConnectivity())
+                            {
+                                await Task.Factory.StartNew(() =>
+                                {
+                                    GroupMessageController.SendMessageTask(this, GroupId, time2, "", "", "", "", "", "", lat, lng, ReplyId).ConfigureAwait(false);
+                                });
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                            }
+                        }
+                    }
+                }
+                else if (requestCode == 202 && resultCode == Result.Ok) // Update name 
+                {
+                    var groupName = data.GetStringExtra("GroupName") ?? "Data not available";
+                    if (groupName != "Data not available" && !string.IsNullOrEmpty(groupName))
+                    {
+                        ActionBarTitle.Text = Methods.FunString.DecodeString(groupName);
+                        SayHiToTextView.Text = Methods.FunString.DecodeString(groupName);
+                    }
+                }
+
+                CloseReplyUi();
             }
             catch (Exception e)
             {
@@ -2049,21 +2018,27 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-                switch (requestCode)
+                if (requestCode == 123)
                 {
-                    case 123 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    {
                         Methods.Path.Chack_MyFolder(GroupId);
-                        break;
-                    case 123:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
-                    case 108 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                    }
+                }
+                else if (requestCode == 108)
+                {
+                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    {
                         switch (PermissionsType)
                         {
                             //requestCode >> 500 => Image Gallery
-                            case "Image" when AppSettings.ImageCropping:
-                                OpenDialogGallery("Image");
-                                break;
+                            //case "Image" when AppSettings.ImageCropping:
+                            //    OpenDialogGallery("Image");
+                            //    break;
                             case "Image": //requestCode >> 500 => Image Gallery
                                 new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false);
                                 break;
@@ -2080,12 +2055,16 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 new IntentController(this).OpenIntentCamera();
                                 break;
                         }
-
-                        break;
-                    case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
-                    case 100 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                    }
+                }
+                else if (requestCode == 100)
+                {
+                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    {
                         switch (PermissionsType)
                         {
                             case "File":
@@ -2097,47 +2076,59 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 new IntentController(this).OpenIntentAudio();
                                 break;
                         }
-
-                        break;
-                    case 100:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
-                    case 101 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                    }
+                }
+                else if (requestCode == 101)
+                {
+                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    {
                         //request code of result is 506
                         new IntentController(this).OpenIntentGetContactNumberPhone();
-                        break;
-                    case 101:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
-                    case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                    }
+                }
+                else if (requestCode == 105)
+                {
+                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    {
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
-                        break;
-                    case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
-                    case 102 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                    }
+                }
+                else if (requestCode == 102)
+                {
+                    if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
+                    {
+                        if (RecordButton?.Tag?.ToString() == "Free")
                         {
-                            if (RecordButton?.Tag?.ToString() == "Free")
-                            {
-                                //Set Record Style
-                                IsRecording = true;
+                            //Set Record Style
+                            IsRecording = true;
 
-                                EmojIconEditTextView.Visibility = ViewStates.Invisible;
+                            EmojIconEditTextView.Visibility = ViewStates.Invisible;
 
-                                ResetMediaPlayer();
+                            ResetMediaPlayer();
 
-                                RecorderService = new Methods.AudioRecorderAndPlayer(GroupId);
-                                //Start Audio record
-                                await Task.Delay(600);
-                                RecorderService.StartRecording();
-                            }
-
-                            break;
+                            RecorderService = new Methods.AudioRecorderAndPlayer(GroupId);
+                            //Start Audio record
+                            await Task.Delay(600);
+                            RecorderService.StartRecording();
                         }
-                    case 102:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
-                        break;
+                    }
+                    else
+                    {
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
+                    }
                 }
             }
             catch (Exception e)
@@ -2150,29 +2141,29 @@ namespace WoWonder.Activities.Chat.GroupChat
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_ImageGallery)) // image 
+                if (itemString == GetText(Resource.String.Lbl_ImageGallery)) // image 
                 {
                     // Check if we're running on Android 5.0 or higher
                     if ((int)Build.VERSION.SdkInt < 23)
                     {
-                        if (AppSettings.ImageCropping)
-                            OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
-                        else
-                            new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false); //requestCode >> 500 => Image Gallery
+                        //if (AppSettings.ImageCropping)
+                        //    OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
+                        //else
+                        new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false); //requestCode >> 500 => Image Gallery
                     }
                     else
                     {
                         if (CheckSelfPermission(Manifest.Permission.Camera) == Permission.Granted && CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted
                                                                                                   && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
                         {
-                            if (AppSettings.ImageCropping)
-                                OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
-                            else
-                                new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false); //requestCode >> 500 => Image Gallery
+                            //if (AppSettings.ImageCropping)
+                            //    OpenDialogGallery("Image"); //requestCode >> 500 => Image Gallery
+                            //else
+                            new IntentController(this).OpenIntentImageGallery(GetText(Resource.String.Lbl_SelectPictures), false); //requestCode >> 500 => Image Gallery
                         }
                         else
                         {
@@ -2180,7 +2171,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_TakeImageFromCamera)) // Camera 
+                else if (itemString == GetText(Resource.String.Lbl_TakeImageFromCamera)) // Camera 
                 {
                     PermissionsType = "Camera";
 
@@ -2204,7 +2195,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_VideoGallery)) // video  
+                else if (itemString == GetText(Resource.String.Lbl_VideoGallery)) // video  
                 {
                     PermissionsType = "Video";
 
@@ -2228,7 +2219,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_RecordVideoFromCamera)) // video camera
+                else if (itemString == GetText(Resource.String.Lbl_RecordVideoFromCamera)) // video camera
                 {
                     PermissionsType = "Video_camera";
 
@@ -2252,7 +2243,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_File)) // File  
+                else if (itemString == GetText(Resource.String.Lbl_File)) // File  
                 {
                     PermissionsType = "File";
 
@@ -2276,7 +2267,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                         }
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Music)) // Music  
+                else if (itemString == GetText(Resource.String.Lbl_Music)) // Music  
                 {
                     PermissionsType = "Music";
 
@@ -2291,43 +2282,43 @@ namespace WoWonder.Activities.Chat.GroupChat
                             new PermissionsController(this).RequestPermission(100);
                     }
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Gif)) // Gif  
+                else if (itemString == GetText(Resource.String.Lbl_Gif)) // Gif  
                 {
                     StartActivityForResult(new Intent(this, typeof(GifActivity)), 300);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Contact)) // Contact  
+                else if (itemString == GetText(Resource.String.Lbl_Contact)) // Contact  
                 {
                     ChatContactButtonOnClick();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Location)) // Location  
+                else if (itemString == GetText(Resource.String.Lbl_Location)) // Location  
                 {
                     ChatLocationButtonOnClick();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_GroupInfo))
+                else if (itemString == GetText(Resource.String.Lbl_GroupInfo))
                 {
                     Intent intent = new Intent(this, typeof(EditGroupChatActivity));
                     intent.PutExtra("GroupObject", JsonConvert.SerializeObject(GroupData));
                     intent.PutExtra("Type", "Profile");
                     StartActivity(intent);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_AddMembers))
+                else if (itemString == GetText(Resource.String.Lbl_AddMembers))
                 {
                     Intent intent = new Intent(this, typeof(EditGroupChatActivity));
                     intent.PutExtra("GroupObject", JsonConvert.SerializeObject(GroupData));
                     intent.PutExtra("Type", "Edit");
                     StartActivityForResult(intent, 202);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_ExitGroup))
+                else if (itemString == GetText(Resource.String.Lbl_ExitGroup))
                 {
                     if (!Methods.CheckConnectivity())
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                     else
                     {
-                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                        dialog.Content(GetText(Resource.String.Lbl_AreYouSureExitGroup));
-                        dialog.PositiveText(GetText(Resource.String.Lbl_Exit)).OnPositive(async (materialDialog, action) =>
+                        var dialogBuilder = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                        dialogBuilder.Content(GetText(Resource.String.Lbl_AreYouSureExitGroup));
+                        dialogBuilder.PositiveText(GetText(Resource.String.Lbl_Exit)).OnPositive(async (materialDialog, action) =>
                         {
                             try
                             {
@@ -2342,7 +2333,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     {
                                         Console.WriteLine(result.MessageData);
 
-                                        Toast.MakeText(this, GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short)?.Show();
+                                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short);
 
                                         //remove item to my Group list  
                                         if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
@@ -2379,51 +2370,10 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 Methods.DisplayReportResultTrack(e);
                             }
                         });
-                        dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                        dialog.AlwaysCallSingleChoiceCallback();
-                        dialog.Build().Show();
+                        dialogBuilder.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                        dialogBuilder.AlwaysCallSingleChoiceCallback();
+                        dialogBuilder.Build().Show();
                     }
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Copy))
-                {
-                    CopyItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_MessageInfo))
-                {
-                    var intent = new Intent(this, typeof(MessageInfoActivity));
-                    intent.PutExtra("GroupId", GroupId);
-                    intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
-                    StartActivity(intent);
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Forward))
-                {
-                    ForwardItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Reply))
-                {
-                    ReplyItems();
-                }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_DeleteMessage))
-                {
-                    DeleteMessageItems();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
                 }
             }
             catch (Exception e)
@@ -2466,9 +2416,9 @@ namespace WoWonder.Activities.Chat.GroupChat
                             Manifest.Permission.Camera,
                             Manifest.Permission.ReadExternalStorage,
                             Manifest.Permission.WriteExternalStorage,
+                            Manifest.Permission.AccessMediaLocation,
                             Manifest.Permission.RecordAudio,
                             Manifest.Permission.ModifyAudioSettings,
-                            Manifest.Permission.AccessMediaLocation,
                         }, 123);
                     }
                 }
@@ -2476,6 +2426,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 {
                     Methods.Path.Chack_MyFolder(GroupId);
                 }
+
                 GetMessages();
             }
             catch (Exception e)
@@ -2483,31 +2434,28 @@ namespace WoWonder.Activities.Chat.GroupChat
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         private async void GetMessages()
         {
             try
             {
                 MAdapter.DifferList.Clear();
 
-                //SwipeRefreshLayout.Refreshing = true;
-                //SwipeRefreshLayout.Enabled = true;
                 LoadingLayout.Visibility = ViewStates.Visible;
                 await GetMessages_Api();
 
-                switch (MAdapter.DifferList.Count)
+                if (MAdapter.DifferList.Count > 0)
                 {
-                    case > 0:
-                        LoadingLayout.Visibility = ViewStates.Gone;
+                    LoadingLayout.Visibility = ViewStates.Gone;
 
-                        SayHiLayout.Visibility = ViewStates.Gone;
-                        SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
-                        break;
-                    case 0:
-                        LoadingLayout.Visibility = ViewStates.Gone;
-                        SayHiLayout.Visibility = ViewStates.Visible;
-                        SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
-                        break;
+                    SayHiLayout.Visibility = ViewStates.Gone;
+                    SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
+                }
+                else if (MAdapter.DifferList.Count == 0 && ShowEmpty != "no")
+                {
+                    LoadingLayout.Visibility = ViewStates.Gone;
+                    SayHiLayout.Visibility = ViewStates.Visible;
+                    SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
                 }
 
                 TaskWork = "Working";
@@ -2530,6 +2478,7 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 if (Methods.CheckConnectivity())
                 {
+                    RunLoadMore = true;
                     var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId);
                     if (apiStatus == 200)
                     {
@@ -2554,17 +2503,23 @@ namespace WoWonder.Activities.Chat.GroupChat
                                         MesData = WoWonderTools.MessageFilter(GroupId, item, type)
                                     });
                                 }
-
+                                 
                                 RunOnUiThread(() =>
                                 {
-                                    if (countList > 0)
-                                        MAdapter.NotifyItemRangeInserted(countList, MAdapter.DifferList.Count - countList);
-                                    else
-                                        MAdapter.NotifyDataSetChanged();
+                                    try
+                                    {
+                                        if (countList > 0)
+                                            MAdapter.NotifyItemRangeInserted(countList, MAdapter.DifferList.Count - countList);
+                                        else
+                                            MAdapter.NotifyDataSetChanged();
 
-                                    //var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
-                                    //Scroll Down >> 
-                                    MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+                                        //Scroll Down >> 
+                                        MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Methods.DisplayReportResultTrack(e);
+                                    }
                                 });
                             }
                         }
@@ -2574,8 +2529,9 @@ namespace WoWonder.Activities.Chat.GroupChat
                     //SwipeRefreshLayout.Refreshing = false;
                     //SwipeRefreshLayout.Enabled = false;
 
+                    RunLoadMore = false;
                 }
-                else Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                else ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
             catch (Exception e)
             {
@@ -2593,13 +2549,14 @@ namespace WoWonder.Activities.Chat.GroupChat
 
                     if (Methods.CheckConnectivity())
                     {
-                        //var lastMessageId = MAdapter.DifferList.LastOrDefault()?.MesData?.Id;
-                        var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId, "0", "0");
+                        //var data = MAdapter.DifferList.LastOrDefault();
+                        //var lastMessageId = data?.MesData?.Id ?? "0";
+                        var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId, "0", "0", "35");
                         if (apiStatus == 200)
                         {
-                            var countList = MAdapter.DifferList.Count;
                             if (respond is GroupMessagesObject result)
-                            {
+                            { 
+                                var countList = MAdapter.DifferList.Count;
                                 var respondList = result.Data.Messages.Count;
                                 if (respondList > 0)
                                 {
@@ -2626,7 +2583,6 @@ namespace WoWonder.Activities.Chat.GroupChat
                                             //else
                                             MAdapter.NotifyDataSetChanged();
 
-                                            //var indexMes = MAdapter.DifferList.IndexOf(MAdapter.DifferList.Last());
                                             //Scroll Down >> 
                                             MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
 
@@ -2644,23 +2600,22 @@ namespace WoWonder.Activities.Chat.GroupChat
                                         }
                                     }
 
-                                    switch (MAdapter.DifferList.Count)
+                                    if (MAdapter.DifferList.Count > 0)
                                     {
-                                        case > 0 when SayHiLayout.Visibility != ViewStates.Gone:
-                                            SayHiLayout.Visibility = ViewStates.Gone;
-                                            SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
-                                            break;
-                                        case 0:
-                                            SayHiLayout.Visibility = ViewStates.Visible;
-                                            SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
-                                            break;
+                                        SayHiLayout.Visibility = ViewStates.Gone;
+                                        SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
+                                    }
+                                    else if (MAdapter.DifferList.Count == 0 && ShowEmpty != "no")
+                                    {
+                                        SayHiLayout.Visibility = ViewStates.Visible;
+                                        SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
                                     }
                                 }
                             }
                         }
                         else Methods.DisplayReportResult(this, respond);
                     }
-                    else Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    else ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
 
                     TaskWork = "Working";
                 }
@@ -2671,8 +2626,8 @@ namespace WoWonder.Activities.Chat.GroupChat
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        private bool RunLoadMore;
+         
+        private bool RunLoadMore; 
         private async Task LoadMoreMessages_API()
         {
             try
@@ -2686,10 +2641,8 @@ namespace WoWonder.Activities.Chat.GroupChat
 
                     var data = MAdapter.DifferList.FirstOrDefault();
                     var firstMessageId = data?.MesData?.Id ?? "0";
-                    var index = MAdapter.DifferList.IndexOf(data);
-                    Console.WriteLine(index);
 
-                    var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId, firstMessageId, "0", "15");
+                    var (apiStatus, respond) = await RequestsAsync.GroupChat.FetchGroupChatMessagesAsync(GroupId, firstMessageId);
                     if (apiStatus == 200)
                     {
                         if (respond is GroupMessagesObject result)
@@ -2724,38 +2677,29 @@ namespace WoWonder.Activities.Chat.GroupChat
                                             //Scroll Down >> 
                                             //MRecycler.SmoothScrollToPosition(indexMes);
                                         }
-
-                                        switch (MAdapter.DifferList.Count)
-                                        {
-                                            case > 0 when SayHiLayout.Visibility != ViewStates.Gone:
-                                                SayHiLayout.Visibility = ViewStates.Gone;
-                                                SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
-                                                break;
-                                            case 0:
-                                                SayHiLayout.Visibility = ViewStates.Visible;
-                                                SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
-                                                break;
-                                        }
-
                                     });
                                 }
+
+
                             }
                         }
                     }
                     else Methods.DisplayReportResult(this, respond);
 
-                    //SwipeRefreshLayout.Refreshing = false;
-                    //SwipeRefreshLayout.Enabled = false;
-
+                    //if (SwipeRefreshLayout.Refreshing)
+                    //{
+                    //    SwipeRefreshLayout.Refreshing = false;
+                    //    SwipeRefreshLayout.Enabled = false;
+                    //}
 
                     RunLoadMore = false;
                 }
-                else Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                else ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
             catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(e);
                 RunLoadMore = false;
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -2767,7 +2711,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         {
             try
             {
-                //Toast.MakeText(this, "RECORD BUTTON CLICKED", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(this, "RECORD BUTTON CLICKED", ToastLength.Short);
                 OnClick_OfSendButton();
             }
             catch (Exception e)
@@ -2778,7 +2722,7 @@ namespace WoWonder.Activities.Chat.GroupChat
 
         public async void OnStartRecord()
         {
-            //Toast.MakeText(this, "OnStartRecord", ToastLength.Short)?.Show();
+            //ToastUtils.ShowToast(this, "OnStartRecord", ToastLength.Short);
 
             //record voices ( Permissions is 102 )
             try
@@ -2844,7 +2788,7 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 RecorderService.StopRecording();
 
-                //Toast.MakeText(this, "OnCancelRecord", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(this, "OnCancelRecord", ToastLength.Short);
                 // reset mic nd show edittext
                 LayoutEditText.Visibility = ViewStates.Visible;
                 ChatColorButton.Visibility = ViewStates.Visible;
@@ -2859,7 +2803,7 @@ namespace WoWonder.Activities.Chat.GroupChat
 
         public void OnFinishRecord(long recordTime)
         {
-            //Toast.MakeText(this, "OnFinishRecord " + recordTime, ToastLength.Short)?.Show();
+            //ToastUtils.ShowToast(this, "OnFinishRecord " + recordTime, ToastLength.Short);
             //open fragemt recoud and show edittext
             try
             {
@@ -2899,7 +2843,7 @@ namespace WoWonder.Activities.Chat.GroupChat
 
         public void OnLessThanSecond()
         {
-            //Toast.MakeText(this, "OnLessThanSecond", ToastLength.Short)?.Show(); 
+            //ToastUtils.ShowToast(this, "OnLessThanSecond", ToastLength.Short); 
         }
 
         #endregion
@@ -2921,8 +2865,8 @@ namespace WoWonder.Activities.Chat.GroupChat
                             item.MesData.MediaPlayer.Reset();
                         }
                         item.MesData.MediaPlayer?.Release();
-                        item.MesData.MediaPlayer = null;
-                        item.MesData.MediaTimer = null;
+                        item.MesData.MediaPlayer = null!;
+                        item.MesData.MediaTimer = null!;
                     }
                     MAdapter.NotifyDataSetChanged();
                 }
@@ -2999,7 +2943,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 trans.Commit();
 
                 TopFragmentHolder.TranslationY = 1200;
-                TopFragmentHolder.Animate()?.SetInterpolator(new FastOutSlowInInterpolator())?.TranslationYBy(-1200)?.SetDuration(500);
+                TopFragmentHolder?.Animate()?.SetInterpolator(new FastOutSlowInInterpolator())?.TranslationYBy(-1200)?.SetDuration(500);
             }
             catch (Exception e)
             {
@@ -3017,12 +2961,13 @@ namespace WoWonder.Activities.Chat.GroupChat
                     //{
                     //    ChatColorButton?.Drawable?.SetTint(Color.ParseColor("#888888"));
                     //}
-                    //else 
-                    //if (MainFragmentOpened == ChatStickersTabBoxFragment)
+                    //else if (MainFragmentOpened == ChatStickersTabBoxFragment)
                     //{
-                    //    ChatStickerButton.Drawable?.SetTint(Color.ParseColor("#888888"));
+                    //    ChatStickerButton?.Drawable?.SetTint(Color.ParseColor("#888888"));
                     //}
                 }
+
+                HideKeyboard();
 
                 if (fragmentView.IsVisible)
                     return;
@@ -3038,7 +2983,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 trans.Commit();
 
                 ButtonFragmentHolder.TranslationY = 1200;
-                ButtonFragmentHolder.Animate()?.SetInterpolator(new FastOutSlowInInterpolator()).TranslationYBy(-1200).SetDuration(500);
+                ButtonFragmentHolder?.Animate()?.SetInterpolator(new FastOutSlowInInterpolator())?.TranslationYBy(-1200)?.SetDuration(500);
                 MainFragmentOpened = fragmentView;
             }
             catch (Exception e)
@@ -3068,8 +3013,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                             //{
                             //    fragmentManager.Remove(ChatColorBoxFragment);
                             //}
-                            //else
-                            //if (SupportFragmentManager.Fragments.Contains(ChatStickersTabBoxFragment))
+                            //else if (SupportFragmentManager.Fragments.Contains(ChatStickersTabBoxFragment))
                             //{
                             //    fragmentManager.Remove(ChatStickersTabBoxFragment);
                             //}
@@ -3089,17 +3033,15 @@ namespace WoWonder.Activities.Chat.GroupChat
 
         #region Selected
 
-        //Copy Messages
-        private void CopyItems()
+        //Message Info 
+        public void MessageInfoItems()
         {
             try
             {
-                string allText = "";
-                if (SelectedItemPositions != null && !string.IsNullOrEmpty(SelectedItemPositions.MesData.Text))
-                {
-                    allText = SelectedItemPositions.MesData.Text;
-                }
-                Methods.CopyToClipboard(this, allText);
+                var intent = new Intent(this, typeof(MessageInfoActivity));
+                intent.PutExtra("GroupId", GroupId);
+                intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
+                StartActivity(intent);
             }
             catch (Exception e)
             {
@@ -3108,7 +3050,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         }
 
         //Forward Messages
-        private void ForwardItems()
+        public void ForwardItems()
         {
             try
             {
@@ -3131,9 +3073,8 @@ namespace WoWonder.Activities.Chat.GroupChat
             }
         }
 
-        //ToDo
         //Reply Messages
-        private void ReplyItems()
+        public void ReplyItems()
         {
             try
             {
@@ -3144,8 +3085,9 @@ namespace WoWonder.Activities.Chat.GroupChat
 
                     RepliedMessageView.StartAnimation(animation);
 
-                    //wael chat name
-                    //TxtOwnerName.Text = SelectedItemPositions.MesData.GroupId == GroupDetails.GroupId ? GetText(Resource.String.Lbl_You) : ActionBarTitle.Text;
+                    ReplyId = SelectedItemPositions.MesData.Id;
+
+                    //TxtOwnerName.Text = SelectedItemPositions.MesData.MessageUser?.User?.GroupId == UserDetails.UserId ? GetText(Resource.String.Lbl_You) : ActionBarTitle.Text;
 
                     if (SelectedItemPositions.TypeView == MessageModelType.LeftText || SelectedItemPositions.TypeView == MessageModelType.RightText)
                     {
@@ -3230,7 +3172,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                 {
                                     TxtMessageType.Visibility = ViewStates.Gone;
                                     TxtShortMessage.Text = GetText(Resource.String.Lbl_Sticker);
-                                    SelectedItemPositions.MesData.Media = WoWonderTools.GetFile(GroupId, Methods.Path.FolderDiskSound, fileName, SelectedItemPositions.MesData.Media);
+                                    SelectedItemPositions.MesData.Media = WoWonderTools.GetFile(GroupId, Methods.Path.FolderDiskSticker, fileName, SelectedItemPositions.MesData.Media);
 
                                     if (SelectedItemPositions.MesData.Media.Contains("http"))
                                     {
@@ -3322,7 +3264,7 @@ namespace WoWonder.Activities.Chat.GroupChat
         }
 
         //Delete Message
-        private void DeleteMessageItems()
+        public void DeleteMessageItems()
         {
             try
             {
@@ -3360,7 +3302,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+          
         #endregion
 
         public void Update_One_Messages(MessageData message)
@@ -3416,17 +3358,18 @@ namespace WoWonder.Activities.Chat.GroupChat
                             //Scroll Down >> 
                             MRecycler.ScrollToPosition(MAdapter.ItemCount - 1);
 
-                            switch (MAdapter.DifferList.Count)
+                            if (MAdapter.DifferList.Count > 0)
                             {
-                                case > 0:
-                                    SayHiLayout.Visibility = ViewStates.Gone;
-                                    SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
-                                    break;
-                                case 0 when ShowEmpty != "no":
-                                    SayHiLayout.Visibility = ViewStates.Visible;
-                                    SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
-                                    break;
+                                SayHiLayout.Visibility = ViewStates.Gone;
+                                SayHiSuggestionsRecycler.Visibility = ViewStates.Gone;
                             }
+                            else if (MAdapter.DifferList.Count == 0 && ShowEmpty != "no")
+                            {
+                                SayHiLayout.Visibility = ViewStates.Visible;
+                                SayHiSuggestionsRecycler.Visibility = ViewStates.Visible;
+                            }
+
+                            CloseReplyUi();
                         }
                         catch (Exception e)
                         {
@@ -3440,7 +3383,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
+         
         private void GetWallpaper()
         {
             try
@@ -3520,14 +3463,14 @@ namespace WoWonder.Activities.Chat.GroupChat
 
             public event LoadMoreEventHandler LoadMoreEvent;
 
-            private readonly LinearLayoutManager LayoutManager;
+            private readonly Holders.MsgPreCachingLayoutManager LayoutManager;
             //private readonly SwipeRefreshLayout SwipeRefreshLayout;
             private readonly FloatingActionButton FabScrollDown;
             private static readonly int HideThreshold = 20;
             private int ScrolledDistance = 0;
             private bool ControlsVisible = true;
 
-            public XamarinRecyclerViewOnScrollListener(LinearLayoutManager layoutManager, FloatingActionButton fabScrollDown, SwipeRefreshLayout swipeRefreshLayout)
+            public XamarinRecyclerViewOnScrollListener(Holders.MsgPreCachingLayoutManager layoutManager, FloatingActionButton fabScrollDown, SwipeRefreshLayout swipeRefreshLayout)
             {
                 LayoutManager = layoutManager;
                 FabScrollDown = fabScrollDown;
@@ -3638,5 +3581,33 @@ namespace WoWonder.Activities.Chat.GroupChat
             }
         }
 
+        private void CloseReplyUi()
+        {
+            try
+            {
+                if (RepliedMessageView.Visibility == ViewStates.Visible)
+                {
+                    Animation animation = new TranslateAnimation(0, 0, 0, RepliedMessageView.Top + RepliedMessageView.Height);
+                    animation.Duration = 300;
+                    animation.AnimationEnd += (o, args) =>
+                    {
+                        try
+                        {
+                            RepliedMessageView.Visibility = ViewStates.Gone;
+                        }
+                        catch (Exception exception)
+                        {
+                            Methods.DisplayReportResultTrack(exception);
+                        }
+                    };
+                    RepliedMessageView.StartAnimation(animation);
+                    SelectedItemPositions = null;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
     }
 }

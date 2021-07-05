@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using Aghajari.EmojiView.Views;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AT.Markushi.UI;
 using Bumptech.Glide;
-using Bumptech.Glide.Request;
-using Developer.SEmojis.Actions;
-using Developer.SEmojis.Helper;
+using Bumptech.Glide.Request; 
 using Java.Lang; 
 using Newtonsoft.Json;
 using WoWonder.Activities.AddPost.Service;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
-using WoWonder.Library.Anjo.StoriesProgressView;
+using WoWonder.Library.Anjo.EmojiView;
+using WoWonder.Library.Anjo.Stories.StoriesProgressView;
 using Exception = System.Exception;
 using File = Java.IO.File;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
@@ -38,8 +37,7 @@ namespace WoWonder.Activities.Story
         private VideoView StoryVideoView;
         private ImageView EmojisView;
         private CircleButton PlayIconVideo, AddStoryButton;
-        private EmojiconEditText EmojisIconEditText;
-        private RelativeLayout RootView;
+        private AXEmojiEditText EmojisIconEditText;
         private string PathStory = "", Type = "", Thumbnail = UserDetails.Avatar;
         private StoriesProgressView StoriesProgress;
         private long Duration;
@@ -188,18 +186,18 @@ namespace WoWonder.Activities.Story
                 StoryVideoView = FindViewById<VideoView>(Resource.Id.VideoView);
                 PlayIconVideo = FindViewById<CircleButton>(Resource.Id.Videoicon_button);
                 EmojisView = FindViewById<ImageView>(Resource.Id.emojiicon);
-                EmojisIconEditText = FindViewById<EmojiconEditText>(Resource.Id.EmojiconEditText5);
+                EmojisIconEditText = FindViewById<AXEmojiEditText>(Resource.Id.EmojiconEditText5);
                 AddStoryButton = FindViewById<CircleButton>(Resource.Id.sendButton);
-                RootView = FindViewById<RelativeLayout>(Resource.Id.storyDisplay);
 
                 StoriesProgress = FindViewById<StoriesProgressView>(Resource.Id.stories);
                 if (StoriesProgress != null) StoriesProgress.Visibility = ViewStates.Gone;
 
                 Methods.SetColorEditText(EmojisIconEditText, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
 
-                var emojisIcon = new EmojIconActions(this, RootView, EmojisIconEditText, EmojisView);
-                emojisIcon.ShowEmojIcon();
-                emojisIcon.SetIconsIds(Resource.Drawable.ic_action_keyboard, Resource.Drawable.ic_action_sentiment_satisfied_alt);
+                EmojisViewTools.MStickerView = false;
+                AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, EmojisIconEditText, "");
+                AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
+                var emojisViewActions = new EmojisViewActions(this, "", popup, EmojisIconEditText, EmojisView);
 
                 PlayIconVideo.Visibility = ViewStates.Gone;
                 PlayIconVideo.Tag = "Play";
@@ -225,8 +223,6 @@ namespace WoWonder.Activities.Story
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
-
-
                 }
             }
             catch (Exception e)
@@ -341,7 +337,6 @@ namespace WoWonder.Activities.Story
                 EmojisView = null!;
                 EmojisIconEditText = null!;
                 AddStoryButton = null!;
-                RootView = null!; 
                 StoriesProgress = null!;
             }
             catch (Exception e)
@@ -468,7 +463,7 @@ namespace WoWonder.Activities.Story
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)

@@ -10,7 +10,6 @@ using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using WoWonder.Helpers.CacheLoaders;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Funding;
 using Java.Util;
@@ -73,9 +72,15 @@ namespace WoWonder.Activities.Fundings.Adapters
                             holder.Title.Text = Methods.FunString.DecodeString(item.Title);
                          
                             if (item.UserData != null)
+                            {
+                                GlideImageLoader.LoadImage(ActivityContext, item.UserData.Avatar, holder.Avatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                                 holder.Username.Text = WoWonderTools.GetNameFinal(item.UserData);
+                            }
                             else
+                            {
+                                holder.Avatar.Visibility = ViewStates.Gone;
                                 holder.Username.Visibility = ViewStates.Gone;
+                            }
 
                             try
                             {
@@ -83,10 +88,10 @@ namespace WoWonder.Activities.Fundings.Adapters
                                 item.Amount = item.Amount.Replace(AppSettings.CurrencyFundingPriceStatic, "");
                              
                                 decimal d = decimal.Parse(item.Raised, CultureInfo.InvariantCulture);
-                                holder.Raised.Text = AppSettings.CurrencyFundingPriceStatic + d.ToString("0.00");
+                                holder.Raised.Text = ActivityContext.GetText(Resource.String.Lbl_Collected) + " " + AppSettings.CurrencyFundingPriceStatic + d.ToString("0.00");
 
                                 decimal amount = decimal.Parse(item.Amount, CultureInfo.InvariantCulture);
-                                holder.TottalAmount.Text = AppSettings.CurrencyFundingPriceStatic + amount.ToString("0.00");
+                                holder.TottalAmount.Text = ActivityContext.GetText(Resource.String.Lbl_Goal) + " " + AppSettings.CurrencyFundingPriceStatic + amount.ToString("0.00");
 
                                 holder.Progress.Progress = Convert.ToInt32(item.Bar?.ToString("0") ?? "0");
                             }
@@ -98,7 +103,7 @@ namespace WoWonder.Activities.Fundings.Adapters
                                 Methods.DisplayReportResultTrack(exception);
                             }
                         
-                            holder.DonationTime.Text = IonIconsFonts.Time + "  " + Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
+                            holder.DonationTime.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
                          
                             switch (string.IsNullOrEmpty(item.Description))
                             {
@@ -232,6 +237,8 @@ namespace WoWonder.Activities.Fundings.Adapters
         public TextView Description { get; private set; }
         public ProgressBar Progress { get; private set; }
 
+        public ImageView Avatar { get; private set; }
+
         #endregion
 
         public FundingAdaptersViewHolder(View itemView, Action<FundingAdaptersViewHolderClickEventArgs> clickListener, Action<FundingAdaptersViewHolderClickEventArgs> longClickListener) : base(itemView)
@@ -248,13 +255,14 @@ namespace WoWonder.Activities.Fundings.Adapters
                 Raised = (TextView)MainView.FindViewById(Resource.Id.raised);
                 Username = (TextView)MainView.FindViewById(Resource.Id.fundUsername);
                 DonationTime = (TextView)MainView.FindViewById(Resource.Id.time);
-                 
+                Avatar = MainView.FindViewById<ImageView>(Resource.Id.avatar);
+
                 var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "ionicons.ttf");
-                DonationTime?.SetTypeface(font, TypefaceStyle.Normal);
+                //DonationTime?.SetTypeface(font, TypefaceStyle.Normal);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new FundingAdaptersViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new FundingAdaptersViewHolderClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new FundingAdaptersViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new FundingAdaptersViewHolderClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

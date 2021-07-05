@@ -334,7 +334,7 @@ namespace WoWonder.Activities.Default
                         }
                         else
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
 
                         break;

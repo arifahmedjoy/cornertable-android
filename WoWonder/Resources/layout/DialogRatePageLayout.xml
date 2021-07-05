@@ -48,7 +48,7 @@
         style="@style/EditTextNormalStyle"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:background="@drawable/EditTextStyleOne"
+        android:background="@drawable/round_gray_border"
         android:hint="@string/Lbl_WriteYourReview"
         android:textSize="15sp"
         android:layout_marginTop="10dp"

@@ -14,10 +14,14 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Graphics.Drawable;
+using Bumptech.Glide;
+using Bumptech.Glide.Request;
 using Java.Lang;
 using WoWonder.Activities.Chat.ChatWindow;
 using WoWonder.Activities.Chat.GroupChat;
 using WoWonder.Activities.Chat.PageChat;
+using WoWonder.Activities.Comment;
+using WoWonder.Activities.Story;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -116,7 +120,7 @@ namespace WoWonder.Library.Anjo.EmojiView
                     AXEmojiManager.StickerViewTheme.CategoryColor = Color.ParseColor("#232D3A");
                     AXEmojiManager.StickerViewTheme.SetAlwaysShowDivider(true);
                 }
-                AXEmojiManager.BackspaceCategoryEnabled = !MCustomFooter; 
+                AXEmojiManager.BackspaceCategoryEnabled = !MCustomFooter;
             }
             catch (Exception e)
             {
@@ -124,7 +128,7 @@ namespace WoWonder.Library.Anjo.EmojiView
             }
         }
 
-        public static AXEmojiPager LoadView(Activity context, AXEmojiEditText editText , string typePage)
+        public static AXEmojiPager LoadView(Activity context, AXEmojiEditText editText, string typePage)
         {
             try
             {
@@ -149,12 +153,12 @@ namespace WoWonder.Library.Anjo.EmojiView
                     //add Sticker View
                     StickerView = new AXStickerView(context, "stickers", new WoWonderProvider());
                     emojiPager.AddPage(StickerView, Resource.Drawable.ic_msg_panel_stickers);
-                    StickerView.SetOnStickerActionsListener(new MyStickerActions(context , typePage));
+                    StickerView.SetOnStickerActionsListener(new MyStickerActions(context, typePage));
                 }
-                 
+
                 if (MCustomView)
                 {
-                    emojiPager.AddPage(new LoadingView(context),Resource.Drawable.msg_round_load_m);
+                    emojiPager.AddPage(new LoadingView(context), Resource.Drawable.msg_round_load_m);
                 }
 
                 editText.SetEmojiSize(Utils.DpToPx(context, 23));
@@ -173,13 +177,13 @@ namespace WoWonder.Library.Anjo.EmojiView
                     //emojiPager.SetLeftIcon(Resource.Drawable.ic_action_search);
                     //emojiPager.SetOnFooterItemClicked(new MyFooterItemClicked()); 
                 }
-               
+
                 return emojiPager;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
 
         }
@@ -199,7 +203,8 @@ namespace WoWonder.Library.Anjo.EmojiView
 
                 var lp = new AXEmojiLayout.LayoutParams(Utils.Dp(context, 48), Utils.Dp(context, 48))
                 {
-                    RightMargin = Utils.Dp(context, 12), BottomMargin = Utils.Dp(context, 12)
+                    RightMargin = Utils.Dp(context, 12),
+                    BottomMargin = Utils.Dp(context, 12)
                 };
                 footer.LayoutParameters = lp;
                 emojiPager.SetCustomFooter(footer, true);
@@ -210,8 +215,8 @@ namespace WoWonder.Library.Anjo.EmojiView
                     Gravity = GravityFlags.Center
                 };
                 footer.AddView(img, lp2);
-                 
-                emojiPager.SetOnEmojiPageChangedListener(new MyEmojiPagerPageChanged(context, footer, img)); 
+
+                emojiPager.SetOnEmojiPageChangedListener(new MyEmojiPagerPageChanged(context, footer, img));
             }
             catch (Exception e)
             {
@@ -268,22 +273,23 @@ namespace WoWonder.Library.Anjo.EmojiView
             {
                 try
                 {
-                    Toast.MakeText(Application.Context, "Search Clicked", ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Application.Context, "Search Clicked", ToastLength.Short);
                 }
                 catch (Exception e)
                 {
-                    Methods.DisplayReportResultTrack(e); 
+                    Methods.DisplayReportResultTrack(e);
                 }
             }
         }
-    
+
         private class MyStickerActions : Java.Lang.Object, IOnStickerActions
         {
+            private readonly CommentActivity CommentActivity;
             private readonly ChatWindowActivity ChatWindow;
             private readonly GroupChatWindowActivity GroupActivityView;
             private readonly PageChatWindowActivity PageActivityView;
-           // private readonly StoryReplyActivity StoryReplyActivity;
-            private readonly string TimeNow = DateTime.Now.ToString("hh:mm"); 
+            private readonly StoryReplyActivity StoryReplyActivity;
+            private readonly string TimeNow = DateTime.Now.ToString("hh:mm");
             private readonly string TypePage;
 
             public MyStickerActions(Activity activity, string typePage)
@@ -295,6 +301,9 @@ namespace WoWonder.Library.Anjo.EmojiView
                     switch (typePage)
                     {
                         // Create your fragment here
+                        case "CommentActivity":
+                            CommentActivity = (CommentActivity)activity;
+                            break;
                         case "ChatWindowActivity":
                             ChatWindow = (ChatWindowActivity)activity;
                             break;
@@ -305,27 +314,33 @@ namespace WoWonder.Library.Anjo.EmojiView
                             GroupActivityView = (GroupChatWindowActivity)activity;
                             break;
                         case "StoryReplyActivity":
-                          //  StoryReplyActivity = (StoryReplyActivity)activity;
+                            StoryReplyActivity = (StoryReplyActivity)activity;
                             break;
-                    } 
+                    }
                 }
                 catch (Exception e)
                 {
                     Methods.DisplayReportResultTrack(e);
                 }
             }
-             
+
             public void OnClick(View view, Sticker sticker, bool fromRecent)
             {
                 try
                 {
-                    //Toast.MakeText(Application.Context, sticker.ToString() + " clicked!", ToastLength.Short)?.Show();
+                    //ToastUtils.ShowToast(Application.Context, sticker.ToString() + " clicked!", ToastLength.Short);
                     var stickerUrl = sticker.ToString();
                     var Position = "1";
                     var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
                     switch (TypePage)
                     {
+                        case "CommentActivity":
+                        {
+                            CommentActivity.ImageUrl = stickerUrl;
+                            Glide.With(CommentActivity).Load(stickerUrl).Apply(new RequestOptions()).Into(CommentActivity.ImgGallery);
+                            break;
+                        }
                         case "ChatWindowActivity":
                             {
                                 MessageDataExtra m1 = new MessageDataExtra
@@ -360,8 +375,8 @@ namespace WoWonder.Library.Anjo.EmojiView
                                 }
                                 else
                                 {
-                                    Toast.MakeText(ChatWindow, ChatWindow.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                } 
+                                    ToastUtils.ShowToast(ChatWindow, ChatWindow.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                                }
                                 break;
                             }
                         case "GroupChatWindowActivity":
@@ -398,8 +413,8 @@ namespace WoWonder.Library.Anjo.EmojiView
                                 }
                                 else
                                 {
-                                    Toast.MakeText(GroupActivityView, GroupActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                } 
+                                    ToastUtils.ShowToast(GroupActivityView, GroupActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                                }
                                 break;
                             }
                         case "PageChatWindowActivity":
@@ -436,24 +451,24 @@ namespace WoWonder.Library.Anjo.EmojiView
                                 }
                                 else
                                 {
-                                    Toast.MakeText(PageActivityView, PageActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                } 
+                                    ToastUtils.ShowToast(PageActivityView, PageActivityView.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                                }
                                 break;
                             }
                         case "StoryReplyActivity":
                             {
-                                //if (Methods.CheckConnectivity())
-                                //{
-                                //    //Sticker Send Function
-                                //    StoryReplyActivity.SendMess(StoryReplyActivity.UserId, "", "", "", stickerUrl, "sticker" + Position).ConfigureAwait(false);
-                                //}
-                                //else
-                                //{
-                                //    Toast.MakeText(StoryReplyActivity, StoryReplyActivity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                //} 
+                                if (Methods.CheckConnectivity())
+                                {
+                                    //Sticker Send Function
+                                    StoryReplyActivity.SendMess(StoryReplyActivity.UserId, "", "", "", stickerUrl, "sticker" + Position).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    ToastUtils.ShowToast(StoryReplyActivity, StoryReplyActivity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                                }
                                 break;
                             }
-                    } 
+                    }
                 }
                 catch (Exception e)
                 {
@@ -473,7 +488,7 @@ namespace WoWonder.Library.Anjo.EmojiView
             {
                 try
                 {
-                  
+
                 }
                 catch (Exception e)
                 {
@@ -486,7 +501,7 @@ namespace WoWonder.Library.Anjo.EmojiView
                 try
                 {
                     if (leftIcon)
-                        Toast.MakeText(Application.Context, "Search Clicked!", ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(Application.Context, "Search Clicked!", ToastLength.Short);
                 }
                 catch (Exception e)
                 {

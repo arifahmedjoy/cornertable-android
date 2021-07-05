@@ -19,30 +19,34 @@ namespace WoWonder.Library.OneSignal
     {
         //Force your app to Register notification directly without loading it from server (For Best Result)
 
-        private static string UserId, PostId, PageId, GroupId,EventId, Type;
+        private static string UserId, PostId, PageId, GroupId, EventId, Type;
 
         public static void RegisterNotificationDevice()
         {
             try
             {
-                if (UserDetails.NotificationPopup)
+                switch (UserDetails.NotificationPopup)
                 {
-                    if (!string.IsNullOrEmpty(AppSettings.OneSignalAppId) || !string.IsNullOrWhiteSpace(AppSettings.OneSignalAppId))
-                    {
-                        Com.OneSignal.OneSignal.Current.StartInit(AppSettings.OneSignalAppId)
-                            .InFocusDisplaying(OSInFocusDisplayOption.Notification)
-                            .HandleNotificationReceived(HandleNotificationReceived)
-                            .HandleNotificationOpened(HandleNotificationOpened)
-                            .EndInit();
-                        Com.OneSignal.OneSignal.Current.IdsAvailable(IdsAvailable);
-                        Com.OneSignal.OneSignal.Current.RegisterForPushNotifications();
-                        Com.OneSignal.OneSignal.Current.SetSubscription(true);
-                        AppSettings.ShowNotification = true;
-                    } 
-                }
-                else
-                {
-                    Un_RegisterNotificationDevice();
+                    case true:
+                        {
+                            if (!string.IsNullOrEmpty(AppSettings.OneSignalAppId) || !string.IsNullOrWhiteSpace(AppSettings.OneSignalAppId))
+                            {
+                                Com.OneSignal.OneSignal.Current.StartInit(AppSettings.OneSignalAppId)
+                                    .InFocusDisplaying(OSInFocusDisplayOption.Notification)
+                                    .HandleNotificationReceived(HandleNotificationReceived)
+                                    .HandleNotificationOpened(HandleNotificationOpened)
+                                    .EndInit();
+                                Com.OneSignal.OneSignal.Current.IdsAvailable(IdsAvailable);
+                                Com.OneSignal.OneSignal.Current.RegisterForPushNotifications();
+                                Com.OneSignal.OneSignal.Current.SetSubscription(true);
+                                AppSettings.ShowNotification = true;
+                            }
+
+                            break;
+                        }
+                    default:
+                        Un_RegisterNotificationDevice();
+                        break;
                 }
 
                 MsgOneSignalNotification.RegisterNotificationDevice();
@@ -77,7 +81,7 @@ namespace WoWonder.Library.OneSignal
             }
             catch (Exception ex)
             {
-                Methods.DisplayReportResultTrack(ex);  
+                Methods.DisplayReportResultTrack(ex);
             }
         }
 
@@ -91,7 +95,7 @@ namespace WoWonder.Library.OneSignal
             }
             catch (Exception ex)
             {
-                Toast.MakeText(Application.Context, ex.ToString(), ToastLength.Long)?.Show(); //Allen
+                ToastUtils.ShowToast(Application.Context, ex.ToString(), ToastLength.Long); //Allen
                 Methods.DisplayReportResultTrack(ex);
             }
         }
@@ -105,50 +109,55 @@ namespace WoWonder.Library.OneSignal
                 //string message = payload.body; "post_id" "post_id" "type" "url"
                 string actionId = result.action.actionID;
 
-                if (additionalData?.Count > 0)
+                switch (additionalData?.Count)
                 {
-                    foreach (var item in additionalData)
-                    {
-                        switch (item.Key)
+                    case > 0:
                         {
-                            case "post_id":
-                                PostId = item.Value.ToString();
-                                break;
-                            case "user_id":
-                                UserId = item.Value.ToString();
-                                break;
-                            case "page_id":
-                                PageId = item.Value.ToString();
-                                break;
-                            case "group_id":
-                                GroupId = item.Value.ToString();
-                                break;
-                            case "event_id":
-                                EventId = item.Value.ToString();
-                                break;
-                            case "type":
-                                Type = item.Value.ToString();
-                                break;
+                            foreach (var item in additionalData)
+                            {
+                                switch (item.Key)
+                                {
+                                    case "post_id":
+                                        PostId = item.Value.ToString();
+                                        break;
+                                    case "user_id":
+                                        UserId = item.Value.ToString();
+                                        break;
+                                    case "page_id":
+                                        PageId = item.Value.ToString();
+                                        break;
+                                    case "group_id":
+                                        GroupId = item.Value.ToString();
+                                        break;
+                                    case "event_id":
+                                        EventId = item.Value.ToString();
+                                        break;
+                                    case "type":
+                                        Type = item.Value.ToString();
+                                        break;
+                                }
+                            }
+
+                            Intent intent = new Intent(Application.Context, typeof(TabbedMainActivity));
+                            intent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTask);
+                            intent.AddFlags(ActivityFlags.SingleTop);
+                            intent.SetAction(Intent.ActionView);
+                            intent.PutExtra("userId", UserId);
+                            intent.PutExtra("PostId", PostId);
+                            intent.PutExtra("PageId", PageId);
+                            intent.PutExtra("GroupId", GroupId);
+                            intent.PutExtra("EventId", EventId);
+                            intent.PutExtra("type", Type);
+                            intent.PutExtra("Notifier", "Notifier");
+                            Application.Context.StartActivity(intent);
+
+                            if (additionalData.ContainsKey("discount"))
+                            {
+                                // Take user to your store..
+                            }
+
+                            break;
                         }
-                    }
-
-                    Intent intent = new Intent(Application.Context, typeof(TabbedMainActivity));
-                    intent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTask);
-                    intent.AddFlags(ActivityFlags.SingleTop);
-                    intent.SetAction(Intent.ActionView);
-                    intent.PutExtra("userId", UserId);
-                    intent.PutExtra("PostId", PostId);
-                    intent.PutExtra("PageId", PageId);
-                    intent.PutExtra("GroupId", GroupId);
-                    intent.PutExtra("EventId", EventId);
-                    intent.PutExtra("type", Type);
-                    intent.PutExtra("Notifier", "Notifier");
-                    Application.Context.StartActivity(intent);
-
-                    if (additionalData.ContainsKey("discount"))
-                    {
-                        // Take user to your store..
-                    }
                 }
                 if (actionId != null)
                 {

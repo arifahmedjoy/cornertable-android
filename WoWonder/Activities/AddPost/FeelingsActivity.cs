@@ -53,7 +53,10 @@ namespace WoWonder.Activities.AddPost
                 InitToolbar();
                 SetRecyclerViewAdapters();
 
-                InterstitialAd = AdsFacebook.InitInterstitial(this);
+                if (AppSettings.ShowFbInterstitialAds)
+                    InterstitialAd = AdsFacebook.InitInterstitial(this);
+                else
+                    AdsColony.Ad_Interstitial(this);
             }
             catch (Exception e)
             {
@@ -204,9 +207,9 @@ namespace WoWonder.Activities.AddPost
             try
             { 
                 MAdapter = new FeelingsAdapter(this);
-                LayoutManager = new GridLayoutManager(this, 3);
+                LayoutManager = new GridLayoutManager(this, 2);
                 MRecycler.SetLayoutManager(LayoutManager);
-                MRecycler.AddItemDecoration(new GridSpacingItemDecoration(3, 3, true)); 
+                MRecycler.AddItemDecoration(new GridSpacingItemDecoration(2, 2, true)); 
                 MRecycler.SetAdapter(MAdapter);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);

@@ -242,8 +242,8 @@ namespace WoWonder.Activities.Offers.Adapters
                 Methods.SetColorEditText(EdtDiscountThr, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                  
                 //Event  
-                itemView.Click += (sender, e) => clickListener(new DiscountTypeAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new DiscountTypeAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new DiscountTypeAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new DiscountTypeAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

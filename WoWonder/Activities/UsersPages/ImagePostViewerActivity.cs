@@ -7,15 +7,19 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.OS;
 
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using AndroidX.AppCompat.Content.Res;
+using AndroidX.Core.Graphics.Drawable;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using Newtonsoft.Json;
 using Sephiroth.ImageZoom;
+using WoWonder.Activities.NativePost.Extra;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.PostData;
 using WoWonder.Helpers.Ads;
@@ -27,6 +31,7 @@ using WoWonder.Library.Anjo.SuperTextLibrary;
 using WoWonderClient.Classes.Posts;
 using WoWonderClient.Requests; 
 using Exception = System.Exception;
+using Reaction = WoWonderClient.Classes.Posts.Reaction;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace WoWonder.Activities.UsersPages
@@ -37,15 +42,16 @@ namespace WoWonder.Activities.UsersPages
         #region Variables Basic
 
         private ImageViewTouch PageImage;
-        private ImageView ImgLike, ImgWoWonder, ImgWonder; 
-        private SuperTextView TxtDescription; 
-        private TextView TxtCountLike, TxtCountWoWonder, TxtWonder, ShareText, CommentCount, ShareCount;
-        private LinearLayout MainSectionButton,BtnCountLike, BtnCountWoWonder, BtnLike, BtnComment, BtnShare, BtnWonder, InfoImageLiner;
+        private ImageView ImgLike, ImgWoWonder;
+        private SuperTextView TxtDescription;
+        private TextView TxtCountLike, TxtCountWoWonder, CommentCount, ShareCount;
+        private LinearLayout MainSectionButton,BtnCountLike, BtnCountWoWonder, ShareLinearLayout, CommentLinearLayout, SecondReactionLinearLayout, ReactLinearLayout, InfoImageLiner;
         private RelativeLayout MainLayout;
         private PostDataObject PostData;
         private ReactButton LikeButton;
         private string ImageUrl;
-        private PostClickListener ClickListener; 
+        private PostClickListener ClickListener;
+        private TextView SecondReactionButton;
 
         #endregion
 
@@ -54,7 +60,7 @@ namespace WoWonder.Activities.UsersPages
         protected override void OnCreate(Bundle savedInstanceState)
         {
             try
-            { 
+            {
                 base.OnCreate(savedInstanceState);
                 SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
 
@@ -69,7 +75,7 @@ namespace WoWonder.Activities.UsersPages
 
                 Get_DataImage();
 
-                ClickListener = new PostClickListener(this , NativeFeedType.Global);
+                ClickListener = new PostClickListener(this, NativeFeedType.Global);
 
                 AdsGoogle.Ad_RewardedVideo(this);
             }
@@ -85,7 +91,7 @@ namespace WoWonder.Activities.UsersPages
             {
                 base.OnResume();
                 AddOrRemoveEvent(true);
-                
+
             }
             catch (Exception e)
             {
@@ -99,7 +105,7 @@ namespace WoWonder.Activities.UsersPages
             {
                 base.OnPause();
                 AddOrRemoveEvent(false);
-                
+
             }
             catch (Exception e)
             {
@@ -152,7 +158,7 @@ namespace WoWonder.Activities.UsersPages
 
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
-            MenuInflater.Inflate(Resource.Menu.ImagePost, menu); 
+            MenuInflater.Inflate(Resource.Menu.ImagePost, menu);
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -188,12 +194,12 @@ namespace WoWonder.Activities.UsersPages
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     Methods.MultiMedia.DownloadMediaTo_GalleryAsync(Methods.Path.FolderDcimImage, ImageUrl);
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_ImageSaved), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ImageSaved), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -207,7 +213,7 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                Methods.CopyToClipboard(this, PostData.Url); 
+                Methods.CopyToClipboard(this, PostData.Url);
             }
             catch (Exception e)
             {
@@ -220,7 +226,7 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                ClickListener.MorePostIconClick(new GlobalClickEventArgs { NewsFeedClass = PostData });
+                ClickListener.MorePostIconClick(new GlobalClickEventArgs {NewsFeedClass = PostData});
             }
             catch (Exception e)
             {
@@ -236,13 +242,13 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                PageImage = FindViewById<ImageViewTouch>(Resource.Id.imageview); 
+                PageImage = FindViewById<ImageViewTouch>(Resource.Id.imageview);
                 TxtDescription = FindViewById<SuperTextView>(Resource.Id.tv_description);
-                TxtDescription?.SetTextInfo(TxtDescription); 
-                
+                TxtDescription?.SetTextInfo(TxtDescription);
+
                 ImgLike = FindViewById<ImageView>(Resource.Id.image_like1);
                 ImgWoWonder = FindViewById<ImageView>(Resource.Id.image_wowonder);
-                 
+
                 TxtCountLike = FindViewById<TextView>(Resource.Id.LikeText1);
                 TxtCountWoWonder = FindViewById<TextView>(Resource.Id.WoWonderTextCount);
 
@@ -252,75 +258,69 @@ namespace WoWonder.Activities.UsersPages
                 MainLayout = FindViewById<RelativeLayout>(Resource.Id.main);
                 InfoImageLiner = FindViewById<LinearLayout>(Resource.Id.infoImageLiner);
                 InfoImageLiner.Visibility = ViewStates.Visible;
-                 
+
                 BtnCountLike = FindViewById<LinearLayout>(Resource.Id.linerlikeCount);
                 BtnCountWoWonder = FindViewById<LinearLayout>(Resource.Id.linerwowonderCount);
 
-                BtnLike = FindViewById<LinearLayout>(Resource.Id.linerlike);
-                BtnComment = FindViewById<LinearLayout>(Resource.Id.linercomment);
-                BtnShare = FindViewById<LinearLayout>(Resource.Id.linershare);
-
-                MainSectionButton = FindViewById<LinearLayout>(Resource.Id.mainsection);
-                BtnWonder = FindViewById<LinearLayout>(Resource.Id.linerSecondReaction);
-                ImgWonder = FindViewById<ImageView>(Resource.Id.image_SecondReaction);
-                TxtWonder = FindViewById<TextView>(Resource.Id.SecondReactionText);
+                ShareLinearLayout = FindViewById<LinearLayout>(Resource.Id.ShareLinearLayout);
+                CommentLinearLayout = FindViewById<LinearLayout>(Resource.Id.CommentLinearLayout);
+                SecondReactionLinearLayout = FindViewById<LinearLayout>(Resource.Id.SecondReactionLinearLayout);
+                ReactLinearLayout = FindViewById<LinearLayout>(Resource.Id.ReactLinearLayout);
 
                 // set the default image display type
-                // PageImage.SetDisplayType(ImageViewTouchBase.DisplayType.FitIfBigger);
+                // PageImage.SetDisplayType(ImageViewTouchBase.DisplayType.FitIfBigger); 
 
                 LikeButton = FindViewById<ReactButton>(Resource.Id.ReactButton);
                 LikeButton.SetTextColor(Color.ParseColor("#C3C7D0"));
 
-                ShareText = FindViewById<TextView>(Resource.Id.ShareText);
-                ShareText.Visibility = AppSettings.ShowTextShareButton switch
+                SecondReactionButton = FindViewById<TextView>(Resource.Id.SecondReactionText);
+
+                ShareLinearLayout.Visibility = AppSettings.ShowShareButton switch
                 {
-                    false when ShareText != null => ViewStates.Gone,
-                    _ => ShareText.Visibility
+                    false => ViewStates.Gone,
+                    _ => ShareLinearLayout.Visibility
                 };
 
+                MainSectionButton = FindViewById<LinearLayout>(Resource.Id.linerSecondReaction);
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.ReactionDefault:
                     case PostButtonSystem.ReactionSubShine:
                     case PostButtonSystem.Like:
-                        MainSectionButton.WeightSum = 5;
-                        BtnWonder.Visibility = ViewStates.Gone;
+                        MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 3 : 2;
 
+                        SecondReactionLinearLayout.Visibility = ViewStates.Gone;
                         TxtCountWoWonder.Visibility = ViewStates.Gone;
-                        BtnCountWoWonder.Visibility = ViewStates.Gone;
                         ImgWoWonder.Visibility = ViewStates.Gone;
                         break;
                     case PostButtonSystem.Wonder:
-                        MainSectionButton.WeightSum = 4;
-                        BtnWonder.Visibility = ViewStates.Visible;
+                        MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 4 : 3;
+
+                        SecondReactionLinearLayout.Visibility = ViewStates.Visible;
+                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(
+                            Resource.Drawable.icon_post_wonder_vector, 0, 0, 0);
+                        SecondReactionButton.Text = Application.Context.GetText(Resource.String.Btn_Wonder);
 
                         TxtCountWoWonder.Visibility = ViewStates.Visible;
-                        BtnCountWoWonder.Visibility = ViewStates.Visible;
                         ImgWoWonder.Visibility = ViewStates.Visible;
-
                         ImgWoWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                        ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                        TxtWonder.Text = Application.Context.GetText(Resource.String.Btn_Wonder);
+
                         break;
                     case PostButtonSystem.DisLike:
-                        MainSectionButton.WeightSum = 4;
-                        BtnWonder.Visibility = ViewStates.Visible;
+                        MainSectionButton.WeightSum = AppSettings.ShowShareButton ? 4 : 3;
+
+                        SecondReactionLinearLayout.Visibility = ViewStates.Visible;
+                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(
+                            Resource.Drawable.ic_action_dislike, 0, 0, 0);
+                        SecondReactionButton.Text = Application.Context.GetText(Resource.String.Btn_Dislike);
 
                         TxtCountWoWonder.Visibility = ViewStates.Visible;
-                        BtnCountWoWonder.Visibility = ViewStates.Visible;
                         ImgWoWonder.Visibility = ViewStates.Visible;
-
                         ImgWoWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                        ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                        TxtWonder.Text = Application.Context.GetText(Resource.String.Btn_Dislike);
+
                         break;
                 }
 
-                BtnShare.Visibility = AppSettings.ShowShareButton switch
-                {
-                    false when BtnShare != null => ViewStates.Gone,
-                    _ => BtnShare.Visibility
-                };
             }
             catch (Exception e)
             {
@@ -343,14 +343,14 @@ namespace WoWonder.Activities.UsersPages
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
- 
+
                 }
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        } 
+        }
 
         private void AddOrRemoveEvent(bool addEvent)
         {
@@ -361,44 +361,47 @@ namespace WoWonder.Activities.UsersPages
                     // true +=  // false -=
                     case true:
                     {
-                        BtnComment.Click += BtnCommentOnClick;
-                        BtnShare.Click += BtnShareOnClick;
+
+                        CommentLinearLayout.Click += BtnCommentOnClick;
+                        ShareLinearLayout.Click += BtnShareOnClick;
                         BtnCountLike.Click += BtnCountLikeOnClick;
                         BtnCountWoWonder.Click += BtnCountWoWonderOnClick;
                         InfoImageLiner.Click += MainLayoutOnClick;
                         MainLayout.Click += MainLayoutOnClick;
-                     
+
                         switch (AppSettings.PostButton)
                         {
                             case PostButtonSystem.Wonder:
                             case PostButtonSystem.DisLike:
-                                BtnWonder.Click += BtnWonderOnClick;
+                                SecondReactionButton.Click += SecondReactionButtonOnClick;
                                 break;
                         }
 
                         LikeButton.Click += (sender, args) => LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs
                         {
                             NewsFeedClass = PostData,
-                            View = TxtCountLike,
-                        },null, "ImagePostViewerActivity");
+                            View = MainLayout,
+                        }, null, "ImagePostViewerActivity");
 
                         switch (AppSettings.PostButton)
                         {
                             case PostButtonSystem.ReactionDefault:
                             case PostButtonSystem.ReactionSubShine:
-                                LikeButton.LongClick += (sender, args) => LikeButton.LongClickDialog(new GlobalClickEventArgs
-                                {
-                                    NewsFeedClass = PostData,
-                                    View = TxtCountLike,
-                                }, null, "ImagePostViewerActivity");
+                                LikeButton.LongClick += (sender, args) => LikeButton.LongClickDialog(
+                                    new GlobalClickEventArgs
+                                    {
+                                        NewsFeedClass = PostData,
+                                        View = MainLayout,
+                                    }, null, "ImagePostViewerActivity");
                                 break;
                         }
+
                         break;
                     }
                     default:
                     {
-                        BtnComment.Click -= BtnCommentOnClick;
-                        BtnShare.Click -= BtnShareOnClick;
+                        CommentLinearLayout.Click -= BtnCommentOnClick;
+                        ShareLinearLayout.Click -= BtnShareOnClick;
                         BtnCountLike.Click -= BtnCountLikeOnClick;
                         BtnCountWoWonder.Click -= BtnCountWoWonderOnClick;
                         InfoImageLiner.Click -= MainLayoutOnClick;
@@ -408,7 +411,7 @@ namespace WoWonder.Activities.UsersPages
                         {
                             case PostButtonSystem.Wonder:
                             case PostButtonSystem.DisLike:
-                                BtnWonder.Click -= BtnWonderOnClick;
+                                SecondReactionButton.Click -= SecondReactionButtonOnClick;
                                 break;
                         }
 
@@ -420,6 +423,7 @@ namespace WoWonder.Activities.UsersPages
                                 LikeButton.LongClick -= null!;
                                 break;
                         }
+
                         break;
                     }
                 }
@@ -429,12 +433,11 @@ namespace WoWonder.Activities.UsersPages
                 Methods.DisplayReportResultTrack(e);
             }
         }
+
         private void DestroyBasic()
         {
             try
-            {
-                
-
+            { 
                 PageImage = null!;
                 TxtDescription = null!;
                 ImgLike = null!;
@@ -445,23 +448,20 @@ namespace WoWonder.Activities.UsersPages
                 InfoImageLiner = null!;
                 BtnCountLike = null!;
                 BtnCountWoWonder = null!;
-                BtnLike = null!;
-                BtnComment = null!;
-                BtnShare = null!;
+                CommentLinearLayout = null!;
+                ShareLinearLayout = null!;
                 MainSectionButton = null!;
-                BtnWonder = null!;
-                ImgWonder = null!;
-                TxtWonder = null!;
+                SecondReactionButton = null!;
+                SecondReactionButton = null!;
                 LikeButton = null!;
-                ShareText = null!;
                 ClickListener = null!;
-                
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
         }
+
         #endregion
 
         #region Events
@@ -470,7 +470,9 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                InfoImageLiner.Visibility = InfoImageLiner.Visibility != ViewStates.Visible ? ViewStates.Visible : ViewStates.Invisible;
+                InfoImageLiner.Visibility = InfoImageLiner.Visibility != ViewStates.Visible
+                    ? ViewStates.Visible
+                    : ViewStates.Invisible;
             }
             catch (Exception exception)
             {
@@ -479,87 +481,213 @@ namespace WoWonder.Activities.UsersPages
         }
 
         //Event Add Wonder
-        private void BtnWonderOnClick(object sender, EventArgs e)
+        private void SecondReactionButtonOnClick(object sender, EventArgs e)
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this , GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
-                if (PostData.IsWondered != null && PostData.IsWondered.Value)
+                switch (UserDetails.SoundControl)
                 {
-                    var x = Convert.ToInt32(PostData.PostWonders);
-                    switch (x)
+                    case true:
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("select.mp3");
+                        break;
+                }
+
+                switch (AppSettings.PostButton)
+                {
+                    case PostButtonSystem.Wonder when PostData.IsWondered != null && (bool) PostData.IsWondered:
                     {
-                        case > 0:
-                            x--;
-                            break;
-                        default:
-                            x = 0;
-                            break;
+                        var x = Convert.ToInt32(PostData.PostWonders);
+                        switch (x)
+                        {
+                            case > 0:
+                                x--;
+                                break;
+                            default:
+                                x = 0;
+                                break;
+                        }
+
+                        PostData.IsWondered = false;
+                        PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
+
+                        var unwrappedDrawable =
+                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_wowonder);
+                        var wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case <= BuildVersionCodes.Lollipop:
+                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
+                                break;
+                            default:
+                                wrappedDrawable = wrappedDrawable.Mutate();
+                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#666666"),
+                                    PorterDuff.Mode.SrcAtop));
+                                break;
+                        }
+
+                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
+
+                        SecondReactionButton.Text = this.GetString(Resource.String.Btn_Wonder);
+                        SecondReactionButton.SetTextColor(Color.ParseColor("#666666"));
+                        break;
                     }
-                             
-                    ImgWonder.SetColorFilter(Color.White);
-                    ImgWoWonder.SetColorFilter(Color.White);
-                    
-                    PostData.IsWondered = false;
-                    PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
-
-                    TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(x);
-
-                    TxtWonder.Text = AppSettings.PostButton switch
+                    case PostButtonSystem.Wonder:
                     {
-                        PostButtonSystem.Wonder => GetText(Resource.String.Btn_Wonder),
-                        PostButtonSystem.DisLike => GetText(Resource.String.Btn_Dislike),
-                        _ => TxtWonder.Text
-                    };
+                        var x = Convert.ToInt32(PostData.PostWonders);
+                        x++;
 
-                    BtnWonder.Tag = "false";
+                        PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
+                        PostData.IsWondered = true;
+
+                        var unwrappedDrawable =
+                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_wowonder);
+                        var wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case <= BuildVersionCodes.Lollipop:
+                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
+                                break;
+                            default:
+                                wrappedDrawable = wrappedDrawable.Mutate();
+                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"),
+                                    PorterDuff.Mode.SrcAtop));
+                                break;
+                        }
+
+                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
+
+                        SecondReactionButton.Text = this.GetString(Resource.String.Lbl_wondered);
+                        SecondReactionButton.SetTextColor(Color.ParseColor("#f89823"));
+
+                        PostData.Reaction ??= new Reaction();
+                        if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
+                        {
+                            PostData.Reaction.IsReacted = false;
+                        }
+
+                        break;
+                    }
+                    case PostButtonSystem.DisLike when PostData.IsWondered != null && PostData.IsWondered.Value:
+                    {
+                        var unwrappedDrawable =
+                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_dislike);
+                        var wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case <= BuildVersionCodes.Lollipop:
+                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
+                                break;
+                            default:
+                                wrappedDrawable = wrappedDrawable.Mutate();
+                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#666666"),
+                                    PorterDuff.Mode.SrcAtop));
+                                break;
+                        }
+
+                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
+
+                        SecondReactionButton.Text = this.GetString(Resource.String.Btn_Dislike);
+                        SecondReactionButton.SetTextColor(Color.ParseColor("#666666"));
+
+                        var x = Convert.ToInt32(PostData.PostWonders);
+                        switch (x)
+                        {
+                            case > 0:
+                                x--;
+                                break;
+                            default:
+                                x = 0;
+                                break;
+                        }
+
+                        PostData.IsWondered = false;
+                        PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
+                        break;
+                    }
+                    case PostButtonSystem.DisLike:
+                    {
+                        var x = Convert.ToInt32(PostData.PostWonders);
+                        x++;
+
+                        PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
+                        PostData.IsWondered = true;
+
+                        Drawable unwrappedDrawable =
+                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_dislike);
+                        Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+
+                        switch (Build.VERSION.SdkInt)
+                        {
+                            case <= BuildVersionCodes.Lollipop:
+                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
+                                break;
+                            default:
+                                wrappedDrawable = wrappedDrawable.Mutate();
+                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"),
+                                    PorterDuff.Mode.SrcAtop));
+                                break;
+                        }
+
+                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
+
+                        SecondReactionButton.Text = this.GetString(Resource.String.Lbl_disliked);
+                        SecondReactionButton.SetTextColor(Color.ParseColor("#f89823"));
+
+                        PostData.Reaction ??= new Reaction();
+                        if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
+                        {
+                            PostData.Reaction.IsReacted = false;
+                        }
+
+                        break;
+                    }
                 }
-                else
+
+                var adapterGlobal = WRecyclerView.GetInstance()?.NativeFeedAdapter;
+
+                var dataGlobal = adapterGlobal?.ListDiffer?.Where(a => a.PostData?.Id == PostData.Id).ToList();
+                switch (dataGlobal?.Count)
                 {
-                    var x = Convert.ToInt32(PostData.PostWonders);
-                    x++;
-
-                    PostData.IsWondered = true;
-                    PostData.PostWonders = Convert.ToString(x, CultureInfo.InvariantCulture);
-
-                    ImgWonder.SetColorFilter(Color.ParseColor("#f89823"));
-                    ImgWoWonder.SetColorFilter(Color.ParseColor("#f89823"));
-
-                    TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(x);
-
-                    TxtWonder.Text = AppSettings.PostButton switch
+                    case > 0:
                     {
-                        PostButtonSystem.Wonder => GetText(Resource.String.Lbl_wondered),
-                        PostButtonSystem.DisLike => GetText(Resource.String.Lbl_disliked),
-                        _ => TxtWonder.Text
-                    };
+                        foreach (var dataClass in from dataClass in dataGlobal
+                            let index = adapterGlobal.ListDiffer.IndexOf(dataClass)
+                            where index > -1
+                            select dataClass)
+                        {
+                            dataClass.PostData = PostData;
+                            adapterGlobal.NotifyItemChanged(adapterGlobal.ListDiffer.IndexOf(dataClass), "reaction");
+                        }
 
-                    BtnWonder.Tag = "true";
+                        break;
+                    }
                 }
-                 
-                TxtCountWoWonder.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostWonders));
-                       
+
                 switch (AppSettings.PostButton)
                 {
                     case PostButtonSystem.Wonder:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "wonder") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>>
+                            {() => RequestsAsync.Posts.PostActionsAsync(PostData.Id, "wonder")});
                         break;
                     case PostButtonSystem.DisLike:
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(PostData.PostId, "dislike") });
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>>
+                            {() => RequestsAsync.Posts.PostActionsAsync(PostData.Id, "dislike")});
                         break;
                 }
+
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         //Event Show all users Wowonder >> Open Post PostData_Activity
         private void BtnCountWoWonderOnClick(object sender, EventArgs e)
         {
@@ -620,7 +748,8 @@ namespace WoWonder.Activities.UsersPages
         {
             try
             {
-                ClickListener.SharePostClick(new GlobalClickEventArgs {NewsFeedClass = PostData,}, PostModelType.ImagePost);
+                ClickListener.SharePostClick(new GlobalClickEventArgs {NewsFeedClass = PostData,},
+                    PostModelType.ImagePost);
             }
             catch (Exception exception)
             {
@@ -635,7 +764,7 @@ namespace WoWonder.Activities.UsersPages
             {
                 ClickListener.CommentPostClick(new GlobalClickEventArgs
                 {
-                    NewsFeedClass = PostData, 
+                    NewsFeedClass = PostData,
                 });
             }
             catch (Exception exception)
@@ -643,9 +772,9 @@ namespace WoWonder.Activities.UsersPages
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-         
+
         #endregion
-         
+
         //Get Data 
         private void Get_DataImage()
         {
@@ -668,14 +797,18 @@ namespace WoWonder.Activities.UsersPages
                                     break;
                                 }
                                 default:
-                                    ImageUrl = !string.IsNullOrEmpty(PostData.PostSticker) ? PostData.PostSticker : PostData.PostFileFull;
+                                    ImageUrl = !string.IsNullOrEmpty(PostData.PostSticker)
+                                        ? PostData.PostSticker
+                                        : PostData.PostFileFull;
                                     break;
                             }
-                        
+
                             //var bit = drawable_from_url(new Uri(ImageUrl));
                             //PageImage.SetImageBitmap(bit);
                             if (ImageUrl.Contains(".gif"))
-                                Glide.With(this).Load(ImageUrl).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder).FitCenter()).Into(PageImage);
+                                Glide.With(this).Load(ImageUrl)
+                                    .Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)
+                                        .FitCenter()).Into(PageImage);
                             else
                                 Glide.With(this).Load(ImageUrl).Apply(new RequestOptions()).Into(PageImage);
                             break;
@@ -690,7 +823,9 @@ namespace WoWonder.Activities.UsersPages
                                 //PageImage.SetImageBitmap(bit);
 
                                 if (ImageUrl.Contains(".gif"))
-                                    Glide.With(this).Load(ImageUrl).Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder).FitCenter()).Into(PageImage);
+                                    Glide.With(this).Load(ImageUrl)
+                                        .Apply(new RequestOptions().Placeholder(Resource.Drawable.ImagePlacholder)
+                                            .FitCenter()).Into(PageImage);
                                 else
                                     Glide.With(this).Load(ImageUrl).Apply(new RequestOptions()).Into(PageImage);
                             }
@@ -714,7 +849,7 @@ namespace WoWonder.Activities.UsersPages
                             .LessLabelColor(Color.ParseColor(AppSettings.MainColor))
                             .LabelUnderLine(true)
                             .Build();
-                        readMoreOption.AddReadMoreTo(TxtDescription, new Java.Lang.String(description)); 
+                        readMoreOption.AddReadMoreTo(TxtDescription, new Java.Lang.String(description));
                     }
 
                     CommentCount.Text = PostData.PostComments + " " + GetString(Resource.String.Lbl_Comments);
@@ -728,7 +863,7 @@ namespace WoWonder.Activities.UsersPages
                             PostData.Reaction ??= new WoWonderClient.Classes.Posts.Reaction();
 
                             TxtCountLike.Text = Methods.FunString.FormatPriceValue(PostData.Reaction.Count);
-                                 
+
                             if (PostData.Reaction.IsReacted != null && PostData.Reaction.IsReacted.Value)
                             {
                                 switch (string.IsNullOrEmpty(PostData.Reaction.Type))
@@ -764,7 +899,9 @@ namespace WoWonder.Activities.UsersPages
                                                 break;
                                             default:
                                                 LikeButton.SetReactionPack(ReactConstants.Default);
-                                                ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
+                                                ImgLike.SetImageResource(PostData.Reaction.Count > 0
+                                                    ? Resource.Drawable.emoji_like
+                                                    : Resource.Drawable.icon_post_like_vector);
                                                 break;
                                         }
 
@@ -777,7 +914,9 @@ namespace WoWonder.Activities.UsersPages
                                 LikeButton.SetReactionPack(ReactConstants.Default);
                                 LikeButton.SetTextColor(Color.ParseColor("#C3C7D0"));
 
-                                ImgLike.SetImageResource(PostData.Reaction.Count > 0 ? Resource.Drawable.emoji_like : Resource.Drawable.icon_post_like_vector);
+                                ImgLike.SetImageResource(PostData.Reaction.Count > 0
+                                    ? Resource.Drawable.emoji_like
+                                    : Resource.Drawable.icon_post_like_vector);
                             }
 
                             break;
@@ -787,7 +926,7 @@ namespace WoWonder.Activities.UsersPages
                             ImgLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
 
                             TxtCountLike.Text = Methods.FunString.FormatPriceValue(Convert.ToInt32(PostData.PostLikes));
-                                 
+
                             switch (AppSettings.PostButton)
                             {
                                 case PostButtonSystem.Wonder:
@@ -796,65 +935,115 @@ namespace WoWonder.Activities.UsersPages
                                     break;
                             }
 
-                            switch (AppSettings.PostButton)
-                            {
-                                case PostButtonSystem.Wonder when PostData.IsWondered != null && PostData.IsWondered.Value:
+                            if (PostData.Reaction.IsReacted != null && !PostData.Reaction.IsReacted.Value)
+                                LikeButton.SetReactionPack(ReactConstants.Default);
 
-                                    BtnWonder.Tag = "true";
-                                    ImgWoWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                            if (PostData.IsLiked != null && PostData.IsLiked.Value)
+                                LikeButton.SetReactionPack(ReactConstants.Like);
+                             
+                            if (SecondReactionButton != null)
+                            { 
+                                switch (AppSettings.PostButton)
+                                {
+                                    case PostButtonSystem.Wonder when PostData.IsWondered != null && PostData.IsWondered.Value:
+                                    {
+                                        Drawable unwrappedDrawable = AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_wowonder);
+                                        Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+                                        switch (Build.VERSION.SdkInt)
+                                        {
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(new PorterDuffColorFilter(Color.ParseColor("#f89823"), PorterDuff.Mode.SrcAtop));
+                                                break;
+                                        }
 
-                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                                    ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable, null, null, null);
 
-                                    TxtWonder.Text = GetString(Resource.String.Lbl_wondered);
-                                    TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                                    break;
-                                case PostButtonSystem.Wonder:
+                                        SecondReactionButton.Text = this.GetString(Resource.String.Lbl_wondered);
+                                        SecondReactionButton.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                        break;
+                                    }
+                                    case PostButtonSystem.Wonder:
+                                    {
+                                        Drawable unwrappedDrawable =
+                                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_wowonder);
+                                        Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+                                        switch (Build.VERSION.SdkInt)
+                                        {
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(
+                                                    new PorterDuffColorFilter(Color.ParseColor("#666666"),
+                                                        PorterDuff.Mode.SrcAtop));
+                                                break;
+                                        }
 
-                                    BtnWonder.Tag = "false";
-                                    ImgWoWonder.SetColorFilter(Color.White);
+                                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable,
+                                            null, null, null);
 
-                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_wowonder);
-                                    ImgWonder.SetColorFilter(Color.White);
+                                        SecondReactionButton.Text = this.GetString(Resource.String.Btn_Wonder);
+                                        SecondReactionButton.SetTextColor(Color.ParseColor("#444444"));
+                                        break;
+                                    }
+                                    case PostButtonSystem.DisLike
+                                        when PostData.IsWondered != null && PostData.IsWondered.Value:
+                                    {
+                                        Drawable unwrappedDrawable =
+                                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_dislike);
+                                        Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
 
-                                    TxtWonder.Text = GetString(Resource.String.Btn_Wonder);
-                                    TxtWonder.SetTextColor(Color.ParseColor("#444444"));
-                                    break;
-                                case PostButtonSystem.DisLike when PostData.IsWondered != null && PostData.IsWondered.Value:
+                                        switch (Build.VERSION.SdkInt)
+                                        {
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#f89823"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(
+                                                    new PorterDuffColorFilter(Color.ParseColor("#f89823"),
+                                                        PorterDuff.Mode.SrcAtop));
+                                                break;
+                                        }
 
-                                    BtnWonder.Tag = "true";
-                                    ImgWoWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable,
+                                            null, null, null);
 
-                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                                    ImgWonder.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
+                                        SecondReactionButton.Text = this.GetString(Resource.String.Lbl_disliked);
+                                        SecondReactionButton.SetTextColor(Color.ParseColor("#f89823"));
+                                        break;
+                                    }
+                                    case PostButtonSystem.DisLike:
+                                    {
+                                        Drawable unwrappedDrawable =
+                                            AppCompatResources.GetDrawable(this, Resource.Drawable.ic_action_dislike);
+                                        Drawable wrappedDrawable = DrawableCompat.Wrap(unwrappedDrawable);
+                                        switch (Build.VERSION.SdkInt)
+                                        {
+                                            case <= BuildVersionCodes.Lollipop:
+                                                DrawableCompat.SetTint(wrappedDrawable, Color.ParseColor("#666666"));
+                                                break;
+                                            default:
+                                                wrappedDrawable = wrappedDrawable.Mutate();
+                                                wrappedDrawable.SetColorFilter(
+                                                    new PorterDuffColorFilter(Color.ParseColor("#666666"),
+                                                        PorterDuff.Mode.SrcAtop));
+                                                break;
+                                        }
 
-                                    TxtWonder.Text = GetString(Resource.String.Lbl_disliked);
-                                    TxtWonder.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                        SecondReactionButton.SetCompoundDrawablesWithIntrinsicBounds(wrappedDrawable,
+                                            null, null, null);
 
-                                    break;
-                                case PostButtonSystem.DisLike:
-
-                                    BtnWonder.Tag = "false";
-                                    ImgWoWonder.SetColorFilter(Color.White);
-
-                                    ImgWonder.SetImageResource(Resource.Drawable.ic_action_dislike);
-                                    ImgWonder.SetColorFilter(Color.White);
-
-                                    TxtWonder.Text = GetString(Resource.String.Btn_Dislike);
-                                    TxtWonder.SetTextColor(Color.ParseColor("#444444"));
-                                    break;
-                                case PostButtonSystem.Like when PostData.IsLiked != null && PostData.IsLiked.Value:
-
-                                    BtnLike.Tag = "true";
-                                    ImgLike.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
-
-                                    break;
-                                case PostButtonSystem.Like:
-
-                                    BtnLike.Tag = "false";
-                                    ImgLike.SetColorFilter(Color.White);
-
-                                    break;
+                                        SecondReactionButton.Text = this.GetString(Resource.String.Btn_Dislike);
+                                        SecondReactionButton.SetTextColor(Color.ParseColor("#444444"));
+                                        break;
+                                    }
+                                }
                             }
 
                             break;
@@ -867,6 +1056,6 @@ namespace WoWonder.Activities.UsersPages
                 Methods.DisplayReportResultTrack(e);
             }
         }
- 
+
     }
 }

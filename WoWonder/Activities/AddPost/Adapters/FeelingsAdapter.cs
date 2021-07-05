@@ -5,7 +5,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
-using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Activities.AddPost.Adapters
@@ -17,6 +16,7 @@ namespace WoWonder.Activities.AddPost.Adapters
         public string FeelingText { get; set; }
         public string FeelingImageUrl { get; set; }
         public bool Selected { get; set; } = false;
+        public int ResId { get; set; }
     }
 
     public class FeelingsAdapter : RecyclerView.Adapter
@@ -33,98 +33,127 @@ namespace WoWonder.Activities.AddPost.Adapters
                 FeelingsList.Add(new Feeling
                 {
                     Id = 1,
-                    FeelingName = "angry", 
+                    FeelingName = "angry",
                     FeelingText = ActivityContext.GetText(Resource.String.Lbl_Angry),
-                    FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f621.png"
+                    FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f621.png",
+                    ResId = Resource.Drawable.ic_feeling_angry
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 2,
                     FeelingName = "funny",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Funny), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f602.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Funny), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f602.png",
+                    ResId = Resource.Drawable.ic_feeling_funny
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 3,
                     FeelingName = "loved",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Loved), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f60d.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Loved), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f60d.png",
+                    ResId = Resource.Drawable.ic_feeling_loved
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 4, FeelingName = "cool", FeelingText = ActivityContext.GetText(Resource.String.Lbl_Cool),
-                    FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f60e.png"
+                    FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f60e.png",
+                    ResId = Resource.Drawable.ic_feeling_cool
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 5,
                     FeelingName = "happy",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Happy), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f603.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Happy), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f603.png",
+                    ResId = Resource.Drawable.ic_feeling_happy
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 6,
                     FeelingName = "tired",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Tired), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f62b.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Tired), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f62b.png",
+                    ResId = Resource.Drawable.ic_feeling_tired
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 7,
                     FeelingName = "sleepy",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Sleepy), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f634.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Sleepy), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f634.png",
+                    ResId = Resource.Drawable.ic_feeling_sleepy
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 8,
                     FeelingName = "expressionless",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Expressionless),FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f611.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Expressionless),FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f611.png",
+                    ResId = Resource.Drawable.ic_feeling_expressionless
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 9,
                     FeelingName = "confused",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Confused), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f615.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Confused), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f615.png",
+                    ResId = Resource.Drawable.ic_feeling_confused
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 10,
                     FeelingName = "shocked",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Shocked), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f631.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Shocked), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f631.png",
+                    ResId = Resource.Drawable.ic_feeling_shocked
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 11,
                     FeelingName = "blessed",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_VerySad),FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f62d.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_VerySad),FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f62d.png",
+                    ResId = Resource.Drawable.ic_feeling_very_sad
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 12,
                     FeelingName = "blessed",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Blessed), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f607.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Blessed), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f607.png",
+                    ResId = Resource.Drawable.ic_feeling_blessed
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 13,
                     FeelingName = "bored",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Bored), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f610.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Bored), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f610.png",
+                    ResId = Resource.Drawable.ic_feeling_bored
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 14,
                     FeelingName = "broke",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Broken), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f494.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Broken), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f494.png",
+                    ResId = Resource.Drawable.ic_feeling_broken
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 15,
                     FeelingName = "lovely",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Lovely), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/2665.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Lovely), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/2665.png",
+                    ResId = Resource.Drawable.ic_feeling_lovely
+
                 });
                 FeelingsList.Add(new Feeling
                 {
                     Id = 16,
                     FeelingName = "smirk",
-                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Hot), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f60f.png"
+                    FeelingText = ActivityContext.GetText(Resource.String.Lbl_Hot), FeelingImageUrl = "https://abs.twimg.com/emoji/v1/72x72/1f60f.png",
+                    ResId = Resource.Drawable.ic_feeling_hot
+
                 });
             }
             catch (Exception e)
@@ -172,7 +201,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                             switch (string.IsNullOrEmpty(item.FeelingImageUrl))
                             {
                                 case false:
-                                    GlideImageLoader.LoadImage(ActivityContext, item.FeelingImageUrl, holder.Image,ImageStyle.RoundedCrop ,ImagePlaceholders.Drawable);
+                                        holder.Image.SetImageResource(item.ResId);
+                                    //GlideImageLoader.LoadImage(ActivityContext, item.FeelingImageUrl, holder.Image,ImageStyle.RoundedCrop ,ImagePlaceholders.Drawable);
                                     break;
                             }
                         }
@@ -263,8 +293,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                 Image = (ImageView) MainView.FindViewById(Resource.Id.Image);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new FeelingsAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new FeelingsAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new FeelingsAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new FeelingsAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

@@ -15,7 +15,7 @@
         android:layout_alignParentTop="true"
         android:layout_margin="20dp"
         android:padding="10dp"
-        android:text="Done"
+        android:text="@string/Lbl_Done"
         android:textAllCaps="false"
         android:textColor="@color/gnt_white"
         android:textSize="15sp" />

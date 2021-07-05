@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
@@ -13,7 +13,6 @@ using Android.Text;
 using Android.Views;
 using Android.Widget;
 using AndroidX.Core.Content;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Comment.Adapters;
 using WoWonder.Activities.Comment.Fragment;
@@ -39,8 +38,15 @@ namespace WoWonder.Activities.Comment
 
         public CommentClickListener(Activity context, string typeClass)
         {
-            MainContext = context;
-            TypeClass = typeClass;
+            try
+            {
+                MainContext = context;
+                TypeClass = typeClass;
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e); 
+            }
         }
 
         public void ProfilePostClick(ProfileClickEventArgs e)
@@ -84,7 +90,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -113,7 +119,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -145,7 +151,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -193,7 +199,7 @@ namespace WoWonder.Activities.Comment
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -282,7 +288,7 @@ namespace WoWonder.Activities.Comment
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -374,7 +380,7 @@ namespace WoWonder.Activities.Comment
                         break;
                     default:
                     {
-                        item.CFile = item.CFile.Contains(Client.WebsiteUrl) switch
+                        item.CFile = item.CFile.Contains(InitializeWoWonder.WebsiteUrl) switch
                         {
                             false => WoWonderTools.GetTheFinalLink(item.CFile),
                             _ => item.CFile
@@ -460,7 +466,7 @@ namespace WoWonder.Activities.Comment
                     //                }
                     //                else
                     //                {
-                    //                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                    //                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                     //                }
                     //            }
                     //            catch (Exception exception)
@@ -682,11 +688,11 @@ namespace WoWonder.Activities.Comment
          
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == MainContext.GetString(Resource.String.Lbl_CopeText))
                 {
                     Methods.CopyToClipboard(MainContext,Methods.FunString.DecodeString(CommentObject.Text));
@@ -694,11 +700,11 @@ namespace WoWonder.Activities.Comment
                 else if (text == MainContext.GetString(Resource.String.Lbl_Report))
                 {
                     if (!Methods.CheckConnectivity())
-                        Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     else
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Comment.ReportCommentAsync(CommentObject.Id) });
 
-                    Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_YourReportPost), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_YourReportPost), ToastLength.Short);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_Edit))
                 {
@@ -800,7 +806,7 @@ namespace WoWonder.Activities.Comment
                                         }
                                     }
 
-                                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short);
                                 }
                                 catch (Exception e)
                                 {
@@ -833,17 +839,17 @@ namespace WoWonder.Activities.Comment
             }
         }
 
-        public void OnInput(MaterialDialog p0, ICharSequence p1)
+        public void OnInput(MaterialDialog dialog, string input)
         {
             try
             {
-                if (p1.Length() > 0)
+                if (input.Length > 0)
                 {
-                    var strName = p1.ToString();
+                    var strName = input;
 
                     if (!Methods.CheckConnectivity())
                     {
-                        Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                     else
                     {
@@ -928,5 +934,6 @@ namespace WoWonder.Activities.Comment
         }
 
         #endregion MaterialDialog 
+
     }
 }

@@ -10,7 +10,6 @@ using Google.Android.Material.BottomSheet;
 using WoWonder.Activities.NearbyBusiness;
 using WoWonder.Activities.NearbyShops;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 
@@ -24,7 +23,7 @@ namespace WoWonder.Activities.Market
         private NearbyShopsActivity ContextNearbyShops;
         private NearbyBusinessActivity ContextNearbyBusiness;
 
-        private TextView IconBack, IconDistance, TxtDistanceCount;
+        private TextView TxtDistanceCount;
         private SeekBar DistanceBar;
         private Button BtnApply;
         private int DistanceCount;
@@ -82,15 +81,8 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                IconBack = view.FindViewById<TextView>(Resource.Id.IconBack);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconBack, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropright : IonIconsFonts.IosArrowDropleft);
-                IconBack.Click += IconBackOnClick;
-
-                IconDistance = view.FindViewById<TextView>(Resource.Id.IconDistance);
                 TxtDistanceCount = view.FindViewById<TextView>(Resource.Id.Distancenumber);
 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconDistance,FontAwesomeIcon.StreetView);
-                    
                 DistanceBar = view.FindViewById<SeekBar>(Resource.Id.distanceSeeker);
                 DistanceBar.SetOnSeekBarChangeListener(this);
 

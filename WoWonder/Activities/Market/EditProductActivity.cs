@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -16,7 +16,6 @@ using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using TheArtOfDev.Edmodo.Cropper;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.AddPost.Adapters;
 using WoWonder.Activities.Base;
@@ -411,7 +410,7 @@ namespace WoWonder.Activities.Market
                     {
                         case > 0:
                         {
-                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
  
                             dialogList.Title(GetText(Resource.String.Lbl_SelectCurrency)).TitleColorRes(Resource.Color.primary);
                             dialogList.Items(arrayAdapter);
@@ -445,7 +444,7 @@ namespace WoWonder.Activities.Market
                     {
                         TypeDialog = "Categories";
 
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         var arrayAdapter = CategoriesController.ListCategoriesProducts.Select(item => item.CategoriesName).ToList();
 
@@ -506,37 +505,37 @@ namespace WoWonder.Activities.Market
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtTitle.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtPrice.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_price), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_price), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtLocation.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Location), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtAbout.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_about), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_about), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtCurrency.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Currency), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Currency), ToastLength.Short);
                         return;
                     }
                        
@@ -544,7 +543,7 @@ namespace WoWonder.Activities.Market
                     switch (list.Count)
                     {
                         case 0:
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                             break;
                         default:
                         {
@@ -572,35 +571,32 @@ namespace WoWonder.Activities.Market
                                             AndHUD.Shared.Dismiss(this);
                                             Console.WriteLine(result.Message);
                                             var listImage = list.Select(productPathImage => new Images {Id = "", ProductId = ProductData.Id, Image = productPathImage.FileSimple, ImageOrg = productPathImage.FileSimple}).ToList();
-
-                                            //Add new item to my Event list
+                                                         
                                             var user = ListUtils.MyProfileList?.FirstOrDefault();
-                                 
-                                            if (TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter?.MarketList != null)
+
+                                            var instance = TabbedMarketActivity.GetInstance();
+                                            var data = instance?.MyProductsTab?.MAdapter?.MarketList?.FirstOrDefault(a => a.Product.Id == ProductData.Id && a.Type == Classes.ItemType.MyProduct);
+                                            if (data != null)
                                             {
-                                                var data = TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter.MarketList?.FirstOrDefault(a => a.Id == ProductData.Id);
-                                                if (data != null)
-                                                {
-                                                    data.Id = ProductData.Id;
-                                                    data.Name = TxtTitle.Text;
-                                                    data.UserId = UserDetails.UserId;
-                                                    data.Location = TxtLocation.Text;
-                                                    data.Description = TxtAbout.Text;
-                                                    data.Category = CategoryId;
-                                                    data.Images = listImage;
-                                                    data.Price = TxtPrice.Text;
-                                                    data.Type = ProductType;
-                                                    data.Seller = user;
+                                                data.Product.Id = ProductData.Id;
+                                                data.Product.Name = TxtTitle.Text;
+                                                data.Product.UserId = UserDetails.UserId;
+                                                data.Product.Location = TxtLocation.Text;
+                                                data.Product.Description = TxtAbout.Text;
+                                                data.Product.Category = CategoryId;
+                                                data.Product.Images = listImage;
+                                                data.Product.Price = TxtPrice.Text;
+                                                data.Product.Type = ProductType;
+                                                data.Product.Seller = user;
+      
+                                                instance.MyProductsTab.MAdapter.NotifyDataSetChanged();
 
-                                                    TabbedMarketActivity.GetInstance()?.MyProductsTab.MAdapter?.NotifyItemChanged(TabbedMarketActivity.GetInstance().MyProductsTab.MAdapter.MarketList.IndexOf(data));
-
-                                                    Intent intent = new Intent();
-                                                    intent.PutExtra("itemData", JsonConvert.SerializeObject(data));
-                                                    SetResult(Result.Ok, intent);
-                                                }
+                                                Intent intent = new Intent();
+                                                intent.PutExtra("itemData", JsonConvert.SerializeObject(data));
+                                                SetResult(Result.Ok, intent);
                                             }
- 
-                                            Toast.MakeText(this, GetString(Resource.String.Lbl_ProductSuccessfullyEdited), ToastLength.Short)?.Show();
+                                              
+                                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ProductSuccessfullyEdited), ToastLength.Short);
 
                                             Finish();
                                             break;
@@ -711,7 +707,7 @@ namespace WoWonder.Activities.Market
                                                 break;
                                             }
                                             default:
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                                 break;
                                         }
 
@@ -745,14 +741,14 @@ namespace WoWonder.Activities.Market
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                     case 105 when grantResults.Length > 0 && grantResults[0] == Permission.Granted:
                         //Open intent Location when the request code of result is 502
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -766,19 +762,19 @@ namespace WoWonder.Activities.Market
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "Categories":
-                        CategoryId = CategoriesController.ListCategoriesProducts.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
-                        TxtCategory.Text = itemString.ToString();
+                        CategoryId = CategoriesController.ListCategoriesProducts.FirstOrDefault(categories => categories.CategoriesName == itemString)?.CategoriesId;
+                        TxtCategory.Text = itemString;
                         break;
                     default:
-                        TxtCurrency.Text = itemString.ToString();
-                        CurrencyId = WoWonderTools.GetIdCurrency(itemString.ToString());
+                        TxtCurrency.Text = itemString;
+                        CurrencyId = WoWonderTools.GetIdCurrency(itemString);
                         break;
                 }
             }
@@ -840,6 +836,12 @@ namespace WoWonder.Activities.Market
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher
@@ -894,7 +896,7 @@ namespace WoWonder.Activities.Market
         {
             try
             {
-                ProductData = JsonConvert.DeserializeObject<ProductDataObject>(Intent?.GetStringExtra("ProductView"));
+                ProductData = JsonConvert.DeserializeObject<ProductDataObject>(Intent?.GetStringExtra("ProductView") ?? "");
                 if (ProductData != null)
                 {
                     var list = ProductData.Images;

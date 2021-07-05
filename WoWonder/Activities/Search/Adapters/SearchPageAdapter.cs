@@ -104,6 +104,7 @@ namespace WoWonder.Activities.Search.Adapters
 
                 if (item.IsPageOnwer != null && item.IsPageOnwer.Value || item.UserId == UserDetails.UserId)
                 {
+                    holder.LlBtnGroup.Visibility = ViewStates.Gone;
                     holder.Button.Visibility = ViewStates.Gone;
                 }
                 else
@@ -111,15 +112,17 @@ namespace WoWonder.Activities.Search.Adapters
                     //Set style Btn Like page 
                     if (WoWonderTools.IsLikedPage(item))
                     {
-                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                        holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
-                        holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Unlike);
+                        holder.Button.SetBackgroundResource(Resource.Drawable.liked_button_normal);
+                        //holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                        holder.Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Unlike); 
                         holder.Button.Tag = "true";
                     }
                     else
                     {
-                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                        holder.Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        //holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                        holder.Button.SetBackgroundResource(Resource.Drawable.liked_button_pressed);
+                        holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
                         holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Like);
                         holder.Button.Tag = "false";
                     }
@@ -246,16 +249,16 @@ namespace WoWonder.Activities.Search.Adapters
                 Name = MainView.FindViewById<TextView>(Resource.Id.card_name);
                 About = MainView.FindViewById<TextView>(Resource.Id.card_dist);
                 Button = MainView.FindViewById<Button>(Resource.Id.cont);
-                IconGroup = MainView.FindViewById<ImageView>(Resource.Id.Icon);
-                CircleView = MainView.FindViewById<View>(Resource.Id.image_view);
+                LlBtnGroup = MainView.FindViewById<LinearLayout>(Resource.Id.llButtonGroup);
+                BtnView = MainView.FindViewById<Button>(Resource.Id.BtnView);
 
                //CircleView.SetBackgroundResource(Resource.Drawable.circlegradient3);
-                IconGroup.SetImageResource(Resource.Drawable.icon_social_flag_vector);
-              
+
                 //Event      
-                Button.Click += (sender, e) => likeButtonClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition , Button  = Button });
-                itemView.Click += (sender, e) => clickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = AdapterPosition}); 
+                Button.Click += (sender, e) => likeButtonClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition , Button  = Button });
+                BtnView.Click += (sender, e) => clickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new SearchPageAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition}); 
             }
             catch (Exception e)
             {
@@ -273,8 +276,8 @@ namespace WoWonder.Activities.Search.Adapters
         public TextView Name { get; set; }
         public TextView About { get; set; }
         public Button Button { get; set; }
-        public ImageView IconGroup { get; set; }
-        public View CircleView { get; set; }
+        public LinearLayout LlBtnGroup { get; set; }
+        public Button BtnView { get; set; }
 
         #endregion
     }

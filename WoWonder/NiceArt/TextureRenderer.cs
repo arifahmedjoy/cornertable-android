@@ -7,21 +7,21 @@ namespace WoWonder.NiceArt
 {
     public class TextureRenderer
     {
-        private int MProgram;
-        private int MTexSamplerHandle;
-        private int MTexCoordHandle;
-        private int MPosCoordHandle;
+        public int MProgram;
+        public int MTexSamplerHandle;
+        public int MTexCoordHandle;
+        public int MPosCoordHandle;
 
-        private FloatBuffer MTexVertices;
-        private FloatBuffer MPosVertices;
+        public FloatBuffer MTexVertices;
+        public FloatBuffer MPosVertices;
 
-        private int MViewWidth;
-        private int MViewHeight;
+        public int MViewWidth;
+        public int MViewHeight;
 
-        private int MTexWidth;
-        private int MTexHeight;
+        public int MTexWidth;
+        public int MTexHeight;
 
-        private static readonly string VertexShader =
+        public static readonly string VertexShader =
             "attribute vec4 a_position;\n" +
             "attribute vec2 a_texcoord;\n" +
             "varying vec2 v_texcoord;\n" +
@@ -30,7 +30,7 @@ namespace WoWonder.NiceArt
             "  v_texcoord = a_texcoord;\n" +
             "}\n";
 
-        private static readonly string FragmentShader =
+        public static readonly string FragmentShader =
             "precision mediump float;\n" +
             "uniform sampler2D tex_sampler;\n" +
             "varying vec2 v_texcoord;\n" +
@@ -38,17 +38,17 @@ namespace WoWonder.NiceArt
             "  gl_FragColor = texture2D(tex_sampler, v_texcoord);\n" +
             "}\n";
 
-        private static readonly float[] TexVertices =
+        public static readonly float[] TexVertices =
         {
             0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
         };
 
-        private static readonly float[] PosVertices =
+        public static readonly float[] PosVertices =
         {
             -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f
         };
 
-        private static readonly int FloatSizeBytes = 4;
+        public static readonly int FloatSizeBytes = 4;
 
         public void Init()
         {

@@ -288,10 +288,11 @@
 	<string name="Lbl_Update_Data_Page">Update Data Page</string>
 	<string name="Lbl_Describe_Page">Describe Your Page</string>
 	<string name="Lbl_Describe_Description_Page">Tell potentials members what your pages about to help them know whether its relevant to them.</string>
-	<string name="Lbl_Page_title">Page title</string>
+	<string name="Lbl_Page_title">Page Title</string>
 	<string name="Lbl_Page_URL">Page URL</string>
-	<string name="Lbl_Page_About">Page About</string>
+	<string name="Lbl_Page_About">About Page</string>
 	<string name="Lbl_Manage_Pages">Manage Pages</string>
+  <string name="Lbl_Your_Pages">Your Pages</string>
 	<string name="Lbl_Liked_Pages">Liked Pages</string>
 	<!--===============================================================-->
 
@@ -304,11 +305,11 @@
 	<string name="Lbl_Update_DataGroup">Update Group Data</string>
 	<string name="Lbl_Describe_Group">Describe Your Group</string>
 	<string name="Lbl_Describe_Description_Group">Tell potentials members what your groups about to help them know whether its relevant to them.</string>
-	<string name="Lbl_Group_title">Group title</string>
+	<string name="Lbl_Group_title">Group Title</string>
 	<string name="Lbl_Group_URL">Group URL</string>
-	<string name="Lbl_Group_About">Group About</string>
+	<string name="Lbl_Group_About">About Group</string>
 	<string name="Lbl_Update_Data_Group">Update Data Group</string>
-	<string name="Lbl_Manage_Groups">Manage Groups</string>
+	<string name="Lbl_Manage_Groups">Your Groups</string>
 	<string name="Lbl_Joined_Groups">Joined Groups</string>
 	<!--===============================================================-->
 
@@ -335,10 +336,10 @@
 	<string name="Lbl_NewProduct">New Product</string>
 	<string name="Lbl_Describe_Product">Sell new product</string>
 	<string name="Lbl_Describe_Description_Product">You can list products for sale from the Add a Product tool.</string>
-	<string name="Lbl_Product_name">Product name</string>
-	<string name="Lbl_Product_price">Product price</string>
+	<string name="Lbl_Product_name">Product Name</string>
+	<string name="Lbl_Product_price">Product Price</string>
 	<string name="Lbl_Product_Location">Product location</string>
-	<string name="Lbl_Product_description">Product description</string>
+	<string name="Lbl_Product_description">Product Description</string>
 	<string name="Lbl_In_Stock">In Stock</string>
 	<!--===============================================================-->
 
@@ -405,7 +406,7 @@
 
 	<!--Categories-->
 	<string name="Lbl_Category">Category</string>
-	<string name="Lbl_SelectCategories">Select A Category</string>
+	<string name="Lbl_SelectCategories">Select a category</string>
  
 	<!--===============================================================-->
 
@@ -539,7 +540,7 @@
 	<string name="Lbl_Comment_Hint_Playing">What are you playing?</string>
 	<string name="Lbl_Comment_Hint_Watching">What are you watching?</string>
 	<string name="Lbl_Comment_Hint_Traveling">Where are you traveling?</string>
-	<string name="Lbl_What_Are_You_Doing">What Are You Doing?</string>
+	<string name="Lbl_What_Are_You_Doing">What are you doing?</string>
 	<string name="Lbl_Enter_your_link">Enter your link</string>
 	<string name="Lbl_Title_Back">Are you sure to come out?</string>
 	<string name="Lbl_Content_Back">The full input will be deleted if you exit or you can continue editing.</string>
@@ -578,7 +579,7 @@
 	<string name="Lbl_Albums">Albums</string>
 	<string name="Lbl_Saved_Posts">Saved Posts</string>
 	<string name="Lbl_Blogs">Blogs</string>
-	<string name="Lbl_Marketplace">Marketplace</string>
+	<string name="Lbl_Marketplace">Market Place</string>
 	<string name="Lbl_Events">Events</string>
 	<string name="Lbl_FindFriends">Find Friends</string>
 	<string name="Lbl_Movies">Movies</string>
@@ -773,7 +774,7 @@
 	<string name="Lbl_ChangedProfilePicture">changed profile picture</string>
 	<string name="Lbl_AddedNewProductForSell">added new product for sell</string>
 	<string name="Lbl_CreatedNewArticle">created new article</string>
-	<string name="Lbl_addedNewPhotosTo">added new photos to</string>
+	<string name="Lbl_AddedNewPhotosTo">added new photos to</string>
 	<string name="Lbl_SharedPost">shared a post</string>
 	<string name="Lbl_IsTravelingTo">is traveling to</string>
 	<string name="Lbl_IsWatching">is watching</string>
@@ -782,7 +783,7 @@
 	<string name="Lbl_IsListeningTo">is listening to</string>
 	<string name="Lbl_NoComments">No Comments to be displayed</string>
 	<string name="Lbl_ActivationSent">Activation Email Sent</string>
-	<string name="Lbl_ActivationDetails">"We sent email to @.\nClick the link in the email to activate your account"</string>
+	<string name="Lbl_ActivationDetails">"We sent email to @.<br />Click the link in the email to activate your account"</string>
 	<string name="Lbl_FindYourGroups">Find your Groups</string>
 	<string name="Lbl_FindPopularPages">Find popular pages</string>
 
@@ -869,7 +870,7 @@
 	<string name="Lbl_Games">Games</string>
 	<string name="Lbl_MyGames">My Games</string>
 	<string name="Lbl_NoMoreGames">No more games found</string>
-	<string name="Lbl_Empty_Games">No games !!</string>
+	<string name="Lbl_Empty_Games">No Games to show</string>
 	<string name="Lbl_Play">Play</string>
 
 
@@ -1056,7 +1057,7 @@
 	<string name="Lbl_SeeAll">See All</string>
 	<string name="Lbl_Categories">Categories</string>
 	<string name="Lbl_FindGroupByCategories">Find a group by browsing top categories</string>
-	<string name="Lbl_RandomGroups">Random Groups</string>
+  <string name="Lbl_RandomGroups">Random Groups</string>
 	<string name="Lbl_GetMoviesByCategories">Get movies by categories</string>
 	<string name="Lbl_Empty_Gif">No gif !!</string>
 	<string name="Lbl_Please_select_privacy">Error, Please select privacy</string>
@@ -1105,7 +1106,7 @@
 
 	<!--Follow Request-->
 	<string name="Lbl_FollowRequest">Follow Requests</string>
-	<string name="Lbl_View_All_FollowRequest">View all follow Requests</string>
+	<string name="Lbl_View_All_FollowRequest">View all Follow Requests</string>
 
 	<string name="Lbl_AddPicturesToAlbum">Do you want to add pictures to an album?</string>
 	<string name="Lbl_Earnings">Earnings</string>
@@ -1212,7 +1213,7 @@
 	<string name="Lbl_CantRequestWithdrawals">You can not request this amount that is not commensurate with your current balance</string>
 	<string name="Lbl_RequestSentWithdrawals">Your withdrawal request has been successfully sent</string>
 	<string name="Lbl_Withdrawals_SubText1">Your balance is</string>
-	<string name="Lbl_Withdrawals_SubText2">minimum withdrawal request is</string>
+	<string name="Lbl_Withdrawals_SubText2">Minimum withdrawal request is</string>
 	<string name="Lbl_WithdrawMethod">Withdraw Method</string>
 	<string name="Lbl_SwiftCode">Swift Code</string>
 	<string name="Lbl_Address">Address</string>
@@ -1262,7 +1263,7 @@
 	<!-- V3.2 String translate -->
 	<!--===============================================================-->
 	<string name="Lbl_Sort">Sort</string>
-	<string name="Lbl_confirmationUnFriend">Are you sure you want to remove Ali as your friend?</string>
+	<string name="Lbl_confirmationUnFriend">Are you sure you want to remove as your friend?</string>
 	<string name="Lbl_Confirm">Confirm</string>
 	<string name="Lbl_WorkingAt">Working at</string>
 	<string name="Lbl_LivingIn">Living in</string>
@@ -1376,8 +1377,8 @@
 
 	<!-- V3.9 String translate -->
 	<!--===============================================================-->
-	<string name="Lbl_YourLiveStreamHasEnded">Your live stream has ended</string>
-	<string name="Lbl_LiveStreamer_End_title">Thanks, we hope to see you again</string>
+  <string name="Lbl_YourLiveStreamHasEnded">Your live stream has ended</string>
+  <string name="Lbl_LiveStreamer_End_title">Thanks, we hope to see you again</string>
 	<string name="Lbl_LiveViewer_End_title">Start your own live stream now</string>
 	<string name="Lbl_LifeTime">life time</string>
 	<string name="Lbl_BoostUpTo">Boost up to</string>
@@ -1401,10 +1402,10 @@
 	<string name="Lbl_NoPageManaged">"You don&apos;t have any page managed"</string> 
 	<string name="Lbl_NoGroupManaged">"You don&apos;t have any group"</string>
 
-  <string name="login_description">Stay login to your account to be \nupdated with your network</string>
+  <string name="login_description">Stay login to your account to be <br />updated with your network</string>
   <string name="no_account">"Don&apos;t Have an Account?"</string>
   <string name="field_required">This field is required</string>
-  <string name="register_description">Register to Wowonder using your \nemail or social accounts</string>
+  <string name="register_description">Register to Wowonder using your <br />email or social accounts</string>
   <string name="register_using_google">Register using Google</string>
   <string name="register_using_facebook">Register using Facebook</string>
   <string name="register_using_email">Register using Email</string>
@@ -1422,7 +1423,7 @@
   <string name="Lbl_Or">Or</string>
   <string name="Lbl_ByCreatingAnAccountYou">By creating an account you</string>
   <string name="Lbl_Forgot_password">Forgot password</string>
-  <string name="Lbl_Forgot_password_Des">Please enter your email address. You will \nreceive a link to create a new password.</string>
+  <string name="Lbl_Forgot_password_Des">Please enter your email address. You will <br />receive a link to create a new password.</string>
   <string name="Lbl_AddStory">Add Story</string>
   <string name="Lbl_EditAvatar">Edit Avatar</string>
   <string name="Lbl_EditCover">Edit Cover</string> 
@@ -1434,6 +1435,174 @@
   <string name="Lbl_Unlimited">Unlimited</string>
   <string name="Lbl_ProfileDetails">Profile Details</string>
   <string name="Lbl_TypeSomethingsHere">Type something here</string>
+  <string name="Lbl_Posted">Posted</string>
+
+  <string name="Lbl_Product_Condition">Product Condition</string>
+  <string name="Lbl_Product_Image">Product Image</string>
+  <string name="Lbl_Enter_Product_Name">Enter Product Name</string>
+  <string name="Lbl_Enter_Product_Price">Enter Product Price</string>
+  <string name="Lbl_Select_Product_Currency">Select Product Currency</string>
+  <string name="Lbl_Enter_Product_Description">Enter Product Description</string>
+  <string name="Lbl_Select_New_Used">Select New / Used</string>
+  <string name="Lbl_Select_Location">Select Location</string>
+
+  <string name="Lbl_CommentAnyPost">Commenting any post</string>
+  <string name="Lbl_CreatingNewPost">Creating a new post</string>
+  <string name="Lbl_ReactingPost">Reacting to a post</string>
+  <string name="Lbl_CreatingNewBlog">Creating a new blog</string>
+
+  <string name="Lbl_WantEarnMorePoint">Want to earn more points?</string>
+  <string name="Lbl_EarnsPointComment">Earn points by commenting on any post</string>
+  <string name="Lbl_EarnsPointPost">Earn points by creating a new post</string>
+  <string name="Lbl_EarnsPointReaction">Earn points by reacting on any post</string>
+  <string name="Lbl_EarnsPointBlog">Earn points by creating a new blog</string>
+
+  <string name="Lbl_Plus10Points">+10 Points</string>
+  <string name="Lbl_Plus20Points">+20 Points</string>
+  <string name="Lbl_Plus5Points">+5 Points</string>
+  <string name="Lbl_Plus15Points">+15 Points</string>
+  <string name="Lbl_CreatePost">Create a post</string>
+  <string name="Lbl_ReactionPost">Reaction on post</string>
+  <string name="Lbl_CreateBlog">Create a blog</string>
+
+  <string name="Lbl_SelectCategory">Select a category</string>
+  <string name="Lbl_SelectPrivacy">Select privacy</string>
+  <string name="Lbl_DescribGroup">Describe your group</string>
+  <string name="Lbl_SetGroupUserName">Set your group username</string>
+  <string name="Lbl_SetGroupTitle">Set your group title</string>
+
+  <string name="Lbl_DescribePage">Describe your page</string>
+  <string name="Lbl_SetPageUserName">Set your page username</string>
+  <string name="Lbl_SetPageTitle">Set your page title</string>
+  <string name="Lbl_PopularProducts">Popular Products</string>
+
+  <string name="Lbl_PopularJobs">Popular Jobs</string>
+  <string name="Lbl_ViewAll">View All</string>
+  <string name="Lbl_RecentJobs">Recent Jobs</string>
+
+  <string name="Lbl_PhoneNumberIsWrong">phone number is wrong</string>
+  <string name="Lbl_SeeYourProfile">See your profile</string>
+  <string name="Lbl_NewMessages">New Messages</string> 
+  <string name="Lbl_ExploreJobs">Explore Jobs</string>
+  <string name="Lbl_SearchForJobsHere">Search for jobs here</string>
+  <string name="Lbl_Option">Option</string>
+  <string name="Lbl_FilterFriends">Filter Friends</string>
+
+  <string name="Lbl_Done">Done</string>
+  <string name="Lbl_Next">Next</string>
+  <string name="Lbl_ReportThisPage">Report this page</string>
+  <string name="Lbl_ReportThisGroup">Report this group</string>
+  <string name="Lbl_CancelReport">Cancel Report</string>
+  <string name="Lbl_HasBeenReported">Has been reported</string> 
+  <string name="Lbl_Boosted">Boosted</string> 
+  <string name="Lbl_BoostedPosts">Boosted Posts</string>
+  <string name="Lbl_BoostedPages">Boosted Pages</string>
+  <string name="Lbl_PopularGames">Popular Games</string>
+  <string name="Lbl_FriendsBirthday">Friends Birthday</string>
+  <string name="Lbl_YearsOld">years old</string>
+  <string name="Lbl_HidePost">Hide post</string>
+  <string name="Lbl_PostSuccessfullyHided">Post hided successfully</string>
+  <string name="Lbl_ResetPassword">Reset Password</string>
+
+  <string name="Lbl_SomeoneLikedMyPosts">Someone liked my posts</string>
+  <string name="Lbl_SomeoneCommentedMyPosts">Someone commented on my posts</string>
+  <string name="Lbl_SomeoneSharedMyPosts">Someone shared on my posts</string>
+  <string name="Lbl_SomeoneFollowedMe">Someone followed me</string>
+  <string name="Lbl_SomeoneLikedMyPages">Someone liked my pages</string>
+  <string name="Lbl_SomeoneVisitedMyProfile">Someone visited my profile</string>
+  <string name="Lbl_SomeoneMentionedMe">Someone mentioned me</string>
+  <string name="Lbl_SomeoneJoinedMyGroups">Someone joined my groups</string>
+  <string name="Lbl_SomeoneAcceptedMyFriendRequest">Someone accepted my friend/follow request</string>
+  <string name="Lbl_SomeonePostedOnMyTimeline">Someone posted on my timeline</string>
+  <string name="Lbl_YouHaveRemembranceOnThisDay">You have remembrance on this day</string>
+
+  <string name="Lbl_AccountActivated_Title">Congratulations, your account has been activated.</string>
+  <string name="Lbl_AccountActivated_Description">Your account has e activated with a verification code and email.</string> 
+  <string name="Lbl_Error_IsUserYearsOld">Sorry, registration cannot be made due to the non-compliance with the age requirements of over 18 years</string>
+
+  <string name="Lbl_SuggestedPages">Suggested Pages</string>
+  <string name="Lbl_RandomPages">Random Pages</string>
+  <string name="Lbl_FindPageByCategories">Find a page by browsing top categories</string>
+
+  <string name="Lbl_NoOneViewTheStory">No one view the story</string>
+  <string name="Lbl_ViewedBy">Viewed by</string>
+  <string name="Lbl_Remove">Remove</string>
+  <string name="Lbl_AddMoreOptions">Add More Options</string>
+  <string name="Lbl_Reset">Reset</string>
+  <string name="Lbl_FilterJobs">Filter Jobs</string>
+  <string name="Lbl_JobsType">Jobs Type</string>
+  <string name="Lbl_JobQualification">Job Qualification</string>
+  <string name="Lbl_Apply">Apply</string>
+  <string name="Lbl_Clear">Clear</string>
+  <string name="Lbl_ShowResult">Show Result</string>
+  <string name="Lbl_Step">Step</string>
+  <string name="Lbl_UploadPhoto">Upload Photo</string>
+  <string name="Lbl_FundingImage">Funding Image</string>
+  <string name="Lbl_FundingTitle">Funding Title</string>
+  <string name="Lbl_PeopleGoing">People Going</string>
+  <string name="Lbl_PeopleInterested">People Interested</string>
+  <string name="Lbl_EventDescription">Event Description</string>
+  <string name="Lbl_Goal">goal</string>
+  <string name="Lbl_RecommendForYou">Recommend for you</string>
+  <string name="Lbl_OfferDescription">Offer Description</string>
+  <string name="Lbl_GroupSeen">Group Seen</string>
+  <string name="Lbl_ViewPage">View Page</string>
+  <string name="Lbl_SubTitle">Sub title</string>
+  <string name="Lbl_Summary">Summary</string>
+  <string name="Lbl_GroupDetails">Group Details</string>
+  <string name="Lbl_Rain">Rain</string>
+  <string name="Lbl_Wind">Wind</string>
+  <string name="Lbl_Humidity">Humidity</string>
+  <string name="Lbl_mph">mph</string>
+  <string name="Lbl_NoRepliesToBeDisplayed">No Replies to be displayed</string>
+  <string name="Lbl_To">To</string>
+  <string name="Lbl_PaymentFailed">Payment failed</string>
+  <string name="Lbl_SuccessfullyAppliedJob">You have successfully applied to this job</string>
+  <string name="Lbl_YourDetailsWasUpdated">Your details were updated</string>
+  <string name="Lbl_ChooseAnImageFrom">Choose an image from</string>
+  <string name="Lbl_SendMessage">Send message...</string>
+  <string name="Lbl_Write_your_message">Write your message</string>
+  <string name="Lbl_Empty_Games_Desc">You dont have any games</string>
+
+  <string name="Lbl_UpdateAbout">Update About</string>
+  <string name="Lbl_NoBlockedUsersDesc">You have not blocked any users</string>
+
+  <string name="Lbl_ApplyVerification">Apply for verification</string>
+  <string name="Lbl_VerificationDescription">A verified gadge is a check that appears next to an accounts name to indicate that the account is authentic and has been verified with the rules and regulation of this app.<br /><br />You can submit your verification request using</string>
+  <string name="Lbl_YourMessage">Your Message</string>
+  <string name="Lbl_YourPassport">Your Passport</string>
+  <string name="Lbl_SelectTheme">Select Theme</string>
+  <string name="Lbl_AddSocialLinksName">Add social link here</string>
+  <string name="Lbl_RecentlyPlayed">Recently Played</string>
+
+  <string name="Lbl_InvitedPage">Invited Page</string>
+  <string name="Lbl_Error_AllowedFileUpload">Sorry, you cannot choose any file... You need to Upgrade your profile.</string>
+  <string name="Lbl_GameRecommendations">Game Recommendations</string>
+  <string name="Lbl_SearchResults">Search Results</string>
+
+  <string name="Lbl_NotificationsHaveBeenStopped">Notifications have been stopped</string>
+  <string name="Lbl_NotificationsAreTurnedOn">Notifications are turned on</string>
+  <string name="Lbl_Album">Album</string>
+  <string name="Lbl_TakeImageFromCamera">Take a picture from the camera</string>
+  <string name="Lbl_SelectImageFrom">Select image from</string>
+
+  <string name="Lbl_ReplenishDesc">You can replenish your balance using any of the preferred payment methods.</string>
+  <string name="Lbl_FilterResult">Filter Results</string>
+
+  <string name="Lbl_AddPhotos">Add Photos</string>
+  <string name="Lbl_EnterEventName">Enter Event Name</string>
+  <string name="Lbl_EnterStartDate">Enter Start Date</string>
+  <string name="Lbl_EnterStartTime">Enter Start Time</string>
+  <string name="Lbl_EnterEndDate">Enter End Date</string>
+  <string name="Lbl_EnterEndTime">Enter End Time</string>
+  <string name="Lbl_StartTime">Start Time</string>
+  <string name="Lbl_EndTime">End Time</string>
+  <string name="Lbl_EventPhoto">Event Photo</string>
+  <string name="Lbl_EnterDescriptionHere">Enter Description Here</string>
+  <string name="Lbl_EditFunding">Edit Funding</string>
+  <string name="Lbl_Announcement_SubText">We have somethings to inform you</string>
+  <string name="Lbl_ProMember">Pro Member</string>
+  <string name="Lbl_Member">Member</string>
 
 
   <!--Chat Messanger-->
@@ -1444,11 +1613,9 @@
   <!--Tabbed_Main_Page-->
   <string name="Lbl_Tab_Chats">Chats</string>
   <string name="Lbl_Tab_GroupChats">Groups</string>
-  <string name="Lbl_Tab_Stories">Stories</string>
   <string name="Lbl_Tab_Calls">Calls</string>
   <string name="Lbl_is_calling_you">is calling you</string>
   <string name="Lbl_SendGifFile">Gif</string>
-  <string name="Lbl_SendMessage">Send you a message</string>
   <string name="Lbl_SendStickerFile">Sticker</string>
   <string name="Lbl_SendContactnumber">Contact number</string>
   <string name="Lbl_SendFile">File</string>
@@ -1464,7 +1631,6 @@
   <string name="Lbl_AreYouSureDeleteGroup">Are you sure you want to delete the group</string>
   <string name="Lbl_Exit">Exit</string>
   <string name="Lbl_GroupSuccessfullyLeaved">You are successfully leaved this group</string>
-  <string name="Lbl_Write_your_message">Write your message</string>
   <string name="Lbl_SendProductFile">Sent product to you</string>
   <string name="Lbl_ExitGroup">Exit group</string>
   <string name="Lbl_GroupName">Group Name</string>
@@ -1501,11 +1667,10 @@
   <string name="Lbl_Select_Type_Call">Select Type Call ?</string>
   <string name="Lbl_Voice_call">Voice call</string>
   <string name="Lbl_Video_call">Video call</string>
-  <string name="Lbl_Muted_his_video">Muted his video</string>
+  <string name="Lbl_Muted_his_video">Muted this call</string>
   <string name="Lbl_View_Profile">View Profile</string>
   <string name="Lbl_Doyouwanttodeletechatwith">Delete chat conversation</string>
   <string name="Btn_DeleteMessage">Delete</string>
-  <string name="Lbl_Summary_Onlineusers">Show when users are online</string>
   <string name="Lbl_Recording">Recording...</string>
   <string name="Lbl_Empty_Group">There are no groups</string>
   <string name="Lbl_Start_Group">Start adding new groups</string>
@@ -1515,7 +1680,6 @@
   <string name="Lbl_Forward">Forward</string>
   <string name="Lbl_ForwardTo">Forward To...</string>
   <string name="Lbl_MessagesSent">Messages sent</string>
-  <string name="Lbl_Remove">Remove</string>
   <string name="Lbl_Group">Group</string>
   <string name="Lbl_InvitedToJoinGroup">You have been invited to join the group chat</string>
   <string name="Lbl_NoAnyGroupRequest">There are no invites to join the chat group</string>
@@ -1527,9 +1691,6 @@
   <string name="Lbl_MessageCall3">"I&apos;ll Call You Later"</string>
   <string name="Lbl_MessageCall4">"Can&apos;t talk now.call me later"</string>
   <string name="Lbl_MessageCall5">Custom message..</string>
-  <string name="Btn_Image">Image</string>
-  <string name="Camera">Camera</string>
-  <string name="Btn_Video">Video</string>
   <string name="Lbl_Tab_PageChats">Pages</string>
   <string name="Lbl_NoMorePage">No more page found</string>
   <string name="Lbl_Empty_Page">There are no pages</string>
@@ -1551,8 +1712,6 @@
   <string name="Lbl_Are_you_want_to_exit_without_saving_image">Are you want to exit without saving image ?</string>
   <string name="Lbl_Failed_to_save_Image">Failed to save Image</string>
   <string name="Lbl_Tap_To_Type">Type something</string>
-
-  <string name="Lbl_TakeImageFromCamera">Take a picture from the camera</string>
 
   <string name="Lbl_Group_Add_Description">Select from your contact list</string>
   <string name="Lbl_Group_Chat_Description">tab here for group info</string>
@@ -1590,8 +1749,6 @@
   <string name="Lbl_PeopleJoinThis">people join this</string>
   <string name="Lbl_SayHiTo">Say Hi to</string>
 
-  <string name="Lbl_NoOneViewTheStory">No one view the story</string>
-  <string name="Lbl_ViewedBy">Viewed by</string>
 
   <string name="Lbl_Wallpaper">Wallpaper</string>
   <string name="Lbl_DefaultWallpaper">Default Wallpaper</string>
@@ -1628,5 +1785,11 @@
 
   <string name="Lbl_AllowYourLocation">Allow your location</string>
   <string name="Lbl_DescriptionAllowYourLocation">We want to access your lotion only to provide a better experience by helping you find a new friend nearby.</string>
+  
+  <string name="Lbl_ErrorCreatingCall">Error when creating a call.. please try again later</string>
+
+  <string name="Lbl_call_swipe_up_to_answer">Swipe up to answer</string>
+  <string name="Lbl_call_swipe_down_to_reject">Swipe down to reject</string>
+
 
 </resources>

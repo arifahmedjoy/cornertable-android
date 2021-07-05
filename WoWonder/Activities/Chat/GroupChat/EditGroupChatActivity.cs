@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Aghajari.EmojiView.Views;
 using Android;
 using Android.App;
@@ -208,7 +208,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolbar != null)
                 {
-                    toolbar.Title = GetString(Resource.String.Lbl_Edit);
+                    toolbar.Title = GetString(Resource.String.Lbl_CreateGroup);
                     toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
@@ -319,19 +319,19 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtGroupName.Text) || string.IsNullOrWhiteSpace(TxtGroupName.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (TxtGroupName.Text.Length < 4 && TxtGroupName.Text.Length > 15)
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_ErrorLengthGroupName), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_ErrorLengthGroupName), ToastLength.Short);
                         return;
                     }
 
@@ -424,13 +424,13 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     Type = "Exit";
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                     dialog.Content(GetText(Resource.String.Lbl_AreYouSureExitGroup));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Exit)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
@@ -451,15 +451,15 @@ namespace WoWonder.Activities.Chat.GroupChat
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     Type = "Delete";
 
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme
-                        ? AFollestad.MaterialDialogs.Theme.Dark
-                        : AFollestad.MaterialDialogs.Theme.Light);
+                        ? MaterialDialogsCore.Theme.Dark
+                        : MaterialDialogsCore.Theme.Light);
                     dialog.Content(GetText(Resource.String.Lbl_AreYouSureDeleteGroup));
                     dialog.PositiveText(GetText(Resource.String.Lbl_DeleteGroup)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
@@ -505,8 +505,8 @@ namespace WoWonder.Activities.Chat.GroupChat
                     Type = "RemoveUser";
                     Position = e.Position;
                     var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme
-                        ? AFollestad.MaterialDialogs.Theme.Dark
-                        : AFollestad.MaterialDialogs.Theme.Light);
+                        ? MaterialDialogsCore.Theme.Dark
+                        : MaterialDialogsCore.Theme.Light);
                     dialog.Title(GetString(Resource.String.Lbl_Remove) + " " + WoWonderTools.GetNameFinal(item));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
                     dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
@@ -554,8 +554,8 @@ namespace WoWonder.Activities.Chat.GroupChat
                                     }
                                     else
                                     {
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong),
-                                            ToastLength.Long)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong),
+                                            ToastLength.Long);
                                     }
                                 }
                             }
@@ -616,7 +616,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                     }
                     else
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     }
                 }
             }
@@ -737,7 +737,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                 {
                     if (!Methods.CheckConnectivity())
                     {
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     }
                     else
                     {
@@ -755,7 +755,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                         {
                                             Console.WriteLine(result.MessageData);
 
-                                            Toast.MakeText(this, GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short);
 
                                             //remove new item to my Group list  
                                             if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
@@ -802,7 +802,7 @@ namespace WoWonder.Activities.Chat.GroupChat
                                         if (respond is AddOrRemoveUserToGroupObject result)
                                         {
                                             Console.WriteLine(result.MessageData);
-                                            Toast.MakeText(this, GetString(Resource.String.Lbl_GroupSuccessfullyDeleted), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_GroupSuccessfullyDeleted), ToastLength.Short);
 
                                             //remove item to my Group list  
                                             if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)

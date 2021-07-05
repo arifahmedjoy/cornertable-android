@@ -21,10 +21,10 @@ namespace WoWonder.Activities.NativePost.Share
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
     public class ShareGroupActivity : BaseActivity, IOnClickListener
     {
-        public RecyclerView rvShareGroup { get; private set; }
-        private List<GroupClass> groups;
-        private PostDataObject postData;
-        private ShareGroupAdapter shareGroupAdapter;
+        public RecyclerView RvShareGroup { get; private set; }
+        private List<GroupClass> Groups;
+        private PostDataObject PostData;
+        private ShareGroupAdapter ShareGroupAdapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -33,13 +33,13 @@ namespace WoWonder.Activities.NativePost.Share
             // Create your application here
             SetContentView(Resource.Layout.share_group_sheet);
 
-            groups = JsonConvert.DeserializeObject<List<GroupClass>>(Intent.GetStringExtra("Groups"));
-            postData = JsonConvert.DeserializeObject<PostDataObject>(Intent.GetStringExtra("PostObject"));
+            Groups = JsonConvert.DeserializeObject<List<GroupClass>>(Intent.GetStringExtra("Groups"));
+            PostData = JsonConvert.DeserializeObject<PostDataObject>(Intent.GetStringExtra("PostObject"));
 
-            rvShareGroup = FindViewById<RecyclerView>(Resource.Id.rv_share_group);
-            shareGroupAdapter = new ShareGroupAdapter(groups, this);
-            rvShareGroup.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Vertical, false));
-            rvShareGroup.SetAdapter(shareGroupAdapter);
+            RvShareGroup = FindViewById<RecyclerView>(Resource.Id.rv_share_group);
+            ShareGroupAdapter = new ShareGroupAdapter(Groups, this);
+            RvShareGroup.SetLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.Vertical, false));
+            RvShareGroup.SetAdapter(ShareGroupAdapter);
 
             //
             RelativeLayout rlClose = FindViewById<RelativeLayout>(Resource.Id.rl_close);
@@ -58,7 +58,7 @@ namespace WoWonder.Activities.NativePost.Share
                 Intent intent = new Intent(this, typeof(SharePostActivity));
                 intent.PutExtra("ShareToType", "Group");
                 intent.PutExtra("ShareToGroup", JsonConvert.SerializeObject(item)); //GroupClass
-                intent.PutExtra("PostObject", JsonConvert.SerializeObject(postData)); //PostDataObject
+                intent.PutExtra("PostObject", JsonConvert.SerializeObject(PostData)); //PostDataObject
                 StartActivity(intent);
             }
         }
@@ -66,9 +66,9 @@ namespace WoWonder.Activities.NativePost.Share
 
     class ShareGroupAdapter : RecyclerView.Adapter
     {
-        private List<GroupClass> groupClasses;
-        private Context context;
-        private IOnClickListener listener;
+        private readonly List<GroupClass> GroupClasses;
+        private Context Context;
+        private readonly IOnClickListener Listener;
 
         public interface IOnClickListener
         {
@@ -77,47 +77,47 @@ namespace WoWonder.Activities.NativePost.Share
 
         public ShareGroupAdapter(List<GroupClass> groupClasses, IOnClickListener listener)
         {
-            this.groupClasses = groupClasses;
-            this.listener = listener;
+            this.GroupClasses = groupClasses;
+            this.Listener = listener;
         }
 
         public override int ItemCount
         {
-            get { return groupClasses.Count; }
+            get { return GroupClasses.Count; }
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             ShareGroupHolder vh = holder as ShareGroupHolder;
 
-            GroupClass item = groupClasses[position];
-            GlideImageLoader.LoadImage((AppCompatActivity)context, item.Avatar, vh.ivGroup, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-            vh.tvGroupName.Text = item.GroupName;
+            GroupClass item = GroupClasses[position];
+            GlideImageLoader.LoadImage((AppCompatActivity)Context, item.Avatar, vh.IvGroup, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+            vh.TvGroupName.Text = item.GroupName;
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
-            context = parent.Context;
-            View view = LayoutInflater.From(context).Inflate(Resource.Layout.share_group_row, parent, false);
+            Context = parent.Context;
+            View view = LayoutInflater.From(Context).Inflate(Resource.Layout.share_group_row, parent, false);
 
-            return new ShareGroupHolder(view, listener, groupClasses);
+            return new ShareGroupHolder(view, Listener, GroupClasses);
         }
 
         class ShareGroupHolder : RecyclerView.ViewHolder, View.IOnClickListener
         {
-            public CircleImageView ivGroup;
-            public TextView tvGroupName;
-            private IOnClickListener listener;
-            private List<GroupClass> groups;
+            public readonly CircleImageView IvGroup;
+            public readonly TextView TvGroupName;
+            private readonly IOnClickListener Listener;
+            private readonly List<GroupClass> Groups;
 
             public ShareGroupHolder(View itemView, IOnClickListener listener, List<GroupClass> groups
                 ) : base(itemView)
             {
-                this.groups = groups;
-                this.listener = listener;
+                this.Groups = groups;
+                this.Listener = listener;
 
-                ivGroup = itemView.FindViewById<CircleImageView>(Resource.Id.civ_group);
-                tvGroupName = itemView.FindViewById<TextView>(Resource.Id.tv_group_name);
+                IvGroup = itemView.FindViewById<CircleImageView>(Resource.Id.civ_group);
+                TvGroupName = itemView.FindViewById<TextView>(Resource.Id.tv_group_name);
 
                 ItemView.SetOnClickListener(this);
             }
@@ -125,7 +125,7 @@ namespace WoWonder.Activities.NativePost.Share
 
             public void OnClick(View v)
             {
-                listener.OnItemClick(groups[this.LayoutPosition]);
+                Listener.OnItemClick(Groups[this.LayoutPosition]);
             }
         }
     }

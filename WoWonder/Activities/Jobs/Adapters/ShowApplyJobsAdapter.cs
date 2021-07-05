@@ -258,9 +258,9 @@ namespace WoWonder.Activities.Jobs.Adapters
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmailIcon, IonIconsFonts.IosMail);
 
                 //Event  
-                Button.Click += (sender, e) => messageButtonClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => messageButtonClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new ShowApplyJobsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
                
             }

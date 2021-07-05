@@ -8,7 +8,6 @@ using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using WoWonder.Helpers.Model.Editor;
 using WoWonder.Helpers.Utils;
-using WoWonder.NiceArt.Utils;
 
 namespace WoWonder.Activities.Chat.Editor.Adapters
 {
@@ -109,7 +108,7 @@ namespace WoWonder.Activities.Chat.Editor.Adapters
                                 var height = 150;
                                 int[] color = { Color.ParseColor(item.ColorFirst), Color.ParseColor(item.ColorSecond) };
 
-                                var (gradient, bitmap) = ColorUtil.GetGradientDrawable(ActivityContext, color, width, height, false, true);
+                                var (gradient, bitmap) = ColorUtils.GetGradientDrawable(color, width, height, false, true);
                                 holder.ColorPickerView.SetImageDrawable(gradient);
                             }
                             else
@@ -262,9 +261,9 @@ namespace WoWonder.Activities.Chat.Editor.Adapters
                 ColorPickerView = itemView.FindViewById<ImageView>(Resource.Id.color_picker_view);
 
                 itemView.Click += (sender, e) => clickListener(new ColorPickerAdapterClickEventArgs
-                { View = itemView, Position = AdapterPosition });
+                { View = itemView, Position = BindingAdapterPosition });
                 itemView.LongClick += (sender, e) => longClickListener(new ColorPickerAdapterClickEventArgs
-                { View = itemView, Position = AdapterPosition });
+                { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

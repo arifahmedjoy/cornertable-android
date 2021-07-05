@@ -216,8 +216,8 @@ namespace WoWonder.Activities.Gift.Adapters
 
                 ImgGift = MainView.FindViewById<ImageView>(Resource.Id.Image);
 
-                itemView.Click += (sender, e) => clickListener(new GiftAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new GiftAdapterClickEventArgs{ View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new GiftAdapterClickEventArgs{ View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new GiftAdapterClickEventArgs{ View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

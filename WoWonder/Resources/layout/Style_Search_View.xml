@@ -55,7 +55,7 @@
             android:layout_width="match_parent"
             android:background="@color/lightcolor"
             android:gravity="bottom"
-            android:layout_alignBottom="@id/main"
+            android:layout_alignBottom="@+id/main"
             android:layout_marginTop="18dp" />
     </LinearLayout>
     <RelativeLayout

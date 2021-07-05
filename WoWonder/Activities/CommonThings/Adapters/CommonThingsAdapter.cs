@@ -9,7 +9,6 @@ using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Java.Util;
 using WoWonder.Helpers.CacheLoaders;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Global;
 
@@ -192,14 +191,11 @@ namespace WoWonder.Activities.CommonThings.Adapters
 
                 Image = MainView.FindViewById<ImageView>(Resource.Id.image);
                 Name = MainView.FindViewById<TextView>(Resource.Id.name);
-                Icon = MainView.FindViewById<TextView>(Resource.Id.icon);
                 CountCommon = MainView.FindViewById<TextView>(Resource.Id.countCommon);
 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, Icon, FontAwesomeIcon.AmericanSignLanguageInterpreting);
-
                 //Event  
-                itemView.Click += (sender, e) => clickListener(new CommonThingsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new CommonThingsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new CommonThingsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new CommonThingsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
             }
             catch (Exception e)
@@ -214,7 +210,6 @@ namespace WoWonder.Activities.CommonThings.Adapters
 
         public ImageView Image { get; private set; }
         public TextView Name { get; private set; }
-        public TextView Icon { get; private set; } 
         public TextView CountCommon { get; private set; }
 
         #endregion

@@ -140,9 +140,9 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
                 Button = MainView.FindViewById<ImageView>(Resource.Id.copyLink);
 
                 //Event  
-                Button.Click += (sender, e) => copyClickListener(new InvitationLinksAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new InvitationLinksAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new InvitationLinksAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => copyClickListener(new InvitationLinksAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new InvitationLinksAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new InvitationLinksAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

@@ -10,7 +10,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
-                app:theme="@style/ToolbarTheme"
+            app:theme="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:titleTextAppearance="@style/Toolbar.TitleText"
@@ -21,17 +21,13 @@
                 android:text="@string/Btn_Send"
                 android:layout_gravity="end"
                 android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/textLight_color" 
+                android:textStyle="bold" 
                 android:padding="15dp"
                 android:layout_marginEnd="10dp"
                 android:id="@+id/toolbar_title" />
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
-   <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <androidx.core.widget.NestedScrollView 
+          <androidx.core.widget.NestedScrollView 
             android:id="@+id/nested_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -75,7 +71,7 @@
                       android:textSize="15sp"
                       android:inputType="textCapWords"
                       android:gravity="start"
-                      android:background="@drawable/EditTextStyleOne"
+                      android:background="@drawable/round_gray_border"
                       android:layout_alignParentEnd="true"
                       android:layout_marginStart="3dp" />
                 </LinearLayout> 
@@ -107,7 +103,7 @@
                     android:inputType="phone"
                     android:textSize="15sp"
                     android:gravity="start"
-                    android:background="@drawable/EditTextStyleOne"
+                    android:background="@drawable/round_gray_border"
                     android:layout_alignParentEnd="true"
                     android:layout_marginStart="3dp" />
                 </LinearLayout> 
@@ -135,7 +131,7 @@
                         style="@style/EditTextNormalStyle"
                         android:layout_width="match_parent"
                         android:layout_height="80dp"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:hint="@string/Lbl_Location"
                         android:inputType="textCapWords"
                         android:textSize="15sp"
@@ -171,7 +167,7 @@
                         android:inputType="textCapWords|textWebEmailAddress"
                         android:textSize="15sp"
 						            android:gravity="start"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:layout_marginStart="3dp" />
                 </LinearLayout> 
@@ -229,7 +225,7 @@
                         android:inputType="textCapWords"
                         android:textSize="15sp"
                         android:gravity="start"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:layout_marginStart="3dp" />
                 </LinearLayout>
@@ -261,7 +257,7 @@
                         android:textSize="15sp"
                         android:gravity="start"
                         android:inputType="textCapWords"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:layout_marginStart="3dp" />
                 </LinearLayout>
@@ -289,7 +285,7 @@
                     style="@style/EditTextNormalStyle"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
-                    android:background="@drawable/EditTextStyleOne"
+                    android:background="@drawable/round_gray_border"
                     android:hint="@string/Lbl_Description"
                     android:inputType="textCapWords"
                     android:textSize="15sp"
@@ -324,7 +320,7 @@
                         android:layout_weight="50"
                         android:ems="10"
                         android:layout_height="45dp"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:hint="@string/Lbl_FromDate"
                         android:textSize="15sp"
@@ -339,7 +335,7 @@
                         android:layout_weight="50"
                         android:ems="10"
                         android:layout_height="45dp"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:hint="@string/Lbl_ToDate"
                         android:textSize="15sp"
@@ -409,5 +405,5 @@
                     android:layout_width="match_parent" /> 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView> 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
 </LinearLayout>

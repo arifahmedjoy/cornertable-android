@@ -1,10 +1,10 @@
 using System;
 using Android.Views;
-using AndroidX.ViewPager.Widget;
+using AndroidX.ViewPager2.Widget;
 
 namespace WoWonder.Library.Anjo.Stories
 {
-    public class CustomViewPageTransformer : Java.Lang.Object, ViewPager.IPageTransformer
+    public class CustomViewPageTransformer : Java.Lang.Object, ViewPager2.IPageTransformer
     {
         private static readonly float MinScaleDepth = 0.75f;
         private static readonly float MinScaleZoom = 0.85f;
@@ -55,9 +55,9 @@ namespace WoWonder.Library.Anjo.Stories
                 case TransformType.Depth:
                     if (position > 0 && position < 1)
                     {
-                        alpha = (1 - position);
+                        alpha = 1 - position;
                         scale = MinScaleDepth + (1 - MinScaleDepth)*(1 - Math.Abs(position));
-                        translationX = (page.Width*-position);
+                        translationX = page.Width*-position;
                     }
                     else
                     {
@@ -75,11 +75,11 @@ namespace WoWonder.Library.Anjo.Stories
                         float hMargin = page.Width*(1 - scale)/2;
                         if (position < 0)
                         {
-                            translationX = (hMargin - vMargin/2);
+                            translationX = hMargin - vMargin/2;
                         }
                         else
                         {
-                            translationX = (-hMargin + vMargin/2);
+                            translationX = -hMargin + vMargin/2;
                         }
                     }
                     else

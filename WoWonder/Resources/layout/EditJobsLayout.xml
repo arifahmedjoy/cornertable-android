@@ -72,7 +72,7 @@
                       android:hint="@string/Lbl_JobTitle" 
                       android:textSize="15sp"
                       android:gravity="start"
-                      android:background="@drawable/EditTextStyleOne"
+                      android:background="@drawable/round_gray_border"
                       android:layout_alignParentEnd="true"
                       android:layout_marginStart="3dp" />
                 </LinearLayout>  
@@ -100,7 +100,7 @@
                         style="@style/EditTextNormalStyle"
                         android:layout_width="match_parent"
                         android:layout_height="80dp"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:hint="@string/Lbl_Location"
                         android:textSize="15sp"
                         android:gravity="start"
@@ -134,7 +134,7 @@
                         android:layout_weight="50"
                         android:ems="10"
                         android:layout_height="45dp"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:hint="@string/Lbl_minimum"
                         android:textSize="15sp"
@@ -149,7 +149,7 @@
                         android:layout_weight="50"
                         android:ems="10"
                         android:layout_height="45dp"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:hint="@string/Lbl_maximum"
                         android:textSize="15sp"
@@ -185,7 +185,7 @@
                     android:hint="@string/Lbl_Date"
                     android:textSize="15sp"
                     android:gravity="start"
-                    android:background="@drawable/EditTextStyleOne"
+                    android:background="@drawable/round_gray_border"
                     android:layout_alignParentEnd="true"
                     android:layout_marginStart="3dp" />
                 </LinearLayout> 
@@ -216,7 +216,7 @@
                         android:hint="@string/Lbl_JobType"
                         android:textSize="15sp"
                         android:gravity="start"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:layout_marginStart="3dp" />
                 </LinearLayout> 
@@ -247,7 +247,7 @@
                         android:hint="@string/Lbl_Category"
                         android:textSize="15sp"
                         android:gravity="start"
-                        android:background="@drawable/EditTextStyleOne"
+                        android:background="@drawable/round_gray_border"
                         android:layout_alignParentEnd="true"
                         android:layout_marginStart="3dp" />
                 </LinearLayout>
@@ -275,7 +275,7 @@
                     style="@style/EditTextNormalStyle"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
-                    android:background="@drawable/EditTextStyleOne"
+                    android:background="@drawable/round_gray_border"
                     android:hint="@string/Lbl_Description"
                     android:textSize="15sp"
                     android:gravity="start"

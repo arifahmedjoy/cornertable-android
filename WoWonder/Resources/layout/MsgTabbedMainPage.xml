@@ -74,7 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-    <!-- <LinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -106,7 +106,7 @@
                 android:src="@drawable/icon_profile_vector"
                 android:gravity="center" />
         </FrameLayout>
-         <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <!-- <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingActionFilter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -133,6 +133,6 @@
             app:rippleColor="@android:color/transparent"
             android:src="@drawable/ic_contacts"
             app:backgroundTint="@color/accent"
-            android:layout_marginBottom="20dp" />
-    </LinearLayout>-->
+            android:layout_marginBottom="20dp" />-->
+    </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

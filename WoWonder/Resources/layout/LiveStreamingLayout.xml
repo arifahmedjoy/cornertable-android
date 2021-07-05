@@ -144,7 +144,7 @@
                     android:padding="4dp"
                     android:visibility="visible">
                      
-	                <developer.semojis.Helper.EmojiconEditText
+	                <com.aghajari.emojiview.view.AXEmojiEditText
 		                android:id="@+id/MessageWrapper"
 		                android:layout_width="0dp"
 		                android:layout_height="match_parent"
@@ -156,12 +156,10 @@
 		                android:imeOptions="actionSend"
 		                android:inputType="text"
 		                android:background="@null"
-		                android:textColor="@color/gnt_black"
-		                android:textColorHint="#444444"
+                        android:textColorHint="#444444"
 		                android:textSize="16sp"
-		                android:maxLines="4"
-		                app:emojiconSize="23sp">
-	                </developer.semojis.Helper.EmojiconEditText>
+		                android:maxLines="4">
+	                </com.aghajari.emojiview.view.AXEmojiEditText>
 
 	                <ImageButton
                         android:id="@+id/sendMessageButton"

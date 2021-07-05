@@ -115,7 +115,7 @@ namespace WoWonder.Activities.Chat.Floating
                         // 1. 'windowLayoutInDisplayCutoutMode' do not be set to 'never'
                         if (ActivityContext?.Window.Attributes.LayoutInDisplayCutoutMode == LayoutInDisplayCutoutMode.Never)
                         {
-                            //Toast.MakeText(Application.Context, "windowLayoutInDisplayCutoutMode' do not be set to 'never" ,ToastLength.Short)?.Show();
+                            //ToastUtils.ShowToast(Application.Context, "windowLayoutInDisplayCutoutMode' do not be set to 'never" ,ToastLength.Short);
                             //throw new Exception("'windowLayoutInDisplayCutoutMode' do not be set to 'never'");
                             return;
                         }

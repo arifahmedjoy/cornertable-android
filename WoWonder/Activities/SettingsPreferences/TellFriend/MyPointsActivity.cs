@@ -5,6 +5,8 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
+using Android.Icu.Text;
+using Android.Icu.Util;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
@@ -13,7 +15,6 @@ using WoWonder.Activities.Base;
 using WoWonder.Activities.Wallet;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.CacheLoaders;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
@@ -27,16 +28,18 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
 
         private ImageView ImageUser;
         private TextView NameUser , TxtSubTitle;
-        private TextView CircleCommentsPoint, IconCommentsPoint, TextCommentsPoint;
-        private TextView CircleCreatePostPoint, IconCreatePostPoint, TextCreatePostPoint;
-        private TextView CircleReactingPoint, IconReactingPoint, TextReactingPoint;
-        private TextView CircleCreateBlogPoint, IconCreateBlogPoint, TextCreateBlogPoint;
         private TextView TextAddWallet;
-        private RelativeLayout ReactingPointLayouts , AddWalletLayouts;
+        private RelativeLayout AddWalletLayouts;
         private AdView MAdView;
+        private TextView NickName, TodayTime;
+        private RelativeLayout More;
+        private TextView PercentComment, PercentNewPost, PercentReactPost, PercentNewBlog;
+        
+
+        private PointMoreBottomDiagloFragment MorePoint;
 
         #endregion
-         
+
         #region General
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -157,38 +160,21 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 NameUser = FindViewById<TextView>(Resource.Id.nameUser);
                 TxtSubTitle = FindViewById<TextView>(Resource.Id.subTitle);
 
-                CircleCommentsPoint = FindViewById<TextView>(Resource.Id.circleCommentsPoint);
-                IconCommentsPoint = FindViewById<TextView>(Resource.Id.IconCommentsPoint);
-                TextCommentsPoint = FindViewById<TextView>(Resource.Id.TextCommentsPoint);
-
-                CircleCreatePostPoint = FindViewById<TextView>(Resource.Id.circleCreatePostPoint);
-                IconCreatePostPoint = FindViewById<TextView>(Resource.Id.IconCreatePostPoint);
-                TextCreatePostPoint = FindViewById<TextView>(Resource.Id.TextCreatePostPoint);
-
-                ReactingPointLayouts = FindViewById<RelativeLayout>(Resource.Id.ReactingPointLayouts);
-                CircleReactingPoint = FindViewById<TextView>(Resource.Id.circleReactingPoint);
-                IconReactingPoint = FindViewById<TextView>(Resource.Id.IconReactingPoint);
-                TextReactingPoint = FindViewById<TextView>(Resource.Id.TextReactingPoint);
-
-                CircleCreateBlogPoint = FindViewById<TextView>(Resource.Id.circleCreateBlogPoint);
-                IconCreateBlogPoint = FindViewById<TextView>(Resource.Id.IconCreateBlogPoint);
-                TextCreateBlogPoint = FindViewById<TextView>(Resource.Id.TextCreateBlogPoint);
-
                 AddWalletLayouts = FindViewById<RelativeLayout>(Resource.Id.AddWalletLayouts); 
                 TextAddWallet = FindViewById<TextView>(Resource.Id.TextAddWallet);
 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, CircleCommentsPoint, FontAwesomeIcon.Circle);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, CircleCreatePostPoint, FontAwesomeIcon.Circle);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, CircleReactingPoint, FontAwesomeIcon.Circle);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, CircleCreateBlogPoint, FontAwesomeIcon.Circle);
+                NickName = FindViewById<TextView>(Resource.Id.nickName);
+                TodayTime = FindViewById<TextView>(Resource.Id.CurrentDateTime);
 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, IconCommentsPoint, FontAwesomeIcon.CommentAlt);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, IconCreatePostPoint, FontAwesomeIcon.Newspaper);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, IconCreateBlogPoint, FontAwesomeIcon.Blog);
-                 
-                CircleCommentsPoint.SetTextColor(Color.ParseColor("#4caf50"));
-                CircleCreatePostPoint.SetTextColor(Color.ParseColor("#2196F3"));
-                CircleCreateBlogPoint.SetTextColor(Color.ParseColor("#7a7a7a"));
+                PercentComment = FindViewById<TextView>(Resource.Id.PercentCommentPost);
+                PercentNewPost = FindViewById<TextView>(Resource.Id.PercentCreatePost);
+                PercentReactPost = FindViewById<TextView>(Resource.Id.PercentReactPost);
+                PercentNewBlog = FindViewById<TextView>(Resource.Id.PercentCreateBlog);
+
+              
+
+                More = FindViewById<RelativeLayout>(Resource.Id.more);
+                More.Click += More_Click;
 
                 MAdView = FindViewById<AdView>(Resource.Id.adView);
                 AdsGoogle.InitAdView(MAdView, null);
@@ -198,47 +184,51 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 {
                     GlideImageLoader.LoadImage(this, myProfile.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                     NameUser.Text = WoWonderTools.GetNameFinal(myProfile);
+                    NickName.Text = "@" + myProfile.Username;
 
-                    TxtSubTitle.Text = GetString(Resource.String.Btn_Points) + " : " + myProfile.Points;
+                    // date time
+                    SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy");
+                    TodayTime.Text = sdf.Format(Calendar.Instance.Time);
+
+                    //TxtSubTitle.Text = GetString(Resource.String.Btn_Points) + " : " + myProfile.Points;
+                    TxtSubTitle.Text = myProfile.Points; 
                 }
-              
+
                 var setting = ListUtils.SettingsSiteList;
                 if (setting != null)
                 {
-                    TextCommentsPoint.Text = GetString(Resource.String.Lbl_Earn) + " " + setting.CommentsPoint + " " + GetString(Resource.String.Lbl_ByCommentingAnyPost);
-                    TextCreatePostPoint.Text = GetString(Resource.String.Lbl_Earn) + " " + setting.CreatepostPoint + " " + GetString(Resource.String.Lbl_ByCreatingNewPost);
-                    TextCreateBlogPoint.Text = GetString(Resource.String.Lbl_Earn) + " " + setting.CreateblogPoint + " " + GetString(Resource.String.Lbl_ByCreatingNewBlog);
+                    PercentComment.Text =setting.CommentsPoint + "%";
+                    PercentNewPost.Text = setting.CreatepostPoint + "%";
+                    PercentNewBlog.Text = setting.CreateblogPoint + "%";
 
                     switch (AppSettings.PostButton)
                     {
                         case PostButtonSystem.ReactionDefault:
                         case PostButtonSystem.ReactionSubShine:
-                            FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeRegular, IconReactingPoint, FontAwesomeIcon.Smile);
-                            CircleReactingPoint.SetTextColor(Color.ParseColor("#FF9800"));
-                            TextReactingPoint.Text = GetString(Resource.String.Lbl_Earn) + " " + setting.ReactionPoint + " " + GetString(Resource.String.Lbl_ByReactingAnyPost);
+                            PercentReactPost.Text = setting.ReactionPoint + "%";
                             break;
                         case PostButtonSystem.Wonder:
-                            FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, IconReactingPoint, FontAwesomeIcon.Exclamation);
-                            CircleReactingPoint.SetTextColor(Color.ParseColor("#b71c1c"));
-
-                            TextReactingPoint.Text = GetString(Resource.String.Lbl_Earn) + " " + setting.WondersPoint + " " + GetString(Resource.String.Lbl_ByWonderingAnyPost);
+                            PercentReactPost.Text = setting.WondersPoint + "%";
                             break;
                         case PostButtonSystem.DisLike:
-                            FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, IconReactingPoint, FontAwesomeIcon.ThumbsDown);
-                            CircleReactingPoint.SetTextColor(Color.ParseColor("#0D47A1"));
-
-                            TextReactingPoint.Text = GetString(Resource.String.Lbl_Earn) + " " + setting.DislikesPoint + " " + GetString(Resource.String.Lbl_ByDislikingAnyPost);
+                            PercentReactPost.Text = setting.DislikesPoint + "%";
                             break;
                         case PostButtonSystem.Like:
-                            ReactingPointLayouts.Visibility = ViewStates.Gone;
+                            PercentReactPost.Text = setting.LikesPoint + "%";
                             break;
-                    } 
+                    }
                 } 
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
             }
+        }
+
+        private void More_Click(object sender, EventArgs e)
+        {
+            MorePoint = new PointMoreBottomDiagloFragment();
+            MorePoint.Show(SupportFragmentManager, "MorePoint");
         }
 
         private void InitToolbar()
@@ -294,19 +284,6 @@ namespace WoWonder.Activities.SettingsPreferences.TellFriend
                 ImageUser = null!;
                 NameUser = null!;
                 TxtSubTitle = null!;
-                CircleCommentsPoint = null!;
-                IconCommentsPoint = null!;
-                TextCommentsPoint = null!;
-                CircleCreatePostPoint = null!;
-                IconCreatePostPoint = null!;
-                TextCreatePostPoint = null!;
-                ReactingPointLayouts = null!;
-                CircleReactingPoint = null!;
-                IconReactingPoint = null!;
-                TextReactingPoint = null!;
-                CircleCreateBlogPoint = null!;
-                IconCreateBlogPoint = null!;
-                TextCreateBlogPoint = null!;
                 AddWalletLayouts = null!;
                 TextAddWallet = null!;
                 MAdView = null!;

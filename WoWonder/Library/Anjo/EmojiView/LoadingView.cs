@@ -37,7 +37,7 @@ namespace WoWonder.Library.Anjo.EmojiView
             {
                 ProgressBar = new ProgressBar(context);
                 AddView(ProgressBar, new LayoutParams(0, 0, Utils.DpToPx(context, 44), Utils.DpToPx(context, 44)));
-                ProgressBar.Indeterminate=(true);
+                ProgressBar.Indeterminate = true;
             }
             catch (Exception e)
             {

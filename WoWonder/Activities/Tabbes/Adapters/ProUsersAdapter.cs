@@ -79,7 +79,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                   //  holder.ViewIcon.Background.SetTint(Color.ParseColor("#1B4AFF"));
                                     holder.ImageIcon.SetImageResource(Resource.Drawable.ic_add);
                                     holder.Name.Text = ActivityContext.GetText(Resource.String.Lbl_AddMe);
-                                    holder.Name.Visibility = ViewStates.Gone;
+                                    holder.Name.Visibility = ViewStates.Visible;
                                     break;
                                 default:
                                     switch (item.ProType)
@@ -109,7 +109,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
                                             holder.ImageIcon.SetImageResource(Resource.Drawable.ic_plan_4); 
                                             break;
                                     }
-
+                                    holder.Name.Visibility = ViewStates.Gone;
                                     break;
                             }
                         }
@@ -240,8 +240,8 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 Name.Visibility = ViewStates.Gone;
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new ProUsersAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new ProUsersAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new ProUsersAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new ProUsersAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

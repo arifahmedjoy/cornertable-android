@@ -2,8 +2,8 @@
 {
     public class SaveSettings
     {
-        private readonly bool MisTransparencyEnabled;
-        private readonly bool MisClearViewsEnabled;
+        public bool MisTransparencyEnabled;
+        public bool MisClearViewsEnabled;
 
         public bool IsTransparencyEnabled()
         {

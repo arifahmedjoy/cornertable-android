@@ -26,5 +26,5 @@
         Temperature,
         Tint,
         Vignette,
-    } 
+    }
 }

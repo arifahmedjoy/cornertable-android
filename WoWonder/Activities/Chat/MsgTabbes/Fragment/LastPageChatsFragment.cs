@@ -48,7 +48,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
 
@@ -146,7 +146,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             try
             {
                 //Code get last id where LoadMore >>
-                var item = MAdapter.LastChatsList.LastOrDefault();
+                var item = MAdapter.LastChatsList.LastOrDefault(a => a.Type == Classes.ItemType.LastChatNewV);
                 if (item?.LastChatPage != null && !string.IsNullOrEmpty(item.LastChatPage?.PageId) && !MainScrollEvent.IsLoading)
                     StartApiService(item.LastChatPage?.PageId);
             }
@@ -233,7 +233,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
             if (Methods.CheckConnectivity())
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadPageChatAsync(offset) });
             else
-                Toast.MakeText(Context, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(Context, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
         }
 
         private async Task LoadPageChatAsync(string offset = "0")
@@ -255,7 +255,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                         foreach (var pageClass in from pageClass in result.Data let check = MAdapter?.LastChatsList.FirstOrDefault(a => a.LastChatPage?.PageId == pageClass.PageId) where check == null select pageClass)
                         {
                             var item = WoWonderTools.FilterDataLastChatPage(pageClass);
-                            MAdapter?.LastChatsList.Add(new Classes.LastChatsClass()
+                            MAdapter?.LastChatsList.Add(new Classes.LastChatsClass
                             {
                                 LastChatPage = item,
                                 Type = Classes.ItemType.LastChatPage
@@ -274,7 +274,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Fragment
                     else
                     {
                         if (MAdapter?.LastChatsList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoMorePage), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_NoMorePage), ToastLength.Short);
                     }
                 }
             }

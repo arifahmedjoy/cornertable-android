@@ -4,23 +4,22 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.Media;
 using Android.OS;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Content.Res;
-using AndroidX.CardView.Widget;
 using AndroidX.Core.Content;
 using AndroidX.Core.Graphics.Drawable;
 using Com.Google.Android.Exoplayer2;
 using Java.IO;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Articles;
 using WoWonder.Activities.Comment;
@@ -41,6 +40,7 @@ using WoWonder.Activities.PostData;
 using WoWonder.Activities.Tabbes;
 using WoWonder.Activities.UsersPages;
 using WoWonder.Activities.Videos;
+using WoWonder.Activities.Wallet;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -53,54 +53,22 @@ using Timer = System.Timers.Timer;
 using Uri = Android.Net.Uri;
 
 namespace WoWonder.Activities.NativePost.Post
-{
-    public interface IOnPostItemClickListener
-    {
-        void ProfilePostClick(ProfileClickEventArgs e, string type, string typeEvent);
-        void CommentPostClick(GlobalClickEventArgs e ,string type = "Normal");
-        void SharePostClick(GlobalClickEventArgs e, PostModelType clickType);
-        void CopyLinkEvent(string text);
-        void MorePostIconClick(GlobalClickEventArgs item);
-        void ImagePostClick(GlobalClickEventArgs item);
-        void YoutubePostClick(GlobalClickEventArgs item);
-        void LinkPostClick(GlobalClickEventArgs item, string type);
-        void ProductPostClick(GlobalClickEventArgs item);
-        void FileDownloadPostClick(GlobalClickEventArgs item);
-        void OpenFilePostClick(GlobalClickEventArgs item);
-        void OpenFundingPostClick(GlobalClickEventArgs item);
-        void VoicePostClick(GlobalClickEventArgs item);
-        void EventItemPostClick(GlobalClickEventArgs item);
-        void ArticleItemPostClick(ArticleDataObject item);
-        void DataItemPostClick(GlobalClickEventArgs item);
-        void SecondReactionButtonClick(GlobalClickEventArgs item);
-        void SingleImagePostClick(GlobalClickEventArgs item);
-        void MapPostClick(GlobalClickEventArgs item);
-        void OffersPostClick(GlobalClickEventArgs item);
-        void JobPostClick(GlobalClickEventArgs item);
-        void InitFullscreenDialog(Uri videoUrl, SimpleExoPlayer videoPlayer);
-        void OpenAllViewer(string type, string passedId, AdapterModelsClass item);
-    }
-
+{ 
     public interface IOnLoadMoreListener
     {
         void OnLoadMore(int currentPage);
     }
 
-    public class PostClickListener : Java.Lang.Object, IOnPostItemClickListener, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback, MoreBottomDialogFragment.ITemClickListener
+    public class PostClickListener  
     {
         private readonly Activity MainContext;
         private readonly NativeFeedType NativeFeedType;
 
-        private PostDataObject DataObject;
-        private string TypeDialog;
         public static bool OpenMyProfile;
-        public static readonly int MaxProgress = 10000;
+        private static readonly int MaxProgress = 10000;
 
         private MoreBottomDialogFragment MorePost;
-        private View ToastLayout;
-        private TextView ToastText;
-        private Toast PostToast;
-
+      
         public PostClickListener(Activity context , NativeFeedType nativeFeedType)
         {
             try
@@ -108,46 +76,13 @@ namespace WoWonder.Activities.NativePost.Post
                 MainContext = context;
                 NativeFeedType = nativeFeedType;
                 OpenMyProfile = false;
-
-                // Init toast layout
-                InitToastLayout();
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
-        private void InitToastLayout()
-        {
-            try
-            {
-                ToastLayout = MainContext.LayoutInflater.Inflate(Resource.Layout.toast_row, MainContext.FindViewById<CardView>(Resource.Id.ll_toast_root));
-                ToastText = ToastLayout.FindViewById<TextView>(Resource.Id.tv_toast);
-
-                PostToast = new Toast(MainApplication.Context);
-                PostToast.View = ToastLayout;
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void ShowToast(string content)
-        {
-            try
-            {
-                ToastText.Text = content;
-                PostToast.Duration = ToastLength.Short;
-                PostToast.Show();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+        
         public void ProfilePostClick(ProfileClickEventArgs e, string type, string typeEvent)
         {
             try
@@ -162,8 +97,7 @@ namespace WoWonder.Activities.NativePost.Post
                 }
                 else if (username != null && username.Text == MainContext.GetText(Resource.String.Lbl_Anonymous))
                 {
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_SorryUserIsAnonymous), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_SorryUserIsAnonymous));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_SorryUserIsAnonymous), ToastLength.Short);
                 }
                 else if (e.NewsFeedClass.PageId != null && e.NewsFeedClass.PageId != "0" && NativeFeedType != NativeFeedType.Page)
                 {
@@ -255,21 +189,140 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 if (Methods.CheckConnectivity())
                 {
-                    TypeDialog = "DeletePost";
-                    DataObject = item;
-
                     var dialog = new MaterialDialog.Builder(MainContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
                     dialog.Title(MainContext.GetText(Resource.String.Lbl_DeletePost)).TitleColorRes(Resource.Color.primary);
                     dialog.Content(MainContext.GetText(Resource.String.Lbl_AreYouSureDeletePost));
-                    dialog.PositiveText(MainContext.GetText(Resource.String.Lbl_Yes)).OnPositive(this);
-                    dialog.NegativeText(MainContext.GetText(Resource.String.Lbl_No)).OnNegative(this).NegativeColorRes(Resource.Color.colorIcon);
+                    dialog.PositiveText(MainContext.GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
+                    {
+                        try
+                        {
+                            if (!Methods.CheckConnectivity())
+                            {
+                                ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                                return;
+                            }
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(item.Id, "delete") });
+
+                            var feedTab = TabbedMainActivity.GetInstance()?.NewsFeedTab;
+                            if (item.SharedInfo.SharedInfoClass != null)
+                            {
+                                var data = feedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id || a.PostData?.Id == item?.SharedInfo.SharedInfoClass?.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var post in data)
+                                            {
+                                                feedTab.MainRecyclerView?.RemoveByRowIndex(post);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                var data = feedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var post in data)
+                                            {
+                                                feedTab.MainRecyclerView?.RemoveByRowIndex(post);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+
+                            feedTab?.MainRecyclerView?.StopVideo();
+
+                            var profileActivity = MyProfileActivity.GetInstance();
+                            if (item.SharedInfo.SharedInfoClass != null)
+                            {
+                                var data = profileActivity?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id || a.PostData?.Id == item?.SharedInfo.SharedInfoClass?.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var post in data)
+                                            {
+                                                profileActivity.MainRecyclerView?.RemoveByRowIndex(post);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                var data = profileActivity?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var post in data)
+                                            {
+                                                profileActivity.MainRecyclerView?.RemoveByRowIndex(post);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+
+                            var recyclerView = WRecyclerView.GetInstance();
+                            if (item.SharedInfo.SharedInfoClass != null)
+                            {
+                                var data = recyclerView?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id || a.PostData?.Id == item?.SharedInfo.SharedInfoClass?.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var post in data)
+                                            {
+                                                recyclerView?.RemoveByRowIndex(post);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                var data = recyclerView?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var post in data)
+                                            {
+                                                recyclerView?.RemoveByRowIndex(post);
+                                            }
+
+                                            break;
+                                        }
+                                }
+                            }
+
+                            recyclerView?.StopVideo();
+
+                            ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short); 
+                        }
+                        catch (Exception e)
+                        {
+                            Methods.DisplayReportResultTrack(e);
+                        }
+                    });
+                    dialog.NegativeText(MainContext.GetText(Resource.String.Lbl_No)).OnNegative(new WoWonderTools.MyMaterialDialog()).NegativeColorRes(Resource.Color.colorIcon);
                     dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.ItemsCallback(this).Build().Show();
+                    dialog.Build().Show();
                 }
                 else
                 {
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -286,15 +339,146 @@ namespace WoWonder.Activities.NativePost.Post
                 if (Methods.CheckConnectivity())
                 {
                     item.IsPostReported = true;
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_YourReportPost), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_YourReportPost));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_YourReportPost), ToastLength.Short);
                     //Sent Api >>
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(item.Id, "report") });
                 }
                 else
                 {
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e); 
+            }
+        }
+
+        //HidePost 
+        private void HidePostEvent(PostDataObject item)
+        {
+            try
+            {
+                if (Methods.CheckConnectivity())
+                {
+                    if (!Methods.CheckConnectivity())
+                    {
+                        ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                        return;
+                    }
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.HidePostAsync(item.Id) });
+
+                    var feedTab = TabbedMainActivity.GetInstance()?.NewsFeedTab;
+                    if (item.SharedInfo.SharedInfoClass != null)
+                    {
+                        var data = feedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id || a.PostData?.Id == item?.SharedInfo.SharedInfoClass?.Id).ToList();
+                        switch (data?.Count)
+                        {
+                            case > 0:
+                                {
+                                    foreach (var post in data)
+                                    {
+                                        feedTab.MainRecyclerView?.RemoveByRowIndex(post);
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        var data = feedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id).ToList();
+                        switch (data?.Count)
+                        {
+                            case > 0:
+                                {
+                                    foreach (var post in data)
+                                    {
+                                        feedTab.MainRecyclerView?.RemoveByRowIndex(post);
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+
+                    feedTab?.MainRecyclerView?.StopVideo();
+
+                    var profileActivity = MyProfileActivity.GetInstance();
+                    if (item.SharedInfo.SharedInfoClass != null)
+                    {
+                        var data = profileActivity?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id || a.PostData?.Id == item?.SharedInfo.SharedInfoClass?.Id).ToList();
+                        switch (data?.Count)
+                        {
+                            case > 0:
+                                {
+                                    foreach (var post in data)
+                                    {
+                                        profileActivity.MainRecyclerView?.RemoveByRowIndex(post);
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        var data = profileActivity?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id).ToList();
+                        switch (data?.Count)
+                        {
+                            case > 0:
+                                {
+                                    foreach (var post in data)
+                                    {
+                                        profileActivity.MainRecyclerView?.RemoveByRowIndex(post);
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+
+                    var recyclerView = WRecyclerView.GetInstance();
+                    if (item.SharedInfo.SharedInfoClass != null)
+                    {
+                        var data = recyclerView?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id || a.PostData?.Id == item?.SharedInfo.SharedInfoClass?.Id).ToList();
+                        switch (data?.Count)
+                        {
+                            case > 0:
+                                {
+                                    foreach (var post in data)
+                                    {
+                                        recyclerView?.RemoveByRowIndex(post);
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        var data = recyclerView?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == item?.Id).ToList();
+                        switch (data?.Count)
+                        {
+                            case > 0:
+                                {
+                                    foreach (var post in data)
+                                    {
+                                        recyclerView?.RemoveByRowIndex(post);
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+
+                    recyclerView?.StopVideo();
+
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_PostSuccessfullyHided), ToastLength.Short); 
+                }
+                else
+                {
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -310,33 +494,61 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 if (Methods.CheckConnectivity())
                 {
-                    item.IsPostSaved = true;
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_postSuccessfullySaved), ToastLength.Short)?.Show();
-                    //ShowToast(MainContext.GetText(Resource.String.Lbl_postSuccessfullySaved));
                     //Sent Api >>
-                    var (apiStatus, respond) = await RequestsAsync.Posts.PostActionsAsync(item.Id, "save").ConfigureAwait(false);
+                    var (apiStatus, respond) = await RequestsAsync.Posts.PostActionsAsync(item.Id, "save");
                     switch (apiStatus)
                     {
                         case 200:
                         {
-                            item.IsPostSaved = respond switch
-                            {
-                                PostActionsObject actionsObject => actionsObject.Code.ToString() != "0",
-                                _ => item.IsPostSaved
-                            };
-                            if (item.IsPostSaved == true)
-                                ShowToast(MainContext.GetText(Resource.String.Lbl_postSuccessfullySaved));
-                            else
-                                ShowToast(MainContext.GetText(Resource.String.Lbl_postSuccessfullyUnSaved));
+                                item.IsPostSaved = respond switch
+                                {
+                                    PostActionsObject actionsObject => actionsObject.Code.ToString() != "0",
+                                    _ => item.IsPostSaved
+                                };
 
-                                break;
+                                var adapterGlobal = WRecyclerView.GetInstance()?.NativeFeedAdapter;
+                                var dataGlobal = adapterGlobal?.ListDiffer?.Where(a => a.PostData?.Id == item.Id).ToList();
+                                switch (dataGlobal?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var dataClass in from dataClass in dataGlobal let index = adapterGlobal.ListDiffer.IndexOf(dataClass) where index > -1 select dataClass)
+                                            {
+                                                dataClass.PostData.IsPostSaved = item.IsPostSaved;
+
+                                                adapterGlobal.NotifyItemChanged(adapterGlobal.ListDiffer.IndexOf(dataClass));
+                                            }
+
+                                            break;
+                                        }
+                                }
+
+                                var adapter = TabbedMainActivity.GetInstance()?.NewsFeedTab?.PostFeedAdapter;
+                                var data = adapter?.ListDiffer?.Where(a => a.PostData?.Id == item.Id).ToList();
+                                switch (data?.Count)
+                                {
+                                    case > 0:
+                                        {
+                                            foreach (var dataClass in from dataClass in data let index = adapter.ListDiffer.IndexOf(dataClass) where index > -1 select dataClass)
+                                            {
+                                                dataClass.PostData.IsPostSaved = item.IsPostSaved;
+
+                                                adapter.NotifyItemChanged(adapter.ListDiffer.IndexOf(dataClass));
+                                            }
+
+                                            break;
+                                        }
+                                }
+
+                                ToastUtils.ShowToast(MainContext, item.IsPostSaved == true ? MainContext.GetText(Resource.String.Lbl_postSuccessfullySaved) : MainContext.GetText(Resource.String.Lbl_postSuccessfullyUnSaved), ToastLength.Short);
+
+                            break;
                         }
                     }
                 }
                 else
                 {
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -354,6 +566,13 @@ namespace WoWonder.Activities.NativePost.Post
                 if (dataUser?.IsPro != "1" && ListUtils.SettingsSiteList?.Pro == "1" && AppSettings.ShowGoPro)
                 {
                     var intent = new Intent(MainContext, typeof(GoProActivity));
+                    MainContext.StartActivity(intent);
+                    return;
+                }
+                
+                if (Convert.ToDouble(dataUser?.Wallet) == 0 && AppSettings.ShowWallet)
+                {
+                    var intent = new Intent(MainContext, typeof(TabbedWalletActivity));
                     MainContext.StartActivity(intent);
                     return;
                 }
@@ -471,8 +690,7 @@ namespace WoWonder.Activities.NativePost.Post
                                                 }
                                             }
 
-                                            //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_postSuccessfullyBoosted), ToastLength.Short)?.Show();
-                                            ShowToast(MainContext.GetText(Resource.String.Lbl_postSuccessfullyBoosted));
+                                            ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_postSuccessfullyBoosted), ToastLength.Short);
                                         }
                                         catch (Exception e)
                                         {
@@ -488,8 +706,7 @@ namespace WoWonder.Activities.NativePost.Post
                 }
                 else
                 {
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -558,12 +775,10 @@ namespace WoWonder.Activities.NativePost.Post
                                             switch (actionsObject.Code)
                                             {
                                                 case 0:
-                                                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_PostCommentsDisabled), ToastLength.Short)?.Show();
-                                                    ShowToast(MainContext.GetText(Resource.String.Lbl_PostCommentsDisabled));
+                                                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_PostCommentsDisabled), ToastLength.Short);
                                                     break;
                                                 default:
-                                                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_PostCommentsEnabled), ToastLength.Short)?.Show();
-                                                    ShowToast(MainContext.GetText(Resource.String.Lbl_PostCommentsEnabled));
+                                                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_PostCommentsEnabled), ToastLength.Short);
                                                     break;
                                             }
                                         }
@@ -581,8 +796,7 @@ namespace WoWonder.Activities.NativePost.Post
                 }
                 else
                 {
-                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -591,95 +805,27 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
 
-        public void MorePostIconClick(GlobalClickEventArgs item)
-        { 
-            //setModal(item);
-            SetBottomDialog(item);
-        }
-
-       
-        private void SetBottomDialog(GlobalClickEventArgs item)
+        public void MorePostIconClick(GlobalClickEventArgs item, string type = "Normal")
         {
             try
-            {
-                DataObject = item.NewsFeedClass;
-
-                var postType = PostFunctions.GetAdapterType(DataObject);
-
-                Bundle bundle = new Bundle();
-
-                // save post
-                string savPost = !Convert.ToBoolean(item.NewsFeedClass.IsPostSaved) ? MainContext.GetString(Resource.String.Lbl_SavePost) : MainContext.GetString(Resource.String.Lbl_UnSavePost);
-                bundle.PutString("savePost", JsonConvert.SerializeObject(savPost));
-
-                // copy text
-                switch (string.IsNullOrEmpty(item.NewsFeedClass.Orginaltext))
+            { 
+                if (type == "YoutubePlayer")
                 {
-                    case false:
-                        bundle.PutString("copyText", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_CopeText)));
-                        break;
+                   var moreIcon = item.View.FindViewById<ImageView>(Resource.Id.moreicon);
+                   ShowPopup(moreIcon, item.NewsFeedClass); 
                 }
-
-                // report post
-                switch (Convert.ToBoolean(item.NewsFeedClass.IsPostReported))
+                else
                 {
-                    case false:
-                        bundle.PutString("copyLink", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_ReportPost)));
-                        break;
+                    Bundle bundle = new Bundle();
+                    bundle.PutString("ItemData", JsonConvert.SerializeObject(item.NewsFeedClass));
+
+                    MorePost = new MoreBottomDialogFragment(this)
+                    {
+                        Arguments = bundle
+                    };
+                    var activity = (AppCompatActivity)MainContext;
+                    MorePost.Show(activity.SupportFragmentManager, "MorePost");
                 }
-
-                if ((item.NewsFeedClass.UserId != "0" || item.NewsFeedClass.PageId != "0" || item.NewsFeedClass.GroupId != "0") && item.NewsFeedClass.Publisher.UserId == UserDetails.UserId)
-                {
-                    switch (postType)
-                    {
-                        case PostModelType.ProductPost: // product post
-                            bundle.PutString("postType", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_EditProduct)));
-                            break;
-                        case PostModelType.OfferPost: // offer post
-                            bundle.PutString("postType", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_EditOffers)));
-                            break;
-                        default: // edit post
-                            bundle.PutString("postType", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_EditPost)));
-                            break;
-                    }
-
-                    switch (AppSettings.ShowAdvertisingPost)
-                    {
-                        case true:
-                            switch (item.NewsFeedClass?.Boosted) // boost post
-                            {
-                                case "0":
-                                    bundle.PutString("boostPost", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_BoostPost)));
-                                    break;
-                                case "1":
-                                    bundle.PutString("boostPost", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_UnBoostPost)));
-                                    break;
-                            }
-
-                            break;
-                    }
-
-                    switch (item.NewsFeedClass?.CommentsStatus) // comment status
-                    {
-                        case "0":
-                            bundle.PutString("commentStatus", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_EnableComments)));
-                            break;
-                        case "1":
-                            bundle.PutString("commentStatus", JsonConvert.SerializeObject(MainContext.GetString(Resource.String.Lbl_DisableComments)));
-                            break;
-                    }
-                }
-
-                bundle.PutString("ItemData", JsonConvert.SerializeObject(DataObject));
-                bundle.PutString("TypePost", JsonConvert.SerializeObject(postType));
-
-                var activity = (AppCompatActivity)MainContext;
-                MorePost = new MoreBottomDialogFragment(this)
-                {
-                    Arguments = bundle
-                };
-                MorePost.Show(activity.SupportFragmentManager, "MorePost"); 
-
             }
             catch (Exception e)
             {
@@ -687,94 +833,170 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
 
-       
-        private void SetModal(GlobalClickEventArgs item)
+        private void ShowPopup(View v, PostDataObject dataPost)
         {
             try
             {
-                DataObject = item.NewsFeedClass;
+                LayoutInflater layoutInflater = (LayoutInflater)MainContext.GetSystemService(Context.LayoutInflaterService);
+                View popupView = layoutInflater?.Inflate(Resource.Layout.post_more_bottom, null);
 
-                var postType = PostFunctions.GetAdapterType(DataObject);
+                int px = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 200, MainContext.Resources.DisplayMetrics);
+                var popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
 
-                TypeDialog = "MorePost";
+                var llSavePost = popupView.FindViewById<LinearLayout>(Resource.Id.more_save_post);
+                var llCopyText = popupView.FindViewById<LinearLayout>(Resource.Id.more_copy_text);
+                var llCopyLink = popupView.FindViewById<LinearLayout>(Resource.Id.more_copy_link);
+                var llHidePost = popupView.FindViewById<LinearLayout>(Resource.Id.more_hide_post);
+                var llReportPost = popupView.FindViewById<LinearLayout>(Resource.Id.more_report_post);
+                var llEditPost = popupView.FindViewById<LinearLayout>(Resource.Id.more_edit_post);
+                var llBoostPost = popupView.FindViewById<LinearLayout>(Resource.Id.more_boost_post);
+                var llDisableComments = popupView.FindViewById<LinearLayout>(Resource.Id.more_disable_comment);
+                var llDeletePost = popupView.FindViewById<LinearLayout>(Resource.Id.more_delete_post);
 
-                var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(MainContext).Theme(AppSettings.SetTabDarkTheme ? Theme.Dark : Theme.Light);
+                var tvSavePost = popupView.FindViewById<TextView>(Resource.Id.tv_save_post);
+                var tvCopyText = popupView.FindViewById<TextView>(Resource.Id.tv_copy_text);
+                var tvCopyLink = popupView.FindViewById<TextView>(Resource.Id.tv_copy_link);
+                var tvHidePost = popupView.FindViewById<TextView>(Resource.Id.tv_hide_post);
+                var tvReportPost = popupView.FindViewById<TextView>(Resource.Id.tv_report_post);
+                var tvEditPost = popupView.FindViewById<TextView>(Resource.Id.tv_edit_post);
+                var tvBoostPost = popupView.FindViewById<TextView>(Resource.Id.tv_boost_post);
+                var tvDisableComments = popupView.FindViewById<TextView>(Resource.Id.tv_disable_comment);
+                var tvDeletePost = popupView.FindViewById<TextView>(Resource.Id.tv_delete_post);
 
-                arrayAdapter.Add(!Convert.ToBoolean(item.NewsFeedClass.IsPostSaved) ? MainContext.GetString(Resource.String.Lbl_SavePost) : MainContext.GetString(Resource.String.Lbl_UnSavePost));
+                var postType = PostFunctions.GetAdapterType(dataPost);
 
-                switch (string.IsNullOrEmpty(item.NewsFeedClass.Orginaltext))
-                {
-                    case false:
-                        arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_CopeText));
-                        break;
-                }
+                llCopyText.Visibility = !string.IsNullOrEmpty(dataPost.Orginaltext) ? ViewStates.Visible : ViewStates.Gone;
+                llReportPost.Visibility = !Convert.ToBoolean(dataPost.IsPostReported) ? ViewStates.Visible : ViewStates.Gone;
+                llHidePost.Visibility = dataPost.Publisher.UserId != UserDetails.UserId ? ViewStates.Visible : ViewStates.Gone;
 
-                arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_CopeLink));
+                tvSavePost.Text = dataPost.IsPostSaved != null && dataPost.IsPostSaved.Value ? MainContext.GetText(Resource.String.Lbl_UnSavePost) : MainContext.GetText(Resource.String.Lbl_SavePost);
 
-                switch (Convert.ToBoolean(item.NewsFeedClass.IsPostReported))
-                {
-                    case false:
-                        arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_ReportPost));
-                        break;
-                }
-
-                if ((item.NewsFeedClass.UserId != "0" || item.NewsFeedClass.PageId != "0" || item.NewsFeedClass.GroupId != "0") && item.NewsFeedClass.Publisher.UserId == UserDetails.UserId)
+                if ((dataPost.UserId != "0" || dataPost.PageId != "0" || dataPost.GroupId != "0") && dataPost.Publisher.UserId == UserDetails.UserId)
                 {
                     switch (postType)
                     {
                         case PostModelType.ProductPost:
-                            arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_EditProduct));
+                            tvEditPost.Text = MainContext.GetString(Resource.String.Lbl_EditProduct);
                             break;
                         case PostModelType.OfferPost:
-                            arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_EditOffers));
+                            tvEditPost.Text = MainContext.GetString(Resource.String.Lbl_EditOffers);
                             break;
                         default:
-                            arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_EditPost));
+                            tvEditPost.Text = MainContext.GetString(Resource.String.Lbl_EditPost);
                             break;
                     }
 
                     switch (AppSettings.ShowAdvertisingPost)
                     {
                         case true:
-                            switch (item.NewsFeedClass?.Boosted)
+                            switch (dataPost?.Boosted)
                             {
                                 case "0":
-                                    arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_BoostPost));
+                                    tvBoostPost.Text = MainContext.GetString(Resource.String.Lbl_BoostPost);
                                     break;
                                 case "1":
-                                    arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_UnBoostPost));
+                                    tvBoostPost.Text = MainContext.GetString(Resource.String.Lbl_UnBoostPost);
                                     break;
                             }
 
                             break;
                     }
 
-                    switch (item.NewsFeedClass?.CommentsStatus)
+                    switch (dataPost?.CommentsStatus)
                     {
                         case "0":
-                            arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_EnableComments));
+                            tvDisableComments.Text = MainContext.GetString(Resource.String.Lbl_EnableComments);
                             break;
                         case "1":
-                            arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_DisableComments));
+                            tvDisableComments.Text = MainContext.GetString(Resource.String.Lbl_DisableComments);
                             break;
                     }
-
-                    arrayAdapter.Add(MainContext.GetString(Resource.String.Lbl_DeletePost));
+                }
+                else
+                {
+                    llEditPost.Visibility = ViewStates.Gone;
+                    llBoostPost.Visibility = ViewStates.Gone;
+                    llDisableComments.Visibility = ViewStates.Gone;
+                    llDeletePost.Visibility = ViewStates.Gone;
                 }
 
-                dialogList.Title(MainContext.GetString(Resource.String.Lbl_More)).TitleColorRes(Resource.Color.primary);
-                dialogList.Items(arrayAdapter);
-                dialogList.NegativeText(MainContext.GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                dialogList.AlwaysCallSingleChoiceCallback();
-                dialogList.ItemsCallback(this).Build().Show();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+                llSavePost.Click += (sender, args) =>
+                {
+                    OnItemClick(tvSavePost.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
 
+                llCopyText.Click += (sender, args) =>
+                {
+                    OnItemClick(tvCopyText.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+               
+                llCopyLink.Click += (sender, args) =>
+                {
+                    OnItemClick(tvCopyLink.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+
+                llHidePost.Click += (sender, args) =>
+                {
+                    OnItemClick(tvHidePost.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+
+                llReportPost.Click += (sender, args) =>
+                {
+                    OnItemClick(tvReportPost.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+
+                llEditPost.Click += (sender, args) =>
+                {
+                    OnItemClick(tvEditPost.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+
+                llBoostPost.Click += (sender, args) =>
+                {
+                    OnItemClick(tvBoostPost.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+
+                llDisableComments.Click += (sender, args) =>
+                {
+                    OnItemClick(tvDisableComments.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+
+                llDeletePost.Click += (sender, args) => 
+                {
+                    OnItemClick(tvDeletePost.Text, dataPost);
+                    popupWindow?.Dismiss();
+                };
+                    
+                popupWindow.SetBackgroundDrawable(new ColorDrawable());
+                popupWindow.Focusable = true;
+                popupWindow.ClippingEnabled = true;
+                popupWindow.OutsideTouchable = false;
+                popupWindow.DismissEvent += delegate (object sender, EventArgs args) {
+                    try
+                    {
+                        popupWindow?.Dismiss();
+                    }
+                    catch (Exception exception)
+                    {
+                        Methods.DisplayReportResultTrack(exception);
+                    }
+                };
+
+                popupWindow?.ShowAsDropDown(v);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
         }
+
 
         public void JobPostClick(GlobalClickEventArgs item)
         {
@@ -798,8 +1020,7 @@ namespace WoWonder.Activities.NativePost.Post
                 using var jobButton = item.View.FindViewById<Button>(Resource.Id.JobButton);
                 if (!Methods.CheckConnectivity())
                 {
-                    //Toast.MakeText(MainContext, MainContext?.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext?.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -810,8 +1031,7 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         if (item.NewsFeedClass.Job != null && item.NewsFeedClass.Job.Value.JobInfoClass.ApplyCount == "0")
                         {
-                                //Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
-                                ShowToast(MainContext.GetText(Resource.String.Lbl_ThereAreNoRequests));
+                                ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short);
                                 return;
                         }
 
@@ -862,15 +1082,14 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    //Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
+                    ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 switch (UserDetails.SoundControl)
                 {
                     case true:
-                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("reaction.mp3");
+                        Methods.AudioRecorderAndPlayer.PlayAudioFromAsset("select.mp3");
                         break;
                 }
 
@@ -1072,19 +1291,38 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
 
-        public void MapPostClick(GlobalClickEventArgs item)
+        public async void MapPostClick(GlobalClickEventArgs item)
         {
             try
             {
                 if (item.NewsFeedClass != null)
                 {
-                    // Create a Uri from an intent string. Use the result to create an Intent?. 
-                    var uri = Uri.Parse("geo:" + item.NewsFeedClass.CurrentLatitude + "," + item.NewsFeedClass.CurrentLongitude);
-                    var intent = new Intent(Intent.ActionView, uri);
-                    intent.SetPackage("com.google.android.apps.maps");
-                    intent.AddFlags(ActivityFlags.NewTask);
-                    MainContext.StartActivity(intent);
-                }
+                    if (item.NewsFeedClass.CurrentLatitude > 0 && item.NewsFeedClass.CurrentLongitude > 0)
+                    {
+                        // Create a Uri from an intent string. Use the result to create an Intent?. 
+                        var uri = Uri.Parse("geo:" + item.NewsFeedClass.CurrentLatitude + "," + item.NewsFeedClass.CurrentLongitude);
+                        var intent = new Intent(Intent.ActionView, uri);
+                        intent.SetPackage("com.google.android.apps.maps");
+                        intent.AddFlags(ActivityFlags.NewTask);
+                        MainContext.StartActivity(intent);
+                    }
+                    else
+                    {
+                        var latLng = await WoWonderTools.GetLocationFromAddress(MainContext, item.NewsFeedClass.PostMap);
+                        if (latLng != null)
+                        {
+                            item.NewsFeedClass.CurrentLatitude = latLng.Latitude;
+                            item.NewsFeedClass.CurrentLongitude = latLng.Longitude;
+
+                            // Create a Uri from an intent string. Use the result to create an Intent?. 
+                            var uri = Uri.Parse("geo:" + item.NewsFeedClass.CurrentLatitude + "," + item.NewsFeedClass.CurrentLongitude);
+                            var intent = new Intent(Intent.ActionView, uri);
+                            intent.SetPackage("com.google.android.apps.maps");
+                            intent.AddFlags(ActivityFlags.NewTask);
+                            MainContext.StartActivity(intent);
+                        }
+                    }
+                } 
             }
             catch (Exception e)
             {
@@ -1154,7 +1392,7 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 switch (type)
                 {
-                    case "LinkPost" when item.NewsFeedClass.PostLink.Contains(Client.WebsiteUrl) && item.NewsFeedClass.PostLink.Contains("movies/watch/"):
+                    case "LinkPost" when item.NewsFeedClass.PostLink.Contains(InitializeWoWonder.WebsiteUrl) && item.NewsFeedClass.PostLink.Contains("movies/watch/"):
                     {
                         var videoId = item.NewsFeedClass.PostLink.Split("movies/watch/").Last().Replace("/", "");
                         var intent = new Intent(MainContext, typeof(VideoViewerActivity));
@@ -1289,8 +1527,7 @@ namespace WoWonder.Activities.NativePost.Post
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_FileNotDeviceMemory), ToastLength.Long)?.Show();
-                ShowToast(MainContext.GetText(Resource.String.Lbl_FileNotDeviceMemory));
+                ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_FileNotDeviceMemory), ToastLength.Long);
             }
         }
 
@@ -1309,14 +1546,12 @@ namespace WoWonder.Activities.NativePost.Post
                         string getFile = Methods.MultiMedia.GetMediaFrom_Disk(Methods.Path.FolderDcimFile, fileSplit);
                         if (getFile != "File Dont Exists")
                         {
-                            //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_FileExists), ToastLength.Long)?.Show();
-                            ShowToast(MainContext.GetText(Resource.String.Lbl_FileExists));
+                            ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_FileExists), ToastLength.Long);
                         }
                         else
                         {
                             Methods.MultiMedia.DownloadMediaTo_DiskAsync(Methods.Path.FolderDcimFile, item.NewsFeedClass.PostFileFull);
-                            //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_YourFileIsDownloaded), ToastLength.Long)?.Show();
-                            ShowToast(MainContext.GetText(Resource.String.Lbl_YourFileIsDownloaded));
+                            ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_YourFileIsDownloaded), ToastLength.Long);
                         }
 
                         break;
@@ -1335,7 +1570,11 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 var intent = new Intent(MainContext, typeof(EventViewActivity));
                 if (item.NewsFeedClass.Event != null)
+                {
+                    intent.PutExtra("EventId", item.NewsFeedClass.Event.Value.EventClass.Id);
+                    intent.PutExtra("EventType", "events");
                     intent.PutExtra("EventView", JsonConvert.SerializeObject(item.NewsFeedClass.Event.Value.EventClass));
+                }
                 MainContext.StartActivity(intent);
             }
             catch (Exception e)
@@ -1544,7 +1783,7 @@ namespace WoWonder.Activities.NativePost.Post
                             {
                                 url = string.IsNullOrEmpty(item.NewsFeedClass.PostRecord) switch
                                 {
-                                    false when !item.NewsFeedClass.PostRecord.Contains(Client.WebsiteUrl) =>
+                                    false when !item.NewsFeedClass.PostRecord.Contains(InitializeWoWonder.WebsiteUrl) =>
                                         WoWonderTools.GetTheFinalLink(url),
                                     _ => url
                                 };
@@ -1818,269 +2057,58 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
 
-        #region MaterialDialog
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
-        {
-            try
-            {
-                string text = itemString.ToString();
-                if (text == MainContext.GetString(Resource.String.Lbl_CopeLink))
-                {
-                    CopyLinkEvent(DataObject.Url);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_CopeText))
-                {
-                    CopyLinkEvent(Methods.FunString.DecodeString(DataObject.Orginaltext));
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_EditPost))
-                {
-                    EditInfoPost_OnClick(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_EditProduct))
-                {
-                    EditInfoProduct_OnClick(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_EditOffers))
-                {
-                    EditInfoOffers_OnClick(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_ReportPost))
-                {
-                    ReportPostEvent(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_DeletePost))
-                {
-                    DeletePostEvent(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_BoostPost) || text == MainContext.GetString(Resource.String.Lbl_UnBoostPost))
-                {
-                    BoostPostEvent(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_EnableComments) || text == MainContext.GetString(Resource.String.Lbl_DisableComments))
-                {
-                    StatusCommentsPostEvent(DataObject);
-                }
-                else if (text == MainContext.GetString(Resource.String.Lbl_SavePost) || text == MainContext.GetString(Resource.String.Lbl_UnSavePost))
-                {
-                    SavePostEvent(DataObject);
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e); 
-            }
-        }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                    switch (TypeDialog)
-                    {
-                        case "DeletePost":
-                            MainContext?.RunOnUiThread(() =>
-                            {
-                                try
-                                {
-                                    if (!Methods.CheckConnectivity())
-                                    {
-                                        //Toast.MakeText(Application.Context, Application.Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                                        ShowToast(MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection));
-                                        return;
-                                    }
-                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Posts.PostActionsAsync(DataObject.Id, "delete") });
-                                 
-                                    var feedTab = TabbedMainActivity.GetInstance()?.NewsFeedTab;
-                                    if (DataObject.SharedInfo.SharedInfoClass != null)
-                                    {
-                                        var data = feedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == DataObject?.Id || a.PostData?.Id == DataObject?.SharedInfo.SharedInfoClass?.Id).ToList();
-                                        switch (data?.Count)
-                                        {
-                                            case > 0:
-                                            {
-                                                foreach (var post in data)
-                                                {
-                                                    feedTab.MainRecyclerView?.RemoveByRowIndex(post);
-                                                }
-
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var data = feedTab?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == DataObject?.Id).ToList();
-                                        switch (data?.Count)
-                                        {
-                                            case > 0:
-                                            {
-                                                foreach (var post in data)
-                                                {
-                                                    feedTab.MainRecyclerView?.RemoveByRowIndex(post);
-                                                }
-
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    feedTab?.MainRecyclerView?.StopVideo();
-
-                                    var profileActivity = MyProfileActivity.GetInstance();
-                                    if (DataObject.SharedInfo.SharedInfoClass != null)
-                                    {
-                                        var data = profileActivity?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == DataObject?.Id || a.PostData?.Id == DataObject?.SharedInfo.SharedInfoClass?.Id).ToList();
-                                        switch (data?.Count)
-                                        {
-                                            case > 0:
-                                            {
-                                                foreach (var post in data)
-                                                {
-                                                    profileActivity.MainRecyclerView?.RemoveByRowIndex(post);
-                                                }
-
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var data = profileActivity?.PostFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == DataObject?.Id).ToList();
-                                        switch (data?.Count)
-                                        {
-                                            case > 0:
-                                            {
-                                                foreach (var post in data)
-                                                {
-                                                    profileActivity.MainRecyclerView?.RemoveByRowIndex(post);
-                                                }
-
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    var recyclerView = WRecyclerView.GetInstance();
-                                    if (DataObject.SharedInfo.SharedInfoClass != null)
-                                    {
-                                        var data = recyclerView?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == DataObject?.Id || a.PostData?.Id == DataObject?.SharedInfo.SharedInfoClass?.Id).ToList();
-                                        switch (data?.Count)
-                                        {
-                                            case > 0:
-                                            {
-                                                foreach (var post in data)
-                                                {
-                                                    recyclerView?.RemoveByRowIndex(post);
-                                                }
-
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var data = recyclerView?.NativeFeedAdapter?.ListDiffer?.Where(a => a.PostData?.Id == DataObject?.Id).ToList();
-                                        switch (data?.Count)
-                                        {
-                                            case > 0:
-                                            {
-                                                foreach (var post in data)
-                                                {
-                                                    recyclerView?.RemoveByRowIndex(post);
-                                                }
-
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    recyclerView?.StopVideo();
-
-                                    //Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show(); 
-                                    ShowToast(MainContext.GetText(Resource.String.Lbl_postSuccessfullyDeleted));
-                                }
-                                catch (Exception e)
-                                {
-                                    Methods.DisplayReportResultTrack(e); 
-                                }
-                            });
-                            break;
-                        default:
-                        {
-                            if (p1 == DialogAction.Positive)
-                            {
-                            }
-                            else if (p1 == DialogAction.Negative)
-                            {
-                                p0.Dismiss();
-                            }
-
-                            break;
-                        }
-                    }
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e); 
-            }
-        }
- 
-        public void OnItemClick(string item)
+        #region More Dialog
+         
+        public void OnItemClick(string item, PostDataObject dataPost)
         {
             try
             {
                 string text = item;
                 if (text == MainContext.GetString(Resource.String.Lbl_CopeLink))
                 {
-                    CopyLinkEvent(DataObject.Url);
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_LinkCopied));
+                    CopyLinkEvent(dataPost.Url);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_CopeText))
                 {
-                    CopyLinkEvent(Methods.FunString.DecodeString(DataObject.Orginaltext));
-                    ShowToast(MainContext.GetText(Resource.String.Lbl_TextCopied));
+                    CopyLinkEvent(Methods.FunString.DecodeString(dataPost.Orginaltext));
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_EditPost))
                 {
-                    EditInfoPost_OnClick(DataObject);
+                    EditInfoPost_OnClick(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_EditProduct))
                 {
-                    EditInfoProduct_OnClick(DataObject);
+                    EditInfoProduct_OnClick(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_EditOffers))
                 {
-                    EditInfoOffers_OnClick(DataObject);
+                    EditInfoOffers_OnClick(dataPost);
+                }
+                else if (text == MainContext.GetString(Resource.String.Lbl_HidePost))
+                {
+                    HidePostEvent(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_ReportPost))
                 {
-                    ReportPostEvent(DataObject);
+                    ReportPostEvent(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_DeletePost))
                 {
-                    DeletePostEvent(DataObject);
+                    DeletePostEvent(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_BoostPost) || text == MainContext.GetString(Resource.String.Lbl_UnBoostPost))
                 {
-                    BoostPostEvent(DataObject);
+                    BoostPostEvent(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_EnableComments) || text == MainContext.GetString(Resource.String.Lbl_DisableComments))
                 {
-                    StatusCommentsPostEvent(DataObject);
+                    StatusCommentsPostEvent(dataPost);
                 }
                 else if (text == MainContext.GetString(Resource.String.Lbl_SavePost) || text == MainContext.GetString(Resource.String.Lbl_UnSavePost))
                 {
-                    SavePostEvent(DataObject);
+                    SavePostEvent(dataPost);
                 }
-                MorePost.Dismiss();
+                MorePost?.Dismiss();
             }
             catch (Exception e)
             {

@@ -342,7 +342,7 @@ namespace WoWonder.Activities.SettingsPreferences.InviteFriends
                     new IntentController(this).OpenIntentSendSms(Contact.PhoneNumber, InviteSmsText);
                     break;
                 case 104:
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                     break;
             }
         } 

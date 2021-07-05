@@ -73,7 +73,10 @@ namespace WoWonder.Activities.PostData
 
                 StartApiService();
 
-                RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                if (AppSettings.ShowFbRewardVideoAds)
+                    RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                else
+                    AdsColony.Ad_Rewarded(this);
             }
             catch (Exception e)
             {
@@ -342,7 +345,7 @@ namespace WoWonder.Activities.PostData
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadPostDataAsync });
         }
@@ -387,7 +390,7 @@ namespace WoWonder.Activities.PostData
                                                 switch (MAdapter.UserList.Count)
                                                 {
                                                     case > 10 when !MRecycler.CanScrollVertically(1):
-                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                         break;
                                                 }
 
@@ -442,7 +445,7 @@ namespace WoWonder.Activities.PostData
                                                 switch (MAdapter.UserList.Count)
                                                 {
                                                     case > 10 when !MRecycler.CanScrollVertically(1):
-                                                        Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                         break;
                                                 }
 
@@ -480,7 +483,7 @@ namespace WoWonder.Activities.PostData
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 

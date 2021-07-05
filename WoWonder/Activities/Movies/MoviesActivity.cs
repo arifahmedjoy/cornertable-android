@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -21,7 +21,6 @@ using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
 using Google.Android.Material.FloatingActionButton;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Movies.Adapters;
@@ -372,7 +371,7 @@ namespace WoWonder.Activities.Movies
                 {
                     case > 0:
                     {
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         var arrayAdapter = CategoriesController.ListCategoriesMovies.Select(item => item.CategoriesName).ToList();
 
@@ -431,7 +430,7 @@ namespace WoWonder.Activities.Movies
         private void StartApiService(string offset = "")
         { 
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadMoviesAsync(offset) });
         }
@@ -480,7 +479,7 @@ namespace WoWonder.Activities.Movies
                                         switch (MAdapter.MoviesList.Count)
                                         {
                                             case > 10 when !MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreMovies), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreMovies), ToastLength.Short);
                                                 break;
                                         }
 
@@ -514,7 +513,7 @@ namespace WoWonder.Activities.Movies
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
@@ -576,11 +575,11 @@ namespace WoWonder.Activities.Movies
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                CategoryId = itemString.ToString() == GetString(Resource.String.Lbl_Default) ? "" : CategoriesController.ListCategoriesMovies.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
+                CategoryId = itemString == GetString(Resource.String.Lbl_Default) ? "" : CategoriesController.ListCategoriesMovies.FirstOrDefault(categories => categories.CategoriesName == itemString)?.CategoriesId;
 
                 MAdapter.MoviesList.Clear();
                 MAdapter.NotifyDataSetChanged();

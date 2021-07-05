@@ -201,7 +201,7 @@ namespace WoWonder.Activities.AddPost.Adapters
                 MainView = itemView;
 
                 ColoredImage = (ImageView)MainView.FindViewById(Resource.Id.Image);
-                ItemView.Click += (sender, e) => clickListener(new ColorBoxAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                ItemView.Click += (sender, e) => clickListener(new ColorBoxAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
             }
             catch (Exception e)

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,11 +11,9 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Funding;
 using WoWonderClient.Classes.Global;
@@ -31,12 +29,11 @@ namespace WoWonder.Activities.Fundings
     {
         #region Variables Basic
 
-        private TextView TxtAdd,IconTitle, IconAmount, IconDescription;
+        private Button BtnCreateFunding;
         private EditText TxtTitle, TxtAmount, TxtDescription;
         private FundingDataObject DataObject;
-        private RelativeLayout ImageLayout;
         private PublisherAdView PublisherAdView;
-        
+
         #endregion
 
         #region General
@@ -49,7 +46,7 @@ namespace WoWonder.Activities.Fundings
                 SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
 
                 Methods.App.FullScreenApp(this);
-                 
+
                 // Create your application here
                 SetContentView(Resource.Layout.CreateFundingLayout);
 
@@ -154,26 +151,15 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                TxtAdd = FindViewById<TextView>(Resource.Id.toolbar_title);
-                
-                IconTitle = FindViewById<TextView>(Resource.Id.IconTitle);
+                BtnCreateFunding = FindViewById<Button>(Resource.Id.btnCreateFunding);
+
                 TxtTitle = FindViewById<EditText>(Resource.Id.TitleEditText);
 
-                IconAmount = FindViewById<TextView>(Resource.Id.IconAmount);
                 TxtAmount = FindViewById<EditText>(Resource.Id.AmountEditText);
 
-                IconDescription = FindViewById<TextView>(Resource.Id.IconDescription);
                 TxtDescription = FindViewById<EditText>(Resource.Id.DescriptionEditText);
 
-                TxtAdd.Text = GetText(Resource.String.Lbl_Save);
-                TxtAdd.SetTextColor(Color.White);
-
-                ImageLayout = FindViewById<RelativeLayout>(Resource.Id.imageLayout);
-                ImageLayout.Visibility = ViewStates.Gone;
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTitle, FontAwesomeIcon.User);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAmount, FontAwesomeIcon.MoneyBillWave);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconDescription, FontAwesomeIcon.AudioDescription);
+                BtnCreateFunding.Text = GetText(Resource.String.Lbl_Save);
 
                 Methods.SetColorEditText(TxtTitle, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtAmount, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -181,7 +167,7 @@ namespace WoWonder.Activities.Fundings
 
                 //Methods.SetFocusable(TxtAmount);
 
-                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view); 
+                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view);
                 AdsGoogle.InitPublisherAdView(PublisherAdView);
             }
             catch (Exception e)
@@ -197,16 +183,16 @@ namespace WoWonder.Activities.Fundings
                 var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
                 if (toolBar != null)
                 {
-                    toolBar.Title = GetString(Resource.String.Lbl_FundingRequests);
+                    toolBar.Title = GetString(Resource.String.Lbl_EditFunding);
                     toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
-                     
+
                     SetSupportActionBar(toolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
- 
+
                 }
             }
             catch (Exception e)
@@ -223,11 +209,11 @@ namespace WoWonder.Activities.Fundings
                 {
                     // true +=  // false -=
                     case true:
-                        TxtAdd.Click += TxtAddOnClick;
+                        BtnCreateFunding.Click += BtnCreateFundingOnClick;
                         //TxtAmount.Touch += TxtAmountOnTouch;
                         break;
                     default:
-                        TxtAdd.Click -= TxtAddOnClick;
+                        BtnCreateFunding.Click -= BtnCreateFundingOnClick;
                         //TxtAmount.Touch -= TxtAmountOnTouch;
                         break;
                 }
@@ -243,14 +229,10 @@ namespace WoWonder.Activities.Fundings
             try
             {
                 PublisherAdView?.Destroy();
-                TxtAdd = null!;
-                IconTitle  = null!;
+                BtnCreateFunding = null!;
                 TxtTitle = null!;
-                IconAmount = null!;
                 TxtAmount = null!;
-                IconDescription = null!;
-                TxtDescription = null!; 
-                ImageLayout = null!;
+                TxtDescription = null!;
 
                 PublisherAdView = null!;
             }
@@ -270,7 +252,7 @@ namespace WoWonder.Activities.Fundings
         //    {
         //        if (e?.Event?.Action != MotionEventActions.Down) return;
 
-        //        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+        //        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
         //        var arrayAdapter = new List<string> { "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100" };
 
@@ -287,102 +269,102 @@ namespace WoWonder.Activities.Fundings
         //}
 
         //Save 
-        private async void TxtAddOnClick(object sender, EventArgs e)
+        private async void BtnCreateFundingOnClick(object sender, EventArgs e)
         {
             try
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtTitle.Text) || string.IsNullOrWhiteSpace(TxtTitle.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtAmount.Text) || string.IsNullOrWhiteSpace(TxtAmount.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short);
                         return;
                     }
 
                     //Show a progress
                     AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                    var (apiStatus, respond) = await RequestsAsync.Funding.EditFundingAsync(DataObject.Id ,TxtTitle.Text, TxtDescription.Text, TxtAmount.Text);
+                    var (apiStatus, respond) = await RequestsAsync.Funding.EditFundingAsync(DataObject.Id, TxtTitle.Text, TxtDescription.Text, TxtAmount.Text);
                     switch (apiStatus)
                     {
                         case 200:
-                        {
-                            switch (respond)
                             {
-                                case MessageObject result:
+                                switch (respond)
                                 {
-                                    AndHUD.Shared.Dismiss(this);
-                                    Console.WriteLine(result.Message);
-
-                                    var instance = FundingActivity.GetInstance();
-                                    var dataFunding = instance?.FundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
-                                    if (dataFunding != null)
-                                    {
-                                        dataFunding.Id = DataObject.Id;
-                                        dataFunding.Title = TxtTitle.Text;
-                                        dataFunding.Description = TxtDescription.Text;
-                                        dataFunding.Amount = TxtAmount.Text;
-
-                                        var index = instance.FundingTab.MAdapter.FundingList.IndexOf(dataFunding);
-                                        switch (index)
+                                    case MessageObject result:
                                         {
-                                            case > -1:
-                                                instance.FundingTab.MAdapter.FundingList[index] = dataFunding;
-                                                instance.FundingTab.MAdapter.NotifyItemChanged(index);
-                                                break;
-                                        } 
-                                    }
+                                            AndHUD.Shared.Dismiss(this);
+                                            Console.WriteLine(result.Message);
 
-                                    var dataMyFunding = instance?.MyFundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
-                                    if (dataMyFunding != null)
-                                    {
-                                        dataMyFunding.Id = DataObject.Id;
-                                        dataMyFunding.Title = TxtTitle.Text;
-                                        dataMyFunding.Description = TxtDescription.Text;
-                                        dataMyFunding.Amount = TxtAmount.Text;
+                                            var instance = FundingActivity.GetInstance();
+                                            var dataFunding = instance?.FundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
+                                            if (dataFunding != null)
+                                            {
+                                                dataFunding.Id = DataObject.Id;
+                                                dataFunding.Title = TxtTitle.Text;
+                                                dataFunding.Description = TxtDescription.Text;
+                                                dataFunding.Amount = TxtAmount.Text;
 
-                                        var index = instance.MyFundingTab.MAdapter.FundingList.IndexOf(dataMyFunding);
-                                        switch (index)
-                                        {
-                                            case > -1:
-                                                instance.MyFundingTab.MAdapter.FundingList[index] = dataMyFunding;
-                                                instance.MyFundingTab.MAdapter.NotifyItemChanged(index);
-                                                break;
+                                                var index = instance.FundingTab.MAdapter.FundingList.IndexOf(dataFunding);
+                                                switch (index)
+                                                {
+                                                    case > -1:
+                                                        instance.FundingTab.MAdapter.FundingList[index] = dataFunding;
+                                                        instance.FundingTab.MAdapter.NotifyItemChanged(index);
+                                                        break;
+                                                }
+                                            }
+
+                                            var dataMyFunding = instance?.MyFundingTab?.MAdapter?.FundingList?.FirstOrDefault(a => a.Id == DataObject.Id);
+                                            if (dataMyFunding != null)
+                                            {
+                                                dataMyFunding.Id = DataObject.Id;
+                                                dataMyFunding.Title = TxtTitle.Text;
+                                                dataMyFunding.Description = TxtDescription.Text;
+                                                dataMyFunding.Amount = TxtAmount.Text;
+
+                                                var index = instance.MyFundingTab.MAdapter.FundingList.IndexOf(dataMyFunding);
+                                                switch (index)
+                                                {
+                                                    case > -1:
+                                                        instance.MyFundingTab.MAdapter.FundingList[index] = dataMyFunding;
+                                                        instance.MyFundingTab.MAdapter.NotifyItemChanged(index);
+                                                        break;
+                                                }
+
+                                                Intent intent = new Intent();
+                                                intent.PutExtra("itemData", JsonConvert.SerializeObject(dataMyFunding));
+                                                SetResult(Result.Ok, intent);
+                                            }
+
+                                            break;
                                         }
-
-                                        Intent intent = new Intent();
-                                        intent.PutExtra("itemData", JsonConvert.SerializeObject(dataMyFunding));
-                                        SetResult(Result.Ok, intent); 
-                                    }
-
-                                    break;
                                 }
+
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_FundingSuccessfullyEdited), ToastLength.Short);
+                                Finish();
+                                break;
                             }
- 
-                            Toast.MakeText(this, GetString(Resource.String.Lbl_FundingSuccessfullyEdited), ToastLength.Short)?.Show();
-                            Finish();
-                            break;
-                        }
                         default:
                             Methods.DisplayAndHudErrorResult(this, respond);
                             break;
-                    } 
+                    }
                 }
             }
             catch (Exception exception)
@@ -393,14 +375,14 @@ namespace WoWonder.Activities.Fundings
         }
 
         #endregion
-        
+
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                TxtAmount.Text = itemString.ToString();
+                TxtAmount.Text = itemString;
             }
             catch (Exception e)
             {
@@ -432,13 +414,13 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                DataObject = JsonConvert.DeserializeObject<FundingDataObject>(Intent?.GetStringExtra("FundingObject"));
+                DataObject = JsonConvert.DeserializeObject<FundingDataObject>(Intent?.GetStringExtra("FundingObject") ?? "");
                 if (DataObject != null)
-                { 
+                {
                     TxtTitle.Text = Methods.FunString.DecodeString(DataObject.Title);
                     TxtDescription.Text = Methods.FunString.DecodeString(DataObject.Description);
 
-                    TxtAmount.Text = DataObject.Amount; 
+                    TxtAmount.Text = DataObject.Amount;
                 }
             }
             catch (Exception e)

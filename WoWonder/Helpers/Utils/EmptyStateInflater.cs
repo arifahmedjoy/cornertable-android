@@ -15,6 +15,7 @@ namespace WoWonder.Helpers.Utils
         private TextView DescriptionText;
         private TextView TitleText;
         private LottieAnimationView AnimationView;
+        private ImageView EmptyImage;
 
         public enum Type
         {
@@ -50,6 +51,7 @@ namespace WoWonder.Helpers.Utils
             NoOffers,
             NoShop,
             NoBusiness,
+            NoBlockedUsers,
 
             NoCall,
             NoGroupChat,
@@ -71,8 +73,9 @@ namespace WoWonder.Helpers.Utils
                 DescriptionText = (TextView)inflated.FindViewById(Resource.Id.seconderyText);
                 EmptyStateButton = (Button)inflated.FindViewById(Resource.Id.button);
                 AnimationView = inflated.FindViewById<LottieAnimationView>(Resource.Id.animation_view);
-               
-               
+                EmptyImage = inflated.FindViewById<ImageView>(Resource.Id.iv_empty);
+
+
                 switch (type)
                 {
                     case Type.NoConnection:
@@ -85,10 +88,12 @@ namespace WoWonder.Helpers.Utils
                         break;
                     case Type.NoSearchResult:
                         AnimationView.Visibility = ViewStates.Gone;
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Search);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoSearchResult_TitleText);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_NoSearchResult_DescriptionText);
                         EmptyStateButton.Text = Application.Context.GetText(Resource.String.Lbl_NoSearchResult_Button);
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_result); 
                         break;
                     case Type.SomThingWentWrong:
                         AnimationView.Visibility = ViewStates.Gone;
@@ -97,17 +102,16 @@ namespace WoWonder.Helpers.Utils
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_SomThingWentWrong_DescriptionText);
                         EmptyStateButton.Text = Application.Context.GetText(Resource.String.Lbl_SomThingWentWrong_Button);
                         break;
-                    //else if (type == Type.NoComments)
-                    //{
-                    //    FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Chatbubbles);
-                    //    EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
-                    //    TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoComments_TitleText);
-                    //    DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_NoComments_DescriptionText);
-                    //    EmptyStateButton.Visibility = ViewStates.Gone;
-                    //}
+                    case Type.NoComments:
+                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Chatbubbles);
+                        EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoComments);
+                        DescriptionText.Text = "";
+                        EmptyStateButton.Visibility = ViewStates.Gone;
+                        break; 
                     case Type.NoPost:
                         AnimationView.Visibility = ViewStates.Gone;
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon, FontAwesomeIcon.Frown);
+                        FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon, FontAwesomeIcon.ImagePolaroid);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoPost_TitleText);
                         DescriptionText.Text = " ";
@@ -125,6 +129,8 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Person);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_user);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoUsers_TitleText);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_NoUsers_DescriptionText);
                         EmptyStateButton.Visibility = ViewStates.Gone;
@@ -165,6 +171,8 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon,FontAwesomeIcon.Video);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_movies);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Movies);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_Start_Movies);
                         EmptyStateButton.Visibility = ViewStates.Gone;
@@ -173,6 +181,8 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Person);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_user);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoUsers_TitleText);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_Start_NearBy);
                         EmptyStateButton.Visibility = ViewStates.Gone;
@@ -181,14 +191,17 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon, FontAwesomeIcon.CalendarAlt);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_events);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Events);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_Start_Events);
                         EmptyStateButton.Text = Application.Context.GetText(Resource.String.Btn_Create_Events);
                         break;
                     case Type.NoProduct:
-                        AnimationView.SetAnimation("EmptyStateAnim1.json");
-                        AnimationView.Visibility = ViewStates.Visible;
+                        //AnimationView.SetAnimation("EmptyStateAnim1.json");
+                        AnimationView.Visibility = ViewStates.Gone;
                         EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_products);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Market);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_Start_Market);
                         EmptyStateButton.Text = Application.Context.GetText(Resource.String.Btn_AddProduct);
@@ -221,14 +234,17 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon, FontAwesomeIcon.HandHoldingUsd);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_funding);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NotHaveAnyFundingRequest);
                         DescriptionText.Text = " ";
                         EmptyStateButton.Visibility = ViewStates.Gone;
                         break;
                     case Type.NoJob:
                         AnimationView.SetAnimation("EmptyStateAnim3.json");
-                        AnimationView.Visibility = ViewStates.Visible;
+                        AnimationView.Visibility = ViewStates.Gone;
                         EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_jobs);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NotHaveAnyJobs);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_NoJobsDescriptions); 
                         EmptyStateButton.Visibility = ViewStates.Gone;
@@ -243,8 +259,9 @@ namespace WoWonder.Helpers.Utils
                         break;
                     case Type.NoCommonThings:
                         AnimationView.SetAnimation("EmptyStateAnim7.json");
-                        AnimationView.Visibility = ViewStates.Visible;
+                        AnimationView.Visibility = ViewStates.Gone;
                         EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_user);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoUsers_TitleText);
                         DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_NoCommentThingsDescriptions);
                         EmptyStateButton.Visibility = ViewStates.Gone;
@@ -269,9 +286,11 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon, FontAwesomeIcon.Gamepad);
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_games);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Games);
-                        DescriptionText.Text = "";
-                        EmptyStateButton.Visibility = ViewStates.Gone;
+                        DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Games_Desc);
+                        EmptyStateButton.Visibility = ViewStates.Visible; 
                         break;
                     case Type.NoSessions:
                         AnimationView.Visibility = ViewStates.Gone;
@@ -309,6 +328,8 @@ namespace WoWonder.Helpers.Utils
                         AnimationView.Visibility = ViewStates.Gone;
                         FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, EmptyStateIcon, FontAwesomeIcon.Box);  
                         EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_offers);
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Offers);
                         DescriptionText.Text = "";
                         EmptyStateButton.Visibility = ViewStates.Gone;
@@ -328,6 +349,16 @@ namespace WoWonder.Helpers.Utils
                         TitleText.Text = Application.Context.GetText(Resource.String.Lbl_Empty_Business);
                         DescriptionText.Text = "";
                         EmptyStateButton.Visibility = ViewStates.Gone;
+                        break; 
+                    case Type.NoBlockedUsers:
+                        AnimationView.Visibility = ViewStates.Gone;
+                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, EmptyStateIcon, IonIconsFonts.Person);
+                        EmptyStateIcon.SetTextSize(ComplexUnitType.Dip, 45f);
+                        EmptyStateIcon.Visibility = ViewStates.Gone;
+                        EmptyImage.SetImageResource(Resource.Drawable.ic_no_user);
+                        TitleText.Text = Application.Context.GetText(Resource.String.Lbl_NoUsers_TitleText);
+                        DescriptionText.Text = Application.Context.GetText(Resource.String.Lbl_NoBlockedUsersDesc);
+                        EmptyStateButton.Visibility = ViewStates.Visible; 
                         break;
 
                     //chat
@@ -399,7 +430,7 @@ namespace WoWonder.Helpers.Utils
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-            }
+            } 
         }
     }
 }

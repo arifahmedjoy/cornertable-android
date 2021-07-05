@@ -10,7 +10,6 @@ using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
-using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.Lifecycle;
 using DT.Xamarin.Agora;
@@ -64,8 +63,7 @@ namespace WoWonder
 
                 Instance = this;
 
-                Client a = new Client(AppSettings.TripleDesAppServiceProvider);
-                Console.WriteLine(a);
+                InitializeWoWonder.Initialize(AppSettings.TripleDesAppServiceProvider);
 
                 var sqLiteDatabase = new SqLiteDatabase();
                 sqLiteDatabase.CheckTablesStatus();
@@ -134,7 +132,7 @@ namespace WoWonder
                 AndroidEnvironment.UnhandledExceptionRaiser += AndroidEnvironmentOnUnhandledExceptionRaiser;
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
                 TaskScheduler.UnobservedTaskException += TaskSchedulerOnUnobservedTaskException;
-
+                 
                 AppCompatDelegate.CompatVectorFromResourcesEnabled = true;
                 FirebaseApp.InitializeApp(this);
 
@@ -144,7 +142,7 @@ namespace WoWonder
                 ProcessLifecycleOwner.Get().Lifecycle.AddObserver(appLifecycleObserver);
 
                 if (Methods.CheckConnectivity())
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiRequest.GetTimeZoneAsync });
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> {ApiRequest.GetTimeZoneAsync });
 
                 var sqLiteDatabase = new SqLiteDatabase();
                 if (!string.IsNullOrEmpty(UserDetails.AccessToken))
@@ -158,12 +156,15 @@ namespace WoWonder
                         ListUtils.UserList = sqLiteDatabase.Get_LastUsersChat_List();
                     else
                         ListUtils.UserChatList = sqLiteDatabase.GetLastUsersChatList();
+
+                    if (Methods.CheckConnectivity())
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { ApiRequest.GetPinChats,  ApiRequest.GetArchivedChats });
+
                 }
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                Toast.MakeText(this, exception.Message, ToastLength.Short)?.Show();
             }
         }
          
@@ -366,6 +367,76 @@ namespace WoWonder
         public void OnActivityStopped(Activity activity)
         {
             Activity = activity;
+        }
+
+        public void OnActivityPostCreated(Activity activity, Bundle savedInstanceState)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPostDestroyed(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPostPaused(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPostResumed(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPostSaveInstanceState(Activity activity, Bundle outState)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPostStarted(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPostStopped(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPreCreated(Activity activity, Bundle? savedInstanceState)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPreDestroyed(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPrePaused(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPreResumed(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPreSaveInstanceState(Activity activity, Bundle outState)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPreStarted(Activity activity)
+        {
+             Activity = activity;
+        }
+
+        public void OnActivityPreStopped(Activity activity)
+        {
+             Activity = activity;
         }
 
         public override void OnLowMemory()

@@ -156,7 +156,7 @@ namespace WoWonder.Activities.Chat.ChatWindow.Adapters
                 itemView.Click += (sender, e) => listener(new AdapterClickEvents
                 {
                     View = itemView,
-                    Position = AdapterPosition
+                    Position = BindingAdapterPosition
                 });
 
             }

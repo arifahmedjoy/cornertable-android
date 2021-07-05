@@ -45,7 +45,7 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
-                return null;
+                return null!;
             }
         }
          
@@ -152,8 +152,8 @@ namespace WoWonder.Library.Anjo.EmojiView.StickersView
                 Stickers?.SetLayoutManager(new GridLayoutManager(itemView.Context, 4));
 
                 //Create an Event 
-                Add.Click += (sender, e) => clickListener(new ShopAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                //itemView.LongClick += (sender, e) => longClickListener(new ShopAdapterClickEventArgs { View = itemView, Position = AdapterPosition }); 
+                Add.Click += (sender, e) => clickListener(new ShopAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                //itemView.LongClick += (sender, e) => longClickListener(new ShopAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition }); 
             }
             catch (Exception e)
             {

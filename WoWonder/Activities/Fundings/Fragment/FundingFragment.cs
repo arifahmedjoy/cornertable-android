@@ -6,14 +6,13 @@ using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
+using Com.Adcolony.Sdk;
 using Newtonsoft.Json;
 using WoWonder.Activities.Fundings.Adapters;
 using WoWonder.Helpers.Ads;
@@ -117,7 +116,10 @@ namespace WoWonder.Activities.Fundings.Fragment
                 SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
 
                 LinearLayout adContainer = view.FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(Activity, adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(Activity, adContainer, MRecycler);
+                else
+                    AdsColony.InitBannerAd(Activity, adContainer, AdColonyAdSize.Banner, MRecycler);
             }
             catch (Exception e)
             {
@@ -171,7 +173,7 @@ namespace WoWonder.Activities.Fundings.Fragment
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextFunding.GetFunding(item.Id) });
                     }
                     else
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception exception)
@@ -193,7 +195,7 @@ namespace WoWonder.Activities.Fundings.Fragment
                 if (Methods.CheckConnectivity())
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ContextFunding.GetFunding() });
                 else
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
             }
             catch (Exception exception)
             {

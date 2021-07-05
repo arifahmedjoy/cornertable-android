@@ -85,7 +85,7 @@ namespace WoWonder.Activities.Fundings.Adapters
                             var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(item.UserData.LastseenUnixTime), item.UserData.LastseenStatus);
                             holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
                          
-                            WoWonderTools.SetAddFriendCondition(item.UserData.IsFollowing, holder.Button);
+                            WoWonderTools.SetAddFriendCondition(item.UserData,item.UserData.IsFollowing, holder.Button);
                         }
 
                         break;
@@ -171,9 +171,9 @@ namespace WoWonder.Activities.Fundings.Adapters
                 ImageLastSeen = (CircleImageView)MainView.FindViewById(Resource.Id.ImageLastseen);
 
                 //Event
-                Button.Click += (sender, e) => followButtonClickListener(new RecentDonationAdapterClickEventArgs { View = itemView, Position = AdapterPosition, BtnAddUser = Button });
-                itemView.Click += (sender, e) => clickListener(new RecentDonationAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new RecentDonationAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => followButtonClickListener(new RecentDonationAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition, BtnAddUser = Button });
+                itemView.Click += (sender, e) => clickListener(new RecentDonationAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new RecentDonationAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Graphics;

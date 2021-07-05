@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rl_container"
     android:background="?attr/colorFill"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <com.google.android.material.appbar.AppBarLayout
@@ -29,21 +30,22 @@
                         android:id="@+id/offerCoverImage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxHeight="260dp"
-                        android:minHeight="243dp"
+                        android:maxHeight="350dp"
+                        android:minHeight="300dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/imageplacholder"
                         android:visibility="visible" />
-                    <ImageView
+                    <ImageButton
                         android:id="@+id/iv_back"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_gravity="start"
+                        android:layout_marginTop="20dp"
                         android:layout_marginEnd="11dp"
                         android:layout_marginStart="11dp"
-                        android:paddingBottom="16dp"
-                        android:src="@drawable/ic_action_ic_back"
-                        android:paddingTop="15dp" />
+                        android:padding="15dp"
+                        android:background="@null"
+                        android:src="@drawable/ic_action_left_arrow2" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -57,18 +59,29 @@
                         android:visibility="gone"
                         android:layout_marginEnd="10dp"
                         android:id="@+id/toolbar_title" />
+                    <ImageButton
+                        android:id="@+id/iconMore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginTop="20dp"
+                        android:padding="15dp"
+                        android:src="@drawable/icon_post_more_vector"
+                        android:tint="@color/gnt_white"
+                        android:layout_marginEnd="5dp"
+                        android:background="@null"/>
                 </RelativeLayout>
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:orientation="vertical"
                     android:layout_marginTop="0dp">
                     <View
-                        android:background="@drawable/rounded_corner_from_top_shape"
-                        android:layout_alignParentBottom="true"
                         android:layout_width="match_parent"
-                        android:layout_height="60dp" />
+                        android:layout_height="35dp"
+                        android:background="@color/gnt_white"
+                        android:layout_alignParentBottom="true"/>
                     <androidx.cardview.widget.CardView
                         android:id="@+id/card_view"
                         android:focusable="true"
@@ -80,13 +93,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         card_view:cardElevation="0dp"
-                        card_view:cardCornerRadius="13dp">
+                        card_view:cardCornerRadius="20dp">
                         <ImageView
                             android:id="@+id/offerAvatar"
                             android:scaleType="centerCrop"
-                            android:layout_width="105dp"
-                            android:layout_height="105dp"
-                            android:layout_margin="6dp"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
                             android:layout_gravity="center"
                             android:layout_centerHorizontal="true"
                             android:src="@drawable/imageplacholder_circle" />
@@ -106,83 +118,105 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
             android:translationY="0dp"
             android:layout_marginTop="0dp">
             <TextView
-                android:id="@+id/pageTitle"
+                android:id="@+id/tv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="25dp"
+                android:textSize="24sp"
+                android:textColor="@color/accent"/>
+            <TextView
+                android:id="@+id/tv_subname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
-                android:layout_alignParentTop="true"
-                android:paddingBottom="3dp"
-                android:paddingStart="13dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="0dp"
-                android:textStyle="bold"
-                android:textSize="18sp" />
-            <RelativeLayout
+                android:layout_marginTop="5dp"
+                android:textSize="16sp"
+                android:textColor="#DFE2E7"/>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="7dp"
-                android:layout_marginEnd="7dp"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="-3dp">
+                android:orientation="vertical"
+                android:layout_margin="15dp">
                 <TextView
-                    android:id="@+id/date"
+                    android:id="@+id/tv_page_title"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:text="@string/Lbl_Page_title"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:textSize="15dp"
-                    android:layout_marginStart="11dp"
-                    android:text="@string/Lbl_End_Date"
-                    android:layout_gravity="center"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="10sp"
+                            android:textColor="@color/accent"
+                            android:text="@string/Lbl_Discount"/>
+                        <TextView
+                            android:id="@+id/tv_discount_number"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:textSize="18sp"
+                            android:text="0"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="10sp"
+                            android:textColor="@color/accent"
+                            android:text="@string/Lbl_End_Date"/>
+                        <TextView
+                            android:id="@+id/tv_enddate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:textSize="18sp"
+                            
+                            android:text="0"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+            <include layout="@layout/post_devider"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:orientation="vertical">
                 <TextView
-                    android:id="@+id/dateNumber"
-                    android:layout_marginStart="11dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/date"
-                    android:textSize="12dp" />
-                <TextView
-                    android:id="@+id/discount"
-                    android:layout_below="@+id/dateNumber"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:textSize="15dp"
-                    android:layout_marginStart="11dp"
-                    android:text="@string/Lbl_Discount"
-                    android:layout_gravity="center"
-                    android:textStyle="bold" />
-                <TextView
-                    android:id="@+id/discountNumber"
-                    android:layout_marginStart="11dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/discount"
-                    android:textSize="12dp" />
+                    android:textSize="15sp"
+                    android:textColor="@color/accent"
+                    android:text="@string/Lbl_OfferDescription"/>
                 <WoWonder.Library.Anjo.SuperTextLibrary.SuperTextView
-                    android:layout_below="@+id/discountNumber"
                     android:id="@+id/description"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
-                    android:layout_alignParentBottom="true"
                     android:gravity="center|start"
-                    android:layout_marginStart="11dp"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="6dp"
-                    android:paddingBottom="10dp"
-                    android:paddingStart="1dp"
-                    android:paddingEnd="5dp"
+                    android:layout_marginTop="10dp"
                     android:textAlignment="textStart"
                     android:textAllCaps="false"
                     android:hyphenationFrequency="none"
                     android:textSize="14sp" />
-            </RelativeLayout>
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

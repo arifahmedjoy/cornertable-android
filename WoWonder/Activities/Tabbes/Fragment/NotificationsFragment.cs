@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.OS; 
 using Android.Views;
 using Android.Widget;
@@ -13,6 +14,7 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
+using Com.Luseen.Autolinklibrary;
 using Newtonsoft.Json;
 using WoWonder.Activities.Communities.Groups;
 using WoWonder.Activities.Communities.Pages;
@@ -76,26 +78,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 base.OnViewCreated(view, savedInstanceState);
                 InitComponent(view);
                 SetRecyclerViewAdapters();
-
-                switch (AppSettings.SetTabOnButton)
-                {
-                    case false:
-                    {
-                        var parasms = (RelativeLayout.LayoutParams)SwipeRefreshLayout.LayoutParameters;
-                        // Check if we're running on Android 5.0 or higher
-                        parasms.TopMargin = (int)Build.VERSION.SdkInt < 23 ? 80 : 120;
-
-                        MRecycler.LayoutParameters = parasms;
-                        MRecycler.SetPadding(0, 0, 0, 0);
-                        break;
-                    }
-                }
-
-                if (!Methods.CheckConnectivity())
-                    Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-                else
-                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGeneralData(true) });
-
+                Task.Factory.StartNew(() => LoadGeneralData(true)); 
             }
             catch (Exception exception)
             {
@@ -214,7 +197,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 EmptyStateLayout.Visibility = ViewStates.Gone;
 
                 if (!Methods.CheckConnectivity())
-                    Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 else
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGeneralData(true) });
             }
@@ -233,7 +216,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 if (item != null && !string.IsNullOrEmpty(item.NotifierId) && !MainScrollEvent.IsLoading)
                 {
                     if (!Methods.CheckConnectivity())
-                        Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     else
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGeneralData(false, item.NotifierId) });
                 }
@@ -249,21 +232,38 @@ namespace WoWonder.Activities.Tabbes.Fragment
         #region Load Notification 
 
         //Get General Data Using Api >> notifications , pro_users , promoted_pages , trending_hashTag
-        public async Task<(string, string, string, string)> LoadGeneralData(bool seenNotifications, string offset = "")
+        public async Task<(string, string, string)> LoadGeneralData(bool seenNotifications, string offset = "")
         {
             try
             {
                 switch (MainScrollEvent.IsLoading)
                 {
                     case true:
-                        return ("", "", "", "");
+                        return ("", "", "");
                 }
 
                 if (Methods.CheckConnectivity())
                 {
                     MainScrollEvent.IsLoading = true;
-                     
-                    var (apiStatus, respond) = await RequestsAsync.Global.GetGeneralDataAsync(seenNotifications, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, offset);
+
+                    string fetch = "notifications,friend_requests";
+
+                    if (AppSettings.ShowAnnouncement)
+                        fetch += ",announcement";
+
+                    if (AppSettings.ShowProUsersMembers)
+                        fetch += ",pro_users";
+                    
+                    if (AppSettings.ShowPromotedPages)
+                        fetch += ",promoted_pages";
+
+                    if (AppSettings.ShowTrendingHashTags)
+                        fetch += ",trending_hashtag";
+                    
+                    if (AppSettings.MessengerIntegration)
+                        fetch += ",count_new_messages";
+
+                    var (apiStatus, respond) = await RequestsAsync.Global.GetGeneralDataAsync(seenNotifications, UserDetails.OnlineUsers, UserDetails.DeviceId, UserDetails.DeviceMsgId, offset, fetch);
                     switch (apiStatus)
                     {
                         case 200:
@@ -308,7 +308,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                                     switch (MAdapter.NotificationsList.Count)
                                                     {
                                                         case > 10 when !MRecycler.CanScrollVertically(1):
-                                                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoMoreNotifications), ToastLength.Short)?.Show();
+                                                            ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_NoMoreNotifications), ToastLength.Short);
                                                             break;
                                                     }
 
@@ -489,6 +489,19 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                                                         Type = Classes.ItemType.ProUser
                                                                     };
 
+
+                                                                    var data = ListUtils.MyProfileList?.FirstOrDefault();
+                                                                    if (data?.IsPro != "1" && AppSettings.ShowGoPro)
+                                                                    {
+                                                                        var dataOwner = proUser.UserList.FirstOrDefault(a => a.Type == "Your");
+                                                                        if (dataOwner == null && data != null)
+                                                                        {
+                                                                            data.Type = "Your";
+                                                                            data.Username = Context.GetText(Resource.String.Lbl_AddMe);
+                                                                            proUser.UserList.Insert(0, data); 
+                                                                        }
+                                                                    }
+
                                                                     foreach (var item in from item in result.ProUsers let check = proUser.UserList.FirstOrDefault(a => a.UserId == item.UserId) where check == null select item)
                                                                     {
                                                                         proUser.UserList.Add(item);
@@ -548,16 +561,43 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                                     break;
                                                 }
                                             }
-                                     
+
+                                            if (!string.IsNullOrEmpty(result.Announcement?.AnnouncementClass?.TextDecode))
+                                            { 
+                                                var chk = MAdapter.NotificationsList.FirstOrDefault(a => a.Type == "Announcement");
+                                                if (chk == null)
+                                                {
+                                                    if (MAdapter.NotificationsList.Count > 0)
+                                                    {
+                                                        MAdapter.NotificationsList.Insert(0, new NotificationObject
+                                                        {
+                                                            Type = "Announcement",
+                                                            Text = result.Announcement?.AnnouncementClass?.TextDecode,
+                                                            Time = ""
+                                                        });
+                                                    }
+                                                    else
+                                                    {
+                                                        MAdapter.NotificationsList.Add(new NotificationObject
+                                                        {
+                                                            Type = "Announcement",
+                                                            Text = result.Announcement?.AnnouncementClass?.TextDecode,
+                                                            Time = ""
+                                                        });
+                                                    }
+                                                    MAdapter.NotifyDataSetChanged();
+                                                } 
+                                            }
+                                          
                                             MainScrollEvent.IsLoading = false;
-                                            ShowEmptyPage();
+                                            ShowEmptyPage(); 
                                         }
                                         catch (Exception e)
                                         {
                                             Methods.DisplayReportResultTrack(e);
                                         }
                                     }); 
-                                    return (result.NewNotificationsCount, result.NewFriendRequestsCount, result.CountNewMessages, result.Announcement?.AnnouncementClass?.TextDecode);
+                                    return (result.NewNotificationsCount, result.NewFriendRequestsCount, result.CountNewMessages);
                             }
 
                             break;
@@ -570,7 +610,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                     Activity?.RunOnUiThread(ShowEmptyPage);
                     MainScrollEvent.IsLoading = false;
 
-                    return ("", "", "", "");
+                    return ("", "", "");
                 }
                 else
                 {
@@ -585,7 +625,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                             break;
                     }
 
-                    Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -594,9 +634,9 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 Methods.DisplayReportResultTrack(e); 
             }
             MainScrollEvent.IsLoading = false;
-            return ("", "", "", "");
+            return ("", "", "");
         }
-
+         
         private void ShowEmptyPage()
         {
             try
@@ -643,7 +683,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
             try
             {
                 if (!Methods.CheckConnectivity())
-                    Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 else
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGeneralData(true) });
             }
@@ -666,8 +706,13 @@ namespace WoWonder.Activities.Tabbes.Fragment
                     case "accepted_request":
                         WoWonderTools.OpenProfile(Activity, item.Notifier.UserId, item.Notifier);
                         break;
-                    case "liked_page":
                     case "invited_page":
+                    {
+                        var intent = new Intent(Activity, typeof(InvitedPageActivity)); 
+                        activity.StartActivity(intent);
+                        break;
+                    }
+                    case "liked_page":
                     case "accepted_invite":
                     {
                         var intent = new Intent(Activity, typeof(PageProfileActivity));
@@ -726,10 +771,14 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         StoryDataObject dataMyStory = GlobalContext?.NewsFeedTab?.PostFeedAdapter?.HolderStory?.StoryAdapter?.StoryList?.FirstOrDefault(o => o.UserId == UserDetails.UserId);
                         if (dataMyStory != null)
                         {
-                            Intent intent = new Intent(activity, typeof(ViewStoryActivity));
+                            ObservableCollection<StoryDataObject> storyList = new ObservableCollection<StoryDataObject> {dataMyStory};
+
+                            Intent intent = new Intent(Context, typeof(StoryDetailsActivity));
                             intent.PutExtra("UserId", dataMyStory.UserId);
-                            intent.PutExtra("DataItem", JsonConvert.SerializeObject(dataMyStory));
-                            activity.StartActivity(intent);
+                            intent.PutExtra("IndexItem", 0);
+                            intent.PutExtra("StoriesCount", storyList.Count);
+                            intent.PutExtra("DataItem", JsonConvert.SerializeObject(storyList));
+                            Context.StartActivity(intent); 
                         }
 
                         break;
@@ -759,6 +808,11 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         Activity.StartActivity(intent);
                         break;
                     }
+                    case "Announcement":
+                    {
+                        OpenDialogAnnouncement(item.Text);
+                        break;
+                    }
                     default:
                         WoWonderTools.OpenProfile(Activity, item.Notifier.UserId, item.Notifier);
                         break;
@@ -769,5 +823,43 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 Methods.DisplayReportResultTrack(exception);
             }
         }
+
+        private void OpenDialogAnnouncement(string textAnnouncement)
+        {
+            try
+            { 
+                Dialog mAlertDialog = new Dialog(Context);
+                mAlertDialog.RequestWindowFeature((int)WindowFeatures.NoTitle); // before
+                mAlertDialog.SetContentView(Resource.Layout.DialogAnnouncement);
+                mAlertDialog.SetCancelable(false);
+                mAlertDialog.Window.SetBackgroundDrawable(new ColorDrawable(Color.Transparent));
+
+                var subTitle = mAlertDialog?.FindViewById<AutoLinkTextView>(Resource.Id.text);
+                TextSanitizer headlineSanitizer = new TextSanitizer(subTitle, Activity);
+                headlineSanitizer.Load(Methods.FunString.DecodeString(textAnnouncement));
+
+                ImageView closeButton = mAlertDialog.FindViewById<ImageView>(Resource.Id.CloseButton);
+
+                closeButton.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        mAlertDialog.Hide();
+                        mAlertDialog.Dismiss();
+                    }
+                    catch (Exception e)
+                    {
+                        Methods.DisplayReportResultTrack(e);
+                    }
+                };
+
+                mAlertDialog.Show();
+            }
+            catch (Exception ex)
+            {
+                Methods.DisplayReportResultTrack(ex);
+            }
+        }
+
     }
 }

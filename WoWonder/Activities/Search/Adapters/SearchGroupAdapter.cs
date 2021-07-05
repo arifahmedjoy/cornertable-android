@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Android.App;
 using Android.Graphics;
-
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Java.Util;
+using Refractored.Controls;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
@@ -48,7 +48,7 @@ namespace WoWonder.Activities.Search.Adapters
             try
             {
                 //Setup your layout here >> Style_HPage_view
-                var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_HPage_view, parent, false);
+                var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_HContact_view, parent, false);
                 var vh = new SearchGroupAdapterViewHolder(itemView, JoinButtonClick, Click, LongClick);
                 return vh;
             }
@@ -103,6 +103,11 @@ namespace WoWonder.Activities.Search.Adapters
                 holder.About.Text = cat.Get_Translate_Categories_Communities(item.CategoryId, item.Category , "Group");
 
                 //var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(30).EndConfig().BuildRound("", Color.ParseColor("#1A237E"));
+                holder.CivBg.SetColorFilter(Color.ParseColor("#FCA65C"));
+                holder.CivBg.Visibility = ViewStates.Visible;
+
+                holder.SmallIcon.Visibility = ViewStates.Visible;
+                holder.SmallIcon.SetImageResource(Resource.Drawable.ic_small_group);
 
                 if (item.IsOwner != null && item.IsOwner.Value || item.UserId == UserDetails.UserId)
                 {
@@ -111,19 +116,26 @@ namespace WoWonder.Activities.Search.Adapters
                 else
                 {
                     //Set style Btn Joined Group 
-                    if (WoWonderTools.IsJoinedGroup(item))
-                    {
-                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                        holder.Button.SetTextColor(Color.ParseColor("#ffffff"));
-                        holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Joined);
-                        holder.Button.Tag = "true";
-                    }
-                    else
+                    if (WoWonderTools.IsJoinedGroup(item) == "1") //joined
                     {
                         holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
                         holder.Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                        holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Joined);
+                        holder.Button.Tag = "1";
+                    }
+                    else if (WoWonderTools.IsJoinedGroup(item) == "2") //requested
+                    {
+                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
+                        holder.Button.SetTextColor(Color.ParseColor("#444444"));
+                        holder.Button.Text = ActivityContext.GetText(Resource.String.Lbl_Request);
+                        holder.Button.Tag = "2";
+                    }
+                    else //not joined
+                    {
+                        holder.Button.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
+                        holder.Button.SetTextColor(Color.White);
                         holder.Button.Text = ActivityContext.GetText(Resource.String.Btn_Join_Group);
-                        holder.Button.Tag = "false";
+                        holder.Button.Tag = "0";
                     }
                 }
             }
@@ -247,20 +259,18 @@ namespace WoWonder.Activities.Search.Adapters
             {
                 MainView = itemView;
 
-                Image = MainView.FindViewById<ImageView>(Resource.Id.Image);
+                Image = MainView.FindViewById<ImageView>(Resource.Id.card_pro_pic);
                 Name = MainView.FindViewById<TextView>(Resource.Id.card_name);
                 About = MainView.FindViewById<TextView>(Resource.Id.card_dist);
                 Button = MainView.FindViewById<Button>(Resource.Id.cont);
-                IconGroup = MainView.FindViewById<ImageView>(Resource.Id.Icon);
-                CircleView = MainView.FindViewById<View>(Resource.Id.image_view);
+                CivBg = MainView.FindViewById<CircleImageView>(Resource.Id.ImageLastseen);
+                SmallIcon = MainView.FindViewById<ImageView>(Resource.Id.smallIcon);
 
-                CircleView.SetBackgroundResource(Resource.Drawable.circlegradient2);
-                IconGroup.SetImageResource(Resource.Drawable.icon_social_group_vector);
                 //Event 
 
-                Button.Click += (sender, e) => joinButtonClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition , Button = Button });
-                itemView.Click += (sender, e) => clickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                Button.Click += (sender, e) => joinButtonClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition , Button = Button });
+                itemView.Click += (sender, e) => clickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new SearchGroupAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
 
             }
             catch (Exception e)
@@ -274,12 +284,12 @@ namespace WoWonder.Activities.Search.Adapters
         public View MainView { get; }
          
         public ImageView Image { get; private set; }
-        public View CircleView { get; private set; }
 
         public TextView Name { get; private set; }
         public TextView About { get; private set; }
         public Button Button { get; private set; }
-        public ImageView IconGroup { get; private set; }
+        public CircleImageView CivBg { get; private set; }
+        public ImageView SmallIcon { get; private set; }
 
         #endregion
     }

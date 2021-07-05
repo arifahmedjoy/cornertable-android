@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
 using Android.Widget;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Comment;
 using WoWonder.Activities.NativePost.Post;
@@ -60,7 +59,7 @@ namespace WoWonder.Activities.Movies
                 }
                 else
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -76,7 +75,7 @@ namespace WoWonder.Activities.Movies
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -115,7 +114,7 @@ namespace WoWonder.Activities.Movies
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -161,7 +160,7 @@ namespace WoWonder.Activities.Movies
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -223,11 +222,11 @@ namespace WoWonder.Activities.Movies
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == MainContext.GetString(Resource.String.Lbl_CopeText))
                 {
                     Methods.CopyToClipboard(MainContext, Methods.FunString.DecodeString(CommentObject.Text));
@@ -274,7 +273,7 @@ namespace WoWonder.Activities.Movies
                                         }
 
                                         if (!Methods.CheckConnectivity())
-                                            Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                                         else
                                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Movies.DeleteCommentAsync(CommentObject.MovieId, CommentObject.Id) });
                                         break;
@@ -297,14 +296,14 @@ namespace WoWonder.Activities.Movies
                                         }
 
                                         if (!Methods.CheckConnectivity())
-                                            Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                                         else
                                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Movies.DeleteCommentAsync(CommentObject.MovieId, CommentObject.Id, "reply_delete") });
                                         break;
                                     }
                                 }
 
-                                Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short);
                             }
                             catch (Exception e)
                             {

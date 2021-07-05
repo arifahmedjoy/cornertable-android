@@ -7,6 +7,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
+using Com.Adcolony.Sdk;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Utils;
@@ -40,14 +41,16 @@ namespace WoWonder.Activities.SettingsPreferences.General
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
-
-
                 }
+
                 SupportFragmentManager.BeginTransaction().Replace(Resource.Id.content_frame, new GeneralAccountPrefsFragment(this))?.Commit();
                 AdsGoogle.Ad_Interstitial(this);
 
                 LinearLayout adContainer = FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(this, adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(this, adContainer, null);
+                else
+                    AdsColony.InitBannerAd(this, adContainer, AdColonyAdSize.Banner, null);
             }
             catch (Exception e)
             {

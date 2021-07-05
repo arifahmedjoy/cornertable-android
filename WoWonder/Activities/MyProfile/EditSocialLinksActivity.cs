@@ -2,20 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Ads;
 using Android.Graphics;
-using Android.OS; 
-using Android.Text;
+using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
-using Java.Lang;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.MyProfile.Adapters;
 using WoWonder.Helpers.Ads;
@@ -29,7 +26,7 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace WoWonder.Activities.MyProfile
 {
     [Activity(Icon = "@mipmap/icon", Theme = "@style/MyTheme", ConfigurationChanges = ConfigChanges.Locale | ConfigChanges.UiMode | ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
-    public class EditSocialLinksActivity : BaseActivity, MaterialDialog.ISingleButtonCallback,MaterialDialog.IInputCallback
+    public class EditSocialLinksActivity : BaseActivity, SocialLinkDialog.IOnSocialClick
     {
         #region Variables Basic
 
@@ -263,6 +260,7 @@ namespace WoWonder.Activities.MyProfile
                 Methods.DisplayReportResultTrack(e);
             }
         }
+
         #endregion
 
         #region Events
@@ -276,16 +274,9 @@ namespace WoWonder.Activities.MyProfile
                 {
                     SocialItem = item;
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var socialDialog = new SocialLinkDialog(SocialItem, this);
+                    socialDialog.Show(SupportFragmentManager, "");
 
-                    dialog.Title(item.SocialName).TitleColorRes(Resource.Color.primary);
-                    dialog.Input(Resource.String.Lbl_Enter_your_link, 0, false, this);
-
-                    dialog.InputType(InputTypes.TextFlagImeMultiLine);
-                    dialog.PositiveText(GetText(Resource.String.Lbl_Save)).OnPositive(this);
-                    dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                    dialog.Build().Show();
-                    dialog.AlwaysCallSingleChoiceCallback();
                 }
             }
             catch (Exception exception)
@@ -295,104 +286,7 @@ namespace WoWonder.Activities.MyProfile
         }
 
         #endregion
-
-        #region MaterialDialog
          
-        public void OnInput(MaterialDialog p0, ICharSequence p1)
-        {
-            try
-            {
-                if (p1.Length() > 0)
-                {
-                    var strName = p1.ToString();
-
-                    if (Methods.CheckConnectivity())
-                    {
-                        var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
-                        if (SocialItem != null)
-                        {
-                            MAdapter.Update(SocialItem, strName);
-
-                            var dataPrivacy = new Dictionary<string, string>();
-
-                            switch (SocialItem.Id)
-                            {
-                                case 1:
-                                {
-                                    dataPrivacy.Add("facebook", strName);
-                                    if (dataUser != null) dataUser.Facebook = strName;
-                                    break;
-                                }
-                                case 2:
-                                {
-                                    dataPrivacy.Add("twitter", strName);
-                                    if (dataUser != null) dataUser.Twitter = strName;
-                                    break;
-                                }
-                                case 3:
-                                {
-                                    dataPrivacy.Add("google", strName);
-                                    if (dataUser != null) dataUser.Google = strName;
-                                    break;
-                                }
-                                case 4:
-                                {
-                                    dataPrivacy.Add("vk", strName);
-                                    if (dataUser != null) dataUser.Vk = strName;
-                                    break;
-                                }
-                                case 5:
-                                {
-                                    dataPrivacy.Add("linkedin", strName);
-                                    if (dataUser != null) dataUser.Linkedin = strName;
-                                    break;
-                                }
-                                case 6:
-                                {
-                                    dataPrivacy.Add("instagram", strName);
-                                    if (dataUser != null) dataUser.Instagram = strName;
-                                    break;
-                                }
-                                case 7:
-                                {
-                                    dataPrivacy.Add("youtube", strName);
-                                    if (dataUser != null) dataUser.Youtube = strName;
-                                    break;
-                                }
-                            }
-
-                            if (dataUser != null)
-                            {
-                                var sqLiteDatabase = new SqLiteDatabase();
-                                sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
-                                
-                            }
-
-                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) }); 
-                        }
-                    }
-                    else
-                    {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
-                    }
-                }
-                else
-                {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_The_name_can_not_be_blank), ToastLength.Short)?.Show();
-                }
-            }
-            catch (Exception ex)
-            {
-                Methods.DisplayReportResultTrack(ex);
-            }
-        }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-        }
-      
-        #endregion
-
         private void Get_Data_User()
         {
             try
@@ -466,6 +360,87 @@ namespace WoWonder.Activities.MyProfile
             {
                 Methods.DisplayReportResultTrack(e);
             }
-        } 
+        }
+         
+        public void OnSocialClick(string inputType)
+        {
+            try
+            {
+                if (Methods.CheckConnectivity())
+                {
+                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault();
+                    if (SocialItem != null)
+                    {
+                        MAdapter.Update(SocialItem, inputType);
+
+                        var dataPrivacy = new Dictionary<string, string>();
+
+                        switch (SocialItem.Id)
+                        {
+                            case 1:
+                                {
+                                    dataPrivacy.Add("facebook", inputType);
+                                    if (dataUser != null) dataUser.Facebook = inputType;
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    dataPrivacy.Add("twitter", inputType);
+                                    if (dataUser != null) dataUser.Twitter = inputType;
+                                    break;
+                                }
+                            case 3:
+                                {
+                                    dataPrivacy.Add("google", inputType);
+                                    if (dataUser != null) dataUser.Google = inputType;
+                                    break;
+                                }
+                            case 4:
+                                {
+                                    dataPrivacy.Add("vk", inputType);
+                                    if (dataUser != null) dataUser.Vk = inputType;
+                                    break;
+                                }
+                            case 5:
+                                {
+                                    dataPrivacy.Add("linkedin", inputType);
+                                    if (dataUser != null) dataUser.Linkedin = inputType;
+                                    break;
+                                }
+                            case 6:
+                                {
+                                    dataPrivacy.Add("instagram", inputType);
+                                    if (dataUser != null) dataUser.Instagram = inputType;
+                                    break;
+                                }
+                            case 7:
+                                {
+                                    dataPrivacy.Add("youtube", inputType);
+                                    if (dataUser != null) dataUser.Youtube = inputType;
+                                    break;
+                                }
+                        }
+
+                        if (dataUser != null)
+                        {
+                            var sqLiteDatabase = new SqLiteDatabase();
+                            sqLiteDatabase.Insert_Or_Update_To_MyProfileTable(dataUser);
+
+                        }
+
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy) });
+                    }
+                }
+                else
+                {
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
+                }
+            }
+            catch (Exception ex)
+            {
+                Methods.DisplayReportResultTrack(ex);
+            }
+        }
+
     }
 }

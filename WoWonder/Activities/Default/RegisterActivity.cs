@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -15,8 +15,8 @@ using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using AndroidX.AppCompat.Content.Res;
 using Com.EightbitLab.BlurViewBinding;
-using Java.Lang;
 using WoWonder.Activities.General;
 using WoWonder.Activities.Suggested.User;
 using WoWonder.Activities.Tabbes;
@@ -31,6 +31,7 @@ using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.User;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
+using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace WoWonder.Activities.Default
 {
@@ -39,17 +40,16 @@ namespace WoWonder.Activities.Default
     {
         #region Variables Basic
 
-        private ImageView ImageBack;
-        private RelativeLayout UsernameLayout, FirstNameLayout, LastNameLayout, EmailLayout, GenderLayout, PhoneNumLayout, PasswordLayout, ConfirmPasswordLayout;
-        private EditText TxtUsername, TxtFirstName, TxtLastName , TxtEmail, TxtGender, TxtPhoneNum, TxtPassword, TxtConfirmPassword;
-        private TextView TxtUsernameRequired, TxtFirstNameRequired, TxtLastNameRequired, TxtEmailRequired, TxtGenderRequired, TxtPhoneNumRequired, TxtPasswordRequired, TxtConfirmPasswordRequired;
+        private RelativeLayout UsernameLayout, FirstNameLayout, LastNameLayout, EmailLayout, BirthdayLayout, GenderLayout, PhoneNumLayout, PasswordLayout, ConfirmPasswordLayout;
+        private EditText TxtUsername, TxtFirstName, TxtLastName , TxtEmail, TxtBirthday, TxtGender, TxtPhoneNum, TxtPassword, TxtConfirmPassword;
+        private TextView TxtUsernameRequired, TxtFirstNameRequired, TxtLastNameRequired, TxtEmailRequired, TxtBirthdayRequired, TxtGenderRequired, TxtPhoneNumRequired, TxtPasswordRequired, TxtConfirmPasswordRequired;
         private LinearLayout PhoneLayout;
         private CheckBox ChkTermsOfUse;
         private TextView TxtTermsOfService;
         private Button BtnSignUp;
         private ProgressBar ProgressBar;
         private ImageView ImageShowPass, ImageShowConPass;
-        private string GenderStatus = "male";
+        private string GenderStatus = "male", Referral;
         private BlurView BlurView;
 
         #endregion
@@ -70,8 +70,11 @@ namespace WoWonder.Activities.Default
                 // Create your application here
                 SetContentView(Resource.Layout.Register_Layout);
 
+                Referral = Intent?.GetStringExtra("Referral") ?? "";
+
                 //Get Value  
                 InitComponent();
+                InitToolbar();
                 LoadConfigSettings();
 
                 if (string.IsNullOrEmpty(UserDetails.DeviceId))
@@ -151,14 +154,27 @@ namespace WoWonder.Activities.Default
 
         #endregion
          
+        #region Menu
+
+        public override bool OnOptionsItemSelected(IMenuItem item)
+        {
+            switch (item.ItemId)
+            {
+                case Android.Resource.Id.Home:
+                    Finish();
+                    return true;
+            }
+            return base.OnOptionsItemSelected(item);
+        }
+
+        #endregion
+         
         #region Functions
 
         private void InitComponent()
         {
             try
             {
-                ImageBack = FindViewById<ImageView>(Resource.Id.iv_back);
-
                 UsernameLayout = FindViewById<RelativeLayout>(Resource.Id.rl_username); 
                 TxtUsername = FindViewById<EditText>(Resource.Id.etUsername);
                 TxtUsernameRequired = FindViewById<TextView>(Resource.Id.tv_username_required);
@@ -183,6 +199,10 @@ namespace WoWonder.Activities.Default
                 TxtConfirmPassword = FindViewById<EditText>(Resource.Id.etConfirmPassword);
                 TxtConfirmPasswordRequired = FindViewById<TextView>(Resource.Id.tv_confirm_password_required);
 
+                BirthdayLayout = FindViewById<RelativeLayout>(Resource.Id.rl_birthday);
+                TxtBirthday = FindViewById<EditText>(Resource.Id.etBirthday);
+                TxtBirthdayRequired = FindViewById<TextView>(Resource.Id.tv_birthday_required);
+                
                 GenderLayout = FindViewById<RelativeLayout>(Resource.Id.rl_gender);
                 TxtGender = FindViewById<EditText>(Resource.Id.etGender);
                 TxtGenderRequired = FindViewById<TextView>(Resource.Id.tv_gender_required);
@@ -205,6 +225,7 @@ namespace WoWonder.Activities.Default
                 //BlurBackground(BlurView, 10f);
 
                 ToggleVisibility(false);
+                Methods.SetFocusable(TxtBirthday); 
                 Methods.SetFocusable(TxtGender); 
             }
             catch (Exception e)
@@ -212,7 +233,30 @@ namespace WoWonder.Activities.Default
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
+
+        private void InitToolbar()
+        {
+            try
+            {
+                var toolBar = FindViewById<Toolbar>(Resource.Id.toolbar);
+                if (toolBar != null)
+                {
+                    toolBar.Title = " ";
+                    toolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    SetSupportActionBar(toolBar);
+                    SupportActionBar.SetDisplayShowCustomEnabled(true);
+                    SupportActionBar.SetDisplayHomeAsUpEnabled(true);
+                    SupportActionBar.SetHomeButtonEnabled(true);
+                    SupportActionBar.SetDisplayShowHomeEnabled(true);
+                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -220,32 +264,34 @@ namespace WoWonder.Activities.Default
                 // true +=  // false -=
                 if (addEvent)
                 {
-                    ImageBack.Click += ImageBackOnClick;
                     BtnSignUp.Click += BtnSignUpOnClick;
                     ImageShowPass.Touch += ImageShowPassOnTouch;
                     ImageShowConPass.Touch += ImageShowConPassOnTouch;
+                    TxtBirthday.Touch += TxtBirthdayOnTouch;
                     TxtGender.Touch += TxtGenderOnTouch;
                     TxtTermsOfService.Click += TxtTermsOfServiceOnClick;
                     TxtUsername.TextChanged += TxtUsernameOnTextChanged;
                     TxtFirstName.TextChanged += TxtFirstNameOnTextChanged;
                     TxtLastName.TextChanged += TxtLastNameOnTextChanged;
                     TxtEmail.TextChanged += TxtEmailOnTextChanged;
+                    TxtBirthday.TextChanged += TxtBirthdayOnTextChanged;
                     TxtGender.TextChanged += TxtGenderOnTextChanged;
                     TxtPhoneNum.TextChanged += TxtPhoneNumOnTextChanged; 
                     TxtPassword.TextChanged += TxtPasswordOnTextChanged;  
                 }
                 else
                 {
-                    ImageBack.Click -= ImageBackOnClick;
                     BtnSignUp.Click -= BtnSignUpOnClick;
                     ImageShowPass.Touch -= ImageShowPassOnTouch;
                     ImageShowConPass.Touch -= ImageShowConPassOnTouch;
+                    TxtBirthday.Touch -= TxtBirthdayOnTouch;
                     TxtGender.Touch -= TxtGenderOnTouch;
                     TxtTermsOfService.Click -= TxtTermsOfServiceOnClick;
                     TxtUsername.TextChanged -= TxtUsernameOnTextChanged;
                     TxtFirstName.TextChanged -= TxtFirstNameOnTextChanged;
                     TxtLastName.TextChanged -= TxtLastNameOnTextChanged;
                     TxtEmail.TextChanged -= TxtEmailOnTextChanged;
+                    TxtBirthday.TextChanged -= TxtBirthdayOnTextChanged;
                     TxtGender.TextChanged -= TxtGenderOnTextChanged;
                     TxtPhoneNum.TextChanged -= TxtPhoneNumOnTextChanged;
                     TxtPassword.TextChanged -= TxtPasswordOnTextChanged;
@@ -256,7 +302,6 @@ namespace WoWonder.Activities.Default
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
 
         private void DestroyBasic()
         {
@@ -281,20 +326,7 @@ namespace WoWonder.Activities.Default
         #endregion
 
         #region Events
-
-        //Back
-        private void ImageBackOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                Finish();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+         
         //Show Con Password 
         private void ImageShowConPassOnTouch(object sender, View.TouchEventArgs e)
         {
@@ -394,6 +426,14 @@ namespace WoWonder.Activities.Default
                 else
                     SetHighLight(false, EmailLayout, TxtEmail, TxtEmailRequired);
                  
+                if (string.IsNullOrEmpty(TxtBirthday.Text))
+                {
+                    SetHighLight(true, BirthdayLayout, TxtBirthday, TxtBirthdayRequired);
+                    return;
+                }
+                else
+                    SetHighLight(false, BirthdayLayout, TxtBirthday, TxtBirthdayRequired);
+                
                 if (string.IsNullOrEmpty(GenderStatus))
                 {
                     SetHighLight(true, GenderLayout, TxtGender, TxtGenderRequired);
@@ -401,8 +441,7 @@ namespace WoWonder.Activities.Default
                 }
                 else
                     SetHighLight(false, GenderLayout, TxtGender, TxtGenderRequired);
-
-
+                 
                 if (string.IsNullOrEmpty(TxtPassword.Text))
                 {
                     SetHighLight(true, PasswordLayout, TxtPassword, TxtPasswordRequired);
@@ -445,12 +484,13 @@ namespace WoWonder.Activities.Default
 
                 ToggleVisibility(true);
 
-                var (apiStatus, respond) = await RequestsAsync.Auth.CreateAccountAsync(TxtUsername.Text.Replace(" ", ""), TxtPassword.Text, TxtConfirmPassword.Text, TxtEmail.Text.Replace(" ", ""), GenderStatus, TxtPhoneNum.Text, UserDetails.DeviceId, UserDetails.DeviceMsgId);
+                var (apiStatus, respond) = await RequestsAsync.Auth.CreateAccountAsync(TxtUsername.Text.Replace(" ", ""), TxtPassword.Text, TxtConfirmPassword.Text, TxtEmail.Text.Replace(" ", ""), GenderStatus, TxtPhoneNum.Text, Referral, UserDetails.DeviceId, UserDetails.DeviceMsgId);
                 if (apiStatus == 200 && respond is CreatAccountObject result)
                 {
                     SetDataLogin(result);
 
-                    var dataPrivacy = new Dictionary<string, string> {{"first_name", TxtFirstName.Text}, {"last_name", TxtLastName.Text},};
+                    var dataPrivacy = new Dictionary<string, string> {{"first_name", TxtFirstName.Text}, {"last_name", TxtLastName.Text}, { "birthday", TxtBirthday.Text },
+                        {"e_memory", "1"}, {"e_profile_wall_post", "1"}, {"e_accepted", "1"}, {"e_joined_group", "1"}, {"e_mentioned", "1"}, {"e_visited", "1"}, {"e_liked_page", "1"}, {"e_followed", "1"}, {"e_shared", "1"}, {"e_commented","1"}, {"e_liked", "1"},};
                     PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() => RequestsAsync.Global.UpdateUserDataAsync(dataPrivacy)});
 
                     if (AppSettings.ShowWalkTroutPage)
@@ -524,7 +564,7 @@ namespace WoWonder.Activities.Default
                         }
                         else if (smsOrEmail == "mail")
                         {
-                            var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                            var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                             dialog.Title(GetText(Resource.String.Lbl_ActivationSent)).TitleColorRes(Resource.Color.primary);
                             dialog.Content(GetText(Resource.String.Lbl_ActivationDetails).Replace("@", TxtEmail.Text));
                             dialog.PositiveText(GetText(Resource.String.Lbl_Ok)).OnPositive(new WoWonderTools.MyMaterialDialog());
@@ -600,8 +640,47 @@ namespace WoWonder.Activities.Default
         {
             try
             {
-                var url = Client.WebsiteUrl + "/terms/terms";
+                var url = InitializeWoWonder.WebsiteUrl + "/terms/terms";
                 new IntentController(this).OpenBrowserFromApp(url);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
+        private void TxtBirthdayOnTouch(object sender, View.TouchEventArgs e)
+        {
+            try
+            {
+                if (e?.Event?.Action != MotionEventActions.Down) return;
+
+                var frag = PopupDialogController.DatePickerFragment.NewInstance(delegate (DateTime time)
+                {
+                    try
+                    {
+                        if (AppSettings.IsUserYearsOld) // 18
+                        {
+                            if (!Methods.Time.HasAgeRequirement(time.Date)) // over 18 years
+                            {
+                                TxtBirthday.Text = time.Date.ToString("dd-MM-yyyy");
+                            }
+                            else
+                            {
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Error_IsUserYearsOld), ToastLength.Short);
+                            }
+                        }
+                        else //All
+                        {
+                            TxtBirthday.Text = time.Date.ToString("dd-MM-yyyy");
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        Methods.DisplayReportResultTrack(exception);
+                    }
+                });
+                frag.Show(SupportFragmentManager, PopupDialogController.DatePickerFragment.Tag);
             }
             catch (Exception exception)
             {
@@ -616,7 +695,7 @@ namespace WoWonder.Activities.Default
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
@@ -668,6 +747,20 @@ namespace WoWonder.Activities.Default
             }
         }
 
+
+        private void TxtBirthdayOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TxtBirthday.Text.Length > 0)
+                    SetHighLight(false, BirthdayLayout, TxtBirthday, TxtBirthdayRequired);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
         private void TxtGenderOnTextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -737,7 +830,7 @@ namespace WoWonder.Activities.Default
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
@@ -745,20 +838,20 @@ namespace WoWonder.Activities.Default
                 {
                     case > 0:
                     {
-                        TxtGender.Text = itemString.ToString();
+                        TxtGender.Text = itemString;
 
-                        var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString.ToString()).Key;
+                        var key = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Value == itemString).Key;
                         GenderStatus = key ?? "male";
                         break;
                     }
                     default:
                     {
-                        if (itemString.ToString() == GetText(Resource.String.Radio_Male))
+                        if (itemString == GetText(Resource.String.Radio_Male))
                         {
                             TxtGender.Text = GetText(Resource.String.Radio_Male);
                             GenderStatus = "male";
                         }
-                        else if (itemString.ToString() == GetText(Resource.String.Radio_Female))
+                        else if (itemString == GetText(Resource.String.Radio_Female))
                         {
                             TxtGender.Text = GetText(Resource.String.Radio_Female);
                             GenderStatus = "female";

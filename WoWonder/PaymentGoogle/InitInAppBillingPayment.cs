@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Android.App;
 using Android.Widget;
+using InAppBilling.Lib;
 using WoWonder.Helpers.Utils;
-using WoWonderClient.InAppBilling;
 
 namespace WoWonder.PaymentGoogle
 {
@@ -22,7 +22,7 @@ namespace WoWonder.PaymentGoogle
             {
                 ActivityContext = activity;
 
-                if (!BillingProcessor.IsIabServiceAvailable(activity))
+                if (!BillingProcessor.IsIabServiceAvailable(activity,AppSettings.TripleDesAppServiceProvider))
                 {
                     Console.WriteLine("In-app billing service is unavailable, please upgrade Android Market/Play to version >= 3.9.16");
                     return;
@@ -45,7 +45,7 @@ namespace WoWonder.PaymentGoogle
                 switch (Handler)
                 {
                     case null:
-                        Handler = new BillingProcessor(ActivityContext, InAppBillingGoogle.ProductId, this);
+                        Handler = new BillingProcessor(ActivityContext, InAppBillingGoogle.ProductId, AppSettings.TripleDesAppServiceProvider, this);
                         Handler.Initialize();
                         break;
                 }
@@ -194,12 +194,12 @@ namespace WoWonder.PaymentGoogle
                 {
                     //Something else has gone wrong, log it
                     Console.WriteLine("Issue connecting: " + ex);
-                    Toast.MakeText(ActivityContext, "Issue connecting: " + ex, ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(ActivityContext, "Issue connecting: " + ex, ToastLength.Long);
                 }
             }
             else
             {
-                Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
             }
         }
 

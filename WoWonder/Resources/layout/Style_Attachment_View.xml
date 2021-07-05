@@ -2,15 +2,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:layout_width="130dp"
-    android:layout_height="145dp"
+    android:layout_width="140dp"
+    android:layout_height="140dp"
     android:gravity="center">
     <RelativeLayout
         android:id="@+id/ImageLayout"
-        android:layout_width="125dp"
-        android:layout_height="140dp"
-        android:gravity="center">
-        <ImageView
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:layout_alignParentBottom="true">
+        <com.makeramen.roundedimageview.RoundedImageView
             android:id="@+id/Image"
             android:scaleType="centerCrop"
             android:layout_width="120dp"
@@ -19,35 +19,25 @@
             android:clickable="false"
             android:gravity="center"
             android:src="@drawable/Grey_Offline"
-            android:layout_centerVertical="false" />
+            android:layout_centerVertical="false"
+            app:riv_corner_radius="4dp"/>
+        <ImageView
+            android:id="@+id/AttachType"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/ic_file_video"
+            android:layout_alignWithParentIfMissing="false"
+            android:visibility="invisible"
+            android:layout_centerInParent="true" />
     </RelativeLayout>
     <at.markushi.ui.CircleButton
         android:id="@+id/ImageCircle"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        app:cb_pressedRingWidth="2dip"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:tint="@color/gnt_white"
         android:src="@drawable/icon_close_vector"
-        android:layout_alignTop="@id/Image"
-        android:layout_marginBottom="2dp"
         android:layout_alignParentEnd="true"
-		android:padding="7dp"
-        app:cb_color="#ff7043"
-        android:layout_marginEnd="0dp"
-        android:layout_alignWithParentIfMissing="false" />
-    <ImageView
-        android:id="@+id/AttachType"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        app:civ_border_width="4dp"
-        app:civ_border_color="@color/textLight_color"
-        android:layout_alignTop="@id/Image"
-        android:layout_marginBottom="2dp"
-        android:src="@drawable/ic_file_video"
-        app:civ_border_overlay="false"
-        android:layout_marginEnd="10dp"
-        android:layout_alignWithParentIfMissing="false"
-        android:tint="@color/textLight_color"
-        android:visibility="invisible"
-        android:layout_centerInParent="true" />
+        android:layout_marginEnd="5dp"
+		android:padding="9dp"
+        app:cb_color="#FF2A00" />
 </RelativeLayout>

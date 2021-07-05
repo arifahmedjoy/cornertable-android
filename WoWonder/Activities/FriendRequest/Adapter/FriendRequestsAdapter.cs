@@ -215,11 +215,11 @@ namespace WoWonder.Activities.FriendRequest.Adapter
                 DeleteButton = MainView.FindViewById<CircleButton>(Resource.Id.delete_button);
 
                 //Event
-                AddButton.Click += (sender, e) => addButtonClickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                DeleteButton.Click += (sender, e) => deleteButtonClickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                AddButton.Click += (sender, e) => addButtonClickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                DeleteButton.Click += (sender, e) => deleteButtonClickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
-                //itemView.Click += (sender, e) => clickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                //itemView.LongClick += (sender, e) => longClickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                //itemView.Click += (sender, e) => clickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                //itemView.LongClick += (sender, e) => longClickListener(new FriendRequestsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
                 Console.WriteLine(clickListener);
                 Console.WriteLine(longClickListener);
                 

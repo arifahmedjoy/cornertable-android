@@ -13,6 +13,7 @@ using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using Bumptech.Glide.Request.Target;
 using Bumptech.Glide.Request.Transition;
+using ImageViews.Rounded;
 using Java.IO;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Utils;
@@ -78,9 +79,21 @@ namespace WoWonder.Activities.AddPost.Adapters
                                     break;
                                 default:
                                 {
-                                    if (item.FileSimple.Contains("http") || item.FileSimple == "Image_File" || item.FileSimple == "Audio_File")
+                                    if (item.FileSimple.Contains("http"))
                                     {
                                         GlideImageLoader.LoadImage(ActivityContext, item.FileSimple, holder.Image, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
+                                    }
+                                    else if (item.FileSimple == "Image_File")
+                                    {
+                                        holder.Image.SetImageResource(Resource.Drawable.ic_preview_file);
+                                    }
+                                    else if (item.FileSimple == "Audio_File")
+                                    {
+                                        holder.Image.SetImageResource(Resource.Drawable.ic_preview_music);
+                                    }
+                                    else if (item.FileSimple == "Record_File")
+                                    {
+                                        holder.Image.SetImageResource(Resource.Drawable.ic_preview_record);
                                     }
                                     else
                                     {
@@ -109,19 +122,34 @@ namespace WoWonder.Activities.AddPost.Adapters
                                 }
                             }
 
-                            switch (item.TypeAttachment)
+                            if (item.TypeAttachment == "postPhotos[]")
                             {
-                                case "postVideo":
-                                    holder.AttachType.Visibility = ViewStates.Visible;
-                                    break;
-                                case "postPhotos":
-                                case "postMusic":
-                                case "postFile":
-                                    holder.AttachType.Visibility = ViewStates.Gone;
-                                    break;
-                                case "Default":
-                                    holder.ImageDelete.Visibility = ViewStates.Invisible;
-                                    break;
+                                if (item.FileSimple.Contains("gif"))
+                                {
+                                    holder.AttachType.SetImageResource(Resource.Drawable.ic_post_gif);
+                                }
+                                else
+                                {
+                                    holder.AttachType.SetImageResource(Resource.Drawable.icon_crop);
+                                }
+                               
+                                holder.AttachType.Visibility = ViewStates.Visible;
+                                holder.AttachType.Enabled = false;
+                            }
+                            else if (item.TypeAttachment == "video")
+                            {
+                                holder.AttachType.SetImageResource(Resource.Drawable.ic_file_video);
+                                holder.AttachType.Visibility = ViewStates.Visible;
+                                holder.AttachType.Enabled = false;
+                            }
+                            else if (item.TypeAttachment == "Default")
+                            {
+                                holder.ImageDelete.Visibility = ViewStates.Invisible;
+                                holder.AttachType.Visibility = ViewStates.Gone;
+                            }
+                            else
+                            {
+                                holder.AttachType.Visibility = ViewStates.Gone;
                             }
                         }
 
@@ -345,7 +373,7 @@ namespace WoWonder.Activities.AddPost.Adapters
         public View MainView { get; set; }
          
         public ImageView AttachType { get; private set; }
-        public ImageView Image { get; private set; }
+        public RoundedImageView Image { get; private set; }
         public CircleButton ImageDelete { get; private set; }
 
         #endregion
@@ -358,14 +386,14 @@ namespace WoWonder.Activities.AddPost.Adapters
 
                 //Get values         
                 AttachType = (ImageView) MainView.FindViewById(Resource.Id.AttachType);
-                Image = (ImageView) MainView.FindViewById(Resource.Id.Image);
+                Image = (RoundedImageView) MainView.FindViewById(Resource.Id.Image);
 
                 ImageDelete = MainView.FindViewById<CircleButton>(Resource.Id.ImageCircle);
 
                 //Create an Event
-                ImageDelete.Click += (sender, e) => clickDeleteListener(new AttachmentsAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.Click += (sender, e) => clickListener(new AttachmentsAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new AttachmentsAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                ImageDelete.Click += (sender, e) => clickDeleteListener(new AttachmentsAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new AttachmentsAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new AttachmentsAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

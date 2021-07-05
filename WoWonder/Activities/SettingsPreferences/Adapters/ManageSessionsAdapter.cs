@@ -7,7 +7,6 @@ using Android.Views;
 using Android.Widget;
 using AT.Markushi.UI;
 using WoWonderClient.Classes.Global;
-using AmulyaKhare.TextDrawableLib;
 using AndroidX.RecyclerView.Widget;
 using WoWonder.Helpers.Utils;
 
@@ -83,8 +82,9 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
 
                             if (item.Browser != null)
                             {
-                                var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(35).EndConfig().BuildRound(item.Browser.Substring(0, 1), Color.ParseColor(AppSettings.MainColor));
-                                holder.Image.SetImageDrawable(drawable);
+                                //var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(35).EndConfig().BuildRound(item.Browser.Substring(0, 1), Color.ParseColor(AppSettings.MainColor));
+                                //holder.Image.SetImageDrawable(drawable);
+                                holder.TextImage.Text = item.Browser.Substring(0, 1);
                             }
                         }
 
@@ -153,17 +153,22 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
             {
                 MainView = itemView;
 
-                Image = MainView.FindViewById<ImageView>(Resource.Id.card_pro_pic);
+                TextImage = MainView.FindViewById<TextView>(Resource.Id.card_pro_pic);
                 Platform = MainView.FindViewById<TextView>(Resource.Id.card_name);
                 Browser = MainView.FindViewById<TextView>(Resource.Id.card_Browser);
                 Seen = MainView.FindViewById<TextView>(Resource.Id.card_Seen);
                 Address = MainView.FindViewById<TextView>(Resource.Id.card_Address);
                 Button = MainView.FindViewById<CircleButton>(Resource.Id.ImageCircle);
 
+                Platform.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#25396F"));
+                Browser.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#7D8DB5"));
+                Seen.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#7D8DB5"));
+                Address.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#efefef") : Color.ParseColor("#7D8DB5"));
+                 
                 //Event  
-                Button.Click += (sender, e) => closeClickListener(new ManageSessionsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new ManageSessionsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new ManageSessionsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                Button.Click += (sender, e) => closeClickListener(new ManageSessionsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new ManageSessionsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new ManageSessionsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
             }
             catch (Exception e)
@@ -176,7 +181,7 @@ namespace WoWonder.Activities.SettingsPreferences.Adapters
 
         public View MainView { get; }
 
-        public ImageView Image { get; private set; }
+        public TextView TextImage { get; private set; }
         public TextView Platform { get; private set; }
         public TextView Browser { get; private set; }
         public TextView Seen { get; private set; }

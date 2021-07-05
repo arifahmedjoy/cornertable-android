@@ -1,10 +1,9 @@
 ﻿using System;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Gms.Ads.DoubleClick;
 using Android.Graphics;
 using Android.OS; 
 using Android.Views;
@@ -16,17 +15,15 @@ using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using TheArtOfDev.Edmodo.Cropper;
 using Java.IO;
-using Java.Lang;
 using WoWonder.Activities.Base;
-using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Funding;
 using WoWonderClient.Requests;
 using Exception = System.Exception;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 using Uri = Android.Net.Uri;
+using ImageViews.Rounded;
 
 namespace WoWonder.Activities.Fundings
 {
@@ -35,12 +32,11 @@ namespace WoWonder.Activities.Fundings
     {
         #region Variables Basic
 
-        private TextView TxtAdd, IconTitle, IconAmount, IconDescription;
-        private ImageView ImgCover;
-        private Button BtnSelectImage;
+        private ImageView ImgUploadPhoto;
+        private RoundedImageView ImgCover;
+        private Button BtnCreateFunding;
         private EditText TxtTitle, TxtAmount, TxtDescription;
         private string PathImage;
-        private PublisherAdView PublisherAdView;
 
         #endregion
 
@@ -74,7 +70,6 @@ namespace WoWonder.Activities.Fundings
             {
                 base.OnResume();
                 AddOrRemoveEvent(true);
-                PublisherAdView?.Resume();
             }
             catch (Exception e)
             {
@@ -88,7 +83,6 @@ namespace WoWonder.Activities.Fundings
             {
                 base.OnPause();
                 AddOrRemoveEvent(false);
-                PublisherAdView?.Pause();
             }
             catch (Exception e)
             {
@@ -157,25 +151,16 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                TxtAdd = FindViewById<TextView>(Resource.Id.toolbar_title);
-                ImgCover = FindViewById<ImageView>(Resource.Id.fundingCover);
-                BtnSelectImage = FindViewById<Button>(Resource.Id.btn_selectimage);
+                ImgCover = FindViewById<RoundedImageView>(Resource.Id.fundingCover);
+                ImgUploadPhoto = FindViewById<ImageView>(Resource.Id.btn_selectimage);
 
-                IconTitle = FindViewById<TextView>(Resource.Id.IconTitle); 
                 TxtTitle = FindViewById<EditText>(Resource.Id.TitleEditText);
 
-                IconAmount = FindViewById<TextView>(Resource.Id.IconAmount);
                 TxtAmount = FindViewById<EditText>(Resource.Id.AmountEditText);
 
-                IconDescription = FindViewById<TextView>(Resource.Id.IconDescription);
                 TxtDescription  = FindViewById<EditText>(Resource.Id.DescriptionEditText);
 
-                TxtAdd.Text = GetText(Resource.String.Lbl_Submit);
-                TxtAdd.SetTextColor(Color.White);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconTitle, FontAwesomeIcon.User);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconAmount, FontAwesomeIcon.MoneyBillWave);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconDescription, FontAwesomeIcon.AudioDescription);
+                BtnCreateFunding = FindViewById<Button>(Resource.Id.btnCreateFunding);
 
                 Methods.SetColorEditText(TxtTitle, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                 Methods.SetColorEditText(TxtAmount, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
@@ -183,8 +168,6 @@ namespace WoWonder.Activities.Fundings
 
                 //Methods.SetFocusable(TxtAmount);
 
-                PublisherAdView = FindViewById<PublisherAdView>(Resource.Id.multiple_ad_sizes_view); 
-                AdsGoogle.InitPublisherAdView(PublisherAdView);
             }
             catch (Exception e)
             {
@@ -226,13 +209,13 @@ namespace WoWonder.Activities.Fundings
                 {
                     // true +=  // false -=
                     case true:
-                        TxtAdd.Click += TxtAddOnClick;
-                        BtnSelectImage.Click += BtnSelectImageOnClick;
+                        BtnCreateFunding.Click += TxtAddOnClick;
+                        ImgUploadPhoto.Click += BtnSelectImageOnClick;
                         //TxtAmount.Touch += TxtAmountOnTouch;
                         break;
                     default:
-                        TxtAdd.Click -= TxtAddOnClick;
-                        BtnSelectImage.Click -= BtnSelectImageOnClick;
+                        BtnCreateFunding.Click -= TxtAddOnClick;
+                        ImgUploadPhoto.Click -= BtnSelectImageOnClick;
                         //TxtAmount.Touch -= TxtAmountOnTouch;
                         break;
                 }
@@ -246,20 +229,14 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                PublisherAdView?.Destroy();
-
-                TxtAdd = null!;
+                BtnCreateFunding = null!;
                 ImgCover = null!;
-                BtnSelectImage = null!;
-                IconTitle= null!;
+                ImgUploadPhoto = null!;
                 TxtTitle = null!;
-                IconAmount= null!;
                 TxtAmount = null!;
-                IconDescription= null!;
                 TxtDescription = null!;
                 PathImage = null!;
 
-                PublisherAdView = null!;
             }
             catch (Exception e)
             {
@@ -290,7 +267,7 @@ namespace WoWonder.Activities.Fundings
         //    {
         //        if (e?.Event?.Action != MotionEventActions.Down) return;
 
-        //        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+        //        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
         //        var arrayAdapter = new List<string> { "5","10","15","20","25","30","35","40","45","50","55","60","65","70","75","80","85","90","95","100" };
 
@@ -313,31 +290,31 @@ namespace WoWonder.Activities.Fundings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(TxtTitle.Text) || string.IsNullOrWhiteSpace(TxtTitle.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(TxtAmount.Text) || string.IsNullOrWhiteSpace(TxtAmount.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_amount), ToastLength.Short);
                         return;
                     }
     
                     if (string.IsNullOrEmpty(TxtDescription.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_Description), ToastLength.Short);
                         return;
                     }
 
                     if (string.IsNullOrEmpty(PathImage))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                         return;
                     }
 
@@ -354,7 +331,7 @@ namespace WoWonder.Activities.Fundings
                                 case CreateFundingObject result:
                                 {
                                     AndHUD.Shared.Dismiss(this);
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short);
 
                                     //Add new item to list
                                     if (result.Data?.FundData != null)
@@ -435,7 +412,7 @@ namespace WoWonder.Activities.Fundings
                                                 break;
                                             }
                                             default:
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                                 break;
                                         }
 
@@ -470,7 +447,7 @@ namespace WoWonder.Activities.Fundings
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -486,6 +463,12 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher
@@ -538,11 +521,11 @@ namespace WoWonder.Activities.Fundings
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                TxtAmount.Text = itemString.ToString(); 
+                TxtAmount.Text = itemString; 
             }
             catch (Exception e)
             {

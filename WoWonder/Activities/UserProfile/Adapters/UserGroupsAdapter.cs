@@ -9,7 +9,7 @@ using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using Java.IO;
-using Java.Util; 
+using Java.Util;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -196,8 +196,8 @@ namespace WoWonder.Activities.UserProfile.Adapters
                 Image = MainView.FindViewById<ImageView>(Resource.Id.ImageGroup);
                 Name = MainView.FindViewById<TextView>(Resource.Id.Group_titile);
 
-                itemView.Click += (sender, e) => clickListener(new UserGroupsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new UserGroupsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new UserGroupsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new UserGroupsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

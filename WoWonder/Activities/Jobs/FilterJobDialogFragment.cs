@@ -1,33 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
 using Android.Content;
+using Android.Graphics;
 using Android.OS;
-
+using Android.Util;
 using Android.Views;
 using Android.Widget;
+using Google.Android.Flexbox;
 using Google.Android.Material.BottomSheet;
-using Java.Lang;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using Exception = System.Exception;
 
 namespace WoWonder.Activities.Jobs
 {
-    public class FilterJobDialogFragment : BottomSheetDialogFragment, SeekBar.IOnSeekBarChangeListener, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
+    public class FilterJobDialogFragment : BottomSheetDialogFragment, SeekBar.IOnSeekBarChangeListener, IDialogInterfaceOnShowListener
     {
         #region Variables Basic
 
         private JobsActivity ContextJobs;
+        private ImageButton CloseButton;
         private Button BtnApply;
-        private TextView IconBack, IconDistance, IconJobType, TxtJobType, JobTypeMoreIcon, IconCategories, TxtCategories, CategoriesMoreIcon, TxtDistanceCount;
+        private Button BtnJobType1, BtnJobType2, BtnJobType3, BtnJobType4, BtnJobType5;
+        private FlexboxLayout CategoryLayout;
+        private TextView TxtDistanceCount, Clearbutton;
         private SeekBar DistanceBar;                                                     
-        private RelativeLayout LayoutJobType, LayoutCategories;                          
         private int DistanceCount;
-        private string JobType, CategoryId, TypeDialog = "";
+        private string JobType, Category, CategoryId;
+        private Button BtnPrev;
 
         #endregion
 
@@ -67,10 +68,17 @@ namespace WoWonder.Activities.Jobs
 
                 InitComponent(view);
 
-                LayoutJobType.Click += LayoutJobTypeOnClick;
-                LayoutCategories.Click += LayoutCategoriesOnClick;
-                IconBack.Click += IconBackOnClick;
+                Dialog.SetOnShowListener(this);
+
+                Clearbutton.Click += ClearbuttonOnClick;
+                CloseButton.Click += IconBackOnClick;
                 BtnApply.Click += BtnApplyOnClick;
+
+                BtnJobType1.Click += BtnJobType1_Click;
+                BtnJobType2.Click += BtnJobType2_Click;
+                BtnJobType3.Click += BtnJobType3_Click;
+                BtnJobType4.Click += BtnJobType4_Click;
+                BtnJobType5.Click += BtnJobType5_Click; 
             }
             catch (Exception exception)
             {
@@ -99,34 +107,17 @@ namespace WoWonder.Activities.Jobs
         {
             try
             {
-                IconBack = view.FindViewById<TextView>(Resource.Id.IconBack);
-
-                IconDistance = view.FindViewById<TextView>(Resource.Id.IconDistance);
                 TxtDistanceCount = view.FindViewById<TextView>(Resource.Id.Distancenumber);
-
-                LayoutJobType = view.FindViewById<RelativeLayout>(Resource.Id.LayoutJobType);
-                LayoutCategories = view.FindViewById<RelativeLayout>(Resource.Id.LayoutCategories);
 
                 DistanceBar = view.FindViewById<SeekBar>(Resource.Id.distanceSeeker);
                 DistanceBar.Max = 300;
                 DistanceBar.SetOnSeekBarChangeListener(this);
-                 
-                IconJobType = view.FindViewById<TextView>(Resource.Id.IconJobType);
-                TxtJobType = view.FindViewById<TextView>(Resource.Id.textJobType);
-                JobTypeMoreIcon = view.FindViewById<TextView>(Resource.Id.JobTypeMoreIcon);
-               
-                IconCategories = view.FindViewById<TextView>(Resource.Id.IconCategories);
-                TxtCategories = view.FindViewById<TextView>(Resource.Id.textCategories);
-                CategoriesMoreIcon = view.FindViewById<TextView>(Resource.Id.CategoriesMoreIcon);
-                 
-                BtnApply = view.FindViewById<Button>(Resource.Id.ApplyButton);
-                 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconDistance, FontAwesomeIcon.StreetView);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconBack, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropright : IonIconsFonts.IosArrowDropleft);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeBrands, IconCategories, FontAwesomeIcon.Buromobelexperte);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, IconJobType, FontAwesomeIcon.Briefcase);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, JobTypeMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, CategoriesMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
+
+                Clearbutton = view.FindViewById<TextView>(Resource.Id.Clearbutton);
+                BtnApply = view.FindViewById<Button>(Resource.Id.ShowResultbutton);
+
+                //
+                CloseButton = view.FindViewById<ImageButton>(Resource.Id.ib_back);
 
                 switch (Build.VERSION.SdkInt)
                 {
@@ -138,6 +129,17 @@ namespace WoWonder.Activities.Jobs
                         DistanceBar.Progress = string.IsNullOrEmpty(UserDetails.FilterJobLocation) ? 300 : Convert.ToInt32(UserDetails.FilterJobLocation);
                         break;
                 }
+
+                // Job type
+                BtnJobType1 = view.FindViewById<Button>(Resource.Id.btn_job_fulltime);
+                BtnJobType2 = view.FindViewById<Button>(Resource.Id.btn_job_parttime);
+                BtnJobType3 = view.FindViewById<Button>(Resource.Id.btn_job_intern);
+                BtnJobType4 = view.FindViewById<Button>(Resource.Id.btn_job_contract);
+                BtnJobType5 = view.FindViewById<Button>(Resource.Id.btn_job_volunteer);
+
+                // Categories
+                CategoryLayout = view.FindViewById<FlexboxLayout>(Resource.Id.categoryLayout);
+                CreateCategoryButtons();
             }
             catch (Exception e)
             {
@@ -148,6 +150,46 @@ namespace WoWonder.Activities.Jobs
         #endregion
 
         #region Event
+
+        private void ClearbuttonOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                UserDetails.FilterJobType = "";
+                UserDetails.FilterJobLocation = "";
+                UserDetails.FilterJobCategories = "";
+
+                JobType = "";
+                DistanceCount = 0;
+                CategoryId = "";
+
+                if (BtnPrev != null)
+                {
+                    BtnPrev.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnPrev.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+                }
+                 
+                BtnJobType1.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                BtnJobType1.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                BtnJobType2.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                BtnJobType2.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                BtnJobType3.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                BtnJobType3.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                BtnJobType5.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                BtnJobType5.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+                 
+                BtnJobType4.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                BtnJobType4.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        }
 
         //Back
         private void IconBackOnClick(object sender, EventArgs e)
@@ -173,7 +215,9 @@ namespace WoWonder.Activities.Jobs
 
                 ContextJobs.MAdapter.JobList.Clear();
                 ContextJobs.MAdapter.NotifyDataSetChanged();
+
                 ContextJobs.SwipeRefreshLayout.Refreshing = true;
+                ContextJobs.MainScrollEvent.IsLoading = false;
 
                 ContextJobs.StartApiService();
 
@@ -185,125 +229,9 @@ namespace WoWonder.Activities.Jobs
             }
         }
            
-        //Categories
-        private void LayoutCategoriesOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                switch (CategoriesController.ListCategoriesJob.Count)
-                {
-                    case > 0:
-                    {
-                        TypeDialog = "Categories";
-
-                        var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                        var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
-
-                        dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
-                        dialogList.Items(arrayAdapter);
-                        dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                        dialogList.AlwaysCallSingleChoiceCallback();
-                        dialogList.ItemsCallback(this).Build().Show();
-                        break;
-                    }
-                    default:
-                        Methods.DisplayReportResult(Activity, "Not have List Categories Job");
-                        break;
-                }
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        //JobType
-        private void LayoutJobTypeOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                TypeDialog = "JobType";
-
-                var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                arrayAdapter.Add(GetText(Resource.String.Lbl_full_time));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_part_time));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_internship));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_volunteer));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_contract)); 
-
-                dialogList.Title(GetText(Resource.String.Lbl_JobType)).TitleColorRes(Resource.Color.primary);
-                dialogList.Items(arrayAdapter);
-                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                dialogList.AlwaysCallSingleChoiceCallback();
-                dialogList.ItemsCallback(this).Build().Show();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        } 
-
         #endregion
          
         #region MaterialDialog
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
-        {
-            try
-            {
-                string text = itemString.ToString();
-
-                switch (TypeDialog)
-                {
-                    case "Categories":
-                        CategoryId = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
-                        TxtCategories.Text = itemString.ToString();
-                        break;
-                    case "JobType":
-                    {
-                        TxtJobType.Text = text;
-
-                        if (text == GetText(Resource.String.Lbl_full_time))
-                            JobType = "full_time";
-                        else if (text == GetText(Resource.String.Lbl_part_time))
-                            JobType = "part_time";
-                        else if (text == GetText(Resource.String.Lbl_internship))
-                            JobType = "internship";
-                        else if (text == GetText(Resource.String.Lbl_volunteer))
-                            JobType = "volunteer";
-                        else if (text == GetText(Resource.String.Lbl_contract))
-                            JobType = "contract";
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
-        public void OnClick(MaterialDialog p0, DialogAction p1)
-        {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        }
-
 
         #endregion
 
@@ -340,5 +268,228 @@ namespace WoWonder.Activities.Jobs
 
         #endregion
 
+        private void SetJobType()
+        {
+            try
+            {
+                switch (JobType)
+                {
+                    case "full_time":
+                        BtnJobType1.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                        BtnJobType1.SetTextColor(Color.ParseColor("#ffffff"));
+
+                        BtnJobType2.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType2.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType3.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType3.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType4.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType4.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType5.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType5.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        JobType = "full_time";
+                        break;
+                    case "part_time":
+                        BtnJobType2.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                        BtnJobType2.SetTextColor(Color.ParseColor("#ffffff"));
+
+                        BtnJobType1.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType1.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType3.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType3.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType4.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType4.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType5.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType5.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        JobType = "part_time";
+                        break;
+                    case "internship":
+                        BtnJobType3.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                        BtnJobType3.SetTextColor(Color.ParseColor("#ffffff"));
+
+                        BtnJobType1.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType1.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType2.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType2.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType4.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType4.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType5.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType5.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        JobType = "internship";
+                        break;
+                    case "volunteer":
+                        BtnJobType5.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                        BtnJobType5.SetTextColor(Color.ParseColor("#ffffff"));
+
+                        BtnJobType1.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType1.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType2.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType2.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType3.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType3.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType4.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType4.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        JobType = "volunteer";
+                        break;
+                    case "contract":
+                        BtnJobType4.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                        BtnJobType4.SetTextColor(Color.ParseColor("#ffffff"));
+
+                        BtnJobType1.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType1.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType2.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType2.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType3.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType3.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        BtnJobType5.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                        BtnJobType5.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                        JobType = "full_time";
+                        break;
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private void BtnJobType5_Click(object sender, EventArgs e)
+        {
+            JobType = "volunteer";
+            SetJobType();
+        }
+
+        private void BtnJobType4_Click(object sender, EventArgs e)
+        {
+            JobType = "contract";
+            SetJobType();
+        }
+
+        private void BtnJobType3_Click(object sender, EventArgs e)
+        {
+            JobType = "internship";
+            SetJobType();
+        }
+
+        private void BtnJobType2_Click(object sender, EventArgs e)
+        {
+            JobType = "part_time";
+            SetJobType();
+        }
+
+        private void BtnJobType1_Click(object sender, EventArgs e)
+        {
+            JobType = "full_time";
+            SetJobType();
+        }
+
+        private void CreateCategoryButtons()
+        {
+            try
+            {
+                int count = CategoriesController.ListCategoriesJob.Count;
+                if (count == 0)
+                {
+                    Methods.DisplayReportResult(Activity, "Not have List Categories Job");
+                    return;
+                }
+
+                foreach (Classes.Categories category in CategoriesController.ListCategoriesJob)
+                {
+                    Button button = new Button(Activity);
+                    var ll = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+                    ll.SetMargins(10, 10, 10, 10);
+                    button.LayoutParameters = ll;
+
+                    button.Text = category.CategoriesName;
+                    button.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    button.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+                    button.TextSize = 14;
+                    button.SetAllCaps(false);
+                    button.SetPadding(10, 0, 10, 0);
+                    button.Click += ButtonOnClick;
+                    CategoryLayout.AddView(button);
+                }
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+      
+        private void ButtonOnClick(object sender, EventArgs e)
+        {
+            try
+            { 
+                Button BtnCurrent = sender as Button;
+
+                if (BtnPrev != null)
+                {
+                    BtnPrev.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnPrev.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+                }
+
+                BtnCurrent.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                BtnCurrent.SetTextColor(Color.ParseColor("#ffffff"));
+                 
+                Category = BtnCurrent.Text;
+                CategoryId = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesName == Category)?.CategoriesId;
+
+                BtnPrev = BtnCurrent;
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+         
+        public void OnShow(IDialogInterface dialog)
+        {
+            try
+            {
+                var d = dialog as BottomSheetDialog;
+                var bottomSheet = d.FindViewById<View>(Resource.Id.design_bottom_sheet) as FrameLayout;
+                var bottomSheetBehavior = BottomSheetBehavior.From(bottomSheet);
+                var layoutParams = bottomSheet.LayoutParameters;
+
+                int height = GetWindowHeight();
+                if (layoutParams != null)
+                    layoutParams.Height = height;
+                bottomSheet.LayoutParameters = layoutParams;
+                bottomSheetBehavior.State = BottomSheetBehavior.StateExpanded;
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        private int GetWindowHeight()
+        {
+            var displayMetrics = new DisplayMetrics();
+            ContextJobs.WindowManager.DefaultDisplay.GetRealMetrics(displayMetrics);
+
+            return displayMetrics.HeightPixels;
+        }
     }
 }

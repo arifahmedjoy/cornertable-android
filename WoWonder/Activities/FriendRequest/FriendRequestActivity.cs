@@ -299,7 +299,7 @@ namespace WoWonder.Activities.FriendRequest
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             }
                         }
 
@@ -337,7 +337,7 @@ namespace WoWonder.Activities.FriendRequest
                             }
                             else
                             {
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             }
                         }
 

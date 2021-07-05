@@ -1,5 +1,5 @@
 ﻿using System;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM; 

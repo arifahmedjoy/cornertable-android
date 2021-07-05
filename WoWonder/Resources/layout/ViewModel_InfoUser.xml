@@ -4,234 +4,203 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="15dp">
-    <TextView
+    <!--<TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/Lbl_ProfileDetails"
+        android:textAllCaps="true"
         android:textSize="15sp"
-        android:textColor="@color/gnt_black"/>
-    <!--Time Section -->
+        />-->
+  
+    <!--Pro Section -->
     <LinearLayout
-        android:id="@+id/LayoutTime"
-        android:paddingTop="10dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
+        android:id="@+id/LayoutPro"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_profile_user"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/icon_member"  
+        android:tint="@color/accent"/>
         <TextView
-            android:id="@+id/TimeText"
-            android:layout_width="match_parent"
+            android:id="@+id/ProText"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Website Section -->
     <LinearLayout
         android:id="@+id/LayoutWebsite"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_profile_website"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_profile_website"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/WebsiteText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Gander Section -->
     <LinearLayout
         android:id="@+id/LayoutGander"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_genders"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_action_genders"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/GanderText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Birthday Section -->
     <LinearLayout
         android:id="@+id/LayoutBirthday"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_birthday"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_action_birthday"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/BirthdayText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Work Section -->
     <LinearLayout
         android:id="@+id/LayoutWork"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_profile_suitcase"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_profile_suitcase"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/WorkText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Live Section -->
     <LinearLayout
         android:id="@+id/LayoutLive"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_profile_home"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_profile_home"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/LiveText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Study Section -->
     <LinearLayout
         android:id="@+id/LayoutStudy"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/icon_layers"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/icon_layers"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/StudyText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
     <!--Relationship Section -->
     <LinearLayout
         android:id="@+id/LayoutRelationship"
-        android:paddingTop="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
-        <RelativeLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_profile_heart"/>
-        </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:paddingStart="5dp"
+        android:gravity="center_vertical|start">
+      <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_profile_heart"
+        android:tint="@color/accent"/>
         <TextView
             android:id="@+id/RelationshipText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
             android:textSize="14sp"
-            android:textColor="@color/colorCommentText"
-            android:gravity="start|center"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="3dp" />
+            android:maxLines="1"/>
     </LinearLayout>
+
+    <View
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:layout_marginTop="5dp"
+      android:background="?attr/colorDivider" />
+
 </LinearLayout>

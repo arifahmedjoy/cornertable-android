@@ -149,8 +149,8 @@ namespace WoWonder.Activities.AddPost.Adapters
                 Image = (ImageView) MainView.FindViewById(Resource.Id.Image);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new GifAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new GifAdapterClickEventArgs {View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new GifAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new GifAdapterClickEventArgs {View = itemView, Position = BindingAdapterPosition});
             }
             catch (Exception e)
             {

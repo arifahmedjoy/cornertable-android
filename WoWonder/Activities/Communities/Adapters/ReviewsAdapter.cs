@@ -204,8 +204,8 @@ namespace WoWonder.Activities.Communities.Adapters
                 Review = MainView.FindViewById<TextView>(Resource.Id.review);
                
                 //Event
-                itemView.Click += (sender, e) => clickListener(new ReviewsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new ReviewsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new ReviewsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new ReviewsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
 
               
             }

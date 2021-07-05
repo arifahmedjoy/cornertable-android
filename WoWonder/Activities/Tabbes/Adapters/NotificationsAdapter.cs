@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Android.App;
-using Android.Graphics; 
+using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 using Bumptech.Glide;
 using Java.Util;
 using WoWonder.Helpers.CacheLoaders;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Utils;
-using AmulyaKhare.TextDrawableLib;
 using Android.Text;
 using Android.Text.Style;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide.Request;
 using WoWonderClient.Classes.Global;
 using IList = System.Collections.IList;
+using Refractored.Controls;
 
 namespace WoWonder.Activities.Tabbes.Adapters
 {
@@ -26,7 +25,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
         public event EventHandler<NotificationsAdapterClickEventArgs> ItemClick;
         public event EventHandler<NotificationsAdapterClickEventArgs> ItemLongClick;
 
-        private readonly Activity ActivityContext; 
+        private readonly Activity ActivityContext;
         public ObservableCollection<NotificationObject> NotificationsList = new ObservableCollection<NotificationObject>();
 
         public NotificationsAdapter(Activity context)
@@ -43,7 +42,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
         }
 
         public override int ItemCount => NotificationsList?.Count ?? 0;
- 
+
         // Create new views (invoked by the layout manager)
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
@@ -69,15 +68,15 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 switch (viewHolder)
                 {
                     case NotificationsAdapterViewHolder holder:
-                    {
-                        var item = NotificationsList[position];
-                        if (item != null)
-                        { 
-                            Initialize(holder, item); 
-                        }
+                        {
+                            var item = NotificationsList[position];
+                            if (item != null)
+                            {
+                                Initialize(holder, item);
+                            }
 
-                        break;
-                    }
+                            break;
+                     } 
                 }
             }
             catch (Exception exception)
@@ -95,38 +94,45 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     case "memory":
                         Glide.With(ActivityContext).Load(Resource.Mipmap.icon).Apply(new RequestOptions().CircleCrop()).Into(holder.ImageUser);
                         holder.UserNameNotfy.Text = AppSettings.ApplicationName;
+                        holder.TextNotfy.Text = Methods.Time.TimeAgo(Convert.ToInt32(notify.Time), false);
+                        break;
+                    case "Announcement":
+                        Glide.With(ActivityContext).Load(Resource.Mipmap.icon).Apply(new RequestOptions().CircleCrop()).Into(holder.ImageUser);
+                        holder.UserNameNotfy.Text = ActivityContext.GetText(Resource.String.Lbl_Announcement);
+                        holder.UserNameNotfy.SetTypeface(Typeface.Default, TypefaceStyle.Bold);
+                        holder.TextNotfy.Text = ActivityContext.GetText(Resource.String.Lbl_Announcement_SubText);
                         break;
                     default:
-                    {
-                        GlideImageLoader.LoadImage(ActivityContext, notify.Notifier?.Avatar, holder.ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                     
-                        var name = WoWonderTools.GetNameFinal(notify.Notifier);
-
-                        string tempString  = notify.Type == "share_post" || notify.Type == "shared_your_post"
-                            ? name + " " + ActivityContext.GetText(Resource.String.Lbl_sharedYourPost)
-                            : name + " " + notify.TypeText; 
-                        try
                         {
-                            SpannableString spanString = new SpannableString(tempString);
-                            spanString.SetSpan(new StyleSpan(TypefaceStyle.Bold), 0, name.Length, 0);
+                            GlideImageLoader.LoadImage(ActivityContext, notify.Notifier?.Avatar, holder.ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                            holder.UserNameNotfy.SetText(spanString , TextView.BufferType.Spannable);
-                        }
-                        catch 
-                        {
-                            holder.UserNameNotfy.Text = tempString;
-                        }
+                            var name = WoWonderTools.GetNameFinal(notify.Notifier);
 
-                        break;
-                    }
+                            string tempString = notify.Type == "share_post" || notify.Type == "shared_your_post"
+                                ? name + " " + ActivityContext.GetText(Resource.String.Lbl_sharedYourPost)
+                                : name + " " + notify.TypeText;
+                            try
+                            {
+                                SpannableString spanString = new SpannableString(tempString);
+                                spanString.SetSpan(new StyleSpan(TypefaceStyle.Bold), 0, name.Length, 0);
+
+                                holder.UserNameNotfy.SetText(spanString, TextView.BufferType.Spannable);
+                            }
+                            catch
+                            {
+                                holder.UserNameNotfy.Text = tempString;
+                            }
+
+                            holder.TextNotfy.Text = Methods.Time.TimeAgo(Convert.ToInt32(notify.Time), false);
+                            break;
+                        }
                 }
-
-                holder.TextNotfy.Text = Methods.Time.TimeAgo(Convert.ToInt32(notify.Time), false);
-
+                 
                 AddIconFonts(holder, notify.Type, notify.Icon);
 
-                var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(30).EndConfig().BuildRound("", Color.ParseColor(GetColorFonts(notify.Type, notify.Icon)));
-                holder.Image.SetImageDrawable(drawable); 
+                //var drawable = TextDrawable.InvokeBuilder().BeginConfig().FontSize(30).EndConfig().BuildRound("", Color.ParseColor(GetColorFonts(notify.Type, notify.Icon)));
+                //holder.Image.SetImageDrawable(drawable);
+                holder.Image.SetColorFilter(Color.ParseColor("#FFAE35"));
             }
             catch (Exception e)
             {
@@ -141,114 +147,117 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 switch (type)
                 {
                     case "following":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.PersonAdd);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_add);
                         return;
                     case "memory":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Time);
+                        return;
+                    case "Announcement":
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.icon_announcement_vector);
                         return;
                     case "comment":
                     case "comment_reply":
                     case "also_replied":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.IosChatboxes);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_point_comments);
                         return;
                     case "liked_post":
                     case "liked_comment":
                     case "liked_reply_comment":
                     case "liked_page":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.ThumbsUp);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_point_like);
                         return;
                     case "wondered_post":
                     case "wondered_comment":
                     case "wondered_reply_comment":
                     case "exclamation-circle":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Information);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_information_circled);
                         return;
                     case "comment_mention":
                     case "comment_reply_mention":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Pricetag);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_pricetag);
                         return;
                     case "post_mention":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.At);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_at);
                         return;
                     case "share_post":
                     case "shared_your_post":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.ShareAlt);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_share);
                         return;
                     case "profile_wall_post":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Image);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_image);
                         return;
                     case "visited_profile":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Eye);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_ios_eye);
                         return;
                     case "joined_group":
                     case "accepted_invite":
                     case "accepted_request":
                     case "accepted_join_request":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Checkmark);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_checkmark_circled);
                         return;
                     case "invited_page":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Flag);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_flag);
                         return;
                     case "added_you_to_group":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Add);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_add_circle);
                         return;
                     case "requested_to_join_group":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Timer);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_time);
                         return;
                     case "thumbs-down":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.ThumbsDown);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_thumbsdown);
                         return;
                     case "going_event":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Calendar);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_calendar);
                         return;
                     case "viewed_story":
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Aperture);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_aperture);
                         return;
                     case "reaction":
-                    {
-                        var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == icon).Value?.Id ?? "";
-                        switch (react)
                         {
-                            case "like":
-                            case "1":
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.ThumbsUp);
-                                break;
-                            case "haha":
-                            case "3":
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Happy);
-                                break;
-                            case "love":
-                            case "2":
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Heart);
-                                break;
-                            case "wow":
-                            case "4":
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Information);
-                                break;
-                            case "sad":
-                            case "5":
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Sad);
-                                break;
-                            case "angry":
-                            case "6":
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.LogoFreebsdDevil);
-                                break;
-                            default:
-                                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Notifications);
-                                break; 
-                        }
+                            holder.IconNotfy.SetImageResource(Resource.Drawable.ic_point_like);
+                            var react = ListUtils.SettingsSiteList?.PostReactionsTypes?.FirstOrDefault(a => a.Value?.Id == icon).Value?.Id ?? "";
+                            switch (react)
+                            {
+                                case "like":
+                                case "1":
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.lb_ic_thumb_up);
+                                    break;
+                                case "haha":
+                                case "3":
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_happy);
+                                    break;
+                                case "love":
+                                case "2":
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.ic_heart);
+                                    break;
+                                case "wow":
+                                case "4":
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.ic_information_circled);
+                                    break;
+                                case "sad":
+                                case "5":
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_sad);
+                                    break;
+                                case "angry":
+                                case "6":
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.ic_social_freebsd_devil);
+                                    break;
+                                default:
+                                    holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_notifications);
+                                    break;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
-                        FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Notifications);
+                        holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_notifications);
                         break;
                 }
             }
             catch (Exception exception)
             {
-                Methods.DisplayReportResultTrack(exception); 
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, holder.IconNotfy, IonIconsFonts.Notifications);
+                Methods.DisplayReportResultTrack(exception);
+                holder.IconNotfy.SetImageResource(Resource.Drawable.ic_android_notifications);
             }
         }
 
@@ -360,13 +369,13 @@ namespace WoWonder.Activities.Tabbes.Adapters
                 return "#424242";
             }
         }
-      
+
         public override void OnViewRecycled(Java.Lang.Object holder)
         {
             try
             {
                 if (ActivityContext?.IsDestroyed != false)
-                        return;
+                    return;
 
                 switch (holder)
                 {
@@ -390,7 +399,7 @@ namespace WoWonder.Activities.Tabbes.Adapters
         {
             try
             {
-                return position;  
+                return position;
             }
             catch (Exception exception)
             {
@@ -434,22 +443,21 @@ namespace WoWonder.Activities.Tabbes.Adapters
                     case null:
                         return d;
                     default:
-                    {
-                        switch (string.IsNullOrEmpty(item.Notifier.Avatar))
                         {
-                            case false:
-                                d.Add(item.Notifier.Avatar);
-                                break;
-                        }
+                            if (item.Type == "Announcement")
+                                return d;
 
-                        return d;
-                    }
+                            if (!string.IsNullOrEmpty(item.Notifier?.Avatar)) 
+                                d.Add(item.Notifier.Avatar);
+
+                            return d;
+                        }
                 }
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-               return Collections.SingletonList(p0);
+                return Collections.SingletonList(p0);
             }
         }
 
@@ -462,24 +470,22 @@ namespace WoWonder.Activities.Tabbes.Adapters
 
     public class NotificationsAdapterViewHolder : RecyclerView.ViewHolder
     {
-        public NotificationsAdapterViewHolder(View itemView, Action<NotificationsAdapterClickEventArgs> clickListener,Action<NotificationsAdapterClickEventArgs> longClickListener) : base(itemView)
+        public NotificationsAdapterViewHolder(View itemView, Action<NotificationsAdapterClickEventArgs> clickListener, Action<NotificationsAdapterClickEventArgs> longClickListener) : base(itemView)
         {
             try
             {
                 MainView = itemView;
-
-                LayoutMain = (LinearLayout) MainView.FindViewById(Resource.Id.main);
-
+                 
                 //Get values
-                ImageUser = (ImageView) MainView.FindViewById(Resource.Id.ImageUser);
-                Image = MainView.FindViewById<ImageView>(Resource.Id.image_view);
-                IconNotfy = (TextView) MainView.FindViewById(Resource.Id.IconNotifications);
-                UserNameNotfy = (TextView) MainView.FindViewById(Resource.Id.NotificationsName);
-                TextNotfy = (TextView) MainView.FindViewById(Resource.Id.NotificationsText);
+                ImageUser = (ImageView)MainView.FindViewById(Resource.Id.ImageUser);
+                Image = MainView.FindViewById<CircleImageView>(Resource.Id.image_view);
+                IconNotfy = MainView.FindViewById<ImageView>(Resource.Id.smallIcon);
+                UserNameNotfy = (TextView)MainView.FindViewById(Resource.Id.NotificationsName);
+                TextNotfy = (TextView)MainView.FindViewById(Resource.Id.NotificationsText);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new NotificationsAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new NotificationsAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new NotificationsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new NotificationsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {
@@ -490,19 +496,16 @@ namespace WoWonder.Activities.Tabbes.Adapters
         #region Variables Basic
 
         public View MainView { get; }
-
-        
-
-        public LinearLayout LayoutMain;
-        public ImageView ImageUser { get; set; }
-        public ImageView Image { get; set; }
-        public TextView IconNotfy { get; set; }
-        public TextView UserNameNotfy { get; set; }
-        public TextView TextNotfy { get; set; }
+          
+        public ImageView ImageUser { get; private set; }
+        public CircleImageView Image { get; private set; }
+        public ImageView IconNotfy { get; private set; }
+        public TextView UserNameNotfy { get; private set; }
+        public TextView TextNotfy { get; private set; }
 
         #endregion
     }
-
+     
     public class NotificationsAdapterClickEventArgs : EventArgs
     {
         public View View { get; set; }

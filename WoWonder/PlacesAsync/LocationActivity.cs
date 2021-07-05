@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -13,10 +13,10 @@ using Android.Gms.Maps.Model;
 using Android.Gms.Tasks;
 using Android.Graphics;
 using Android.Locations;
-using Android.OS;
-using Android.Support.V7.Widget;
+using Android.OS; 
 using Android.Widget;
 using AndroidHUD;
+using AndroidX.RecyclerView.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Places;
 using Plugin.Geolocator;
@@ -54,6 +54,8 @@ namespace WoWonder.PlacesAsync
             try
             {
                 base.OnCreate(savedInstanceState);
+
+                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
 
                 Methods.App.FullScreenApp(this);
 
@@ -330,7 +332,7 @@ namespace WoWonder.PlacesAsync
 
 
                     //Error Message  
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Error_DisplayAddress), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Error_DisplayAddress), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -413,7 +415,7 @@ namespace WoWonder.PlacesAsync
                         await GetPosition();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -514,10 +516,7 @@ namespace WoWonder.PlacesAsync
         {
             try
             {
-                if (latLng == null)
-                    return null;
-
-#pragma warning disable 618
+                #pragma warning disable 618
                 var locale = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale : Resources?.Configuration?.Locales?.Get(0) ?? Resources?.Configuration?.Locale;
                 #pragma warning restore 618
                 Geocoder geocode = new Geocoder(this, locale);
@@ -535,7 +534,7 @@ namespace WoWonder.PlacesAsync
                         break;
                     default:
                         //Error Message  
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Error_DisplayAddress), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Error_DisplayAddress), ToastLength.Short);
                         break;
                 }
 
@@ -550,9 +549,6 @@ namespace WoWonder.PlacesAsync
 
         private async Task<LatLng> GetLocationFromAddress(string strAddress)
         {
-            if (string.IsNullOrEmpty(strAddress))
-                return null;
-
 #pragma warning disable 618
             var locale = (int)Build.VERSION.SdkInt < 25 ? Resources?.Configuration?.Locale : Resources?.Configuration?.Locales.Get(0) ?? Resources?.Configuration?.Locale;
 #pragma warning restore 618
@@ -818,9 +814,9 @@ namespace WoWonder.PlacesAsync
                 }
                 MAdapter.NotifyDataSetChanged();
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                dialogList.Title(Resource.String.Lbl_NearBy).TitleColorRes(Resource.Color.primary); 
-                dialogList.Adapter(MAdapter,new LinearLayoutManager(this));
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                dialogList.Title(Resource.String.Lbl_NearBy).TitleColorRes(Resource.Color.primary);
+                dialogList.Adapter(MAdapter, new LinearLayoutManager(this));
                 dialogList.AutoDismiss(true);
                 dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
                 dialogList.AlwaysCallSingleChoiceCallback();

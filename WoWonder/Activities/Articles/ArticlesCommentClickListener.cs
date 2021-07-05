@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
 using Android.Widget;
-using Java.Lang;
 using Newtonsoft.Json;
+using WoWonder.Activities.Articles.Fragment;
 using WoWonder.Activities.Comment;
 using WoWonder.Activities.NativePost.Post;
 using WoWonder.Helpers.Controller;
@@ -59,7 +59,7 @@ namespace WoWonder.Activities.Articles
                 }
                 else
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -75,7 +75,7 @@ namespace WoWonder.Activities.Articles
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection),ToastLength.Short);
                     return; 
                 }
 
@@ -114,39 +114,92 @@ namespace WoWonder.Activities.Articles
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 switch (e.Holder.LikeTextView?.Tag?.ToString())
                 {
                     case "Liked":
-                        e.CommentObject.IsCommentLiked = false;
+                        {
+                            e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
+                            //e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                            e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                            e.Holder.LikeTextView.Tag = "Like";
 
-                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Like);
-                        //e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                        e.Holder.LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
-                        e.Holder.LikeTextView.Tag = "Like";
-                        break;
+                            switch (AppSettings.PostButton)
+                            {
+                                case PostButtonSystem.ReactionDefault:
+                                case PostButtonSystem.ReactionSubShine:
+                                    {
+                                        var x = e.CommentObject.Reaction.Count;
+                                        switch (x)
+                                        {
+                                            case > 0:
+                                                e.CommentObject.Reaction.Count--;
+                                                break;
+                                            default:
+                                                e.CommentObject.Reaction.Count = 0;
+                                                break;
+                                        }
+
+                                        e.CommentObject.Reaction.IsReacted = false;
+                                        e.CommentObject.Reaction.Type = "";
+
+                                        if (e.Holder.CountLike != null && e.CommentObject.Reaction.Count > 0)
+                                        {
+                                            e.Holder.CountLikeSection.Visibility = ViewStates.Visible;
+                                            e.Holder.CountLike.Text = Methods.FunString.FormatPriceValue(e.CommentObject.Reaction.Count);
+                                        }
+                                        else
+                                        {
+                                            e.Holder.CountLikeSection.Visibility = ViewStates.Gone;
+                                        }
+
+                                        PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> { () => RequestsAsync.Article.ReactionCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "", "reply_like") } : new List<Func<Task>> { () => RequestsAsync.Article.ReactionCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "") });
+                                        break;
+                                    }
+                                default:
+                                    e.CommentObject.IsCommentLiked = false;
+
+                                    PollyController.RunRetryPolicyFunction(TypeClass == "Reply" ? new List<Func<Task>> { () => RequestsAsync.Article.LikeUnLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "reply_like") } : new List<Func<Task>> { () => RequestsAsync.Article.LikeUnLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id) });
+                                    break;
+                            }
+
+                            break;
+                        }
                     default:
-                        e.CommentObject.IsCommentLiked = true;
+                        {
+                            switch (AppSettings.PostButton)
+                            {
+                                case PostButtonSystem.ReactionDefault:
+                                case PostButtonSystem.ReactionSubShine:
+                                    new ArticlesReactionComment(MainContext, TypeClass)?.ClickDialog(e);
+                                    break;
+                                default:
+                                    e.CommentObject.IsCommentLiked = true;
 
-                        e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
-                        e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
-                        e.Holder.LikeTextView.Tag = "Liked";
-                        break;
+                                    e.Holder.LikeTextView.Text = MainContext.GetText(Resource.String.Btn_Liked);
+                                    e.Holder.LikeTextView.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                    e.Holder.LikeTextView.Tag = "Liked";
+
+                                    //sent api like comment 
+                                    switch (TypeClass)
+                                    {
+                                        case "Comment":
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.LikeUnLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id) });
+                                            break;
+                                        case "Reply":
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.LikeUnLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "reply_like") });
+                                            break;
+                                    }
+                                    break;
+                            }
+
+                            break;
+                        }
                 }
-                 
-                //sent api like comment 
-                switch (TypeClass)
-                {
-                    case "Comment":
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.LikeUnLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id) });
-                        break;
-                    case "Reply":
-                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.LikeUnLikeCommentAsync(e.CommentObject.BlogId, e.CommentObject.Id, "reply_like") });
-                        break;
-                } 
+                
             }
             catch (Exception exception)
             {
@@ -160,7 +213,7 @@ namespace WoWonder.Activities.Articles
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -201,6 +254,22 @@ namespace WoWonder.Activities.Articles
             }
         }
 
+        public void CountLikeCommentReplyPostClick(CommentReplyArticlesClickEventArgs e)
+        {
+            try
+            {
+                //wael check this page
+                var intent = new Intent(MainContext, typeof(ReactionCommentTabbedActivity));
+                intent.PutExtra("TypeClass", TypeClass);
+                intent.PutExtra("CommentObject", JsonConvert.SerializeObject(e.CommentObject));
+                MainContext.StartActivity(intent);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
         //Event Menu >> Reply
         public void CommentReplyClick(CommentReplyArticlesClickEventArgs e)
         {
@@ -221,11 +290,11 @@ namespace WoWonder.Activities.Articles
  
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == MainContext.GetString(Resource.String.Lbl_CopeText))
                 {
                     Methods.CopyToClipboard(MainContext, Methods.FunString.DecodeString(CommentObject.Text));
@@ -272,7 +341,7 @@ namespace WoWonder.Activities.Articles
                                         }
 
                                         if (!Methods.CheckConnectivity())
-                                            Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                                         else
                                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.DeleteCommentAsync(CommentObject.BlogId, CommentObject.Id) });
                                         break;
@@ -295,14 +364,14 @@ namespace WoWonder.Activities.Articles
                                         }
 
                                         if (!Methods.CheckConnectivity())
-                                            Toast.MakeText(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(MainContext, MainContext.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                                         else
                                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Article.DeleteCommentAsync(CommentObject.BlogId, CommentObject.Id, "reply_delete") });
                                         break;
                                     }
                                 }
 
-                                Toast.MakeText(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(MainContext, MainContext.GetText(Resource.String.Lbl_CommentSuccessfullyDeleted), ToastLength.Short);
                             }
                             catch (Exception e)
                             {

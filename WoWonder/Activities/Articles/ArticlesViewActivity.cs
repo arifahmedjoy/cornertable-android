@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -16,7 +16,6 @@ using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide.Util;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
@@ -43,7 +42,7 @@ namespace WoWonder.Activities.Articles
         #region Variables Basic
 
         private ImageView ImageUser, ImageBlog;
-        private TextView TxtUsername,TxtTime,TxtTitle, TxtViews; 
+        private TextView TxtUsername,TxtTime,TxtTitle, TxtDescription, TxtViews; 
         private WebView TxtHtml;
         private ImageButton BtnMore;
         private ArticleDataObject ArticleData;
@@ -86,7 +85,10 @@ namespace WoWonder.Activities.Articles
 
                 GetDataArticles();
 
-                RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                if (AppSettings.ShowFbRewardVideoAds)
+                    RewardedVideo = AdsFacebook.InitRewardVideo(this);
+                else
+                    AdsColony.Ad_Rewarded(this); 
             }
             catch (Exception e)
             {
@@ -205,7 +207,8 @@ namespace WoWonder.Activities.Articles
                 ImageBlog = FindViewById<ImageView>(Resource.Id.imageBlog); 
                 TxtUsername = FindViewById<TextView>(Resource.Id.username);
                 TxtTime = FindViewById<TextView>(Resource.Id.time); 
-                TxtTitle = FindViewById<TextView>(Resource.Id.title); 
+                TxtTitle = FindViewById<TextView>(Resource.Id.title);
+                TxtDescription = FindViewById<TextView>(Resource.Id.description); 
                 TxtHtml = FindViewById<WebView>(Resource.Id.LocalWebView); 
                 TxtViews = FindViewById<TextView>(Resource.Id.views);
                 BtnMore = FindViewById<ImageButton>(Resource.Id.more);
@@ -447,7 +450,7 @@ namespace WoWonder.Activities.Articles
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -462,7 +465,7 @@ namespace WoWonder.Activities.Articles
             try
             {
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetString(Resource.String.Lbl_CopeLink));
                 arrayAdapter.Add(GetString(Resource.String.Lbl_Share));
@@ -523,11 +526,11 @@ namespace WoWonder.Activities.Articles
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetString(Resource.String.Lbl_CopeLink))
                 {
                     Methods.CopyToClipboard(this, ArticleData.Url);
@@ -579,9 +582,10 @@ namespace WoWonder.Activities.Articles
                     TxtUsername.Text = WoWonderTools.GetNameFinal(ArticleData.Author);
 
                     TxtTitle.Text = Methods.FunString.DecodeString(ArticleData.Title);
+                    TxtDescription.Text = Methods.FunString.DecodeString(ArticleData.Description);
                     TxtViews.Text = ArticleData.View + " " + GetText(Resource.String.Lbl_Views);
 
-                    string style = AppSettings.SetTabDarkTheme ? "<style type='text/css'>body{color: #fff; background-color: #282828;}</style>" : "<style type='text/css'>body{color: #444; background-color: #FFFEFE;}</style>";
+                    string style = AppSettings.SetTabDarkTheme ? "<style type='text/css'>body{color: #fff; background-color: #282828; line-height: 1.42857143;}</style>" : "<style type='text/css'>body{color: #444; background-color: #FFFEFE; line-height: 1.42857143;}</style>";
                     string imageFullWidthStyle = "<style>img{display: inline;height: auto;max-width: 100%;}</style>";
 
                     // This method is deprecated but need to use for old os devices
@@ -637,7 +641,7 @@ namespace WoWonder.Activities.Articles
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadDataComment(offset) });
         }

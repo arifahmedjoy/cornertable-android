@@ -22,7 +22,7 @@
         android:id="@+id/Group_titile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/gnt_black"
+        
         android:textSize="13dp"
         android:textStyle="normal"
         android:focusable="false"

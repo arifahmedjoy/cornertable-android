@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -12,7 +12,6 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.NativePost.Extra;
@@ -36,9 +35,10 @@ namespace WoWonder.Activities.Offers
     {
         #region Variables Basic
 
-        private ImageView OfferCoverImage, IconBack;
+        private ImageView OfferCoverImage;
+        private ImageButton IconBack;
         private ImageView OfferAvatar;
-        private TextView TxtMore, PageName, DateNumber, DiscountNumber;
+        private TextView Name, Subname, PageTitle, DiscountNumber, DateNumber, TxtMore;
         private SuperTextView Description;
         private OffersDataObject DataInfoObject;
         private string DialogType;
@@ -53,9 +53,11 @@ namespace WoWonder.Activities.Offers
             try
             {
                 base.OnCreate(savedInstanceState);
-                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.MyTheme_Dark_Base : Resource.Style.MyTheme_Base);
+                SetTheme(AppSettings.SetTabDarkTheme ? Resource.Style.Overlap_Dark : Resource.Style.Overlap_Light);
 
                 Methods.App.FullScreenApp(this);
+
+                Overlap();
 
                 // Create your application here
                 SetContentView(Resource.Layout.OffersViewLayout);
@@ -79,6 +81,20 @@ namespace WoWonder.Activities.Offers
             }
         }
 
+        private void Overlap()
+        {
+            /*View mContentView = Window?.DecorView;
+
+            Window?.ClearFlags(WindowManagerFlags.TranslucentStatus);
+            Window?.AddFlags(WindowManagerFlags.DrawsSystemBarBackgrounds);
+            mContentView.SystemUiVisibility = (StatusBarVisibility)(SystemUiFlags.LightStatusBar);
+            Window?.SetStatusBarColor(Color.Transparent);*/
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+            {
+                Window?.SetFlags(WindowManagerFlags.LayoutNoLimits, WindowManagerFlags.LayoutNoLimits);
+            }
+
+        }
         protected override void OnResume()
         {
             try
@@ -165,15 +181,17 @@ namespace WoWonder.Activities.Offers
         {
             try
             {
-                IconBack = FindViewById<ImageView>(Resource.Id.iv_back);
+                IconBack = FindViewById<ImageButton>(Resource.Id.iv_back);
 
                 OfferCoverImage = FindViewById<ImageView>(Resource.Id.offerCoverImage);
                 OfferAvatar = FindViewById<ImageView>(Resource.Id.offerAvatar);
 
-                PageName = FindViewById<TextView>(Resource.Id.pageTitle);
+                Name = FindViewById<TextView>(Resource.Id.tv_name);
+                Subname = FindViewById<TextView>(Resource.Id.tv_subname);
+                PageTitle = FindViewById<TextView>(Resource.Id.tv_page_title);
 
-                DateNumber = FindViewById<TextView>(Resource.Id.dateNumber);
-                DiscountNumber = FindViewById<TextView>(Resource.Id.discountNumber);
+                DateNumber = FindViewById<TextView>(Resource.Id.tv_enddate);
+                DiscountNumber = FindViewById<TextView>(Resource.Id.tv_discount_number);
 
                 Description = FindViewById<SuperTextView>(Resource.Id.description);
 
@@ -190,13 +208,7 @@ namespace WoWonder.Activities.Offers
                     .LessLabelColor(Color.ParseColor(AppSettings.MainColor))
                     .LabelUnderLine(true)
                     .Build();
-
-                switch (AppSettings.FlowDirectionRightToLeft)
-                {
-                    case true:
-                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-                        break;
-                }
+               
             }
             catch (Exception e)
             {
@@ -259,7 +271,9 @@ namespace WoWonder.Activities.Offers
                 IconBack = null!;
                 OfferCoverImage = null!;
                 OfferAvatar = null!;
-                PageName = null!;  
+                Name = null!;
+                Subname = null!;
+                PageTitle = null!;
                 DateNumber = null!;
                 DiscountNumber = null!;
                 Description = null!;
@@ -311,7 +325,7 @@ namespace WoWonder.Activities.Offers
                 DialogType = "More";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Edit));
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Delete));
@@ -332,11 +346,11 @@ namespace WoWonder.Activities.Offers
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetText(Resource.String.Lbl_Edit))
                 {
                     //Open Edit offer
@@ -349,13 +363,13 @@ namespace WoWonder.Activities.Offers
                 {
                     DialogType = "Delete";
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
-                    dialog.Content(GetText(Resource.String.Lbl_DeleteOffers));
-                    dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
-                    dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
-                    dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.ItemsCallback(this).Build().Show();
+                    var dialogBuilder = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                    dialogBuilder.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
+                    dialogBuilder.Content(GetText(Resource.String.Lbl_DeleteOffers));
+                    dialogBuilder.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive(this);
+                    dialogBuilder.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
+                    dialogBuilder.AlwaysCallSingleChoiceCallback();
+                    dialogBuilder.ItemsCallback(this).Build().Show();
                 }
             }
             catch (Exception e)
@@ -396,12 +410,12 @@ namespace WoWonder.Activities.Offers
                                 }
                             }
                               
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short);
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Offers.DeleteOfferAsync(DataInfoObject.Id) });
                         }
                         else
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                         }
 
                         break;
@@ -504,7 +518,8 @@ namespace WoWonder.Activities.Offers
 
                     if (DataInfoObject.Page != null)
                     {
-                        PageName.Text = "@" + Methods.FunString.DecodeString(DataInfoObject.Page.PageName);
+                        Name.Text = Methods.FunString.DecodeString(DataInfoObject.Page.Name);
+                        Subname.Text = "@" + Methods.FunString.DecodeString(DataInfoObject.Page.PageName);
                     }
                      
                     //Set Description
@@ -512,7 +527,8 @@ namespace WoWonder.Activities.Offers
                     Description.Text = description;
                     ReadMoreOption.AddReadMoreTo(Description, new String(description));
 
-                    DiscountNumber.Text = Methods.FunString.DecodeString(DataInfoObject.OfferText) + " " + Methods.FunString.DecodeString(DataInfoObject.DiscountedItems);
+                    PageTitle.Text = Methods.FunString.DecodeString(DataInfoObject.OfferText) + " " + Methods.FunString.DecodeString(DataInfoObject.DiscountedItems);
+                    DiscountNumber.Text = Methods.FunString.DecodeString(DataInfoObject.OfferText);
                     DateNumber.Text =  DataInfoObject.ExpireDate;
                 }
             }

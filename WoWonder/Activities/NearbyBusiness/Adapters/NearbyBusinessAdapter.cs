@@ -31,7 +31,7 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
         public event EventHandler<NearbyBusinessAdapterClickEventArgs> ItemClick;
         public event EventHandler<NearbyBusinessAdapterClickEventArgs> ItemLongClick;
 
-        private readonly Activity ActivityContext;
+        public readonly Activity ActivityContext;
         public ObservableCollection<NearbyBusinessesDataObject> NearbyBusinessList = new ObservableCollection<NearbyBusinessesDataObject>();
 
         public NearbyBusinessAdapter(Activity context)
@@ -78,12 +78,18 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
                         var item = NearbyBusinessList[position];
                         if (item.Job?.JobInfoClass != null)
                         {
-                            item.Job.Value.JobInfoClass.Image =
-                                item.Job.Value.JobInfoClass.Image.Contains(Client.WebsiteUrl) switch
+                            if (!string.IsNullOrEmpty(item.Job.Value.JobInfoClass.FullImage))
+                            {
+                                item.Job.Value.JobInfoClass.Image = item.Job.Value.JobInfoClass.FullImage;
+                            }
+                            else
+                            {
+                                item.Job.Value.JobInfoClass.Image = item.Job.Value.JobInfoClass.Image.Contains(InitializeWoWonder.WebsiteUrl) switch
                                 {
-                                    false => WoWonderTools.GetTheFinalLink(item.Job?.JobInfoClass.Image),
+                                    false => WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image),
                                     _ => item.Job.Value.JobInfoClass.Image
                                 };
+                            }
 
                             item.Job.Value.JobInfoClass.IsOwner = item.Job?.JobInfoClass.UserId == UserDetails.UserId;
 
@@ -270,8 +276,8 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
                 IconMore.Visibility = ViewStates.Gone; 
 
                 //Event  
-                itemView.Click += (sender, e) => clickListener(new NearbyBusinessAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new NearbyBusinessAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new NearbyBusinessAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new NearbyBusinessAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {
@@ -280,9 +286,9 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
         }
         public void OnClick(View v)
         {
-            if (AdapterPosition != RecyclerView.NoPosition)
+            if (BindingAdapterPosition != RecyclerView.NoPosition)
             {
-                var item = NearbyBusinessAdapter.NearbyBusinessList[AdapterPosition];
+                var item = NearbyBusinessAdapter.NearbyBusinessList[BindingAdapterPosition];
 
                 if (v?.Id == Button?.Id)
                 { 
@@ -293,22 +299,22 @@ namespace WoWonder.Activities.NearbyBusiness.Adapters
                         {
                             if (item.Job != null && item.Job.Value.JobInfoClass.ApplyCount == "0")
                             {
-                                Toast.MakeText(MainView.Context, MainView.Context.GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(NearbyBusinessAdapter.ActivityContext, NearbyBusinessAdapter.ActivityContext.GetString(Resource.String.Lbl_ThereAreNoRequests), ToastLength.Short);
                                 return;
                             }
 
-                            var intent = new Intent(MainView.Context, typeof(ShowApplyJobActivity));
+                            var intent = new Intent(NearbyBusinessAdapter.ActivityContext, typeof(ShowApplyJobActivity));
                             if (item.Job != null)
                                 intent.PutExtra("JobsObject", JsonConvert.SerializeObject(item.Job.Value.JobInfoClass));
-                            MainView.Context.StartActivity(intent);
+                            NearbyBusinessAdapter.ActivityContext.StartActivity(intent);
                             break;
                         }
                         case "Apply":
                         {
-                            var intent = new Intent(MainView.Context, typeof(ApplyJobActivity));
+                            var intent = new Intent(NearbyBusinessAdapter.ActivityContext, typeof(ApplyJobActivity));
                             if (item.Job != null)
                                 intent.PutExtra("JobsObject", JsonConvert.SerializeObject(item.Job.Value.JobInfoClass));
-                            MainView.Context.StartActivity(intent);
+                            NearbyBusinessAdapter.ActivityContext.StartActivity(intent);
                             break;
                         }
                     }

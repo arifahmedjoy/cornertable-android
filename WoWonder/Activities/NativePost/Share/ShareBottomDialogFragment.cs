@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.Content;
 using Android.OS; 
 using Android.Views;
 using Android.Widget;
 using Google.Android.Material.BottomSheet;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
@@ -93,6 +92,13 @@ namespace WoWonder.Activities.NativePost.Share
                 ShareGroupLayout = view.FindViewById<LinearLayout>(Resource.Id.ShareGroupLayout);
                 ShareOptionsLayout = view.FindViewById<LinearLayout>(Resource.Id.ShareOptionsLayout);
                 SharePageLayout = view.FindViewById<LinearLayout>(Resource.Id.SharePageLayout);
+
+                if (TypePost == PostModelType.AdsPost)
+                {
+                    ShareTimelineLayout.Visibility = ViewStates.Gone;
+                    ShareGroupLayout.Visibility = ViewStates.Gone;
+                    SharePageLayout.Visibility = ViewStates.Gone;
+                }
             }
             catch (Exception e)
             {
@@ -148,12 +154,12 @@ namespace WoWonder.Activities.NativePost.Share
                         StartActivity(intent);
                     }
                     else
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoPageManaged), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(Activity, Context.GetText(Resource.String.Lbl_NoPageManaged), ToastLength.Short);
 
                 }
                 else
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Activity, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -201,13 +207,13 @@ namespace WoWonder.Activities.NativePost.Share
                         switch (AppSettings.AllowDownloadMedia)
                         {
                             case true:
-                                await ShareFileImplementation.ShareRemoteFile(urlImage, fileName, Context.GetText(Resource.String.Lbl_Send_to));
+                                await ShareFileImplementation.ShareRemoteFile(DataPost.Url, urlImage, fileName, Context.GetText(Resource.String.Lbl_Send_to));
                                 break;
                             default:
                                 await CrossShare.Current.Share(new ShareMessage
                                 {
                                     Title = "",
-                                    Text = urlImage,
+                                    Text = DataPost.Url,
                                     Url = DataPost.Url
                                 });
                                 break;
@@ -234,13 +240,13 @@ namespace WoWonder.Activities.NativePost.Share
                         switch (AppSettings.AllowDownloadMedia)
                         {
                             case true:
-                                await ShareFileImplementation.ShareRemoteFile(linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
+                                await ShareFileImplementation.ShareRemoteFile(DataPost.Url,linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
                                 break;
                             default:
                                 await CrossShare.Current.Share(new ShareMessage
                                 {
                                     Title = "",
-                                    Text = linkUrl,
+                                    Text = DataPost.Url,
                                     Url = DataPost.Url
                                 });
                                 break;
@@ -255,13 +261,13 @@ namespace WoWonder.Activities.NativePost.Share
                         switch (AppSettings.AllowDownloadMedia)
                         {
                             case true:
-                                await ShareFileImplementation.ShareRemoteFile(linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
+                                await ShareFileImplementation.ShareRemoteFile(DataPost.Url, linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
                                 break;
                             default:
                                 await CrossShare.Current.Share(new ShareMessage
                                 {
                                     Title = "",
-                                    Text = linkUrl,
+                                    Text = DataPost.Url,
                                     Url = DataPost.Url
                                 });
                                 break;
@@ -290,6 +296,17 @@ namespace WoWonder.Activities.NativePost.Share
                             });
                         }
                         break;
+                    case PostModelType.AdsPost:
+                        if (DataPost.Blog != null)
+                        {
+                            await CrossShare.Current.Share(new ShareMessage
+                            {
+                                Title = "",
+                                Text = DataPost.Url,
+                                Url = DataPost.Url,
+                            });
+                        }
+                        break;
                     default:
                     {
                         if (DataPost.Blog != null)
@@ -311,13 +328,13 @@ namespace WoWonder.Activities.NativePost.Share
                                 switch (AppSettings.AllowDownloadMedia)
                                 {
                                     case true:
-                                        await ShareFileImplementation.ShareRemoteFile(linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
+                                        await ShareFileImplementation.ShareRemoteFile(DataPost.Url, linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
                                         break;
                                     default:
                                         await CrossShare.Current.Share(new ShareMessage
                                         {
                                             Title = "",
-                                            Text = linkUrl,
+                                            Text = DataPost.Url,
                                             Url = DataPost.Url
                                         });
                                         break;
@@ -339,7 +356,7 @@ namespace WoWonder.Activities.NativePost.Share
                                         {
                                             case "Image":
                                             case "File":
-                                                await ShareFileImplementation.ShareRemoteFile(linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
+                                                await ShareFileImplementation.ShareRemoteFile(DataPost.Url, linkUrl, fileName, Context.GetText(Resource.String.Lbl_Send_to));
                                                 break;
                                             default:
                                                 ShareFileImplementation.ShareText(linkUrl, Context.GetText(Resource.String.Lbl_Send_to));
@@ -391,11 +408,11 @@ namespace WoWonder.Activities.NativePost.Share
                         StartActivity(intent);
                     } 
                     else
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_NoGroupManaged), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(Activity, Context.GetText(Resource.String.Lbl_NoGroupManaged), ToastLength.Short);
                 }
                 else
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Activity, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }   
             }
             catch (Exception exception)
@@ -412,7 +429,7 @@ namespace WoWonder.Activities.NativePost.Share
                 {
                     TypeDialog = "ShareToMyTimeline";
 
-                    var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                     dialog.Title(Resource.String.Lbl_Share).TitleColorRes(Resource.Color.primary);
                     dialog.Content(Context.GetText(Resource.String.Lbl_ShareToMyTimeline));
@@ -423,7 +440,7 @@ namespace WoWonder.Activities.NativePost.Share
                 }
                 else
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Activity, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 } 
             }
             catch (Exception exception)
@@ -436,7 +453,7 @@ namespace WoWonder.Activities.NativePost.Share
 
         #region MaterialDialog
          
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
@@ -444,7 +461,7 @@ namespace WoWonder.Activities.NativePost.Share
                 {
                     case "ShareToGroup":
                     {
-                        GroupClass dataGroup = ListUtils.MyGroupList[itemId];
+                        GroupClass dataGroup = ListUtils.MyGroupList[position];
                         if (dataGroup != null)
                         {
                             Intent intent = new Intent(Context,typeof(SharePostActivity));
@@ -460,7 +477,7 @@ namespace WoWonder.Activities.NativePost.Share
                     }
                     case "ShareToPage":
                     {
-                        PageClass dataPage = ListUtils.MyPageList[itemId];
+                        PageClass dataPage = ListUtils.MyPageList[position];
                         if (dataPage != null)
                         {
                             Intent intent = new Intent(Context, typeof(SharePostActivity));

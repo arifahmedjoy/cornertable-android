@@ -62,33 +62,39 @@ namespace WoWonder.Activities.NativePost.Post
             int apiStatus;
             dynamic respond;
 
-            WRecyclerView.MainScrollEvent.IsLoading = true; 
-
+            WRecyclerView.MainScrollEvent.IsLoading = true;
+            var adId = NativeFeedAdapter.ListDiffer.LastOrDefault(a => a.TypeView == PostModelType.AdsPost && a.PostData.PostType == "ad")?.PostData?.Id ?? "";
             switch (NativeFeedAdapter.NativePostType)
             {
-                case NativeFeedType.Global:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_news_feed", NativeFeedAdapter.IdParameter, "", WRecyclerView.Filter);
+                case NativeFeedType.Global: 
+                   (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_news_feed", NativeFeedAdapter.IdParameter, "", WRecyclerView.Filter, adId);
                     break;
                 case NativeFeedType.User:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_user_posts", NativeFeedAdapter.IdParameter);
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_user_posts", NativeFeedAdapter.IdParameter, "", "", adId);
                     break;
                 case NativeFeedType.Group:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_group_posts", NativeFeedAdapter.IdParameter);
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_group_posts", NativeFeedAdapter.IdParameter, "", "", adId);
                     break;
                 case NativeFeedType.Page:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_page_posts", NativeFeedAdapter.IdParameter);
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_page_posts", NativeFeedAdapter.IdParameter, "", "", adId);
                     break;
                 case NativeFeedType.Event:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_event_posts", NativeFeedAdapter.IdParameter);
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "get_event_posts", NativeFeedAdapter.IdParameter, "", "", adId);
                     break;
                 case NativeFeedType.Saved:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "saved");
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "saved", "", "", "", adId);
                     break;
                 case NativeFeedType.HashTag:
-                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "hashtag", "", hash);
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnScroll, offset, "hashtag", "", hash, "", adId);
+                    break;
+                case NativeFeedType.Video:
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost("5", offset, "get_random_videos", "", "", "", adId);
                     break;
                 case NativeFeedType.Popular:
                     (apiStatus, respond) = await RequestsAsync.Posts.GetPopularPost(AppSettings.PostApiLimitOnScroll, offset);
+                    break;
+                case NativeFeedType.Boosted:
+                    (apiStatus, respond) = await RequestsAsync.Posts.GetBoostedPost();
                     break;
                 default:
                     return;
@@ -116,7 +122,7 @@ namespace WoWonder.Activities.NativePost.Post
             }
             else LoadDataApi(apiStatus, respond, offset);
         }
-
+         
         public void LoadDataApi(int apiStatus, dynamic respond, string offset, string typeRun = "Add")
         {
             try
@@ -128,7 +134,7 @@ namespace WoWonder.Activities.NativePost.Post
                 }
                 else
                 { 
-                    if (WRecyclerView.SwipeRefreshLayoutView != null && WRecyclerView.SwipeRefreshLayoutView.Refreshing)
+                    if (WRecyclerView.SwipeRefreshLayoutView is {Refreshing: true})
                         WRecyclerView.SwipeRefreshLayoutView.Refreshing = false;
 
                     var countList = NativeFeedAdapter.ItemCount;
@@ -146,10 +152,10 @@ namespace WoWonder.Activities.NativePost.Post
                                     result.Data.Reverse();
                                     bool add = false;
 
-                                    foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a?.PostData?.PostId == post.PostId && a.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
+                                    foreach (var post in from post in result.Data let check = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData?.PostId == post.PostId && a.TypeView == PostFunctions.GetAdapterType(post)) where check == null select post)
                                     {
                                         add = true;
-                                        NativeFeedAdapter.NewPostList.Add(post);
+                                        ListUtils.NewPostList.Add(post);
                                     }
 
                                     ActivityContext?.RunOnUiThread(() =>
@@ -158,10 +164,7 @@ namespace WoWonder.Activities.NativePost.Post
                                         {
                                             WRecyclerView.PopupBubbleView.Visibility = add switch
                                             {
-                                                true when WRecyclerView.PopupBubbleView != null &&
-                                                          WRecyclerView.PopupBubbleView.Visibility !=
-                                                          ViewStates.Visible &&
-                                                          AppSettings.ShowNewPostOnNewsFeed => ViewStates.Visible,
+                                                true when WRecyclerView.PopupBubbleView != null && WRecyclerView.PopupBubbleView.Visibility != ViewStates.Visible && AppSettings.ShowNewPostOnNewsFeed => ViewStates.Visible,
                                                 _ => WRecyclerView.PopupBubbleView.Visibility
                                             };
                                         }
@@ -218,6 +221,14 @@ namespace WoWonder.Activities.NativePost.Post
                                                         break;
                                                 }
 
+                                                var check3 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedPagesBox);
+                                                switch (check3)
+                                                {
+                                                    case null when AppSettings.ShowSuggestedPage && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedPageCount == 0 && ListUtils.SuggestedPageList.Count > 0:
+                                                        combiner.AddSuggestedBoxPostView(PostModelType.SuggestedPagesBox);
+                                                        break;
+                                                }
+
                                                 break;
                                             }
                                         }
@@ -257,7 +268,10 @@ namespace WoWonder.Activities.NativePost.Post
                                                 {
                                                     //Promoted
                                                     case true:
-                                                        combine.CombineDefaultPostSections("Top");
+                                                        if (NativeFeedAdapter.ListDiffer.Count == 0)
+                                                            combine.CombineDefaultPostSections();
+                                                        else
+                                                            combine.CombineDefaultPostSections("Top");
                                                         break;
                                                     default:
                                                         combine.CombineDefaultPostSections();
@@ -283,8 +297,18 @@ namespace WoWonder.Activities.NativePost.Post
                                             {
                                                 try
                                                 {
-                                                    var d = new Runnable(() => { NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList); }); d.Run();
-                                                    GC.Collect();
+                                                    var d = new Runnable(() =>
+                                                    {
+                                                        if (countList == 0)
+                                                        {
+                                                            NativeFeedAdapter.NotifyDataSetChanged();
+                                                        }
+                                                        else
+                                                        {
+                                                            NativeFeedAdapter.NotifyItemRangeInserted(countList, NativeFeedAdapter.ListDiffer.Count - countList);
+                                                        } 
+                                                    });d.Run();
+                                                    //GC.Collect();
                                                 }
                                                 catch (Exception e)
                                                 {
@@ -296,7 +320,7 @@ namespace WoWonder.Activities.NativePost.Post
 
                                     //else
                                     //{
-                                    //    Toast.MakeText(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_NoMorePost), ToastLength.Short)?.Show(); 
+                                    //    ToastUtils.ShowToast(ActivityContext, ActivityContext.GetText(Resource.String.Lbl_NoMorePost), ToastLength.Short); 
                                     //}
                                     break;
                                 }
@@ -306,13 +330,23 @@ namespace WoWonder.Activities.NativePost.Post
                         }
                     }
 
-                    ActivityContext?.RunOnUiThread(ShowEmptyPage);
-
-                    WRecyclerView.DataPostJson = NativeFeedAdapter.NativePostType switch
+                    ActivityContext?.RunOnUiThread(() =>
                     {
-                        NativeFeedType.Global => JsonConvert.SerializeObject(result),
-                        _ => WRecyclerView.DataPostJson
-                    };
+                        try
+                        {
+                            WRecyclerView.DataPostJson = NativeFeedAdapter.NativePostType switch
+                            {
+                                NativeFeedType.Global => JsonConvert.SerializeObject(result),
+                                _ => WRecyclerView.DataPostJson
+                            };
+
+                            ShowEmptyPage();
+                        }
+                        catch (Exception e)
+                        {
+                            Methods.DisplayReportResultTrack(e); 
+                        } 
+                    }); 
                 }
 
                 WRecyclerView.MainScrollEvent.IsLoading = false;
@@ -337,7 +371,7 @@ namespace WoWonder.Activities.NativePost.Post
                 switch (AppSettings.ShowStory)
                 {
                     case true:
-                        combiner.AddStoryPostView("feed", -1);
+                        combiner.AddStoryPostView(new List<StoryDataObject>());
                         break;
                 }
 
@@ -376,7 +410,7 @@ namespace WoWonder.Activities.NativePost.Post
                                     try
                                     {
                                         NativeFeedAdapter.NotifyDataSetChanged();
-                                        NativeFeedAdapter.NewPostList.Clear();
+                                        ListUtils.NewPostList.Clear();
                                     }
                                     catch (Exception e)
                                     {
@@ -508,11 +542,12 @@ namespace WoWonder.Activities.NativePost.Post
                     case PostModelType.AdMob3:
                     case PostModelType.FbAdNative:
                     case PostModelType.AdsPost:
+                    case PostModelType.SuggestedPagesBox:
                     case PostModelType.SuggestedGroupsBox:
                     case PostModelType.SuggestedUsersBox:
                     case PostModelType.CommentSection:
                     case PostModelType.AddCommentSection:
-                        item = list.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
+                        item = list.LastOrDefault(a => a.TypeView != PostModelType.Divider && a.TypeView != PostModelType.ViewProgress && a.TypeView != PostModelType.AdMob1 && a.TypeView != PostModelType.AdMob2 && a.TypeView != PostModelType.AdMob3 && a.TypeView != PostModelType.FbAdNative && a.TypeView != PostModelType.AdsPost && a.TypeView != PostModelType.SuggestedPagesBox && a.TypeView != PostModelType.SuggestedGroupsBox && a.TypeView != PostModelType.SuggestedUsersBox && a.TypeView != PostModelType.CommentSection && a.TypeView != PostModelType.AddCommentSection);
                         offset = item?.PostData?.PostId ?? "0";
                         Console.WriteLine(offset);
                         break;
@@ -576,8 +611,8 @@ namespace WoWonder.Activities.NativePost.Post
                 Methods.DisplayReportResultTrack(e);
             }
         }
-          
-        public bool LoadBottomDataApi(List<PostDataObject> list)
+
+        private bool LoadBottomDataApi(List<PostDataObject> list)
         {
             try
             {
@@ -596,7 +631,7 @@ namespace WoWonder.Activities.NativePost.Post
                             {
                                 case NativeFeedType.Global:
                                 {
-                                    var check1 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedGroupsBox);
+                                    var check1 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedGroupsBox); 
                                     switch (check1)
                                     {
                                         case null when AppSettings.ShowSuggestedGroup && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedGroupCount == 0 && ListUtils.SuggestedGroupList.Count > 0:
@@ -609,6 +644,14 @@ namespace WoWonder.Activities.NativePost.Post
                                     {
                                         case null when AppSettings.ShowSuggestedUser && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedUserCount == 0 && ListUtils.SuggestedUserList.Count > 0:
                                             combiner.AddSuggestedBoxPostView(PostModelType.SuggestedUsersBox);
+                                            break;
+                                    }
+
+                                    var check3 = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.SuggestedPagesBox);
+                                    switch (check3)
+                                    {
+                                        case null when AppSettings.ShowSuggestedPage && NativeFeedAdapter.ListDiffer.Count > 0 && NativeFeedAdapter.ListDiffer.Count % AppSettings.ShowSuggestedPageCount == 0 && ListUtils.SuggestedPageList.Count > 0:
+                                            combiner.AddSuggestedBoxPostView(PostModelType.SuggestedPagesBox);
                                             break;
                                     }
 
@@ -651,7 +694,10 @@ namespace WoWonder.Activities.NativePost.Post
                                     {
                                         //Promoted
                                         case true:
-                                            combine.CombineDefaultPostSections("Top");
+                                            if (NativeFeedAdapter.ListDiffer.Count == 0)
+                                                combine.CombineDefaultPostSections();
+                                            else
+                                                combine.CombineDefaultPostSections("Top");
                                             break;
                                         default:
                                             combine.CombineDefaultPostSections();
@@ -713,7 +759,7 @@ namespace WoWonder.Activities.NativePost.Post
                 if (viewProgress != null)
                     WRecyclerView.RemoveByRowIndex(viewProgress);
 
-                var emptyStateCheck = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                var emptyStateCheck = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox /*&& a.TypeView != PostModelType.SearchForPosts*/);
                 if (emptyStateCheck != null)
                 {
                     var emptyStateChecker = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
@@ -733,7 +779,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 Id = 744747447,
                             };
                             NativeFeedAdapter.ListDiffer.Add(data);
-                            NativeFeedAdapter.NotifyItemInserted(NativeFeedAdapter.ListDiffer.IndexOf(data));
+                            NativeFeedAdapter.NotifyDataSetChanged();
                             break;
                         }
                     }
@@ -749,11 +795,11 @@ namespace WoWonder.Activities.NativePost.Post
 
         #endregion
 
-        public void GetAllPostLive(List<PostDataObject> list)
+        private void GetAllPostLive(List<PostDataObject> list)
         {
             try
             {
-                var listLivePost = list?.Where(a => a.LiveTime != null && a.LiveTime.Value > 0 && string.IsNullOrEmpty(a.AgoraResourceId) && string.IsNullOrEmpty(a.PostFile))?.ToList();
+                var listLivePost = list?.Where(a => a.LiveTime != null && a.LiveTime.Value > 0 && a.IsStillLive != null && a.IsStillLive.Value && string.IsNullOrEmpty(a.AgoraResourceId) && string.IsNullOrEmpty(a.PostFile))?.ToList();
                 switch (NativeFeedAdapter.NativePostType)
                 {
                     case NativeFeedType.Global:
@@ -791,7 +837,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 {
                                     try
                                     {
-                                        var d = new Runnable(() => { mainActivity?.NewsFeedTab?.PostFeedAdapter.NotifyItemChanged(mainActivity.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(checkSection)); });
+                                        var d = new Runnable(() => { mainActivity?.NewsFeedTab?.PostFeedAdapter?.NotifyItemChanged(mainActivity.NewsFeedTab.PostFeedAdapter.ListDiffer.IndexOf(checkSection)); });
                                         d.Run();
                                     }
                                     catch (Exception e)
@@ -806,16 +852,34 @@ namespace WoWonder.Activities.NativePost.Post
                         var userProfileActivity = UserProfileActivity.GetInstance();
                         if (userProfileActivity != null)
                         {
+                            var data = userProfileActivity.PostFeedAdapter?.ListDiffer?.FirstOrDefault(a => a.TypeView == PostModelType.UserProfileInfoHeaderSection);
                             if (listLivePost?.Count > 0)
                             {
-                                userProfileActivity.DataLivePost = listLivePost.FirstOrDefault();
-                                userProfileActivity.LiveLayout.Visibility = ViewStates.Visible;
+                                UserDetails.DataLivePost = listLivePost.FirstOrDefault();
+
+                                if (data != null)
+                                    data.InfoUserModel.IsLive = true; 
                             }
                             else
                             {
-                                userProfileActivity.DataLivePost = null;
-                                userProfileActivity.LiveLayout.Visibility = ViewStates.Gone;
+                                UserDetails.DataLivePost = null;
+
+                                if (data != null)
+                                    data.InfoUserModel.IsLive = false;
                             }
+
+                            ActivityContext?.RunOnUiThread(() =>
+                            {
+                                try
+                                {
+                                    var d = new Runnable(() => { userProfileActivity?.PostFeedAdapter?.NotifyItemChanged(userProfileActivity.PostFeedAdapter.ListDiffer.IndexOf(data)); });
+                                    d.Run();
+                                }
+                                catch (Exception e)
+                                {
+                                    Methods.DisplayReportResultTrack(e);
+                                }
+                            });
                         }
 
                         break;
@@ -880,7 +944,7 @@ namespace WoWonder.Activities.NativePost.Post
                                 
                                     string username = ""; 
                                     if (aa.Count > i + 1)
-                                        username = aa[i + 1]?.Value?.Replace("href=", "").Replace('"', ' ').Replace(" ", "").Replace(Client.WebsiteUrl, "").Replace("\n", "");
+                                        username = aa[i + 1]?.Value?.Replace("href=", "").Replace('"', ' ').Replace(" ", "").Replace(InitializeWoWonder.WebsiteUrl, "").Replace("\n", "");
 
                                     if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(username))
                                         continue;
@@ -921,37 +985,5 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
          
-        public static async Task FetchFirstNewsFeedApiPosts()
-        {
-            try
-            {
-                if (!Methods.CheckConnectivity())
-                    return;
-                 
-                var (apiStatus, respond) = await RequestsAsync.Posts.GetGlobalPost(AppSettings.PostApiLimitOnBackground); 
-                if (apiStatus != 200 || respond is not PostObject result)
-                {
-                    //Methods.DisplayReportResult(ActivityContext, respond);
-                }
-                else
-                {
-                    switch (result?.Data?.Count)
-                    {
-                        case > 0:
-                        {
-                            result.Data.RemoveAll(a => a.Publisher == null && a.UserData == null);
-                            SqLiteDatabase dbDatabase = new SqLiteDatabase();
-                            //Insert All data to database
-                            dbDatabase.InsertOrUpdatePost(JsonConvert.SerializeObject(result));
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
-        } 
     }
 }

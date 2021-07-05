@@ -60,7 +60,7 @@ namespace WoWonder.Activities.Chat.Floating
 
         public override IBinder OnBind(Intent intent)
         {
-            return null;
+            return null!;
         }
 
         protected override void OnHandleWork(Intent p0)
@@ -187,7 +187,7 @@ namespace WoWonder.Activities.Chat.Floating
                 else
                 {
                     Badge?.BindTarget(Image).Hide(true);
-                    Badge = null;
+                    Badge = null!;
                 }
             }
             catch (Exception e)
@@ -328,7 +328,7 @@ namespace WoWonder.Activities.Chat.Floating
                 if (MFloatingViewManager != null)
                 {
                     MFloatingViewManager.RemoveAllViewToWindow();
-                    MFloatingViewManager = null;
+                    MFloatingViewManager = null!;
                 }
 
                 RemoveNotification();
@@ -410,7 +410,7 @@ namespace WoWonder.Activities.Chat.Floating
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 

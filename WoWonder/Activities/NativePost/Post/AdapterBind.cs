@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Android.App;
-using Android.Content;
 using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.OS;
+using Android.Util;
 using Android.Views;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
@@ -14,12 +14,9 @@ using AndroidX.Core.Graphics.Drawable;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
-using Com.Tuyenmonkey.Textdecorator;
 using Java.Lang;
 using WoWonder.Activities.Comment.Adapters;
 using WoWonder.Activities.Comment.Fragment;
-using WoWonder.Activities.Contacts;
-using WoWonder.Activities.SettingsPreferences.TellFriend;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
@@ -98,7 +95,7 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         //Everyone
                         case "0":
-                            holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_globe);
+                            holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_world_vector);
                             break;
                         default:
                         {
@@ -168,7 +165,7 @@ namespace WoWonder.Activities.NativePost.Post
                     {
                         //Everyone
                         case "0":
-                            holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.icon_privacy_globe);
+                            holder.PrivacyPostIcon.SetImageResource(Resource.Drawable.ic_world_vector);
                             break;
                         default:
                         {
@@ -213,8 +210,16 @@ namespace WoWonder.Activities.NativePost.Post
                 if (holder.CommentCount != null)
                     holder.CommentCount.Text = item.PostData.PostComments + " " + ActivityContext.GetString(Resource.String.Lbl_Comments);
 
-                if (holder.ShareCount != null)
-                    holder.ShareCount.Text = item.PostData.PostShares + " " + ActivityContext.GetString(Resource.String.Lbl_Shares);
+                if (AppSettings.ShowTextShareButton)
+                {
+                    if (holder.ShareCount != null)
+                        holder.ShareCount.Text = item.PostData.PostShare + " " + ActivityContext.GetString(Resource.String.Lbl_Shares);
+                }
+                else
+                {
+                    if (holder.ShareCount != null)
+                        holder.ShareCount.Visibility = ViewStates.Gone;
+                }
 
                 holder.ViewCount.Text = item.PostData.PrevButtonViewText;
 
@@ -241,9 +246,9 @@ namespace WoWonder.Activities.NativePost.Post
 
                         //holder.ImageCountLike.Visibility = item.PostData.Reaction.Count > 0 ? ViewStates.Visible : ViewStates.Invisible;
                         if(item.PostData.Reaction.Count > 0)
-                                holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
-                        else
-                                holder.ImageCountLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
+                            holder.ImageCountLike.SetImageResource(Resource.Drawable.emoji_like);
+                        else 
+                            holder.ImageCountLike.SetImageResource(Resource.Drawable.icon_post_like_vector);
 
                         if (item.PostData.Reaction.IsReacted != null && item.PostData.Reaction.IsReacted.Value)
                         {
@@ -469,11 +474,11 @@ namespace WoWonder.Activities.NativePost.Post
                     }
                 }
 
-                holder.ShareLinearLayout.Visibility = item.IsSharingPost switch
+                if (item.IsSharingPost)
                 {
-                    true => ViewStates.Gone,
-                    _ => AppSettings.ShowShareButton ? ViewStates.Visible : ViewStates.Gone
-                };
+                    holder.ShareLinearLayout.Visibility = ViewStates.Gone;
+                    holder.MainSectionButton.WeightSum = 2;
+                } 
             }
             catch (Exception e)
             {
@@ -494,38 +499,29 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     if (holder.Description.Visibility != ViewStates.Visible)
                         holder.Description.Visibility = ViewStates.Visible;
-                     
-                    if (!holder.Description.Text.Contains(ActivityContext.GetText(Resource.String.Lbl_ReadMore)) && !holder.Description.Text.Contains(ActivityContext.GetText(Resource.String.Lbl_ReadLess)))
+                      
+                    switch (item.PostData.RegexFilterList != null & item.PostData.RegexFilterList?.Count > 0)
                     {
-                        switch (item.PostData.RegexFilterList != null & item.PostData.RegexFilterList?.Count > 0)
-                        {
-                            case true:
-                                holder.Description.SetAutoLinkOnClickListener(NativePostAdapter, item.PostData.RegexFilterList);
-                                break;
-                            default:
-                                holder.Description.SetAutoLinkOnClickListener(NativePostAdapter, new Dictionary<string, string>());
-                                break;
-                        }
-
-                        NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.Description, new String(item.PostData.Orginaltext));
+                        case true:
+                            holder.Description.SetAutoLinkOnClickListener(NativePostAdapter, item.PostData.RegexFilterList);
+                            break;
+                        default:
+                            holder.Description.SetAutoLinkOnClickListener(NativePostAdapter, new Dictionary<string, string>());
+                            break;
                     }
-                    //else if (holder.Description.Text.Contains(ActivityContext.GetText(Resource.String.Lbl_ReadLess)))
-                    //{
-                    //    ReadMoreOption.AddReadLess(holder.Description, new String(item.PostData.Orginaltext));
-                    //}
+                   
+                    NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.Description, new String(item.PostData.Orginaltext));
+                     
+                    if (!string.IsNullOrEmpty(holder.Description.Text) && !string.IsNullOrWhiteSpace(holder.Description.Text) && holder.Description.Text?.Length <= 50)
+                    {
+                        if (holder.Description.Text.Contains("http") || holder.Description.Text.Contains(ActivityContext.GetText(Resource.String.Lbl_ReadMore)) || holder.Description.Text.Contains(ActivityContext.GetText(Resource.String.Lbl_ReadLess)))
+                            holder.Description.SetTextSize(ComplexUnitType.Sp, 13f);
+                        else
+                            holder.Description.SetTextSize(ComplexUnitType.Sp, 20f);
+                    }
                     else
                     {
-                        switch (item.PostData.RegexFilterList != null & item.PostData.RegexFilterList?.Count > 0)
-                        {
-                            case true:
-                                holder.Description.SetAutoLinkOnClickListener(NativePostAdapter, item.PostData.RegexFilterList);
-                                break;
-                            default:
-                                holder.Description.SetAutoLinkOnClickListener(NativePostAdapter, new Dictionary<string, string>());
-                                break;
-                        }
-
-                        NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.Description, new String(item.PostData.Orginaltext));
+                        holder.Description.SetTextSize(ComplexUnitType.Sp, 13f);
                     }
                 }
             }
@@ -539,7 +535,7 @@ namespace WoWonder.Activities.NativePost.Post
         {
             try
             {
-                var comment = item.PostData.GetPostComments.FirstOrDefault(danjo => string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record) && !string.IsNullOrEmpty(danjo.Text));
+                var comment = item?.PostData?.GetPostComments?.FirstOrDefault(danjo => string.IsNullOrEmpty(danjo?.CFile) && string.IsNullOrEmpty(danjo?.Record) && !string.IsNullOrEmpty(danjo?.Text));
                 switch (comment)
                 {
                     case null:
@@ -549,7 +545,7 @@ namespace WoWonder.Activities.NativePost.Post
                 var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(comment);
                 LoadCommentData(db, holder);
 
-                holder.CommentAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(ClassMapper.Mapper?.Map<ObservableCollection<CommentObjectExtra>>(item.PostData.GetPostComments));
+                holder.CommentAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(ClassMapper.Mapper?.Map<ObservableCollection<CommentObjectExtra>>(item.PostData.GetPostComments) ?? new ObservableCollection<CommentObjectExtra>());
 
             }
             catch (Exception e)
@@ -562,12 +558,13 @@ namespace WoWonder.Activities.NativePost.Post
         {
             try
             {
-                if (viewHolder is not CommentAdapterViewHolder holder)
+                if (viewHolder is not CommentAdapterViewHolder holder || item == null)
                     return;
 
                 if (!string.IsNullOrEmpty(item.Orginaltext) || !string.IsNullOrWhiteSpace(item.Orginaltext))
                 {
                     var text = Methods.FunString.DecodeString(item.Orginaltext);
+                    holder.CommentText.SetAutoLinkOnClickListener(NativePostAdapter,new Dictionary<string, string>());
                     NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.CommentText, new String(text)); 
                 }
                 else
@@ -576,46 +573,18 @@ namespace WoWonder.Activities.NativePost.Post
                 }
 
                 holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
-                holder.UserName.Text = item.Publisher.Name;
 
                 GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                var textHighLighter = item.Publisher.Name;
-                var textIsPro = string.Empty;
+                holder.UserName.Text = WoWonderTools.GetNameFinal(item.Publisher);
 
                 switch (item.Publisher.Verified)
                 {
                     case "1":
-                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
+                        holder.UserName.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
                         break;
                 }
-
-                switch (item.Publisher.IsPro)
-                {
-                    case "1":
-                        textIsPro = " " + IonIconsFonts.Flash;
-                        textHighLighter += textIsPro;
-                        break;
-                }
-
-                var decorator = TextDecorator.Decorate(holder.UserName, textHighLighter).SetTextStyle((int)TypefaceStyle.Bold, 0, item.Publisher.Name.Length);
-
-                switch (item.Publisher.Verified)
-                {
-                    case "1":
-                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
-                        break;
-                }
-
-                switch (item.Publisher.IsPro)
-                {
-                    case "1":
-                        decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
-                        break;
-                }
-
-                decorator.Build();
-
+                 
                 //Image
                 if (holder.ItemViewType == 1 || holder.CommentImage != null)
                 {
@@ -629,7 +598,7 @@ namespace WoWonder.Activities.NativePost.Post
                     //}
                     //else
                     //{
-                    //    if (!item.CFile.Contains(Client.WebsiteUrl))
+                    //    if (!item.CFile.Contains(InitializeWoWonder.WebsiteUrl))
                     //        item.CFile = WoWonderTools.GetTheFinalLink(item.CFile);
 
                     //    GlideImageLoader.LoadImage(ActivityContext, item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
@@ -971,11 +940,21 @@ namespace WoWonder.Activities.NativePost.Post
                     holder.ColorBoxImage.Background = item.PostData.ColorBoxGradientDrawable;
 
                 if (item.PostData != null)
-                {
-                    holder.DesTextView.SetTextColor(item.PostData.ColorBoxTextColor);
-                    holder.DesTextView.Text = item.PostData.Orginaltext;
-                }
+                { 
+                    holder.DesTextView.SetTextColor(Color.ParseColor(item.PostData.ColorBoxTextColor));
 
+                    switch (item.PostData.RegexFilterList != null & item.PostData.RegexFilterList?.Count > 0)
+                    {
+                        case true:
+                            holder.DesTextView.SetAutoLinkOnClickListener(NativePostAdapter, item.PostData.RegexFilterList);
+                            break;
+                        default:
+                            holder.DesTextView.SetAutoLinkOnClickListener(NativePostAdapter, new Dictionary<string, string>());
+                            break;
+                    }
+
+                    NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.DesTextView, new String(item.PostData.Orginaltext));
+                }
             }
             catch (Exception e)
             {
@@ -1128,7 +1107,6 @@ namespace WoWonder.Activities.NativePost.Post
                             break;
                         default:
                             holder.PostProductLocationText.Visibility = ViewStates.Gone;
-                            holder.LocationIcon.Visibility = ViewStates.Gone;
                             break;
                     }
 
@@ -1392,8 +1370,8 @@ namespace WoWonder.Activities.NativePost.Post
                         break;
                 }
 
-                holder.PostBlogText.Text = item.PostData.Offer?.OfferClass?.OfferText;
-                holder.PostBlogContent.Text = item.PostData.Offer?.OfferClass?.Description;
+                holder.PostBlogText.Text = Methods.FunString.SubStringCutOf(item.PostData.Offer?.OfferClass?.OfferText, 100);
+                holder.PostBlogContent.Text = Methods.FunString.SubStringCutOf(item.PostData.Offer?.OfferClass?.Description, 100);
             }
             catch (Exception e)
             {
@@ -1409,12 +1387,14 @@ namespace WoWonder.Activities.NativePost.Post
                 {
 
                     if (item.PostData.Job.Value.JobInfoClass.Page != null)
+                    {
                         NativePostAdapter.FullGlideRequestBuilder.Load(item.PostData.Job.Value.JobInfoClass.Page.Avatar).Into(holder.JobAvatar);
+                        holder.PageName.Text = item.PostData.Job.Value.JobInfoClass.Page.PageName;
+                    }
 
                     NativePostAdapter.FullGlideRequestBuilder.Load(item.PostData.Job.Value.JobInfoClass.Image).Into(holder.JobCoverImage);
 
                     holder.JobTitle.Text = item.PostData.Job.Value.JobInfoClass.Title;
-                    holder.PageName.Text = item.PostData.Job?.JobInfoClass.Page.PageName;
 
                 }
             }
@@ -1678,44 +1658,29 @@ namespace WoWonder.Activities.NativePost.Post
             }
         }
          
-        public void ProfileHeaderSeltionBind(AdapterHolders.ProfileHeaderSectionHolder holder, AdapterModelsClass item)
+        public void MyProfileInfoHeaderSectionBind(AdapterHolders.MyProfileInfoHeaderSectionHolder holder, AdapterModelsClass item)
         {
             try
             {
-                if (item.headerSectionClass.UserData != null)
-                {
-                    string followers = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.FollowersCount));
-                    string following = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.FollowingCount));
-                    string post = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.PostCount));
-                    string likes = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Details.DetailsClass.LikesCount));
-                    string points = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.headerSectionClass.UserData.Points));
+                if (item.InfoUserModel.UserData != null)
+                { 
+                    GlideImageLoader.LoadImage(ActivityContext, item.InfoUserModel.UserData.Avatar, holder.ImageAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
 
-                    holder.CountFollowers.Text = followers;
-                    holder.CountFollowings.Text = following;
-                    holder.CountLikes.Text = likes;
-                    holder.CountPoints.Text = points;
+                    holder.TxtUsername.Text = "@" + item.InfoUserModel.UserData.Username;
 
-                    UserId = item.headerSectionClass.UserData.UserId;
-                     
-                    switch (AppSettings.ConnectivitySystem)
-                    {
-                        // Following
-                        case 1:
-                            holder.CountFollowers.Text = followers;
-                            holder.CountFollowings.Text = following;
+                    var name = WoWonderTools.GetNameFinal(item.InfoUserModel.UserData);
+                    var textHighLighter = name;
 
-                            holder.LlCountFollowing.Click += LlCountFollowing_Click;
+                    if (item.InfoUserModel.UserData.Verified == "1")
+                        textHighLighter += " " + "[img src=icon_checkmark_small_vector/]";
 
-                            break;
-                        // Friend
-                        default: 
-                            holder.CountFollowers.Text = followers;
-                            holder.CountFollowings.Text = post; 
-                            break;
-                    }
-                     
-                    holder.LlCountFollowers.Click += LlCountFollowers_Click;
-                    holder.LlPoint.Click +=  LlPointOnClick; 
+                    if (item.InfoUserModel.UserData.IsPro == "1")
+                        textHighLighter += " " + "[img src=post_icon_flash/]";
+
+                    TextViewWithImages.Publisher = item.InfoUserModel.UserData;
+                    var decoratedContent = TextViewWithImages.GetTextWithImages(null, ActivityContext, new Java.Lang.String(textHighLighter.ToArray(), 0, textHighLighter.Length));
+
+                    holder.TxtName.SetText(decoratedContent); 
                 } 
             }
             catch (Exception e)
@@ -1723,48 +1688,186 @@ namespace WoWonder.Activities.NativePost.Post
                 Methods.DisplayReportResultTrack(e);
             }
         }
-
-        private void LlPointOnClick(object sender, EventArgs e)
+        
+        public void UserProfileInfoHeaderSectionBind(AdapterHolders.UserProfileInfoHeaderSectionHolder holder, AdapterModelsClass item)
         {
             try
             {
-                var intent = new Intent(ActivityContext, typeof(MyPointsActivity)); 
-                ActivityContext.StartActivity(intent);
+                if (item.InfoUserModel.UserData != null)
+                {
+                    GlideImageLoader.LoadImage(ActivityContext, item.InfoUserModel.UserData.Avatar, holder.ImageAvatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    
+                    holder.TxtUsername.Text = "@" + item.InfoUserModel.UserData.Username + " " + Methods.Time.TimeAgo(Convert.ToInt32(item.InfoUserModel.UserData.LastseenUnixTime), false);
+
+                    var name = WoWonderTools.GetNameFinal(item.InfoUserModel.UserData);
+                    var textHighLighter = name;
+
+                    if (item.InfoUserModel.UserData.Verified == "1")
+                        textHighLighter += " " + "[img src=icon_checkmark_small_vector/]";
+
+                    if (item.InfoUserModel.UserData.IsPro == "1")
+                        textHighLighter += " " + "[img src=post_icon_flash/]";
+
+                    TextViewWithImages.Publisher = item.InfoUserModel.UserData;
+                    var decoratedContent = TextViewWithImages.GetTextWithImages(null, ActivityContext, new Java.Lang.String(textHighLighter.ToArray(), 0, textHighLighter.Length));
+
+                    holder.TxtName.SetText(decoratedContent);
+
+                    if (item.InfoUserModel.UserData.IsFollowing == "0")
+                    {
+                        holder.StopNotifyLayout.Visibility = ViewStates.Gone;
+                    }
+                    else
+                    {
+                        holder.StopNotifyLayout.Visibility = ViewStates.Visible;
+
+                        //check is stopped or no ic_notifications_on_vector , ic_notifications_off_vector
+                        if (item.InfoUserModel.UserData.IsNotifyStopped is 1)
+                        {
+                            holder.ImageStopNotify.SetImageResource(Resource.Drawable.ic_notifications_off_vector);
+                        }
+                        else
+                        {
+                            holder.ImageStopNotify.SetImageResource(Resource.Drawable.ic_notifications_on_vector);
+                        }
+                    }
+                    
+                    holder.LiveLayout.Visibility = item.InfoUserModel.IsLive ? ViewStates.Visible : ViewStates.Gone;
+
+                    //Set Privacy User
+                    //==================================
+                    item.InfoUserModel.SPrivacyBirth = item.InfoUserModel.UserData.BirthPrivacy;
+                    item.InfoUserModel.SPrivacyFollow = item.InfoUserModel.UserData.FollowPrivacy;
+                    item.InfoUserModel.SPrivacyFriend = item.InfoUserModel.UserData.FriendPrivacy;
+                    item.InfoUserModel.SPrivacyMessage = item.InfoUserModel.UserData.MessagePrivacy;
+
+                    SetProfilePrivacy(holder,item.InfoUserModel);
+
+                    if (item.InfoUserModel.UserData.UserId != UserDetails.UserId)
+                    {
+                        item.InfoUserModel.SCanFollow = item.InfoUserModel.UserData.CanFollow;
+
+                        switch (item.InfoUserModel.SCanFollow)
+                        {
+                            case "0" when item.InfoUserModel.UserData.IsFollowing == "0":
+                                holder.BtnFollow.Visibility = ViewStates.Gone;
+                                break;
+                            default:
+                                holder.BtnFollow.Visibility = ViewStates.Visible;
+                                break;
+                        }
+
+                        SetProfilePrivacy(holder, item.InfoUserModel);
+                    } 
+                }
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(exception);
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
-        private void LlCountFollowing_Click(object sender, EventArgs e)
+
+        public void SetProfilePrivacy(AdapterHolders.UserProfileInfoHeaderSectionHolder holder, InfoUserModelClass result)
         {
             try
             {
-                var intent = new Intent(ActivityContext, typeof(MyContactsActivity));
-                intent.PutExtra("ContactsType", "Following");
-                intent.PutExtra("UserId", UserId);
-                ActivityContext.StartActivity(intent);
+                switch (result.UserData.IsFollowing)
+                {
+                    case "0":
+                        result.UserData.IsFollowing = "0";
+                        holder.BtnFollow.Tag = "Add";
+                        break;
+                    case "1":
+                        result.UserData.IsFollowing = "1";
+                        holder.BtnFollow.Tag = "friends";
+                        break;
+                    case "2":
+                        result.UserData.IsFollowing = "2";
+                        holder.BtnFollow.Tag = "request";
+                        break;
+                }
+
+                holder.SetAddFriendCondition(result.UserData);
+
+                if (result.SPrivacyFollow == "0") // Everyone
+                {
+                    holder.BtnFollow.Visibility = ViewStates.Visible;
+                }
+                else if (result.UserData.FollowPrivacy == "1") // People i Follow
+                {
+                    if (result.UserData.IsFollowingMe == "0")
+                    {
+                        holder.BtnFollow.Visibility = result.UserData.IsFollowing == "0" ? ViewStates.Gone : ViewStates.Visible;
+                    }
+                    else if (result.UserData.IsFollowingMe == "1")
+                    {
+                        holder.BtnFollow.Visibility = ViewStates.Visible;
+                    }
+                }
+                else
+                    holder.BtnFollow.Visibility = ViewStates.Visible;
+
+                holder.BtnMessage.Visibility = AppSettings.MessengerIntegration switch
+                {
+                    true => result.SPrivacyMessage switch
+                    {
+                        // Everyone
+                        "0" => ViewStates.Visible,
+                        // People i Follow
+                        "1" => result.UserData.IsFollowingMe switch
+                        {
+                            "0" when result.UserData.IsFollowing == "0" => ViewStates.Gone,
+                            _ => result.UserData.IsFollowingMe == "0" ? ViewStates.Visible : ViewStates.Gone
+                        },
+                        _ => ViewStates.Gone
+                    },
+                    _ => ViewStates.Gone
+                };
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(exception);
+                Methods.DisplayReportResultTrack(e);
             }
         }
-
-        private void LlCountFollowers_Click(object sender, EventArgs e)
+         
+        public void ProfileDetailsSectionBind(AdapterHolders.ProfileDetailsSectionHolder holder, AdapterModelsClass item)
         {
             try
             {
-                var intent = new Intent(ActivityContext, typeof(MyContactsActivity));
-                intent.PutExtra("ContactsType", "Followers");
-                intent.PutExtra("UserId", UserId);
+                if (item.InfoUserModel.UserData != null)
+                { 
+                    string followers = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.InfoUserModel.UserData.Details.DetailsClass.FollowersCount));
+                    string following = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.InfoUserModel.UserData.Details.DetailsClass.FollowingCount));
+                    string post = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.InfoUserModel.UserData.Details.DetailsClass.PostCount));
+                    string likes = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.InfoUserModel.UserData.Details.DetailsClass.LikesCount));
+                    string points = Methods.FunString.FormatPriceValue(Convert.ToInt32(item.InfoUserModel.UserData.Points));
 
-                ActivityContext.StartActivity(intent);
+                    holder.CountFollowers.Text = followers;
+                    holder.CountFollowings.Text = following;
+                    holder.CountLikes.Text = likes;
+                    holder.CountPoints.Text = points;
+
+                    UserId = item.InfoUserModel.UserData.UserId;
+                    
+                    switch (AppSettings.ConnectivitySystem)
+                    {
+                        // Following
+                        case 1:
+                            holder.CountFollowers.Text = followers;
+                            holder.CountFollowings.Text = following; 
+                            break;
+                        // Friend
+                        default: 
+                            holder.CountFollowers.Text = followers;
+                            holder.CountFollowings.Text = post; 
+                            break;
+                    } 
+                } 
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Methods.DisplayReportResultTrack(exception);
+                Methods.DisplayReportResultTrack(e);
             }
         }
 
@@ -1774,7 +1877,20 @@ namespace WoWonder.Activities.NativePost.Post
             {
                 if (item.InfoUserModel.UserData != null)
                 {
-                    holder.TimeText.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.InfoUserModel.UserData.LastseenUnixTime), false);
+                    if (item.InfoUserModel.UserData.IsPro == "1")
+                    {
+                        holder.LayoutPro.Visibility = ViewStates.Visible;
+                       
+                        var type = ListUtils.SettingsSiteList?.ProPackagesTypes?.FirstOrDefault(pair => pair.Key == item.InfoUserModel.UserData.ProType).Value;
+                        if (!string.IsNullOrEmpty(type))
+                            holder.ProText.Text = type.ToUpper() + " " + ActivityContext.GetText(Resource.String.Lbl_Member);
+                        else
+                            holder.ProText.Text = ActivityContext.GetText(Resource.String.Lbl_ProMember);
+                    }
+                    else
+                    {
+                        holder.LayoutPro.Visibility = ViewStates.Gone;
+                    }
 
                     switch (string.IsNullOrEmpty(item.InfoUserModel.UserData.Website))
                     {
@@ -1792,14 +1908,7 @@ namespace WoWonder.Activities.NativePost.Post
                         case > 0:
                         {
                             var value = ListUtils.SettingsSiteList?.Genders?.FirstOrDefault(a => a.Key == item.InfoUserModel.UserData.Gender).Value;
-                            if (value != null)
-                            {
-                                holder.GanderText.Text = value;
-                            }
-                            else
-                            {
-                                holder.GanderText.Text = item.InfoUserModel.UserData.GenderText;
-                            }
+                            holder.GanderText.Text = value ?? item.InfoUserModel.UserData.GenderText;
 
                             break;
                         }
@@ -1920,6 +2029,8 @@ namespace WoWonder.Activities.NativePost.Post
 
                     if (item.PrivacyModelClass.GroupClass.Members != 0)
                         holder.TxtMembers.Text = Methods.FunString.FormatPriceValue(item.PrivacyModelClass.GroupClass.Members) + " " + ActivityContext.GetString(Resource.String.Lbl_Members);
+                    else if (item.PrivacyModelClass.GroupClass.MembersCount != null && item.PrivacyModelClass.GroupClass.MembersCount.Value != 0)
+                        holder.TxtMembers.Text = Methods.FunString.FormatPriceValue(item.PrivacyModelClass.GroupClass.MembersCount.Value) + " " + ActivityContext.GetString(Resource.String.Lbl_Members);
                 }
             }
             catch (Exception e)
@@ -1949,15 +2060,15 @@ namespace WoWonder.Activities.NativePost.Post
 
                     holder.CategoryText.Text = new CategoriesController().Get_Translate_Categories_Communities(item.PageInfoModelClass.PageClass.PageCategory, item.PageInfoModelClass.PageClass.Category , "Page");
                      
-                    if (Methods.FunString.StringNullRemover(item.PageInfoModelClass.PageClass.About) != "Empty")
-                    {
-                        var about = Methods.FunString.DecodeString(item.PageInfoModelClass.PageClass.About);
-                        NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.AboutDesc, new String(about));
-                    }
-                    else
-                    {
-                        holder.AboutDesc.Text = ActivityContext.GetText(Resource.String.Lbl_NoAnyDescription);
-                    }
+                    //if (Methods.FunString.StringNullRemover(item.PageInfoModelClass.PageClass.About) != "Empty")
+                    //{
+                    //    var about = Methods.FunString.DecodeString(item.PageInfoModelClass.PageClass.About);
+                    //    NativePostAdapter.ReadMoreOption.AddReadMoreTo(holder.AboutDesc, new String(about));
+                    //}
+                    //else
+                    //{
+                    //    holder.AboutDesc.Text = ActivityContext.GetText(Resource.String.Lbl_NoAnyDescription);
+                    //}
                 }
             }
             catch (Exception e)
@@ -2024,7 +2135,7 @@ namespace WoWonder.Activities.NativePost.Post
                     false => item.FollowersModel.TitleHead,
                     _ => holder.AboutHead.Text
                 };
-
+                holder.AboutHead.Text = holder.AboutHead.Text.ToUpper();
                 holder.AboutMore.Text = item.FollowersModel.More;
 
                 holder.AboutMore.Visibility = holder.FollowersAdapter?.MUserFriendsList?.Count > 4 ? ViewStates.Visible : ViewStates.Invisible;
@@ -2053,12 +2164,33 @@ namespace WoWonder.Activities.NativePost.Post
                     false => item.GroupsModel?.TitleHead,
                     _ => holder.AboutHead.Text
                 };
-
+                holder.AboutHead.Text = holder.AboutHead.Text.ToUpper();
                 holder.AboutMore.Text = item.GroupsModel?.More;
 
                 if (holder.GroupsAdapter != null)
                 {
                     holder.AboutMore.Visibility = holder.GroupsAdapter?.GroupList?.Count > 4 ? ViewStates.Visible : ViewStates.Invisible;
+                }
+            }
+            catch (Exception e)
+            {
+                Methods.DisplayReportResultTrack(e);
+            }
+        }
+        
+        public void SuggestedPagesBoxBind(AdapterHolders.SuggestedPagesViewHolder holder, AdapterModelsClass item)
+        {
+            try
+            {
+                switch (holder.PagesAdapter?.PageList?.Count)
+                {
+                    case 0:
+                        holder.PagesAdapter.PageList = new ObservableCollection<PageClass>(ListUtils.SuggestedPageList.Take(12));
+                        holder.PagesAdapter.NotifyDataSetChanged();
+                        holder.AboutMore.Text = ListUtils.SuggestedPageList.Count.ToString();
+
+                        holder.AboutMore.Visibility = holder.PagesAdapter?.PageList?.Count > 4 ? ViewStates.Visible : ViewStates.Invisible;
+                        break;
                 }
             }
             catch (Exception e)
@@ -2119,6 +2251,7 @@ namespace WoWonder.Activities.NativePost.Post
                     _ => holder.AboutHead.Text
                 };
 
+                holder.AboutHead.Text = holder.AboutHead.Text.ToUpper();
                 holder.AboutMore.Text = item.ImagesModel.More;
 
                 switch (item.ImagesModel?.ImagesList)
@@ -2165,7 +2298,7 @@ namespace WoWonder.Activities.NativePost.Post
                     false => item.PagesModel?.TitleHead,
                     _ => holder.AboutHead.Text
                 };
-
+                holder.AboutHead.Text = holder.AboutHead.Text.ToUpper();
                 holder.AboutMore.Text = item.PagesModel?.More;
 
                 if (holder.PagesAdapter != null)

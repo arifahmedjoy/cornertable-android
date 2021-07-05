@@ -64,8 +64,8 @@ namespace WoWonder.Adapters
                         {
                             holder.Button.Text = item.CategoriesName;
 
-                            holder.Button.SetBackgroundResource(item.CategoriesColor == AppSettings.MainColor ? Resource.Drawable.follow_button_profile_friends : Resource.Drawable.Categories_button);
-                            holder.Button.SetTextColor(Color.ParseColor(item.CategoriesColor)); 
+                            holder.Button.SetBackgroundResource(item.CategoriesColor == AppSettings.MainColor ? Resource.Drawable.Categories_button_press : Resource.Drawable.Categories_button);
+                            //holder.Button.SetTextColor(Color.ParseColor(item.CategoriesColor)); 
                         }
 
                         break;
@@ -133,10 +133,10 @@ namespace WoWonder.Adapters
                 Button = MainView.FindViewById<Button>(Resource.Id.cont);
 
                 //Create an Event
-                itemView.Click += (sender, e) => clickListener(new CategoriesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
-                itemView.LongClick += (sender, e) => longClickListener(new CategoriesAdapterClickEventArgs{View = itemView, Position = AdapterPosition});
+                itemView.Click += (sender, e) => clickListener(new CategoriesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
+                itemView.LongClick += (sender, e) => longClickListener(new CategoriesAdapterClickEventArgs{View = itemView, Position = BindingAdapterPosition});
                  
-                Button.SetTextColor(Color.ParseColor("#efefef"));
+                Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
             } 
             catch (Exception e)
             {

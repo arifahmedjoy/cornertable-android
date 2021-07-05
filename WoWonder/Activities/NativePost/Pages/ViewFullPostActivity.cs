@@ -75,7 +75,10 @@ namespace WoWonder.Activities.NativePost.Pages
 
                 StartApiService();
 
-                InterstitialAd = AdsFacebook.InitInterstitial(this);
+                if (AppSettings.ShowFbInterstitialAds)
+                    InterstitialAd = AdsFacebook.InitInterstitial(this);
+                else
+                    AdsColony.Ad_Interstitial(this);
             }
             catch (Exception e)
             {
@@ -153,7 +156,7 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             {
-                MainRecyclerView.ReleasePlayer();
+                MainRecyclerView?.ReleasePlayer();
                 DestroyBasic();
                 base.OnDestroy();
             }
@@ -303,11 +306,17 @@ namespace WoWonder.Activities.NativePost.Pages
         private void SwipeRefreshLayoutOnRefresh(object sender, EventArgs e)
         {
             try
-            { 
+            {
+                if (!Methods.CheckConnectivity())
+                {
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+                    return;
+                }
+                 
                 NativeFeedAdapter.ListDiffer.Clear();
                 NativeFeedAdapter.NotifyDataSetChanged();
 
-                NativeFeedAdapter.NativePostType = NativeFeedType.Popular;
+                MainScrollEvent.IsLoading = false;
 
                 StartApiService();
             }
@@ -340,7 +349,7 @@ namespace WoWonder.Activities.NativePost.Pages
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadPostDataAsync });
         }
@@ -389,7 +398,7 @@ namespace WoWonder.Activities.NativePost.Pages
             {
                 SwipeRefreshLayout.Refreshing = false;
 
-                var emptyStateCheck = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox && a.TypeView != PostModelType.FilterSection && a.TypeView != PostModelType.SearchForPosts);
+                var emptyStateCheck = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.PostData != null && a.TypeView != PostModelType.AddPostBox /*&& a.TypeView != PostModelType.SearchForPosts*/);
                 if (emptyStateCheck != null)
                 {
                     var emptyStateChecker = NativeFeedAdapter.ListDiffer.FirstOrDefault(a => a.TypeView == PostModelType.EmptyState);
@@ -417,7 +426,7 @@ namespace WoWonder.Activities.NativePost.Pages
             }
             catch (Exception e)
             {
-                SwipeRefreshLayout.Refreshing = false;
+                if (SwipeRefreshLayout != null) SwipeRefreshLayout.Refreshing = false;
                 Methods.DisplayReportResultTrack(e);
             }
         }

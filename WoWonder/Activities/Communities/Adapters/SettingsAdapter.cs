@@ -49,8 +49,8 @@ namespace WoWonder.Activities.Communities.Adapters
         {
             try
             {
-                //Setup your layout here >> ChannelSubscribed_View
-                var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_MoreSection_view, parent, false);
+                //Setup your layout here >> Style_Settings_view
+                var itemView = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Settings_view, parent, false);
                 var vh = new SettingsAdapterViewHolder(itemView, OnClick, OnLongClick);
                 return vh;
             }
@@ -328,8 +328,8 @@ namespace WoWonder.Activities.Communities.Adapters
                 Badge = MainView.FindViewById<ImageView>(Resource.Id.badge);
                 Badge.Visibility = ViewStates.Gone;
 
-                itemView.Click += (sender, e) => clickListener(new SettingsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new SettingsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new SettingsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new SettingsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

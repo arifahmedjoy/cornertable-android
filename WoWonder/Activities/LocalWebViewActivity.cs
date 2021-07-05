@@ -210,11 +210,11 @@ namespace WoWonder.Activities
                 { 
                     SwipeRefreshLayout.Refreshing = false;
 
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
                 else
                 {
-                    if (Url.Contains(Client.WebsiteUrl))
+                    if (Url.Contains(InitializeWoWonder.WebsiteUrl))
                     { 
                         //Set WebView
                         HybridView.SetWebViewClient(new MyWebViewClient(this));

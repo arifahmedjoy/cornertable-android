@@ -65,7 +65,7 @@ namespace WoWonder.Payment
                     .ClientId(paypalClintId)
                     .LanguageOrLocale(AppSettings.Lang)
                     .MerchantName(AppSettings.ApplicationName)
-                    .MerchantPrivacyPolicyUri(Android.Net.Uri.Parse(Client.WebsiteUrl + "/terms/privacy-policy"));
+                    .MerchantPrivacyPolicyUri(Android.Net.Uri.Parse(InitializeWoWonder.WebsiteUrl + "/terms/privacy-policy"));
 
                 switch (ListUtils.SettingsSiteList?.PaypalMode)
                 {

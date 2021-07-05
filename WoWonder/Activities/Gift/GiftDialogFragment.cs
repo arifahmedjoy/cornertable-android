@@ -143,7 +143,7 @@ namespace WoWonder.Activities.Gift
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -157,7 +157,7 @@ namespace WoWonder.Activities.Gift
                         { 
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.SendGiftAsync(UserId, item.Id) });
 
-                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Sent_successfully), ToastLength.Short);
                             //Close Fragment 
                             Dismiss();
                         }

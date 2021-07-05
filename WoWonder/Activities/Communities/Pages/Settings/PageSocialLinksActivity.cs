@@ -284,7 +284,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
@@ -322,7 +322,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
 
                                     PageProfileActivity.PageData = PageData;
 
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourPageWasUpdated), ToastLength.Short);
 
                                     Intent returnIntent = new Intent();
                                     returnIntent?.PutExtra("pageItem", JsonConvert.SerializeObject(PageData));
@@ -354,7 +354,7 @@ namespace WoWonder.Activities.Communities.Pages.Settings
         {
             try
             {
-                PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData"));
+                PageData = JsonConvert.DeserializeObject<PageClass>(Intent?.GetStringExtra("PageData") ?? "");
                 if (PageData != null)
                 {
                     TxtFacebook.Text = PageData.Facebook;

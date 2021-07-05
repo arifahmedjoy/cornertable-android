@@ -7,8 +7,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
-using Android.OS;
-
+using Android.OS; 
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
@@ -44,6 +43,8 @@ namespace WoWonder.Activities.Suggested.Groups
         private View Inflated, SuggestedGroupInflated, CatGroupInflated, RandomGroupInflated;
         private TemplateRecyclerInflater RecyclerInflaterSuggestedGroup,RecyclerInflaterCatGroup,RecyclerInflaterRandomGroup;
         private RecyclerViewOnScrollListener SuggestedGroupScrollEvent;
+
+        private LinearLayout Devider1, Devider2;
 
         #endregion
 
@@ -149,6 +150,9 @@ namespace WoWonder.Activities.Suggested.Groups
                 CatGroupViewStub = FindViewById<ViewStub>(Resource.Id.viewStubCatGroup);
                 RandomGroupViewStub = FindViewById<ViewStub>(Resource.Id.viewStubRandomGroup);
 
+                Devider1 = FindViewById<LinearLayout>(Resource.Id.linearLayout1);
+                Devider2 = FindViewById<LinearLayout>(Resource.Id.linearLayout2);
+
                 SwipeRefreshLayout = (SwipeRefreshLayout)FindViewById(Resource.Id.swipeRefreshLayout);
                 SwipeRefreshLayout.SetColorSchemeResources(Android.Resource.Color.HoloBlueLight, Android.Resource.Color.HoloGreenLight, Android.Resource.Color.HoloOrangeLight, Android.Resource.Color.HoloRedLight);
                 SwipeRefreshLayout.Refreshing = true;
@@ -197,7 +201,7 @@ namespace WoWonder.Activities.Suggested.Groups
 
                 RandomAdapter = new SearchGroupAdapter(this) { GroupList = new ObservableCollection<GroupClass>() };
                 RandomAdapter.ItemClick += RandomAdapterOnItemClick;
-                RandomAdapter.JoinButtonItemClick += MAdapterOnJoinButtonItemClick;
+                RandomAdapter.JoinButtonItemClick += MAdapterRandomOnJoinButtonItemClick;
 
                 switch (CategoriesController.ListCategoriesGroup.Count)
                 {
@@ -304,7 +308,7 @@ namespace WoWonder.Activities.Suggested.Groups
                 if (item != null && !string.IsNullOrEmpty(item.GroupId))
                 {
                     if (!Methods.CheckConnectivity())
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     else
                         PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGroup(item.GroupId) });   
                 }
@@ -332,7 +336,7 @@ namespace WoWonder.Activities.Suggested.Groups
             }
         }
 
-        private async void MAdapterOnJoinButtonItemClick(object sender, SuggestedGroupAdapterClickEventArgs e)
+        private async void MAdapterRandomOnJoinButtonItemClick(object sender, SearchGroupAdapterClickEventArgs e)
         {
             try
             { 
@@ -346,7 +350,7 @@ namespace WoWonder.Activities.Suggested.Groups
 
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
@@ -358,25 +362,25 @@ namespace WoWonder.Activities.Suggested.Groups
                         switch (respond)
                         {
                             case JoinGroupObject result when result.JoinStatus == "requested":
-                                e.JoinButton.SetTextColor(Color.White);
-                                e.JoinButton.Text = Application.Context.GetText(Resource.String.Lbl_Request);
-                                e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
+                                e.Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
+                                e.Button.Text = Application.Context.GetText(Resource.String.Lbl_Request);
+                                e.Button.SetBackgroundResource(Resource.Drawable.round_button_normal);
                                 break;
                             case JoinGroupObject result:
                             {
                                 var isJoined = result.JoinStatus == "left" ? "false" : "true";
-                                e.JoinButton.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
+                                e.Button.Text = GetText(isJoined == "yes" || isJoined == "true" ? Resource.String.Btn_Joined : Resource.String.Btn_Join_Group);
 
                                 switch (isJoined)
                                 {
                                     case "yes":
                                     case "true":
-                                        e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlatGray);
-                                        e.JoinButton.SetTextColor(Color.White);
+                                        e.Button.SetBackgroundResource(Resource.Drawable.round_button_normal);
+                                        e.Button.SetTextColor(Color.ParseColor(AppSettings.MainColor));
                                         break;
                                     default:
-                                        e.JoinButton.SetBackgroundResource(Resource.Drawable.buttonFlat);
-                                        e.JoinButton.SetTextColor(Color.White);
+                                        e.Button.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                                        e.Button.SetTextColor(Color.White);
                                         break;
                                 }
 
@@ -397,14 +401,14 @@ namespace WoWonder.Activities.Suggested.Groups
             }
         }
 
-        private void MAdapterOnJoinButtonItemClick(object sender, SearchGroupAdapterClickEventArgs e)
+        private void MAdapterOnJoinButtonItemClick(object sender, SuggestedGroupAdapterClickEventArgs e)
         {
             try
             {
                 var item = RandomAdapter.GetItem(e.Position);
                 if (item != null)
                 {
-                    WoWonderTools.SetJoinGroup(this, item.GroupId, e.Button);
+                    WoWonderTools.SetJoinGroup(this, item.GroupId, e.JoinButton);
                 }
             }
             catch (Exception exception)
@@ -438,7 +442,7 @@ namespace WoWonder.Activities.Suggested.Groups
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadGroup("0") , () => LoadRandomGroup("0") });
         }
@@ -504,7 +508,7 @@ namespace WoWonder.Activities.Suggested.Groups
                                     default:
                                     {
                                         if (RecyclerInflaterSuggestedGroup?.Recyler != null && MAdapter.GroupList.Count > 10 && !RecyclerInflaterSuggestedGroup.Recyler.CanScrollVertically(1))
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short);
                                         break;
                                     }
                                 }
@@ -519,6 +523,7 @@ namespace WoWonder.Activities.Suggested.Groups
                         Methods.DisplayReportResult(this, respondString);
                         break;
                 }
+                Devider1.Visibility = ViewStates.Visible;
 
                 RunOnUiThread(ShowEmptyPage);
             }
@@ -535,7 +540,7 @@ namespace WoWonder.Activities.Suggested.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 if (SuggestedGroupScrollEvent != null) SuggestedGroupScrollEvent.IsLoading = false;
             } 
         }
@@ -593,7 +598,7 @@ namespace WoWonder.Activities.Suggested.Groups
                                     default:
                                     {
                                         if (RecyclerInflaterRandomGroup?.Recyler != null && RandomAdapter.GroupList.Count > 10 && !RecyclerInflaterRandomGroup.Recyler.CanScrollVertically(1))
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short)?.Show();
+                                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreGroup), ToastLength.Short);
                                         break;
                                     }
                                 }
@@ -608,7 +613,7 @@ namespace WoWonder.Activities.Suggested.Groups
                         Methods.DisplayReportResult(this, respondString);
                         break;
                 }
-
+                Devider2.Visibility = ViewStates.Visible;
                 RunOnUiThread(ShowEmptyPage);
             }
             else
@@ -624,7 +629,7 @@ namespace WoWonder.Activities.Suggested.Groups
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 

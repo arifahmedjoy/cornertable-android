@@ -4,7 +4,7 @@ using Android.Content;
 using Android.Gms.Common;
 using Android.Locations;
 using Android.OS;
-using Android.Provider; 
+using Android.Provider;
 using Android.Telephony;
 using Android.Widget;
 using AndroidX.Browser.CustomTabs;
@@ -46,11 +46,20 @@ namespace WoWonder.Helpers.Controller
         /// </summary>
         /// <param name="title"></param>
         /// <param name="allowMultiple"></param>
-        public void OpenIntentImageGallery(string title, bool allowMultiple)
+        /// <param name="imageCropping"></param>
+        public void OpenIntentImageGallery(string title, bool allowMultiple, bool imageCropping = true)
         {
             try
             {
-                Intent intent = (int) Build.VERSION.SdkInt switch
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(Context, Context.GetText(Resource.String.Lbl_Security), Context.GetText(Resource.String.Lbl_Error_AllowedFileUpload), Context.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+
+                Methods.Path.Chack_MyFolder();
+
+                Intent intent = (int)Build.VERSION.SdkInt switch
                 {
                     <= 25 => new Intent(Intent.ActionPick, MediaStore.Images.Media.ExternalContentUri),
                     _ => Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment
@@ -62,33 +71,29 @@ namespace WoWonder.Helpers.Controller
                 intent.SetType("image/*");
                 intent.PutExtra("return-data", true); //added snippet
 
-                switch (Build.VERSION.SdkInt)
+                if (Build.VERSION.SdkInt > BuildVersionCodes.Q)
+                    intent.SetAction(Intent.ActionGetContent);
+
+                if (imageCropping && Build.Manufacturer!.ToLower() == "samsung")
                 {
-                    case > BuildVersionCodes.Q:
+                    intent.PutExtra("crop", "true");
+                    var myUri = Uri.FromFile(new File(Methods.Path.FolderDcimImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
+                    intent.PutExtra(MediaStore.ExtraOutput, myUri);
+                    //intent.PutExtra("outputFormat", Bitmap.CompressFormat.Jpeg.ToString());
+                }
+
+                if (allowMultiple)
+                {
+                    intent = new Intent(Intent.ActionPick);
+                    intent.SetType("image/*");
+                    intent.PutExtra(Intent.ExtraAllowMultiple, true);
+                    if (Build.VERSION.SdkInt > BuildVersionCodes.Q)
                         intent.SetAction(Intent.ActionGetContent);
-                        break;
+                    intent.PutExtra("return-data", true); //added snippet 
                 }
 
-                switch (AppSettings.ImageCropping)
-                {
-                    case true:
-                    {
-                        intent.PutExtra("crop", "true");
-                        var myUri = Uri.FromFile(new File(Methods.Path.FolderDcimImage, Methods.GetTimestamp(DateTime.Now) + ".jpeg"));
-                        intent.PutExtra(MediaStore.ExtraOutput, myUri);
-                        //intent.PutExtra("outputFormat", Bitmap.CompressFormat.Jpeg.ToString());
-                        break;
-                    }
-                }
-
-                switch (allowMultiple)
-                {
-                    case true:
-                        intent.PutExtra(Intent.ExtraAllowMultiple, true);
-                        break;
-                }
-
-                Context.StartActivityForResult(Intent.CreateChooser(intent, title), 500);
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivityForResult(Intent.CreateChooser(intent, title), 500);
             }
             catch (Exception e)
             {
@@ -103,13 +108,20 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(Context, Context.GetText(Resource.String.Lbl_Security), Context.GetText(Resource.String.Lbl_Error_AllowedFileUpload), Context.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                Methods.Path.Chack_MyFolder();
+
                 //var intent = new Intent(Intent.ActionPick, MediaStore.Video.Media.ExternalContentUri);
                 ////intent.SetAction(Intent.ActionGetContent);
                 //intent.SetType("video/*");
                 //intent.PutExtra("return-data", true); //added snippet
                 //Context.StartActivityForResult(Intent.CreateChooser(intent, title), 501);
 
-                Intent intent = (int) Build.VERSION.SdkInt switch
+                Intent intent = (int)Build.VERSION.SdkInt switch
                 {
                     <= 25 => new Intent(Intent.ActionPick, MediaStore.Video.Media.ExternalContentUri),
                     _ => Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment
@@ -130,7 +142,9 @@ namespace WoWonder.Helpers.Controller
                 }
 
                 intent.AddFlags(ActivityFlags.GrantReadUriPermission);
-                Context.StartActivityForResult(Intent.CreateChooser(intent, title), 501);
+
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivityForResult(Intent.CreateChooser(intent, title), 501);
             }
             catch (Exception e)
             {
@@ -142,7 +156,7 @@ namespace WoWonder.Helpers.Controller
         /// Open intent Location when the request code of result is 502
         /// </summary>
         public void OpenIntentLocation()
-        { 
+        {
             try
             {
                 var locationManager = (LocationManager)Context.GetSystemService(Android.Content.Context.LocationService);
@@ -159,17 +173,17 @@ namespace WoWonder.Helpers.Controller
             catch (GooglePlayServicesRepairableException e)
             {
                 Methods.DisplayReportResultTrack(e);
-                Toast.MakeText(Context, "Google Play Services is not available.", ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Context, "Google Play Services is not available.", ToastLength.Short);
             }
             catch (GooglePlayServicesNotAvailableException e)
             {
                 Methods.DisplayReportResultTrack(e);
-                Toast.MakeText(Context, "Google Play Services is not available", ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Context, "Google Play Services is not available", ToastLength.Short);
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                Toast.MakeText(Context, "Google Play Services e", ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Context, "Google Play Services e", ToastLength.Short);
             }
         }
 
@@ -205,6 +219,13 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(Context, Context.GetText(Resource.String.Lbl_Security), Context.GetText(Resource.String.Lbl_Error_AllowedFileUpload), Context.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                Methods.Path.Chack_MyFolder();
+
                 if (Methods.MultiMedia.IsCameraAvailable())
                 {
                     Intent takePictureIntent = new Intent(MediaStore.ActionImageCapture);
@@ -235,11 +256,13 @@ namespace WoWonder.Helpers.Controller
                             takePictureIntent.PutExtra(MediaStore.ExtraOutput, photoUri);
                         }
                     }
-                    Context.StartActivityForResult(takePictureIntent, 503);
+
+                    if (takePictureIntent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivityForResult(takePictureIntent, 503);
                 }
                 else
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Camera_Not_Available), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Camera_Not_Available), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -269,6 +292,13 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(Context, Context.GetText(Resource.String.Lbl_Security), Context.GetText(Resource.String.Lbl_Error_AllowedFileUpload), Context.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                Methods.Path.Chack_MyFolder();
+
                 if (Methods.MultiMedia.IsCameraAvailable())
                 {
                     Intent intent = new Intent(MediaStore.ActionVideoCapture);
@@ -294,11 +324,12 @@ namespace WoWonder.Helpers.Controller
                         //intent.PutExtra(MediaStore.ExtraOutput, videoUri);
                     }
 
-                    Context.StartActivityForResult(intent, 513);
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivityForResult(intent, 513);
                 }
                 else
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Camera_Not_Available), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Camera_Not_Available), ToastLength.Short);
                 }
             }
             catch (Exception e)
@@ -315,6 +346,13 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(Context, Context.GetText(Resource.String.Lbl_Security), Context.GetText(Resource.String.Lbl_Error_AllowedFileUpload), Context.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                Methods.Path.Chack_MyFolder();
+
                 Intent intent;
                 switch (Build.Manufacturer!.ToLower())
                 {
@@ -324,24 +362,26 @@ namespace WoWonder.Helpers.Controller
                         intent.AddCategory(Intent.CategoryDefault);
                         break;
                     default:
-                    {
-                        string[] mimeTypes =
-                        {"application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .doc & .docx
+                        {
+                            string[] mimeTypes =
+                            {"application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .doc & .docx
                             "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .ppt & .pptx
                             "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xls & .xlsx
                             "text/plain",
                             "application/pdf",
                             "application/zip", "application/vnd.android.package-archive"};
 
-                        intent = new Intent(Intent.ActionGetContent); // or ACTION_OPEN_DOCUMENT
-                        intent.SetType("*/*");
-                        intent.PutExtra(Intent.ExtraMimeTypes, mimeTypes);
-                        intent.AddCategory(Intent.CategoryOpenable);
-                        intent.PutExtra(Intent.ExtraLocalOnly, true);
-                        break;
-                    }
+                            intent = new Intent(Intent.ActionGetContent); // or ACTION_OPEN_DOCUMENT
+                            intent.SetType("*/*");
+                            intent.PutExtra(Intent.ExtraMimeTypes, mimeTypes);
+                            intent.AddCategory(Intent.CategoryOpenable);
+                            intent.PutExtra(Intent.ExtraLocalOnly, true);
+                            break;
+                        }
                 }
-                Context.StartActivityForResult(Intent.CreateChooser(intent, title), 504);
+
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivityForResult(Intent.CreateChooser(intent, title), 504);
             }
             catch (Exception e)
             {
@@ -350,7 +390,9 @@ namespace WoWonder.Helpers.Controller
                 var fileIntent = new Intent(Intent.ActionPick);
                 fileIntent.SetAction(Intent.ActionGetContent);
                 fileIntent.SetType("*/*");
-                Context.StartActivityForResult(Intent.CreateChooser(fileIntent, title), 504);
+
+                if (fileIntent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivityForResult(Intent.CreateChooser(fileIntent, title), 504);
             }
         }
 
@@ -361,7 +403,14 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                Intent intent = (int) Build.VERSION.SdkInt switch
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(Context, Context.GetText(Resource.String.Lbl_Security), Context.GetText(Resource.String.Lbl_Error_AllowedFileUpload), Context.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                Methods.Path.Chack_MyFolder();
+
+                Intent intent = (int)Build.VERSION.SdkInt switch
                 {
                     <= 25 => new Intent(Intent.ActionPick, MediaStore.Audio.Media.ExternalContentUri),
                     _ => Android.OS.Environment.GetExternalStorageState(null)!.Equals(Android.OS.Environment
@@ -370,7 +419,9 @@ namespace WoWonder.Helpers.Controller
                         : new Intent(Intent.ActionPick, MediaStore.Audio.Media.InternalContentUri)
                 };
                 //intent.SetType("audio/*");
-                Context.StartActivityForResult(intent, 505);
+
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivityForResult(intent, 505);
             }
             catch (Exception e)
             {
@@ -387,7 +438,9 @@ namespace WoWonder.Helpers.Controller
             {
                 Intent pickcontact = new Intent(Intent.ActionPick, ContactsContract.Contacts.ContentUri);
                 pickcontact.SetType(ContactsContract.CommonDataKinds.Phone.ContentType);
-                Context.StartActivityForResult(pickcontact, 506);
+
+                if (pickcontact.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivityForResult(pickcontact, 506);
             }
             catch (Exception e)
             {
@@ -427,14 +480,16 @@ namespace WoWonder.Helpers.Controller
                 switch (openIntent)
                 {
                     case true:
-                    {
-                        var smsUri = Uri.Parse("smsto:" + phoneNumber);
-                        var intent = new Intent(Intent.ActionSendto, smsUri);
-                        intent.PutExtra("sms_body", textMessages);
-                        intent.AddFlags(ActivityFlags.NewTask);
-                        Context.StartActivity(intent);
-                        break;
-                    }
+                        {
+                            var smsUri = Uri.Parse("smsto:" + phoneNumber);
+                            var intent = new Intent(Intent.ActionSendto, smsUri);
+                            intent.PutExtra("sms_body", textMessages);
+                            intent.AddFlags(ActivityFlags.NewTask);
+
+                            if (intent.ResolveActivity(Context.PackageManager) != null)
+                                Context.StartActivity(intent);
+                            break;
+                        }
                     default:
                         //Or use this code
                         SmsManager.Default?.SendTextMessage(phoneNumber, null, textMessages, null, null);
@@ -461,23 +516,25 @@ namespace WoWonder.Helpers.Controller
                 switch (detailedInformation)
                 {
                     case true:
-                    {
-                        Intent intent = new Intent(ContactsContract.Intents.Insert.Action);
-                        intent.SetType(ContactsContract.RawContacts.ContentType);
-                        intent.PutExtra(ContactsContract.Intents.Insert.Phone, phoneNumber);
-                        intent.PutExtra(ContactsContract.Intents.Insert.Name, name);
-                        intent.PutExtra(ContactsContract.Intents.Insert.Email, email);
-                        Context.StartActivity(intent);
-                        break;
-                    }
+                        {
+                            Intent intent = new Intent(ContactsContract.Intents.Insert.Action);
+                            intent.SetType(ContactsContract.RawContacts.ContentType);
+                            intent.PutExtra(ContactsContract.Intents.Insert.Phone, phoneNumber);
+                            intent.PutExtra(ContactsContract.Intents.Insert.Name, name);
+                            intent.PutExtra(ContactsContract.Intents.Insert.Email, email);
+                            Context.StartActivity(intent);
+                            break;
+                        }
                     default:
-                    {
-                        var contactUri = Uri.Parse("tel:" + phoneNumber);
-                        Intent intent = new Intent(ContactsContract.Intents.ShowOrCreateContact, contactUri);
-                        intent.PutExtra(ContactsContract.Intents.ExtraRecipientContactName, true);
-                        Context.StartActivity(intent);
-                        break;
-                    }
+                        {
+                            var contactUri = Uri.Parse("tel:" + phoneNumber);
+                            Intent intent = new Intent(ContactsContract.Intents.ShowOrCreateContact, contactUri);
+                            intent.PutExtra(ContactsContract.Intents.ExtraRecipientContactName, true);
+
+                            if (intent.ResolveActivity(Context.PackageManager) != null)
+                                Context.StartActivity(intent);
+                            break;
+                        }
                 }
             }
             catch (Exception e)
@@ -499,7 +556,9 @@ namespace WoWonder.Helpers.Controller
                 string mailto = "mailto:" + email + "?cc=" + email + "&subject=" + subject + "&body=" + text;
                 Intent emailIntent = new Intent(Intent.ActionSendto);
                 emailIntent.SetData(Uri.Parse(mailto));
-                Context.StartActivity(Intent.CreateChooser(emailIntent, "Send Email"));
+
+                if (emailIntent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivity(Intent.CreateChooser(emailIntent, "Send Email"));
             }
             catch (Exception e)
             {
@@ -519,7 +578,9 @@ namespace WoWonder.Helpers.Controller
                 var intent = new Intent(Intent.ActionCall);
                 intent.SetData(urlNumber);
                 intent.AddFlags(ActivityFlags.NewTask);
-                Context.StartActivity(intent);
+
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivity(intent);
             }
             catch (Exception e)
             {
@@ -538,7 +599,9 @@ namespace WoWonder.Helpers.Controller
                 var uri = Uri.Parse(website);
                 var intent = new Intent(Intent.ActionView, uri);
                 intent.AddFlags(ActivityFlags.NewTask);
-                Context.StartActivity(intent);
+
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivity(intent);
             }
             catch (Exception e)
             {
@@ -569,7 +632,7 @@ namespace WoWonder.Helpers.Controller
                 Methods.DisplayReportResultTrack(e);
             }
         }
-          
+
         /// <summary>
         /// Open app PackageName by Google play
         /// </summary>
@@ -578,13 +641,19 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
+                Intent intent;
                 try
                 {
-                    Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("market://details?id=" + appPackageName)));
+                    intent = new Intent(Intent.ActionView, Uri.Parse("market://details?id=" + appPackageName));
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(intent);
                 }
                 catch (ActivityNotFoundException exception)
                 {
-                    Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                    intent = new Intent(Intent.ActionView, Uri.Parse("https://play.google.com/store/apps/details?id=" + appPackageName));
+
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(intent);
                     Methods.DisplayReportResultTrack(exception);
                 }
             }
@@ -614,7 +683,9 @@ namespace WoWonder.Helpers.Controller
             try
             {
                 Intent facebookIntent = GetOpenFacebookIntent(context, name);
-                Context.StartActivity(facebookIntent);
+
+                if (facebookIntent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivity(facebookIntent);
             }
             catch (Exception e)
             {
@@ -626,7 +697,9 @@ namespace WoWonder.Helpers.Controller
         {
             try
             {
-                Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("twitter://user?screen_name=" + name)));
+                Intent intent = new Intent(Intent.ActionView, Uri.Parse("twitter://user?screen_name=" + name));
+                if (intent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivity(intent);
             }
             catch (Exception e)
             {
@@ -643,7 +716,9 @@ namespace WoWonder.Helpers.Controller
                 string url = "https://www.linkedin.com/in/" + name;
                 Intent linkedInAppIntent = new Intent(Intent.ActionView, Uri.Parse(url));
                 linkedInAppIntent.AddFlags(ActivityFlags.ClearWhenTaskReset);
-                Context.StartActivity(linkedInAppIntent);
+
+                if (linkedInAppIntent.ResolveActivity(Context.PackageManager) != null)
+                    Context.StartActivity(linkedInAppIntent);
             }
             catch (Exception e)
             {
@@ -660,12 +735,15 @@ namespace WoWonder.Helpers.Controller
 
                 try
                 {
-                    Context.StartActivity(likeIng);
+                    if (likeIng.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(likeIng);
                 }
                 catch (ActivityNotFoundException e)
                 {
                     Methods.DisplayReportResultTrack(e);
-                    Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("http://instagram.com/" + name)));
+                    var intent = new Intent(Intent.ActionView, Uri.Parse("http://instagram.com/" + name));
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(intent);
                 }
             }
             catch (Exception e)
@@ -682,12 +760,15 @@ namespace WoWonder.Helpers.Controller
 
                 try
                 {
-                    Context.StartActivity(likeIng);
+                    if (likeIng.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(likeIng);
                 }
                 catch (ActivityNotFoundException e)
                 {
                     Methods.DisplayReportResultTrack(e);
-                    Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("http://www.youtube.com/" + channelId)));
+                    var intent = new Intent(Intent.ActionView, Uri.Parse("http://www.youtube.com/" + channelId));
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(intent);
                 }
             }
             catch (Exception e)
@@ -704,12 +785,15 @@ namespace WoWonder.Helpers.Controller
 
                 try
                 {
-                    Context.StartActivity(likeIng);
+                    if (likeIng.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(likeIng);
                 }
                 catch (ActivityNotFoundException e)
                 {
                     Methods.DisplayReportResultTrack(e);
-                    Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("http://vk.com/" + friendId)));
+                    var intent = new Intent(Intent.ActionView, Uri.Parse("http://vk.com/" + friendId));
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(intent);
                 }
             }
             catch (Exception e)
@@ -726,12 +810,15 @@ namespace WoWonder.Helpers.Controller
 
                 try
                 {
-                    Context.StartActivity(likeIng);
+                    if (likeIng.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(likeIng);
                 }
                 catch (ActivityNotFoundException e)
                 {
                     Methods.DisplayReportResultTrack(e);
-                    Context.StartActivity(new Intent(Intent.ActionView, Uri.Parse("https://telegram.me/" + friendId)));
+                    var intent = new Intent(Intent.ActionView, Uri.Parse("https://telegram.me/" + friendId));
+                    if (intent.ResolveActivity(Context.PackageManager) != null)
+                        Context.StartActivity(intent);
                 }
             }
             catch (Exception e)

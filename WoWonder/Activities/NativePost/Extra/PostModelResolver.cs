@@ -5,13 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
-using Android.Gms.Maps.Model;
 using Android.Icu.Util;
-using Android.Locations;
 using Android.OS;
 using WoWonder.Activities.NativePost.Post;
-using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
@@ -114,7 +110,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case false:
                     {
-                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Blog?.Title, 120));
+                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Blog?.Description, 120));
                         item.Blog.Description = prepareDescription;
                         break;
                     }
@@ -138,7 +134,6 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 if (ListUtils.SettingsSiteList?.PostColors != null && ListUtils.SettingsSiteList?.PostColors.Value.PostColorsList != null)
                 {
-
                     var getColorObject = ListUtils.SettingsSiteList.PostColors.Value.PostColorsList.FirstOrDefault(a => a.Key == item.ColorId);
 
                     item.Orginaltext = Methods.FunString.DecodeString(item.Orginaltext);
@@ -174,7 +169,7 @@ namespace WoWonder.Activities.NativePost.Extra
                             }
                         }
 
-                        item.ColorBoxTextColor = Color.ParseColor(getColorObject.Value.TextColor);
+                        item.ColorBoxTextColor = getColorObject.Value.TextColor; 
                     }
                 }
             }
@@ -596,7 +591,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case false:
                     {
-                        var prepareOfferText = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Offer?.OfferClass?.OfferText, 100));
+                        var prepareOfferText = Methods.FunString.DecodeString(item.Offer?.OfferClass?.OfferText);
                         item.Offer.Value.OfferClass.OfferText = prepareOfferText;
                         break;
                     }
@@ -606,7 +601,7 @@ namespace WoWonder.Activities.NativePost.Extra
                 {
                     case false:
                     {
-                        var prepareDescription = Methods.FunString.DecodeString(Methods.FunString.SubStringCutOf(item.Offer?.OfferClass?.Description, 100));
+                        var prepareDescription = Methods.FunString.DecodeString(item.Offer?.OfferClass?.Description);
                         item.Offer.Value.OfferClass.Description = prepareDescription;
                         break;
                     }
@@ -646,7 +641,7 @@ namespace WoWonder.Activities.NativePost.Extra
                         break;
                 }
 
-                var latLng = await GetLocationFromAddress(item.PostMap).ConfigureAwait(false);
+                var latLng = await WoWonderTools.GetLocationFromAddress(MainContext, item.PostMap).ConfigureAwait(false);
                 if (latLng != null)
                 {
                     item.CurrentLatitude = latLng.Latitude;
@@ -661,39 +656,7 @@ namespace WoWonder.Activities.NativePost.Extra
 
         #region Location >> BindMapPost
 
-        private async Task<LatLng> GetLocationFromAddress(string strAddress)
-        {
-            if (string.IsNullOrEmpty(strAddress))
-                return null;
-
-            #pragma warning disable 618
-            var locale = (int)Build.VERSION.SdkInt < 25 ? MainContext.Resources?.Configuration?.Locale : MainContext.Resources?.Configuration?.Locales.Get(0) ?? MainContext.Resources?.Configuration?.Locale;
-            #pragma warning restore 618
-            Geocoder coder = new Geocoder(MainContext, locale);
-
-            try
-            {
-                var address = await coder.GetFromLocationNameAsync(strAddress, 2);
-                switch (address?.Count)
-                {
-                    case > 0:
-                        return null!;
-                }
-
-                Address location = address[0];
-                var lat = location.Latitude;
-                var lng = location.Longitude;
-
-                LatLng p1 = new LatLng(lat, lng);
-
-                return p1;
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e); 
-                return null!;
-            }
-        }
+       
 
         #endregion
 
@@ -704,8 +667,11 @@ namespace WoWonder.Activities.NativePost.Extra
                 if (item.UserData != null)
                 {
                     item.Name = Methods.FunString.DecodeString(item.Name);
-                    item.Posted = Methods.Time.TimeAgo(Convert.ToInt32(item.Posted), false);
 
+                    bool success = int.TryParse(item.Posted, out var number);
+                    if (success) 
+                        item.Posted = Methods.Time.TimeAgo(number, false);
+                   
                     item.Location = Methods.FunString.DecodeString(item.Location);
                     item.Headline = Methods.FunString.DecodeString(item.Headline);
                     item.Url = item.Url?.Replace("https://", "")?.Replace("http://", "")?.Split('/')?.FirstOrDefault() ?? "";
@@ -723,12 +689,11 @@ namespace WoWonder.Activities.NativePost.Extra
             {
                 if (item.Job != null)
                 {
-                    item.Job.Value.JobInfoClass.Image =
-                        item.Job.Value.JobInfoClass.Image.Contains(Client.WebsiteUrl) switch
-                        {
-                            false => WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image),
-                            _ => item.Job.Value.JobInfoClass.Image
-                        };
+                    item.Job.Value.JobInfoClass.Image = item.Job.Value.JobInfoClass.Image.Contains(InitializeWoWonder.WebsiteUrl) switch
+                    {
+                        false => WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image),
+                        _ => item.Job.Value.JobInfoClass.Image
+                    };
 
                     item.Job.Value.JobInfoClass.IsOwner = item.Job.Value.JobInfoClass.UserId == UserDetails.UserId;
                      
@@ -780,16 +745,19 @@ namespace WoWonder.Activities.NativePost.Extra
                         }
                     }
 
-                    switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Time))
-                    {
-                        case false:
-                        {
-                            var prepareTime = Methods.Time.TimeAgo(Convert.ToInt32(item.Job.Value.JobInfoClass.Time), false);
-                            item.Job.Value.JobInfoClass.Time = prepareTime;
-                            break;
-                        }
-                    }
-
+                    //bool success = int.TryParse(item.Job.Value.JobInfoClass.Time, out var number);
+                    //switch (success)
+                    //{
+                    //    case true:
+                    //        Console.WriteLine("Converted '{0}' to {1}.", item.Job.Value.JobInfoClass.Time, number);
+                    //        item.Job.Value.JobInfoClass.Time = Methods.Time.TimeAgo(number, false);
+                    //        break;
+                    //    default:
+                    //        Console.WriteLine("Attempted conversion of '{0}' failed.", item.Job.Value.JobInfoClass.Time ?? "<null>");
+                    //        item.Job.Value.JobInfoClass.Time = Methods.Time.ReplaceTime(item.Job.Value.JobInfoClass.Time);
+                    //        break;
+                    //}
+                     
                     switch (string.IsNullOrEmpty(item.Job.Value.JobInfoClass.Location))
                     {
                         case false:
@@ -842,8 +810,8 @@ namespace WoWonder.Activities.NativePost.Extra
                     }
 
 
-                    var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == item.Job.Value.JobInfoClass.Category)?.CategoriesName;
-                    item.Job.Value.JobInfoClass.Category += " " + " " + IonIconsFonts.Pricetag + " " + categoryName;
+                    //var categoryName = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesId == item.Job.Value.JobInfoClass.Category)?.CategoriesName;
+                    //item.Job.Value.JobInfoClass.Category += " " + " " + IonIconsFonts.Pricetag + " " + categoryName;
 
                 }
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Aghajari.EmojiView.Views;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,9 +12,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using Bumptech.Glide.Util;
-using Developer.SEmojis.Actions;
-using Developer.SEmojis.Helper;
+using Bumptech.Glide.Util; 
 using Newtonsoft.Json;
 using WoWonder.Activities.Articles;
 using WoWonder.Activities.Articles.Adapters;
@@ -24,6 +23,7 @@ using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonder.Library.Anjo.EmojiView;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonderClient.Classes.Articles;
 using WoWonderClient.Classes.Movies;
@@ -46,7 +46,7 @@ namespace WoWonder.Activities.Comment
         private RecyclerViewOnScrollListener MainScrollEvent;
         private View CommentLayoutView;
         private TextView ReplyCountTextView;
-        public EmojiconEditText TxtComment;
+        public AXEmojiEditText TxtComment;
         private ImageView ImgBack, ImgSent, ImgGallery;
         private ImageView EmojisView;
         private LinearLayout RootView;
@@ -195,28 +195,22 @@ namespace WoWonder.Activities.Comment
                 MRecycler = (RecyclerView)FindViewById(Resource.Id.recycler_view);
 
                 EmojisView = FindViewById<ImageView>(Resource.Id.emojiicon);
-                TxtComment = FindViewById<EmojiconEditText>(Resource.Id.commenttext);
+                TxtComment = FindViewById<AXEmojiEditText>(Resource.Id.commenttext);
                 ImgSent = FindViewById<ImageView>(Resource.Id.send);
                 ImgGallery = FindViewById<ImageView>(Resource.Id.image);
                 ImgBack = FindViewById<ImageView>(Resource.Id.back);
                 CommentLayout = FindViewById<ViewStub>(Resource.Id.comment_layout);
 
                 ReplyCountTextView = FindViewById<TextView>(Resource.Id.replyCountTextview);
-
-                switch (AppSettings.FlowDirectionRightToLeft)
-                {
-                    case true:
-                        ImgBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-                        break;
-                }
-
+                 
                 ImgGallery.Visibility = ViewStates.Gone;
                  
                 Methods.SetColorEditText(TxtComment, AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
                  
-                var emojisIcon = new EmojIconActions(this, RootView, TxtComment, EmojisView);
-                emojisIcon.ShowEmojIcon();
-                emojisIcon.SetIconsIds(Resource.Drawable.ic_action_keyboard, Resource.Drawable.ic_action_sentiment_satisfied_alt); 
+                EmojisViewTools.MStickerView = false;
+                AXEmojiPager emojiPager = EmojisViewTools.LoadView(this, TxtComment, "");
+                AXEmojiPopup popup = new AXEmojiPopup(emojiPager);
+                var emojisViewActions = new EmojisViewActions(this, "", popup, TxtComment, EmojisView);
             }
             catch (Exception e)
             {
@@ -522,7 +516,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -628,7 +622,7 @@ namespace WoWonder.Activities.Comment
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -669,7 +663,7 @@ namespace WoWonder.Activities.Comment
         private void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
             {
                 switch (Type)

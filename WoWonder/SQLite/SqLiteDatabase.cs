@@ -4,8 +4,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Android;
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
+using Android.OS;
 using AndroidX.Core.Content;
 using FloatingView.Lib;
 using Java.Lang;
@@ -24,6 +27,8 @@ using WoWonderClient.Classes.Message;
 using WoWonderClient.Classes.Movies;
 using WoWonderClient.Classes.Posts;
 using WoWonderClient.Classes.Product;
+using WoWonderClient.Classes.Story;
+using Environment = System.Environment;
 using Exception = System.Exception;
 
 namespace WoWonder.SQLite
@@ -42,11 +47,8 @@ namespace WoWonder.SQLite
         private SQLiteConnection OpenConnection()
         {
             try
-            {
-                //var connection = new SQLiteConnection(PathCombine, SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
-                //return connection;
-
-                var connection = new SQLiteConnectionWithLock(new SQLiteConnectionString(PathCombine, SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex, true));
+            { 
+                var connection = new SQLiteConnection(new SQLiteConnectionString(PathCombine, SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex, true));
                 return connection;
             }
             catch (Exception e)
@@ -68,15 +70,16 @@ namespace WoWonder.SQLite
                 }
 
                 connection.CreateTable<DataTables.LoginTb>();
-                connection.CreateTable<DataTables.MyContactsTb>();
+                connection.CreateTable<DataTables.SettingsTb>();
+                connection.CreateTable<DataTables.MyContactsTb>(); 
                 connection.CreateTable<DataTables.MyProfileTb>();
                 connection.CreateTable<DataTables.SearchFilterTb>();
                 connection.CreateTable<DataTables.NearByFilterTb>();
                 connection.CreateTable<DataTables.WatchOfflineVideosTb>();
-                connection.CreateTable<DataTables.SettingsTb>();
                 connection.CreateTable<DataTables.GiftsTb>();
                 connection.CreateTable<DataTables.PostsTb>();
-
+                connection.CreateTable<DataTables.StoryTb>();
+               
                 connection.CreateTable<DataTables.CallUserTb>();
                 connection.CreateTable<DataTables.MuteTb>();
                 connection.CreateTable<DataTables.PinTb>();
@@ -103,52 +106,7 @@ namespace WoWonder.SQLite
                     Methods.DisplayReportResultTrack(e);
             }
         }
-         
-        public void ClearAll()
-        {
-            try
-            {
-                using var connection = OpenConnection();
-                switch (connection)
-                {
-                    case null:
-                        return;
-                }
-                connection.DeleteAll<DataTables.LoginTb>();
-                connection.DeleteAll<DataTables.MyContactsTb>();
-                connection.DeleteAll<DataTables.MyProfileTb>();
-                connection.DeleteAll<DataTables.SearchFilterTb>();
-                connection.DeleteAll<DataTables.NearByFilterTb>();
-                connection.DeleteAll<DataTables.WatchOfflineVideosTb>();
-                connection.DeleteAll<DataTables.SettingsTb>();
-                connection.DeleteAll<DataTables.GiftsTb>();
-                connection.DeleteAll<DataTables.PostsTb>();
-
-                connection.DeleteAll<DataTables.CallUserTb>();
-                connection.DeleteAll<DataTables.MuteTb>();
-                connection.DeleteAll<DataTables.PinTb>();
-                connection.DeleteAll<DataTables.ArchiveTb>();
-                connection.DeleteAll<DataTables.StickersTb>();
-
-                if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
-                    connection.DeleteAll<DataTables.LastUsersTb>();
-                else
-                    connection.DeleteAll<DataTables.LastUsersChatTb>();
-
-                connection.DeleteAll<DataTables.MessageTb>();
-                connection.DeleteAll<DataTables.StartedMessageTb>();
-                connection.DeleteAll<DataTables.PinnedMessageTb>();
-                connection.DeleteAll<DataTables.FilterLastChatTb>();
-            }
-            catch (Exception e)
-            {
-                if (e.Message.Contains("database is locked"))
-                    ClearAll();
-                else
-                    Methods.DisplayReportResultTrack(e);
-            }
-        }
-
+          
         //Delete table 
         public void DropAll()
         {
@@ -161,7 +119,7 @@ namespace WoWonder.SQLite
                         return;
                 }
                 connection.DropTable<DataTables.LoginTb>();
-                connection.DropTable<DataTables.MyContactsTb>();
+                connection.DropTable<DataTables.MyContactsTb>(); 
                 connection.DropTable<DataTables.MyProfileTb>();
                 connection.DropTable<DataTables.SearchFilterTb>();
                 connection.DropTable<DataTables.NearByFilterTb>();
@@ -169,6 +127,7 @@ namespace WoWonder.SQLite
                 connection.DropTable<DataTables.SettingsTb>();
                 connection.DropTable<DataTables.GiftsTb>();
                 connection.DropTable<DataTables.PostsTb>();
+                connection.DropTable<DataTables.StoryTb>();
 
                 connection.DropTable<DataTables.CallUserTb>();
                 connection.DropTable<DataTables.MuteTb>();
@@ -322,7 +281,17 @@ namespace WoWonder.SQLite
                     connection.Insert(db);
                 }
 
-                Methods.GenerateNoteOnSD(JsonConvert.SerializeObject(db));
+                if ((int)Build.VERSION.SdkInt < 23)
+                {
+                    Methods.GenerateNoteOnSD(JsonConvert.SerializeObject(db));
+                }
+                else 
+                {
+                    if (Application.Context.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted && Application.Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                    {
+                        Methods.GenerateNoteOnSD(JsonConvert.SerializeObject(db));
+                    }
+                } 
             }
             catch (Exception e)
             {
@@ -397,7 +366,7 @@ namespace WoWonder.SQLite
                 if (settingsData != null)
                 {
                     var select = connection.Table<DataTables.SettingsTb>().FirstOrDefault();
-                    switch (@select)
+                    switch (select)
                     {
                         case null:
                         {
@@ -434,32 +403,32 @@ namespace WoWonder.SQLite
                         }
                         default:
                         {
-                            @select = ClassMapper.Mapper?.Map<DataTables.SettingsTb>(settingsData); 
-                            if (@select != null)
+                            select = ClassMapper.Mapper?.Map<DataTables.SettingsTb>(settingsData); 
+                            if (select != null)
                             {
-                                @select.CurrencyArray = JsonConvert.SerializeObject(settingsData.CurrencyArray.CurrencyList);
-                                @select.CurrencySymbolArray = JsonConvert.SerializeObject(settingsData.CurrencySymbolArray.CurrencyList);
-                                @select.PageCategories = JsonConvert.SerializeObject(settingsData.PageCategories);
-                                @select.GroupCategories = JsonConvert.SerializeObject(settingsData.GroupCategories);
-                                @select.BlogCategories = JsonConvert.SerializeObject(settingsData.BlogCategories);
-                                @select.ProductsCategories = JsonConvert.SerializeObject(settingsData.ProductsCategories);
-                                @select.JobCategories = JsonConvert.SerializeObject(settingsData.JobCategories);
-                                @select.Genders = JsonConvert.SerializeObject(settingsData.Genders);
-                                @select.Family = JsonConvert.SerializeObject(settingsData.Family);
-                                @select.MovieCategory = JsonConvert.SerializeObject(settingsData.MovieCategory);
-                                @select.PostColors = JsonConvert.SerializeObject(settingsData.PostColors?.PostColorsList);
-                                @select.Fields = JsonConvert.SerializeObject(settingsData.Fields);
-                                @select.PostReactionsTypes = JsonConvert.SerializeObject(settingsData.PostReactionsTypes);
-                                @select.PageSubCategories = JsonConvert.SerializeObject(settingsData.PageSubCategories?.SubCategoriesList);
-                                @select.GroupSubCategories = JsonConvert.SerializeObject(settingsData.GroupSubCategories?.SubCategoriesList);
-                                @select.ProductsSubCategories = JsonConvert.SerializeObject(settingsData.ProductsSubCategories?.SubCategoriesList);
-                                @select.PageCustomFields = JsonConvert.SerializeObject(settingsData.PageCustomFields);
-                                @select.GroupCustomFields = JsonConvert.SerializeObject(settingsData.GroupCustomFields);
-                                @select.ProductCustomFields = JsonConvert.SerializeObject(settingsData.ProductCustomFields);
-                                @select.ProPackages = JsonConvert.SerializeObject(settingsData.ProPackages);
-                                @select.ProPackagesTypes = JsonConvert.SerializeObject(settingsData.ProPackagesTypes);
+                                select.CurrencyArray = JsonConvert.SerializeObject(settingsData.CurrencyArray.CurrencyList);
+                                select.CurrencySymbolArray = JsonConvert.SerializeObject(settingsData.CurrencySymbolArray.CurrencyList);
+                                select.PageCategories = JsonConvert.SerializeObject(settingsData.PageCategories);
+                                select.GroupCategories = JsonConvert.SerializeObject(settingsData.GroupCategories);
+                                select.BlogCategories = JsonConvert.SerializeObject(settingsData.BlogCategories);
+                                select.ProductsCategories = JsonConvert.SerializeObject(settingsData.ProductsCategories);
+                                select.JobCategories = JsonConvert.SerializeObject(settingsData.JobCategories);
+                                select.Genders = JsonConvert.SerializeObject(settingsData.Genders);
+                                select.Family = JsonConvert.SerializeObject(settingsData.Family);
+                                select.MovieCategory = JsonConvert.SerializeObject(settingsData.MovieCategory);
+                                select.PostColors = JsonConvert.SerializeObject(settingsData.PostColors?.PostColorsList);
+                                select.Fields = JsonConvert.SerializeObject(settingsData.Fields);
+                                select.PostReactionsTypes = JsonConvert.SerializeObject(settingsData.PostReactionsTypes);
+                                select.PageSubCategories = JsonConvert.SerializeObject(settingsData.PageSubCategories?.SubCategoriesList);
+                                select.GroupSubCategories = JsonConvert.SerializeObject(settingsData.GroupSubCategories?.SubCategoriesList);
+                                select.ProductsSubCategories = JsonConvert.SerializeObject(settingsData.ProductsSubCategories?.SubCategoriesList);
+                                select.PageCustomFields = JsonConvert.SerializeObject(settingsData.PageCustomFields);
+                                select.GroupCustomFields = JsonConvert.SerializeObject(settingsData.GroupCustomFields);
+                                select.ProductCustomFields = JsonConvert.SerializeObject(settingsData.ProductCustomFields);
+                                select.ProPackages = JsonConvert.SerializeObject(settingsData.ProPackages);
+                                select.ProPackagesTypes = JsonConvert.SerializeObject(settingsData.ProPackagesTypes);
 
-                                connection.Update(@select);
+                                connection.Update(select);
                             }
 
                             break;
@@ -526,160 +495,159 @@ namespace WoWonder.SQLite
                         asd.ProPackages = new Dictionary<string, DataProPackages>();
                         asd.ProPackagesTypes = new Dictionary<string, string>();
 
-                        asd.CurrencyArray = string.IsNullOrEmpty(@select.CurrencyArray) switch
+                        asd.CurrencyArray = string.IsNullOrEmpty(select.CurrencyArray) switch
                         {
                             false => new GetSiteSettingsObject.CurrencyArray
                             {
-                                CurrencyList = JsonConvert.DeserializeObject<List<string>>(@select.CurrencyArray)
+                                CurrencyList = JsonConvert.DeserializeObject<List<string>>(select.CurrencyArray)
                             },
                             _ => asd.CurrencyArray
                         };
 
-                        asd.CurrencySymbolArray = string.IsNullOrEmpty(@select.CurrencySymbolArray) switch
+                        asd.CurrencySymbolArray = string.IsNullOrEmpty(select.CurrencySymbolArray) switch
                         {
                             false => new GetSiteSettingsObject.CurrencySymbol
                             {
-                                CurrencyList =
-                                    JsonConvert.DeserializeObject<CurrencySymbolArray>(@select.CurrencySymbolArray),
+                                CurrencyList = JsonConvert.DeserializeObject<Dictionary<string, string>>(select.CurrencySymbolArray),
                             },
                             _ => asd.CurrencySymbolArray
                         };
 
-                        asd.PageCategories = string.IsNullOrEmpty(@select.PageCategories) switch
+                        asd.PageCategories = string.IsNullOrEmpty(select.PageCategories) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.PageCategories),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.PageCategories),
                             _ => asd.PageCategories
                         };
 
-                        asd.GroupCategories = string.IsNullOrEmpty(@select.GroupCategories) switch
+                        asd.GroupCategories = string.IsNullOrEmpty(select.GroupCategories) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.GroupCategories),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.GroupCategories),
                             _ => asd.GroupCategories
                         };
 
-                        asd.BlogCategories = string.IsNullOrEmpty(@select.BlogCategories) switch
+                        asd.BlogCategories = string.IsNullOrEmpty(select.BlogCategories) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.BlogCategories),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.BlogCategories),
                             _ => asd.BlogCategories
                         };
 
-                        asd.ProductsCategories = string.IsNullOrEmpty(@select.ProductsCategories) switch
+                        asd.ProductsCategories = string.IsNullOrEmpty(select.ProductsCategories) switch
                         {
                             false => JsonConvert.DeserializeObject<Dictionary<string, string>>(
-                                @select.ProductsCategories),
+                                select.ProductsCategories),
                             _ => asd.ProductsCategories
                         };
 
-                        asd.JobCategories = string.IsNullOrEmpty(@select.JobCategories) switch
+                        asd.JobCategories = string.IsNullOrEmpty(select.JobCategories) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.JobCategories),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.JobCategories),
                             _ => asd.JobCategories
                         };
 
-                        asd.Genders = string.IsNullOrEmpty(@select.Genders) switch
+                        asd.Genders = string.IsNullOrEmpty(select.Genders) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.Genders),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.Genders),
                             _ => asd.Genders
                         };
 
-                        asd.Family = string.IsNullOrEmpty(@select.Family) switch
+                        asd.Family = string.IsNullOrEmpty(select.Family) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.Family),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.Family),
                             _ => asd.Family
                         };
 
-                        asd.MovieCategory = string.IsNullOrEmpty(@select.MovieCategory) switch
+                        asd.MovieCategory = string.IsNullOrEmpty(select.MovieCategory) switch
                         {
-                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(@select.MovieCategory),
+                            false => JsonConvert.DeserializeObject<Dictionary<string, string>>(select.MovieCategory),
                             _ => asd.MovieCategory
                         };
 
-                        asd.PostColors = string.IsNullOrEmpty(@select.PostColors) switch
+                        asd.PostColors = string.IsNullOrEmpty(select.PostColors) switch
                         {
                             false => new GetSiteSettingsObject.PostColorUnion
                             {
                                 PostColorsList =
                                     JsonConvert.DeserializeObject<Dictionary<string, PostColorsObject>>(
-                                        @select.PostColors)
+                                        select.PostColors)
                             },
                             _ => asd.PostColors
                         };
 
-                        asd.PostReactionsTypes = string.IsNullOrEmpty(@select.PostReactionsTypes) switch
+                        asd.PostReactionsTypes = string.IsNullOrEmpty(select.PostReactionsTypes) switch
                         {
                             false => JsonConvert.DeserializeObject<Dictionary<string, PostReactionsType>>(
-                                @select.PostReactionsTypes),
+                                select.PostReactionsTypes),
                             _ => asd.PostReactionsTypes
                         };
 
-                        asd.Fields = string.IsNullOrEmpty(@select.Fields) switch
+                        asd.Fields = string.IsNullOrEmpty(select.Fields) switch
                         {
-                            false => JsonConvert.DeserializeObject<List<Field>>(@select.Fields),
+                            false => JsonConvert.DeserializeObject<List<Field>>(select.Fields),
                             _ => asd.Fields
                         };
 
-                        asd.PageSubCategories = string.IsNullOrEmpty(@select.PageSubCategories) switch
+                        asd.PageSubCategories = string.IsNullOrEmpty(select.PageSubCategories) switch
                         {
                             false => new GetSiteSettingsObject.SubCategoriesUnion
                             {
                                 SubCategoriesList =
                                     JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(
-                                        @select.PageSubCategories)
+                                        select.PageSubCategories)
                             },
                             _ => asd.PageSubCategories
                         };
 
-                        asd.GroupSubCategories = string.IsNullOrEmpty(@select.GroupSubCategories) switch
+                        asd.GroupSubCategories = string.IsNullOrEmpty(select.GroupSubCategories) switch
                         {
                             false => new GetSiteSettingsObject.SubCategoriesUnion
                             {
                                 SubCategoriesList =
                                     JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(
-                                        @select.GroupSubCategories)
+                                        select.GroupSubCategories)
                             },
                             _ => asd.GroupSubCategories
                         };
 
-                        asd.ProductsSubCategories = string.IsNullOrEmpty(@select.ProductsSubCategories) switch
+                        asd.ProductsSubCategories = string.IsNullOrEmpty(select.ProductsSubCategories) switch
                         {
                             false => new GetSiteSettingsObject.SubCategoriesUnion
                             {
                                 SubCategoriesList =
                                     JsonConvert.DeserializeObject<Dictionary<string, List<SubCategories>>>(
-                                        @select.ProductsSubCategories)
+                                        select.ProductsSubCategories)
                             },
                             _ => asd.ProductsSubCategories
                         };
 
-                        asd.PageCustomFields = string.IsNullOrEmpty(@select.PageCustomFields) switch
+                        asd.PageCustomFields = string.IsNullOrEmpty(select.PageCustomFields) switch
                         {
-                            false => JsonConvert.DeserializeObject<List<CustomField>>(@select.PageCustomFields),
+                            false => JsonConvert.DeserializeObject<List<CustomField>>(select.PageCustomFields),
                             _ => asd.PageCustomFields
                         };
 
-                        asd.GroupCustomFields = string.IsNullOrEmpty(@select.GroupCustomFields) switch
+                        asd.GroupCustomFields = string.IsNullOrEmpty(select.GroupCustomFields) switch
                         {
-                            false => JsonConvert.DeserializeObject<List<CustomField>>(@select.GroupCustomFields),
+                            false => JsonConvert.DeserializeObject<List<CustomField>>(select.GroupCustomFields),
                             _ => asd.GroupCustomFields
                         };
 
-                        asd.ProductCustomFields = string.IsNullOrEmpty(@select.ProductCustomFields) switch
+                        asd.ProductCustomFields = string.IsNullOrEmpty(select.ProductCustomFields) switch
                         {
-                            false => JsonConvert.DeserializeObject<List<CustomField>>(@select.ProductCustomFields),
+                            false => JsonConvert.DeserializeObject<List<CustomField>>(select.ProductCustomFields),
                             _ => asd.ProductCustomFields
                         };
 
-                        asd.ProPackages = string.IsNullOrEmpty(@select.ProPackages) switch
+                        asd.ProPackages = string.IsNullOrEmpty(select.ProPackages) switch
                         {
                             false => JsonConvert.DeserializeObject<Dictionary<string, DataProPackages>>(
-                                @select.ProPackages),
+                                select.ProPackages),
                             _ => asd.ProPackages
                         };
 
-                        asd.ProPackagesTypes = string.IsNullOrEmpty(@select.ProPackagesTypes) switch
+                        asd.ProPackagesTypes = string.IsNullOrEmpty(select.ProPackagesTypes) switch
                         {
                             false => JsonConvert
-                                .DeserializeObject<Dictionary<string, string>>(@select.ProPackagesTypes),
+                                .DeserializeObject<Dictionary<string, string>>(select.ProPackagesTypes),
                             _ => asd.ProPackagesTypes
                         };
 
@@ -918,6 +886,7 @@ namespace WoWonder.SQLite
                     if (info.Details.DetailsClass != null && db != null)
                     {
                         db.Details = JsonConvert.SerializeObject(info.Details.DetailsClass);
+                        db.ApiNotificationSettings = JsonConvert.SerializeObject(info.ApiNotificationSettings.NotificationSettingsClass);
                         list.Add(db);
                     }
                        
@@ -928,8 +897,9 @@ namespace WoWonder.SQLite
                         if (info.Details.DetailsClass != null && update != null)
                         {
                             update.Details = JsonConvert.SerializeObject(info.Details.DetailsClass); 
+                            update.ApiNotificationSettings = JsonConvert.SerializeObject(info.ApiNotificationSettings.NotificationSettingsClass); 
                             connection.Update(update);
-                        }     
+                        }
                     }
                 }
 
@@ -986,13 +956,13 @@ namespace WoWonder.SQLite
                 // var query = Connection.Table<DataTables.MyContactsTb>().Where(w => w.AutoIdMyFollowing >= id).OrderBy(q => q.AutoIdMyFollowing).Take(nSize).ToList();
 
                 var select = connection.Table<DataTables.MyContactsTb>().ToList();
-                switch (@select.Count)
+                switch (select.Count)
                 {
                     case > 0:
                     {
                         var list = new ObservableCollection<UserDataObject>();
 
-                        foreach (var item in @select)
+                        foreach (var item in select)
                         {
                             UserDataObject infoObject = new UserDataObject
                             {
@@ -1076,7 +1046,6 @@ namespace WoWonder.SQLite
                                 MessagePrivacy = item.MessagePrivacy,
                                 NewEmail = item.NewEmail,
                                 NewPhone = item.NewPhone,
-                                NotificationSettings = item.NotificationSettings,
                                 NotificationsSound = item.NotificationsSound,
                                 OrderPostsBy = item.OrderPostsBy,
                                 PaypalEmail = item.PaypalEmail,
@@ -1109,8 +1078,26 @@ namespace WoWonder.SQLite
                                 Type = item.Type,
                                 UserPlatform = item.UserPlatform,
                                 WeatherUnit = item.WeatherUnit,
+                                AvatarPostId = item.AvatarPostId,
+                                CodeSent = item.CodeSent,
+                                CoverPostId = item.CoverPostId,
+                                Discord = item.Discord,
+                                IsArchive = item.IsArchive,
+                                IsMute = item.IsMute,
+                                IsPin = item.IsPin,
+                                IsReported = item.IsReported,
+                                IsStoryMuted = item.IsStoryMuted,
+                                Mailru = item.Mailru,
+                                NotificationSettings = item.NotificationSettings,
+                                IsNotifyStopped = item.IsNotifyStopped,
+                                Qq = item.Qq,
+                                StripeSessionId = item.StripeSessionId,
+                                Time = item.Time,
+                                TimeCodeSent = item.TimeCodeSent,
+                                Wechat = item.Wechat,
                                 Details = new DetailsUnion(),
                                 Selected = false,
+                                ApiNotificationSettings = new NotificationSettingsUnion(), 
                             };
 
                             infoObject.Details = string.IsNullOrEmpty(item.Details) switch
@@ -1121,7 +1108,16 @@ namespace WoWonder.SQLite
                                 },
                                 _ => infoObject.Details
                             };
-
+                                  
+                            infoObject.ApiNotificationSettings = string.IsNullOrEmpty(item.ApiNotificationSettings) switch
+                            {
+                                false => new NotificationSettingsUnion
+                                {
+                                    NotificationSettingsClass = JsonConvert.DeserializeObject<NotificationSettings>(item.ApiNotificationSettings)
+                                },
+                                _ => infoObject.ApiNotificationSettings
+                            };
+                                  
                             list.Add(infoObject);
                         }
 
@@ -1166,7 +1162,10 @@ namespace WoWonder.SQLite
                             user = ClassMapper.Mapper?.Map<DataTables.MyContactsTb>(info);
                             if (info.Details.DetailsClass != null)
                                 user.Details = JsonConvert.SerializeObject(info.Details.DetailsClass);
-
+                             
+                            if (info.ApiNotificationSettings.NotificationSettingsClass != null)
+                                user.ApiNotificationSettings = JsonConvert.SerializeObject(info.ApiNotificationSettings.NotificationSettingsClass);
+                             
                             connection.Update(user);
                             break;
                         }
@@ -1257,7 +1256,6 @@ namespace WoWonder.SQLite
                         MessagePrivacy = info.MessagePrivacy,
                         NewEmail = info.NewEmail,
                         NewPhone = info.NewPhone,
-                        NotificationSettings = info.NotificationSettings,
                         NotificationsSound = info.NotificationsSound,
                         OrderPostsBy = info.OrderPostsBy,
                         PaypalEmail = info.PaypalEmail,
@@ -1287,15 +1285,33 @@ namespace WoWonder.SQLite
                         PaystackRef = info.PaystackRef,
                         RefUserId = info.RefUserId,
                         SchoolCompleted = info.SchoolCompleted,
-                        Type = info.Type,
-                        UserPlatform = info.UserPlatform,
-                        WeatherUnit = info.WeatherUnit,
+                        AvatarPostId = info.AvatarPostId,
+                        CodeSent = info.CodeSent,
+                        CoverPostId = info.CoverPostId,
+                        Discord = info.Discord,
+                        IsArchive = info.IsArchive,
+                        IsMute = info.IsMute,
+                        IsPin = info.IsPin,
+                        IsReported = info.IsReported,
+                        IsStoryMuted = info.IsStoryMuted,
+                        Mailru = info.Mailru,
+                        NotificationSettings = info.NotificationSettings,
+                        IsNotifyStopped = info.IsNotifyStopped,
+                        Qq = info.Qq,
+                        StripeSessionId = info.StripeSessionId,
+                        TimeCodeSent = info.TimeCodeSent,
+                        Wechat = info.Wechat,
+                        ApiNotificationSettings = string.Empty,
                         Details = string.Empty,
                         Selected = false,
                     };
 
                     if (info.Details.DetailsClass != null)
                         db.Details = JsonConvert.SerializeObject(info.Details.DetailsClass);
+
+                    if (info.ApiNotificationSettings.NotificationSettingsClass != null)
+                        db.ApiNotificationSettings = JsonConvert.SerializeObject(info.ApiNotificationSettings.NotificationSettingsClass);
+
                     connection.Insert(db); 
                 }
             }
@@ -1399,7 +1415,6 @@ namespace WoWonder.SQLite
                         MessagePrivacy = item.MessagePrivacy,
                         NewEmail = item.NewEmail,
                         NewPhone = item.NewPhone,
-                        NotificationSettings = item.NotificationSettings,
                         NotificationsSound = item.NotificationsSound,
                         OrderPostsBy = item.OrderPostsBy,
                         PaypalEmail = item.PaypalEmail,
@@ -1417,23 +1432,41 @@ namespace WoWonder.SQLite
                         WorkingLink = item.WorkingLink,
                         Youtube = item.Youtube,
                         City = item.City,
-                        DailyPoints = item.DailyPoints,
-                        PointDayExpire = item.PointDayExpire,
                         State = item.State,
                         Zip = item.Zip,
+                        Points = item.Points,
+                        DailyPoints = item.DailyPoints,
+                        PointDayExpire = item.PointDayExpire,
                         CashfreeSignature = item.CashfreeSignature,
                         IsAdmin = item.IsAdmin,
                         MemberId = item.MemberId,
                         ChatColor = item.ChatColor,
                         PaystackRef = item.PaystackRef,
-                        Points = item.Points,
                         RefUserId = item.RefUserId,
                         SchoolCompleted = item.SchoolCompleted,
                         Type = item.Type,
                         UserPlatform = item.UserPlatform,
                         WeatherUnit = item.WeatherUnit,
+                        AvatarPostId = item.AvatarPostId,
+                        CodeSent = item.CodeSent,
+                        CoverPostId = item.CoverPostId,
+                        Discord = item.Discord,
+                        IsArchive = item.IsArchive,
+                        IsMute = item.IsMute,
+                        IsPin = item.IsPin,
+                        IsReported = item.IsReported,
+                        IsStoryMuted = item.IsStoryMuted,
+                        Mailru = item.Mailru,
+                        NotificationSettings = item.NotificationSettings,
+                        IsNotifyStopped = item.IsNotifyStopped,
+                        Qq = item.Qq,
+                        StripeSessionId = item.StripeSessionId,
+                        Time = item.Time,
+                        TimeCodeSent = item.TimeCodeSent,
+                        Wechat = item.Wechat,
                         Details = new DetailsUnion(),
                         Selected = false,
+                        ApiNotificationSettings = new NotificationSettingsUnion(),
                     };
 
                     infoObject.Details = string.IsNullOrEmpty(item.Details) switch
@@ -1441,7 +1474,13 @@ namespace WoWonder.SQLite
                         false => new DetailsUnion {DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)},
                         _ => infoObject.Details
                     };
-
+                    
+                    infoObject.ApiNotificationSettings = string.IsNullOrEmpty(item.ApiNotificationSettings) switch
+                    {
+                        false => new NotificationSettingsUnion { NotificationSettingsClass = JsonConvert.DeserializeObject<NotificationSettings>(item.ApiNotificationSettings) },
+                        _ => infoObject.ApiNotificationSettings
+                    };
+                     
                     return infoObject;
                 }
                 else
@@ -1509,6 +1548,7 @@ namespace WoWonder.SQLite
                         Timezone = info.Timezone,
                         Lat = info.Lat,
                         Lng = info.Lng,
+                        Time = info.Time,
                         About = info.About,
                         Birthday = info.Birthday,
                         Registered = info.Registered,
@@ -1564,7 +1604,6 @@ namespace WoWonder.SQLite
                         MessagePrivacy = info.MessagePrivacy,
                         NewEmail = info.NewEmail,
                         NewPhone = info.NewPhone,
-                        NotificationSettings = info.NotificationSettings,
                         NotificationsSound = info.NotificationsSound,
                         OrderPostsBy = info.OrderPostsBy,
                         PaypalEmail = info.PaypalEmail,
@@ -1594,15 +1633,33 @@ namespace WoWonder.SQLite
                         PaystackRef = info.PaystackRef,
                         RefUserId = info.RefUserId,
                         SchoolCompleted = info.SchoolCompleted,
-                        Type = info.Type,
-                        UserPlatform = info.UserPlatform,
-                        WeatherUnit = info.WeatherUnit,
+                        AvatarPostId = info.AvatarPostId,
+                        CodeSent = info.CodeSent,
+                        CoverPostId = info.CoverPostId,
+                        Discord = info.Discord,
+                        IsArchive = info.IsArchive,
+                        IsMute = info.IsMute,
+                        IsPin = info.IsPin,
+                        IsReported = info.IsReported,
+                        IsStoryMuted = info.IsStoryMuted,
+                        Mailru = info.Mailru,
+                        NotificationSettings = info.NotificationSettings,
+                        IsNotifyStopped = info.IsNotifyStopped,
+                        Qq = info.Qq,
+                        StripeSessionId = info.StripeSessionId,
+                        TimeCodeSent = info.TimeCodeSent,
+                        Wechat = info.Wechat,
+                        ApiNotificationSettings = string.Empty,
                         Details = string.Empty,
                         Selected = false,
                     };
 
                     if (info.Details.DetailsClass != null)
                         resultInfoTb.Details = JsonConvert.SerializeObject(info.Details.DetailsClass);
+                     
+                    if (info.ApiNotificationSettings.NotificationSettingsClass != null)
+                        resultInfoTb.ApiNotificationSettings = JsonConvert.SerializeObject(info.ApiNotificationSettings.NotificationSettingsClass);
+                     
                     connection.Update(resultInfoTb);
                 }
                 else
@@ -1634,6 +1691,7 @@ namespace WoWonder.SQLite
                         Timezone = info.Timezone,
                         Lat = info.Lat,
                         Lng = info.Lng,
+                        Time = info.Time,
                         About = info.About,
                         Birthday = info.Birthday,
                         Registered = info.Registered,
@@ -1689,7 +1747,6 @@ namespace WoWonder.SQLite
                         MessagePrivacy = info.MessagePrivacy,
                         NewEmail = info.NewEmail,
                         NewPhone = info.NewPhone,
-                        NotificationSettings = info.NotificationSettings,
                         NotificationsSound = info.NotificationsSound,
                         OrderPostsBy = info.OrderPostsBy,
                         PaypalEmail = info.PaypalEmail,
@@ -1719,15 +1776,33 @@ namespace WoWonder.SQLite
                         PaystackRef = info.PaystackRef,
                         RefUserId = info.RefUserId,
                         SchoolCompleted = info.SchoolCompleted,
-                        Type = info.Type,
-                        UserPlatform = info.UserPlatform,
-                        WeatherUnit = info.WeatherUnit, 
+                        AvatarPostId = info.AvatarPostId,
+                        CodeSent = info.CodeSent,
+                        CoverPostId = info.CoverPostId,
+                        Discord = info.Discord,
+                        IsArchive = info.IsArchive,
+                        IsMute = info.IsMute,
+                        IsPin = info.IsPin,
+                        IsReported = info.IsReported,
+                        IsStoryMuted = info.IsStoryMuted,
+                        Mailru = info.Mailru,
+                        NotificationSettings = info.NotificationSettings,
+                        IsNotifyStopped = info.IsNotifyStopped,
+                        Qq = info.Qq,
+                        StripeSessionId = info.StripeSessionId,
+                        TimeCodeSent = info.TimeCodeSent,
+                        Wechat = info.Wechat,
+                        ApiNotificationSettings = string.Empty,
                         Details = string.Empty,
                         Selected = false,
                     };
 
                     if (info.Details.DetailsClass != null)
                         db.Details = JsonConvert.SerializeObject(info.Details.DetailsClass);
+                     
+                    if (info.ApiNotificationSettings.NotificationSettingsClass != null)
+                        db.ApiNotificationSettings = JsonConvert.SerializeObject(info.ApiNotificationSettings.NotificationSettingsClass);
+                     
                     connection.Insert(db);
                 }
 
@@ -1846,7 +1921,6 @@ namespace WoWonder.SQLite
                         MessagePrivacy = item.MessagePrivacy,
                         NewEmail = item.NewEmail,
                         NewPhone = item.NewPhone,
-                        NotificationSettings = item.NotificationSettings,
                         NotificationsSound = item.NotificationsSound,
                         OrderPostsBy = item.OrderPostsBy,
                         PaypalEmail = item.PaypalEmail,
@@ -1864,11 +1938,11 @@ namespace WoWonder.SQLite
                         WorkingLink = item.WorkingLink,
                         Youtube = item.Youtube,
                         City = item.City,
+                        State = item.State,
+                        Zip = item.Zip,
                         Points = item.Points,
                         DailyPoints = item.DailyPoints,
                         PointDayExpire = item.PointDayExpire,
-                        State = item.State,
-                        Zip = item.Zip,
                         CashfreeSignature = item.CashfreeSignature,
                         IsAdmin = item.IsAdmin,
                         MemberId = item.MemberId,
@@ -1879,8 +1953,26 @@ namespace WoWonder.SQLite
                         Type = item.Type,
                         UserPlatform = item.UserPlatform,
                         WeatherUnit = item.WeatherUnit,
+                        AvatarPostId = item.AvatarPostId,
+                        CodeSent = item.CodeSent,
+                        CoverPostId = item.CoverPostId,
+                        Discord = item.Discord,
+                        IsArchive = item.IsArchive,
+                        IsMute = item.IsMute,
+                        IsPin = item.IsPin,
+                        IsReported = item.IsReported,
+                        IsStoryMuted = item.IsStoryMuted,
+                        Mailru = item.Mailru,
+                        NotificationSettings = item.NotificationSettings,
+                        IsNotifyStopped = item.IsNotifyStopped,
+                        Qq = item.Qq,
+                        StripeSessionId = item.StripeSessionId,
+                        Time = item.Time,
+                        TimeCodeSent = item.TimeCodeSent,
+                        Wechat = item.Wechat,
                         Details = new DetailsUnion(),
                         Selected = false,
+                        ApiNotificationSettings = new NotificationSettingsUnion(),
                     };
 
                     infoObject.Details = string.IsNullOrEmpty(item.Details) switch
@@ -1888,7 +1980,13 @@ namespace WoWonder.SQLite
                         false => new DetailsUnion {DetailsClass = JsonConvert.DeserializeObject<Details>(item.Details)},
                         _ => infoObject.Details
                     };
-
+                     
+                    infoObject.ApiNotificationSettings = string.IsNullOrEmpty(item.ApiNotificationSettings) switch
+                    {
+                        false => new NotificationSettingsUnion { NotificationSettingsClass = JsonConvert.DeserializeObject<NotificationSettings>(item.ApiNotificationSettings) },
+                        _ => infoObject.ApiNotificationSettings
+                    };
+                     
                     UserDetails.Avatar = item.Avatar;
                     UserDetails.Cover = item.Cover;
                     UserDetails.Username = item.Username;
@@ -2056,7 +2154,7 @@ namespace WoWonder.SQLite
                 if (video != null)
                 {
                     var select = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == video.Id);
-                    switch (@select)
+                    switch (select)
                     {
                         case null:
                         {
@@ -2111,9 +2209,9 @@ namespace WoWonder.SQLite
                     case false:
                     {
                         var select = connection.Table<DataTables.WatchOfflineVideosTb>().FirstOrDefault(a => a.Id == watchOfflineVideosId);
-                        if (@select != null)
+                        if (select != null)
                         {
-                            connection.Delete(@select);
+                            connection.Delete(select);
                         }
 
                         break;
@@ -2141,9 +2239,9 @@ namespace WoWonder.SQLite
                         return new ObservableCollection<DataTables.WatchOfflineVideosTb>();
                 }
                 var select = connection.Table<DataTables.WatchOfflineVideosTb>().OrderByDescending(a => a.AutoIdWatchOfflineVideos).ToList();
-                return @select.Count switch
+                return select.Count switch
                 {
-                    > 0 => new ObservableCollection<DataTables.WatchOfflineVideosTb>(@select),
+                    > 0 => new ObservableCollection<DataTables.WatchOfflineVideosTb>(select),
                     _ => new ObservableCollection<DataTables.WatchOfflineVideosTb>()
                 };
             }
@@ -2418,8 +2516,69 @@ namespace WoWonder.SQLite
                 } 
             }
         }
+         
+        #endregion
 
-        public void DeletePost()
+        #region Story
+
+        //Insert Or Update data Story
+        public void InsertOrUpdateStory(string db)
+        {
+            try
+            {
+                using var connection = OpenConnection();
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
+                var dataUser = connection.Table<DataTables.StoryTb>().FirstOrDefault();
+                if (dataUser != null)
+                {
+                    dataUser.DataStoryJson = db;  
+                    connection.Update(dataUser);
+                }
+                else
+                {
+                    DataTables.StoryTb storyTb = new DataTables.StoryTb
+                    {
+                        DataStoryJson = db
+                    };
+
+                    connection.Insert(storyTb);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("database is locked"))
+                    InsertOrUpdateStory(db);
+                else
+                    Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        //Get data Story
+        public string GetDataStory()
+        {
+            try
+            {
+                using var connection = OpenConnection();
+                var dataPost = connection?.Table<DataTables.StoryTb>().FirstOrDefault();
+                return dataPost?.DataStoryJson ?? "";
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("database is locked"))
+                    return GetDataStory();
+                else
+                {
+                    Methods.DisplayReportResultTrack(e);
+                    return null!;
+                } 
+            }
+        }
+
+        public void DeleteStory()
         {
             try
             {
@@ -2429,14 +2588,14 @@ namespace WoWonder.SQLite
                     case null:
                         return;
                     default:
-                        connection.DeleteAll<DataTables.PostsTb>();
+                        connection.DeleteAll<DataTables.StoryTb>();
                         break;
                 }
             }
             catch (Exception e)
             {
                 if (e.Message.Contains("database is locked"))
-                    DeletePost();
+                    DeleteStory();
                 else
                     Methods.DisplayReportResultTrack(e);
             }
@@ -2521,6 +2680,9 @@ namespace WoWonder.SQLite
                     maTb.MessageUser = JsonConvert.SerializeObject(messages.MesData.MessageUser?.User);
                     maTb.UserData = JsonConvert.SerializeObject(messages.MesData.UserData);
                     maTb.ToData = JsonConvert.SerializeObject(messages.MesData.ToData);
+                    maTb.Reaction = JsonConvert.SerializeObject(messages.MesData.Reaction);
+                    maTb.Reply = JsonConvert.SerializeObject(messages.MesData.Reply?.ReplyClass);
+                    maTb.Story = JsonConvert.SerializeObject(messages.MesData.Story?.StoryClass);
 
                     var dataCheck = resultMessage.FirstOrDefault(a => a.Id == messages.MesData.Id);
                     if (dataCheck != null)
@@ -2537,6 +2699,9 @@ namespace WoWonder.SQLite
                             checkForUpdate.MessageUser = JsonConvert.SerializeObject(messages.MesData.MessageUser?.User);
                             checkForUpdate.UserData = JsonConvert.SerializeObject(messages.MesData.UserData);
                             checkForUpdate.ToData = JsonConvert.SerializeObject(messages.MesData.ToData);
+                            checkForUpdate.Reaction = JsonConvert.SerializeObject(messages.MesData.Reaction);
+                            checkForUpdate.Reply = JsonConvert.SerializeObject(messages.MesData.Reply?.ReplyClass);
+                            checkForUpdate.Story = JsonConvert.SerializeObject(messages.MesData.Story?.StoryClass);
 
                             connection.Update(checkForUpdate);
 
@@ -2597,6 +2762,9 @@ namespace WoWonder.SQLite
                     data.MessageUser = JsonConvert.SerializeObject(item.MessageUser?.User);
                     data.UserData = JsonConvert.SerializeObject(item.UserData);
                     data.ToData = JsonConvert.SerializeObject(item.ToData);
+                    data.Reaction = JsonConvert.SerializeObject(item.Reaction);
+                    data.Reply = JsonConvert.SerializeObject(item.Reply?.ReplyClass);
+                    data.Story = JsonConvert.SerializeObject(item.Story?.StoryClass);
 
                     connection.Update(data);
                 }
@@ -2610,6 +2778,9 @@ namespace WoWonder.SQLite
                     maTb.MessageUser = JsonConvert.SerializeObject(item.MessageUser?.User);
                     maTb.UserData = JsonConvert.SerializeObject(item.UserData);
                     maTb.ToData = JsonConvert.SerializeObject(item.ToData);
+                    maTb.Reaction = JsonConvert.SerializeObject(item.Reaction);
+                    maTb.Reply = JsonConvert.SerializeObject(item.Reply?.ReplyClass);
+                    maTb.Story = JsonConvert.SerializeObject(item.Story?.StoryClass);
 
                     //Insert  one Messages Table
                     connection.Insert(maTb);
@@ -2659,6 +2830,9 @@ namespace WoWonder.SQLite
                             maTb.MessageUser = new MessageData.MessageUserUnion();
                             maTb.UserData = new UserDataObject();
                             maTb.ToData = new UserDataObject();
+                            maTb.Reaction = new Reaction();
+                            maTb.Reply = new MessageData.ReplyUnion();
+                            maTb.Story = new MessageData.StoryUnion();
 
                             if (!string.IsNullOrEmpty(item.Product))
                                 maTb.Product = new ProductUnion
@@ -2677,6 +2851,21 @@ namespace WoWonder.SQLite
 
                             if (!string.IsNullOrEmpty(item.ToData))
                                 maTb.ToData = JsonConvert.DeserializeObject<UserDataObject>(item.ToData);
+                            
+                            if (!string.IsNullOrEmpty(item.Reaction))
+                                maTb.Reaction = JsonConvert.DeserializeObject<Reaction>(item.Reaction);
+
+                            if (!string.IsNullOrEmpty(item.Reply))
+                                maTb.Reply = new MessageData.ReplyUnion
+                                {
+                                    ReplyClass = JsonConvert.DeserializeObject<MessageData>(item.Reply)
+                                };
+                            
+                            if (!string.IsNullOrEmpty(item.Story))
+                                maTb.Story = new MessageData.StoryUnion
+                                {
+                                    StoryClass = JsonConvert.DeserializeObject<StoryDataObject.Story>(item.Story)
+                                };
 
                             var type = Holders.GetTypeModel(maTb);
                             if (type == MessageModelType.None)
@@ -2955,58 +3144,48 @@ namespace WoWonder.SQLite
 
                     var result = connection.Table<DataTables.LastUsersTb>().ToList();
                     List<DataTables.LastUsersTb> list = new List<DataTables.LastUsersTb>();
-                    foreach (var item in chatList)
+                    foreach (var itemChatObject in chatList)
                     {
-                        Classes.LastChatArchive archiveObject = null;
-                        switch (item.ChatType)
-                        {
-                            case "user":
-                                item.IsMute = WoWonderTools.CheckMute(item.UserId, "user");
-                                item.IsPin = WoWonderTools.CheckPin(item.UserId, "user");
-                                archiveObject = WoWonderTools.CheckArchive(item.UserId, "user");
-                                item.IsArchive = archiveObject != null;
-                                break;
-                            case "page":
-                                var userAdminPage = item.UserId;
-                                if (userAdminPage == item.LastMessage.LastMessageClass.ToData.UserId)
-                                {
-                                    var userId = item.LastMessage.LastMessageClass.UserData?.UserId;
-
-                                    //var name = item.LastMessage.LastMessageClass.UserData?.Name + "(" + item.PageName + ")";
-                                    //Console.WriteLine(name);
-
-                                    //wael change after add in api 
-                                    item.IsMute = WoWonderTools.CheckMute(item.PageId + userId, "page");
-                                    item.IsPin = WoWonderTools.CheckPin(item.PageId + userId, "page");
-                                    archiveObject = WoWonderTools.CheckArchive(item.PageId + userId, "page");
-                                    item.IsArchive = archiveObject != null;
-                                }
-                                else
-                                {
-                                    var userId = item.LastMessage.LastMessageClass.ToData.UserId;
-
-                                    //var name = item.LastMessage.LastMessageClass.ToData.Name + "(" + item.PageName + ")";
-                                    //Console.WriteLine(name);
-
-                                    //wael change after add in api 
-                                    item.IsMute = WoWonderTools.CheckMute(item.PageId + userId, "page");
-                                    item.IsPin = WoWonderTools.CheckPin(item.PageId + userId, "page");
-                                    archiveObject = WoWonderTools.CheckArchive(item.PageId + userId, "page");
-                                    item.IsArchive = archiveObject != null;
-                                }
-                                break;
-                            case "group":
-                                //wael change after add in api 
-                                item.IsMute = WoWonderTools.CheckMute(item.GroupId, "group");
-                                item.IsPin = WoWonderTools.CheckPin(item.GroupId, "group");
-                                archiveObject = WoWonderTools.CheckArchive(item.GroupId, "group");
-                                item.IsArchive = archiveObject != null;
-                                break;
-                        }
-
+                        ChatObject item = WoWonderTools.FilterDataLastChatNewV(itemChatObject);
+                         
                         DataTables.LastUsersTb db = new DataTables.LastUsersTb
                         {
                             Id = item.Id,
+                            AvatarOrg = item.AvatarOrg,
+                            BackgroundImageStatus = item.BackgroundImageStatus,
+                            Boosted = item.Boosted,
+                            CallActionType = item.CallActionType,
+                            CallActionTypeUrl = item.CallActionTypeUrl,
+                            Category = item.Category,
+                            ChatTime = item.ChatTime,
+                            ChatType = item.ChatType,
+                            Company = item.Company,
+                            CoverFull = item.CoverFull,
+                            CoverOrg = item.CoverOrg,
+                            CssFile = item.CssFile,
+                            EmailCode = item.EmailCode,
+                            GroupId = item.GroupId,
+                            Instgram = item.Instgram,
+                            Joined = item.Joined,
+                            LastEmailSent = item.LastEmailSent,
+                            PageCategory = item.PageCategory,
+                            PageDescription = item.PageDescription,
+                            PageId = item.PageId,
+                            PageName = item.PageName,
+                            PageTitle = item.PageTitle,
+                            Phone = item.Phone,
+                            GroupName = item.GroupName,
+                            ProTime = item.ProTime,
+                            Rating = item.Rating,
+                            Showlastseen = item.Showlastseen,
+                            SidebarData = item.SidebarData,
+                            SmsCode = item.SmsCode,
+                            SocialLogin = item.SocialLogin,
+                            Src = item.Src,
+                            StartUp = item.StartUp,
+                            StartupFollow = item.StartupFollow,
+                            StartupImage = item.StartupImage,
+                            StartUpInfo = item.StartUpInfo,
                             UserId = item.UserId,
                             Username = item.Username,
                             Email = item.Email,
@@ -3048,8 +3227,10 @@ namespace WoWonder.SQLite
                             Name = item.Name,
                             AndroidMDeviceId = item.AndroidMDeviceId,
                             ECommented = item.ECommented,
-                            AndroidNDeviceId = item.AndroidNDeviceId,
+                            AndroidNDeviceId = item.AndroidMDeviceId,
+                            AvatarFull = item.AvatarFull,
                             BirthPrivacy = item.BirthPrivacy,
+                            CanFollow = item.CanFollow,
                             ConfirmFollowers = item.ConfirmFollowers,
                             CountryId = item.CountryId,
                             EAccepted = item.EAccepted,
@@ -3067,19 +3248,24 @@ namespace WoWonder.SQLite
                             EmailNotification = item.EmailNotification,
                             FollowPrivacy = item.FollowPrivacy,
                             FriendPrivacy = item.FriendPrivacy,
+                            GenderText = item.GenderText,
                             InfoFile = item.InfoFile,
                             IosMDeviceId = item.IosMDeviceId,
                             IosNDeviceId = item.IosNDeviceId,
+                            IsBlocked = item.IsBlocked,
+                            IsFollowing = item.IsFollowing,
+                            IsFollowingMe = item.IsFollowingMe,
                             LastAvatarMod = item.LastAvatarMod,
                             LastCoverMod = item.LastCoverMod,
                             LastDataUpdate = item.LastDataUpdate,
                             LastFollowId = item.LastFollowId,
+                            LastLoginData = item.LastLoginData,
                             LastseenStatus = item.LastseenStatus,
+                            LastseenTimeText = item.LastseenTimeText,
                             LastseenUnixTime = item.LastseenUnixTime,
                             MessagePrivacy = item.MessagePrivacy,
                             NewEmail = item.NewEmail,
                             NewPhone = item.NewPhone,
-                            NotificationSettings = item.NotificationSettings,
                             NotificationsSound = item.NotificationsSound,
                             OrderPostsBy = item.OrderPostsBy,
                             PaypalEmail = item.PaypalEmail,
@@ -3097,84 +3283,55 @@ namespace WoWonder.SQLite
                             WorkingLink = item.WorkingLink,
                             Youtube = item.Youtube,
                             City = item.City,
+                            State = item.State,
+                            Zip = item.Zip,
                             Points = item.Points,
                             DailyPoints = item.DailyPoints,
                             PointDayExpire = item.PointDayExpire,
-                            State = item.State,
-                            Zip = item.Zip,
-                            AvatarOrg = item.AvatarOrg,
-                            BackgroundImageStatus = item.BackgroundImageStatus,
-                            Boosted = item.Boosted,
-                            CallActionType = item.CallActionType,
-                            CallActionTypeUrl = item.CallActionTypeUrl,
-                            Category = item.Category,
-                            ChatTime = item.ChatTime,
-                            ChatType = item.ChatType,
-                            Company = item.Company,
-                            CoverFull = item.CoverFull,
-                            CoverOrg = item.CoverOrg,
-                            CssFile = item.CssFile,
-                            EmailCode = item.EmailCode,
-                            GroupId = item.GroupId,
-                            Instgram = item.Instgram,
-                            Joined = item.Joined,
-                            LastEmailSent = item.LastEmailSent,
-                            PageCategory = item.PageCategory,
-                            PageDescription = item.PageDescription,
-                            PageId = item.PageId,
-                            PageName = item.PageName,
-                            PageTitle = item.PageTitle,
-                            Phone = item.Phone,
-                            GroupName = item.GroupName,
-                            ProTime = item.ProTime,
-                            Rating = item.Rating,
+                            CashfreeSignature = item.CashfreeSignature,
+                            IsAdmin = item.IsAdmin,
+                            MemberId = item.MemberId,
+                            ChatColor = item.ChatColor,
+                            PaystackRef = item.PaystackRef,
                             RefUserId = item.RefUserId,
                             SchoolCompleted = item.SchoolCompleted,
-                            Showlastseen = item.Showlastseen,
-                            SidebarData = item.SidebarData,
-                            SmsCode = item.SmsCode,
-                            SocialLogin = item.SocialLogin,
-                            Src = item.Src,
-                            StartUp = item.StartUp,
-                            StartupFollow = item.StartupFollow,
-                            StartupImage = item.StartupImage,
-                            StartUpInfo = item.StartUpInfo,
-                            Time = item.Time,
                             Type = item.Type,
+                            UserPlatform = item.UserPlatform,
                             WeatherUnit = item.WeatherUnit,
-                            MessageCount = item.MessageCount,
-                            AvatarFull = item.AvatarFull,
                             AvatarPostId = item.AvatarPostId,
-                            CanFollow = item.CanFollow,
-                            CashfreeSignature = item.CashfreeSignature,
-                            ChatColor = item.ChatColor,
                             CodeSent = item.CodeSent,
                             CoverPostId = item.CoverPostId,
-                            GenderText = item.GenderText,
-                            IsAdmin = item.IsAdmin,
+                            Discord = item.Discord,
                             IsArchive = item.IsArchive,
-                            IsBlocked = item.IsBlocked,
-                            IsFollowing = item.IsFollowing,
-                            IsFollowingMe = item.IsFollowingMe,
                             IsMute = item.IsMute,
-                            IsPageOnwer = item.IsPageOnwer,
                             IsPin = item.IsPin,
-                            LastLoginData = item.LastLoginData,
-                            LastseenTimeText = item.LastseenTimeText,
-                            MemberId = item.MemberId,
-                            PaystackRef = item.PaystackRef,
-                            Selected = item.Selected,
-                            UserPlatform = item.UserPlatform,
-                            Owner = item.Owner,
+                            IsReported = item.IsReported,
+                            IsStoryMuted = item.IsStoryMuted,
+                            Mailru = item.Mailru,
+                            NotificationSettings = item.NotificationSettings,
+                            IsNotifyStopped = item.IsNotifyStopped,
+                            Qq = item.Qq,
+                            StripeSessionId = item.StripeSessionId,
+                            Time = item.Time,
+                            TimeCodeSent = item.TimeCodeSent,
+                            Wechat = item.Wechat,
+                            AlbumData = item.AlbumData,
+                            ChatId = item.ChatId,
+                            IsPageOnwer = item.IsPageOnwer,
+                            MessageCount = item.MessageCount, 
+                            Selected = item.Selected, 
+                            Owner = Convert.ToBoolean(item.Owner), 
                             UserData = JsonConvert.SerializeObject(item.UserData),
                             LastMessage = JsonConvert.SerializeObject(item.LastMessage.LastMessageClass),
                             Parts = JsonConvert.SerializeObject(item.Parts),
                             Details = JsonConvert.SerializeObject(item.Details.DetailsClass),
+                            ApiNotificationSettings = JsonConvert.SerializeObject(item.ApiNotificationSettings.NotificationSettingsClass),
+                            Mute = JsonConvert.SerializeObject(item.Mute),
                         };
 
                         list.Add(db);
 
-                        var update = result.FirstOrDefault(a => a.UserId == item.UserId);
+                        var update = result.FirstOrDefault(a => a.ChatId == item.ChatId);
                         if (update != null)
                         {
                             update = db;
@@ -3182,6 +3339,7 @@ namespace WoWonder.SQLite
                             update.LastMessage = JsonConvert.SerializeObject(item.LastMessage.LastMessageClass);
                             update.Parts = JsonConvert.SerializeObject(item.Parts);
                             update.Details = JsonConvert.SerializeObject(item.Details.DetailsClass);
+                            update.ApiNotificationSettings = JsonConvert.SerializeObject(item.ApiNotificationSettings.NotificationSettingsClass);
 
                             var chk = IdMesgList.FirstOrDefault(a => a == item.LastMessage.LastMessageClass?.Id);
 
@@ -3266,16 +3424,51 @@ namespace WoWonder.SQLite
                 using var connection = OpenConnection();
                 if (connection == null) return null;
                 var select = connection.Table<DataTables.LastUsersTb>().ToList();
-                if (@select.Count > 0)
+                if (select.Count > 0)
                 {
                     var list = new List<ChatObject>();
 
-                    foreach (DataTables.LastUsersTb item in @select)
+                    foreach (DataTables.LastUsersTb item in select)
                     {
-                        Classes.LastChatArchive archiveObject = null;
+                        //Classes.LastChatArchive archiveObject = null;
                         ChatObject db = new ChatObject
                         {
                             Id = item.Id,
+                            AvatarOrg = item.AvatarOrg,
+                            BackgroundImageStatus = item.BackgroundImageStatus,
+                            Boosted = item.Boosted,
+                            CallActionType = item.CallActionType,
+                            CallActionTypeUrl = item.CallActionTypeUrl,
+                            Category = item.Category,
+                            ChatTime = item.ChatTime,
+                            ChatType = item.ChatType,
+                            Company = item.Company,
+                            CoverFull = item.CoverFull,
+                            CoverOrg = item.CoverOrg,
+                            CssFile = item.CssFile,
+                            EmailCode = item.EmailCode,
+                            GroupId = item.GroupId,
+                            Instgram = item.Instgram,
+                            Joined = item.Joined,
+                            LastEmailSent = item.LastEmailSent,
+                            PageCategory = item.PageCategory,
+                            PageDescription = item.PageDescription,
+                            PageId = item.PageId,
+                            PageName = item.PageName,
+                            PageTitle = item.PageTitle,
+                            Phone = item.Phone,
+                            GroupName = item.GroupName,
+                            ProTime = item.ProTime,
+                            Rating = item.Rating,
+                            Showlastseen = item.Showlastseen,
+                            SidebarData = item.SidebarData,
+                            SmsCode = item.SmsCode,
+                            SocialLogin = item.SocialLogin,
+                            Src = item.Src,
+                            StartUp = item.StartUp,
+                            StartupFollow = item.StartupFollow,
+                            StartupImage = item.StartupImage,
+                            StartUpInfo = item.StartUpInfo,
                             UserId = item.UserId,
                             Username = item.Username,
                             Email = item.Email,
@@ -3317,8 +3510,10 @@ namespace WoWonder.SQLite
                             Name = item.Name,
                             AndroidMDeviceId = item.AndroidMDeviceId,
                             ECommented = item.ECommented,
-                            AndroidNDeviceId = item.AndroidNDeviceId,
+                            AndroidNDeviceId = item.AndroidMDeviceId,
+                            AvatarFull = item.AvatarFull,
                             BirthPrivacy = item.BirthPrivacy,
+                            CanFollow = item.CanFollow,
                             ConfirmFollowers = item.ConfirmFollowers,
                             CountryId = item.CountryId,
                             EAccepted = item.EAccepted,
@@ -3336,19 +3531,24 @@ namespace WoWonder.SQLite
                             EmailNotification = item.EmailNotification,
                             FollowPrivacy = item.FollowPrivacy,
                             FriendPrivacy = item.FriendPrivacy,
+                            GenderText = item.GenderText,
                             InfoFile = item.InfoFile,
                             IosMDeviceId = item.IosMDeviceId,
                             IosNDeviceId = item.IosNDeviceId,
+                            IsBlocked = item.IsBlocked,
+                            IsFollowing = item.IsFollowing,
+                            IsFollowingMe = item.IsFollowingMe,
                             LastAvatarMod = item.LastAvatarMod,
                             LastCoverMod = item.LastCoverMod,
                             LastDataUpdate = item.LastDataUpdate,
                             LastFollowId = item.LastFollowId,
+                            LastLoginData = item.LastLoginData,
                             LastseenStatus = item.LastseenStatus,
+                            LastseenTimeText = item.LastseenTimeText,
                             LastseenUnixTime = item.LastseenUnixTime,
                             MessagePrivacy = item.MessagePrivacy,
                             NewEmail = item.NewEmail,
                             NewPhone = item.NewPhone,
-                            NotificationSettings = item.NotificationSettings,
                             NotificationsSound = item.NotificationsSound,
                             OrderPostsBy = item.OrderPostsBy,
                             PaypalEmail = item.PaypalEmail,
@@ -3366,85 +3566,53 @@ namespace WoWonder.SQLite
                             WorkingLink = item.WorkingLink,
                             Youtube = item.Youtube,
                             City = item.City,
+                            State = item.State,
+                            Zip = item.Zip,
                             Points = item.Points,
                             DailyPoints = item.DailyPoints,
                             PointDayExpire = item.PointDayExpire,
-                            State = item.State,
-                            Zip = item.Zip,
-                            AvatarOrg = item.AvatarOrg,
-                            BackgroundImageStatus = item.BackgroundImageStatus,
-                            Boosted = item.Boosted,
-                            CallActionType = item.CallActionType,
-                            CallActionTypeUrl = item.CallActionTypeUrl,
-                            Category = item.Category,
-                            ChatTime = item.ChatTime,
-                            ChatType = item.ChatType,
-                            Company = item.Company,
-                            CoverFull = item.CoverFull,
-                            CoverOrg = item.CoverOrg,
-                            CssFile = item.CssFile,
-                            EmailCode = item.EmailCode,
-                            GroupId = item.GroupId,
-                            Instgram = item.Instgram,
-                            Joined = item.Joined,
-                            LastEmailSent = item.LastEmailSent,
-                            PageCategory = item.PageCategory,
-                            PageDescription = item.PageDescription,
-                            PageId = item.PageId,
-                            PageName = item.PageName,
-                            PageTitle = item.PageTitle,
-                            Phone = item.Phone,
-                            GroupName = item.GroupName,
-                            ProTime = item.ProTime,
-                            Rating = item.Rating,
+                            CashfreeSignature = item.CashfreeSignature,
+                            IsAdmin = item.IsAdmin,
+                            MemberId = item.MemberId,
+                            ChatColor = item.ChatColor,
+                            PaystackRef = item.PaystackRef,
                             RefUserId = item.RefUserId,
                             SchoolCompleted = item.SchoolCompleted,
-                            Showlastseen = item.Showlastseen,
-                            SidebarData = item.SidebarData,
-                            SmsCode = item.SmsCode,
-                            SocialLogin = item.SocialLogin,
-                            Src = item.Src,
-                            StartUp = item.StartUp,
-                            StartupFollow = item.StartupFollow,
-                            StartupImage = item.StartupImage,
-                            StartUpInfo = item.StartUpInfo,
-                            Time = item.Time,
                             Type = item.Type,
+                            UserPlatform = item.UserPlatform,
                             WeatherUnit = item.WeatherUnit,
-                            MessageCount = item.MessageCount,
-                            AvatarFull = item.AvatarFull,
                             AvatarPostId = item.AvatarPostId,
-                            CanFollow = item.CanFollow,
-                            CashfreeSignature = item.CashfreeSignature,
-                            ChatColor = item.ChatColor,
                             CodeSent = item.CodeSent,
                             CoverPostId = item.CoverPostId,
-                            GenderText = item.GenderText,
-                            IsAdmin = item.IsAdmin,
+                            Discord = item.Discord,
                             IsArchive = item.IsArchive,
-                            IsBlocked = item.IsBlocked,
-                            IsFollowing = item.IsFollowing,
-                            IsFollowingMe = item.IsFollowingMe,
                             IsMute = item.IsMute,
-                            IsPageOnwer = item.IsPageOnwer,
                             IsPin = item.IsPin,
-                            LastLoginData = item.LastLoginData,
-                            LastseenTimeText = item.LastseenTimeText,
-                            MemberId = item.MemberId,
-                            PaystackRef = item.PaystackRef,
-                            Selected = item.Selected,
-                            UserPlatform = item.UserPlatform,
+                            IsReported = item.IsReported,
+                            IsStoryMuted = item.IsStoryMuted,
+                            Mailru = item.Mailru,
+                            NotificationSettings = item.NotificationSettings,
+                            IsNotifyStopped = item.IsNotifyStopped,
+                            Qq = item.Qq,
+                            StripeSessionId = item.StripeSessionId,
+                            Time = item.Time,
+                            TimeCodeSent = item.TimeCodeSent,
+                            Wechat = item.Wechat,
+                            AlbumData = item.AlbumData,
+                            ChatId = item.ChatId,
+                            IsPageOnwer = item.IsPageOnwer,
+                            MessageCount = item.MessageCount,
+                            Details = new DetailsUnion(),
+                            Selected = false,
+                            ApiNotificationSettings = new NotificationSettingsUnion(),
                             LastMessage = new LastMessageUnion
                             {
                                 LastMessageClass = new MessageData()
                             },
                             Owner = Convert.ToBoolean(item.Owner),
                             Parts = new List<PartsUnion>(),
-                            UserData = new UserDataObject(),
-                            Details = new DetailsUnion
-                            {
-                                DetailsClass = new Details()
-                            },
+                            UserData = new UserDataObject(), 
+                            Mute = new Mute()
                         };
 
                         if (!string.IsNullOrEmpty(item.UserData))
@@ -3464,53 +3632,12 @@ namespace WoWonder.SQLite
 
                         if (!string.IsNullOrEmpty(item.Parts))
                             db.Parts = JsonConvert.DeserializeObject<List<PartsUnion>>(item.Parts);
+                        
+                        if (!string.IsNullOrEmpty(item.Mute))
+                            db.Mute = JsonConvert.DeserializeObject<Mute>(item.Mute);
 
-                        switch (item.ChatType)
-                        {
-                            case "user":
-                                db.IsMute = WoWonderTools.CheckMute(db.UserId, "user");
-                                db.IsPin = WoWonderTools.CheckPin(db.UserId, "user");
-                                archiveObject = WoWonderTools.CheckArchive(db.UserId, "user");
-                                db.IsArchive = archiveObject != null;
-                                break;
-                            case "page":
-                                var userAdminPage = db?.UserId;
-                                if (userAdminPage == db.LastMessage.LastMessageClass?.ToData?.UserId)
-                                {
-                                    var userId = db.LastMessage.LastMessageClass?.UserData?.UserId;
-
-                                    //var name = db.LastMessage.LastMessageClass?.UserData?.Name + "(" + db.PageName + ")";
-                                    //Console.WriteLine(name);
-
-                                    //wael change after add in api 
-                                    db.IsMute = WoWonderTools.CheckMute(db.PageId + userId, "page");
-                                    db.IsPin = WoWonderTools.CheckPin(db.PageId + userId, "page");
-                                    archiveObject = WoWonderTools.CheckArchive(db.PageId + userId, "page");
-                                    db.IsArchive = archiveObject != null;
-                                }
-                                else
-                                {
-                                    var userId = db.LastMessage.LastMessageClass?.ToData?.UserId;
-
-                                    //var name = db.LastMessage.LastMessageClass.ToData.Name + "(" + db.PageName + ")";
-                                    //Console.WriteLine(name);
-
-                                    //wael change after add in api 
-                                    db.IsMute = WoWonderTools.CheckMute(db.PageId + userId, "page");
-                                    db.IsPin = WoWonderTools.CheckPin(db.PageId + userId, "page");
-                                    archiveObject = WoWonderTools.CheckArchive(db.PageId + userId, "page");
-                                    db.IsArchive = archiveObject != null; ;
-                                }
-                                break;
-                            case "group":
-                                //wael change after add in api 
-                                db.IsMute = WoWonderTools.CheckMute(db.GroupId, "group");
-                                db.IsPin = WoWonderTools.CheckPin(db.GroupId, "group");
-                                archiveObject = WoWonderTools.CheckArchive(db.GroupId, "group");
-                                db.IsArchive = archiveObject != null;
-                                break;
-                        }
-
+                        db = WoWonderTools.FilterDataLastChatNewV(db);
+                         
                         if (!string.IsNullOrEmpty(item.Details))
                         {
                             var sss = JsonConvert.DeserializeObject<Details>(item.Details);
@@ -3519,6 +3646,18 @@ namespace WoWonder.SQLite
                                 db.Details = new DetailsUnion
                                 {
                                     DetailsClass = sss
+                                };
+                            }
+                        }
+                        
+                        if (!string.IsNullOrEmpty(item.ApiNotificationSettings))
+                        {
+                            var sss = JsonConvert.DeserializeObject<NotificationSettings>(item.ApiNotificationSettings);
+                            if (sss != null)
+                            {
+                                db.ApiNotificationSettings = new NotificationSettingsUnion
+                                {
+                                    NotificationSettingsClass = sss
                                 };
                             }
                         }
@@ -3581,8 +3720,8 @@ namespace WoWonder.SQLite
                         case "group":
                             {
                                 var group = connection.Table<DataTables.LastUsersTb>().FirstOrDefault(c => c.GroupId == id && c.ChatType == "group");
-                                if (@group != null)
-                                    connection.Delete(@group);
+                                if (group != null)
+                                    connection.Delete(group);
                                 break;
                             }
                     }
@@ -3648,13 +3787,10 @@ namespace WoWonder.SQLite
                 var result = connection.Table<DataTables.LastUsersChatTb>().ToList();
 
                 List<DataTables.LastUsersChatTb> list = new List<DataTables.LastUsersChatTb>();
-                foreach (var user in lastUsersList)
+                foreach (var itemChatObject in lastUsersList)
                 {
-                    user.IsMute = WoWonderTools.CheckMute(user.UserId, "user");
-                    user.IsPin = WoWonderTools.CheckPin(user.UserId, "user");
-                    var archiveObject = WoWonderTools.CheckArchive(user.UserId, "user");
-                    user.IsArchive = archiveObject != null;
-
+                    var user = WoWonderTools.FilterDataLastChatOldV(itemChatObject);
+                     
                     var item = new DataTables.LastUsersChatTb
                     {
                         OrderId = user.ChatTime,
@@ -3755,9 +3891,9 @@ namespace WoWonder.SQLite
                                              LastMessage = lastMessageData,
                                              OldAvatar = userData.OldAvatar,
                                              OldCover = userData.OldCover,
-                                             IsMute = WoWonderTools.CheckMute(userData.UserId, "user"),
-                                             IsPin = WoWonderTools.CheckPin(userData.UserId, "user"),
-                                             IsArchive = WoWonderTools.CheckArchive(userData.UserId, "user") != null ? true : false,
+                                             IsMute = WoWonderTools.CheckMute(userData.UserId, "user", userData.Mute),
+                                             IsPin = WoWonderTools.CheckPin(userData.UserId, "user", userData.Mute),
+                                             IsArchive = WoWonderTools.CheckArchive(userData.UserId, "user", userData.Mute).Item2,
                                          })
                 {
                     if (chatUser.IsPin)
@@ -3818,6 +3954,9 @@ namespace WoWonder.SQLite
                     maTb.MessageUser = JsonConvert.SerializeObject(item.MessageUser?.User);
                     maTb.UserData = JsonConvert.SerializeObject(item.UserData);
                     maTb.ToData = JsonConvert.SerializeObject(item.ToData);
+                    maTb.Reaction = JsonConvert.SerializeObject(item.Reaction);
+                    maTb.Reply = JsonConvert.SerializeObject(item.Reply?.ReplyClass);
+                    maTb.Story = JsonConvert.SerializeObject(item.Story?.StoryClass);
 
                     //Insert  one Messages Table
                     connection.Insert(maTb);
@@ -3868,6 +4007,9 @@ namespace WoWonder.SQLite
                     maTb.MessageUser = new UserDataObject();
                     maTb.UserData = new UserDataObject();
                     maTb.ToData = new UserDataObject();
+                    maTb.Reaction = new Reaction();
+                    maTb.Reply = new MessageData.ReplyUnion();
+                    maTb.Story = new MessageData.StoryUnion();
 
                     if (!string.IsNullOrEmpty(item.Product))
                         maTb.Product = new ProductUnion
@@ -3886,6 +4028,21 @@ namespace WoWonder.SQLite
 
                     if (!string.IsNullOrEmpty(item.ToData))
                         maTb.ToData = JsonConvert.DeserializeObject<UserDataObject>(item.ToData);
+                    
+                    if (!string.IsNullOrEmpty(item.Reaction))
+                        maTb.Reaction = JsonConvert.DeserializeObject<Reaction>(item.Reaction);
+
+                    if (!string.IsNullOrEmpty(item.Reply))
+                        maTb.Reply = new MessageData.ReplyUnion
+                        {
+                            ReplyClass = JsonConvert.DeserializeObject<MessageData>(item.Reply)
+                        };
+                    
+                    if (!string.IsNullOrEmpty(item.Story))
+                        maTb.Story = new MessageData.StoryUnion
+                        {
+                            StoryClass = JsonConvert.DeserializeObject<StoryDataObject.Story>(item.Story)
+                        };
 
                     var type = Holders.GetTypeModel(maTb);
                     if (type == MessageModelType.None)
@@ -3984,7 +4141,93 @@ namespace WoWonder.SQLite
         #endregion
 
         #region Pinned Message 
+         
+        //Insert data To Message Table
+        public void Insert_Or_Replace_PinnedMessagesTable(ObservableCollection<AdapterModelsClassMessage> messageList)
+        {
+            try
+            {
+                using var connection = OpenConnection();
+                if (connection == null) return;
 
+                List<DataTables.PinnedMessageTb> listOfDatabaseForInsert = new List<DataTables.PinnedMessageTb>();
+
+                // get data from database
+                var resultMessage = connection.Table<DataTables.PinnedMessageTb>().ToList();
+
+                foreach (var messages in messageList)
+                {
+                    var maTb = ClassMapper.Mapper?.Map<DataTables.PinnedMessageTb>(messages.MesData);
+                    maTb.SendFile = false;
+
+                    maTb.Product = JsonConvert.SerializeObject(messages.MesData.Product?.ProductClass);
+
+                    maTb.MessageUser = JsonConvert.SerializeObject(messages.MesData.MessageUser?.User);
+                    maTb.UserData = JsonConvert.SerializeObject(messages.MesData.UserData);
+                    maTb.ToData = JsonConvert.SerializeObject(messages.MesData.ToData);
+                    maTb.Reaction = JsonConvert.SerializeObject(messages.MesData.Reaction);
+                    maTb.Reply = JsonConvert.SerializeObject(messages.MesData.Reply?.ReplyClass);
+                    maTb.Story = JsonConvert.SerializeObject(messages.MesData.Story?.StoryClass);
+
+                    var dataCheck = resultMessage.FirstOrDefault(a => a.Id == messages.MesData.Id);
+                    if (dataCheck != null)
+                    {
+                        var checkForUpdate = resultMessage.FirstOrDefault(a => a.Id == dataCheck.Id);
+                        if (checkForUpdate != null)
+                        {
+                            checkForUpdate = ClassMapper.Mapper?.Map<DataTables.PinnedMessageTb>(messages.MesData);
+                            checkForUpdate.SendFile = false;
+                            checkForUpdate.ChatColor = messages.MesData.ChatColor;
+
+                            checkForUpdate.Product = JsonConvert.SerializeObject(messages.MesData.Product?.ProductClass);
+
+                            checkForUpdate.MessageUser = JsonConvert.SerializeObject(messages.MesData.MessageUser?.User);
+                            checkForUpdate.UserData = JsonConvert.SerializeObject(messages.MesData.UserData);
+                            checkForUpdate.ToData = JsonConvert.SerializeObject(messages.MesData.ToData);
+                            checkForUpdate.Reaction = JsonConvert.SerializeObject(messages.MesData.Reaction);
+                            checkForUpdate.Reply = JsonConvert.SerializeObject(messages.MesData.Reply?.ReplyClass);
+                            checkForUpdate.Story = JsonConvert.SerializeObject(messages.MesData.Story?.StoryClass);
+
+                            connection.Update(checkForUpdate);
+
+                            var cec = ChatWindowActivity.GetInstance()?.StartedMessageList?.FirstOrDefault(a => a.Id == Long.ParseLong(dataCheck.Id));
+                            if (cec != null)
+                            {
+                                cec.MesData = messages.MesData;
+                                cec.MesData.IsStarted = true;
+                                cec.TypeView = messages.TypeView;
+                            }
+                        }
+                        else
+                        {
+                            listOfDatabaseForInsert.Add(maTb);
+                        }
+                    }
+                    else
+                    {
+                        listOfDatabaseForInsert.Add(maTb);
+                    }
+                }
+
+                connection.BeginTransaction();
+
+                //Bring new  
+                if (listOfDatabaseForInsert.Count > 0)
+                {
+                    connection.InsertAll(listOfDatabaseForInsert);
+                }
+
+                connection.Commit();
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("database is locked"))
+                    Insert_Or_Replace_PinnedMessagesTable(messageList);
+                else
+                    Methods.DisplayReportResultTrack(e);
+            }
+        }
+         
         //Insert Or Delete one PinnedMessages Table
         public void Insert_Or_Delete_To_one_PinnedMessagesTable(MessageDataExtra item)
         {
@@ -4015,6 +4258,9 @@ namespace WoWonder.SQLite
                     maTb.MessageUser = JsonConvert.SerializeObject(item.MessageUser?.User);
                     maTb.UserData = JsonConvert.SerializeObject(item.UserData);
                     maTb.ToData = JsonConvert.SerializeObject(item.ToData);
+                    maTb.Reaction = JsonConvert.SerializeObject(item.Reaction);
+                    maTb.Reply = JsonConvert.SerializeObject(item.Reply?.ReplyClass);
+                    maTb.Story = JsonConvert.SerializeObject(item.Story?.StoryClass);
 
                     //Insert  one Messages Table
                     connection.Insert(maTb);
@@ -4065,7 +4311,10 @@ namespace WoWonder.SQLite
                     maTb.MessageUser = new UserDataObject();
                     maTb.UserData = new UserDataObject();
                     maTb.ToData = new UserDataObject();
-
+                    maTb.Reaction = new Reaction();
+                    maTb.Reply = new MessageData.ReplyUnion();
+                    maTb.Story = new MessageData.StoryUnion();
+                     
                     if (!string.IsNullOrEmpty(item.Product))
                         maTb.Product = new ProductUnion
                         {
@@ -4083,6 +4332,21 @@ namespace WoWonder.SQLite
 
                     if (!string.IsNullOrEmpty(item.ToData))
                         maTb.ToData = JsonConvert.DeserializeObject<UserDataObject>(item.ToData);
+                    
+                    if (!string.IsNullOrEmpty(item.Reaction))
+                        maTb.Reaction = JsonConvert.DeserializeObject<Reaction>(item.Reaction);
+
+                    if (!string.IsNullOrEmpty(item.Reply))
+                        maTb.Reply = new MessageData.ReplyUnion
+                        {
+                            ReplyClass = JsonConvert.DeserializeObject<MessageData>(item.Reply)
+                        };
+                    
+                    if (!string.IsNullOrEmpty(item.Story))
+                        maTb.Story = new MessageData.StoryUnion
+                        {
+                            StoryClass = JsonConvert.DeserializeObject<StoryDataObject.Story>(item.Story)
+                        };
 
                     var type = Holders.GetTypeModel(maTb);
                     if (type == MessageModelType.None)
@@ -4189,13 +4453,13 @@ namespace WoWonder.SQLite
                 using var connection = OpenConnection();
                 if (connection == null) return;
                 var result = connection.Table<DataTables.MuteTb>().ToList();
-                var check = result.FirstOrDefault(a => a.IdChat == item.IdChat && a.ChatType == item.ChatType);
+                var check = result.FirstOrDefault(a => a.ChatId == item.ChatId && a.ChatType == item.ChatType);
                 if (check == null)
                 {
                     DataTables.MuteTb cv = new DataTables.MuteTb
                     {
                         ChatType = item.ChatType,
-                        IdChat = item.IdChat,
+                        ChatId = item.ChatId,
                         UserId = item.UserId,
                         GroupId = item.GroupId,
                         PageId = item.PageId,
@@ -4229,7 +4493,7 @@ namespace WoWonder.SQLite
                 foreach (var cv in result.Select(item => new Classes.OptionLastChat
                 {
                     ChatType = item.ChatType,
-                    IdChat = item.IdChat,
+                    ChatId = item.ChatId,
                     UserId = item.UserId,
                     GroupId = item.GroupId,
                     PageId = item.PageId,
@@ -4283,13 +4547,13 @@ namespace WoWonder.SQLite
                 using var connection = OpenConnection();
                 if (connection == null) return;
                 var result = connection.Table<DataTables.PinTb>().ToList();
-                var check = result.FirstOrDefault(a => a.IdChat == item.IdChat && a.ChatType == item.ChatType);
+                var check = result.FirstOrDefault(a => a.ChatId == item.ChatId && a.ChatType == item.ChatType);
                 if (check == null)
                 {
                     DataTables.PinTb cv = new DataTables.PinTb
                     {
                         ChatType = item.ChatType,
-                        IdChat = item.IdChat,
+                        ChatId = item.ChatId,
                         UserId = item.UserId,
                         GroupId = item.GroupId,
                         PageId = item.PageId,
@@ -4311,6 +4575,86 @@ namespace WoWonder.SQLite
             }
         }
 
+        public void InsertORUpdateORDelete_ListPin(List<Classes.OptionLastChat> lastChatArchive)
+        {
+            try
+            {
+                using var connection = OpenConnection();
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
+                var result = connection.Table<DataTables.PinTb>().ToList();
+                List<DataTables.PinTb> list = new List<DataTables.PinTb>();
+
+                connection.BeginTransaction();
+
+                foreach (var item in lastChatArchive)
+                {
+                    var db = new DataTables.PinTb
+                    {
+                        ChatType = item.ChatType,
+                        ChatId = item.ChatId,
+                        UserId = item.UserId,
+                        GroupId = item.GroupId,
+                        PageId = item.PageId,
+                        Name = item.Name,
+                    };
+                    list.Add(db);
+
+                    var update = result.FirstOrDefault(a => a.ChatId == item.ChatId);
+                    if (update != null)
+                    {
+                        update.ChatType = item.ChatType;
+                        update.ChatId = item.ChatId;
+                        update.UserId = item.UserId;
+                        update.GroupId = item.GroupId;
+                        update.PageId = item.PageId;
+                        update.Name = item.Name;
+
+                        connection.Update(update);
+                    }
+                }
+
+                switch (list.Count)
+                {
+                    case <= 0:
+                        return;
+                }
+
+                //Bring new  
+                var newItemList = list.Where(c => !result.Select(fc => fc.ChatId).Contains(c.ChatId)).ToList();
+                switch (newItemList.Count)
+                {
+                    case > 0:
+                        connection.InsertAll(newItemList);
+                        break;
+                }
+
+                result = connection.Table<DataTables.PinTb>().ToList();
+                var deleteItemList = result.Where(c => !list.Select(fc => fc.ChatId).Contains(c.ChatId)).ToList();
+                switch (deleteItemList.Count)
+                {
+                    case > 0:
+                        {
+                            foreach (var delete in deleteItemList)
+                                connection.Delete(delete);
+                            break;
+                        }
+                }
+
+                connection.Commit();
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("database is locked"))
+                    InsertORUpdateORDelete_ListPin(lastChatArchive);
+                else
+                    Methods.DisplayReportResultTrack(e);
+            }
+        }
+
         public ObservableCollection<Classes.OptionLastChat> Get_PinList()
         {
             try
@@ -4323,7 +4667,7 @@ namespace WoWonder.SQLite
                 foreach (var cv in result.Select(item => new Classes.OptionLastChat
                 {
                     ChatType = item.ChatType,
-                    IdChat = item.IdChat,
+                    ChatId = item.ChatId,
                     UserId = item.UserId,
                     GroupId = item.GroupId,
                     PageId = item.PageId,
@@ -4377,13 +4721,13 @@ namespace WoWonder.SQLite
                 using var connection = OpenConnection();
                 if (connection == null) return;
                 var result = connection.Table<DataTables.ArchiveTb>().ToList();
-                var check = result.FirstOrDefault(a => a.IdChat == item.IdChat && a.ChatType == item.ChatType);
+                var check = result.FirstOrDefault(a => a.ChatId == item.ChatId && a.ChatType == item.ChatType);
                 if (check == null)
                 {
                     DataTables.ArchiveTb cv = new DataTables.ArchiveTb
                     {
                         ChatType = item.ChatType,
-                        IdChat = item.IdChat,
+                        ChatId = item.ChatId,
                         UserId = item.UserId,
                         GroupId = item.GroupId,
                         PageId = item.PageId,
@@ -4408,6 +4752,94 @@ namespace WoWonder.SQLite
                     Methods.DisplayReportResultTrack(e);
             }
         }
+        
+        public void InsertORUpdateORDelete_ListArchive(List<Classes.LastChatArchive> lastChatArchive)
+        {
+            try
+            {
+                using var connection = OpenConnection();
+                switch (connection)
+                {
+                    case null:
+                        return;
+                }
+                var result = connection.Table<DataTables.ArchiveTb>().ToList();
+                List<DataTables.ArchiveTb> list = new List<DataTables.ArchiveTb>();
+
+                connection.BeginTransaction();
+
+                foreach (var item in lastChatArchive)
+                {
+                    var db = new DataTables.ArchiveTb
+                    {
+                        ChatType = item.ChatType,
+                        ChatId = item.ChatId,
+                        UserId = item.UserId,
+                        GroupId = item.GroupId,
+                        PageId = item.PageId,
+                        Name = item.Name,
+                        IdLastMessage = item.IdLastMessage,
+                        LastMessagesUser = JsonConvert.SerializeObject(item.LastMessagesUser),
+                        LastChat = JsonConvert.SerializeObject(item.LastChat),
+                        LastChatPage = JsonConvert.SerializeObject(item.LastChatPage),
+                    };
+                    list.Add(db);
+                      
+                    var update = result.FirstOrDefault(a => a.ChatId == item.ChatId);
+                    if (update != null)
+                    {
+                        update.ChatType = item.ChatType;
+                        update.ChatId = item.ChatId;
+                        update.UserId = item.UserId;
+                        update.GroupId = item.GroupId;
+                        update.PageId = item.PageId;
+                        update.Name = item.Name;
+                        update.IdLastMessage = item.IdLastMessage;
+                        update.LastMessagesUser = JsonConvert.SerializeObject(item.LastMessagesUser);
+                        update.LastChat = JsonConvert.SerializeObject(item.LastChat);
+                        update.LastChatPage = JsonConvert.SerializeObject(item.LastChatPage);
+                         
+                        connection.Update(update);
+                    }
+                }
+
+                switch (list.Count)
+                {
+                    case <= 0:
+                        return;
+                }
+                 
+                //Bring new  
+                var newItemList = list.Where(c => !result.Select(fc => fc.ChatId).Contains(c.ChatId)).ToList();
+                switch (newItemList.Count)
+                {
+                    case > 0:
+                        connection.InsertAll(newItemList);
+                        break;
+                }
+
+                result = connection.Table<DataTables.ArchiveTb>().ToList();
+                var deleteItemList = result.Where(c => !list.Select(fc => fc.ChatId).Contains(c.ChatId)).ToList();
+                switch (deleteItemList.Count)
+                {
+                    case > 0:
+                        {
+                            foreach (var delete in deleteItemList)
+                                connection.Delete(delete);
+                            break;
+                        }
+                }
+
+                connection.Commit();
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("database is locked"))
+                    InsertORUpdateORDelete_ListArchive(lastChatArchive);
+                else
+                    Methods.DisplayReportResultTrack(e);
+            } 
+        }
 
         public ObservableCollection<Classes.LastChatArchive> Get_ArchiveList()
         {
@@ -4421,7 +4853,7 @@ namespace WoWonder.SQLite
                 foreach (var cv in result.Select(item => new Classes.LastChatArchive
                 {
                     ChatType = item.ChatType,
-                    IdChat = item.IdChat,
+                    ChatId = item.ChatId,
                     UserId = item.UserId,
                     GroupId = item.GroupId,
                     PageId = item.PageId,
@@ -4469,7 +4901,7 @@ namespace WoWonder.SQLite
         }
 
         #endregion
-
+         
         #region Stickers
 
         //Insert data To Stickers Table
@@ -4624,7 +5056,7 @@ namespace WoWonder.SQLite
                 else
                 {
                     Methods.DisplayReportResultTrack(e);
-                    return null;
+                    return null!;
                 }
             }
         }
@@ -4658,6 +5090,6 @@ namespace WoWonder.SQLite
         }
 
         #endregion
-
+         
     }
 }

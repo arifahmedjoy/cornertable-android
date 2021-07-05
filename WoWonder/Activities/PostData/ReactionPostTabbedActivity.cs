@@ -420,7 +420,7 @@ namespace WoWonder.Activities.PostData
         public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadDataPostAsync(offset) });
         }
@@ -507,7 +507,7 @@ namespace WoWonder.Activities.PostData
                                         switch (LikeTab.MAdapter.UserList.Count)
                                         {
                                             case > 10 when !LikeTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -555,7 +555,7 @@ namespace WoWonder.Activities.PostData
                                         switch (LoveTab.MAdapter.UserList.Count)
                                         {
                                             case > 10 when !LoveTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -603,7 +603,7 @@ namespace WoWonder.Activities.PostData
                                         switch (WowTab.MAdapter.UserList.Count)
                                         {
                                             case > 10 when !WowTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -651,7 +651,7 @@ namespace WoWonder.Activities.PostData
                                         switch (HahaTab.MAdapter.UserList.Count)
                                         {
                                             case > 10 when !HahaTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -699,7 +699,7 @@ namespace WoWonder.Activities.PostData
                                         switch (SadTab.MAdapter.UserList.Count)
                                         {
                                             case > 10 when !SadTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 
@@ -747,7 +747,7 @@ namespace WoWonder.Activities.PostData
                                         switch (AngryTab.MAdapter.UserList.Count)
                                         {
                                             case > 10 when !AngryTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                                                 break;
                                         }
 

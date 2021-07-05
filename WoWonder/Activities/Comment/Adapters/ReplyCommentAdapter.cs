@@ -4,14 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Android.Content;
 using Android.Graphics;
-
-
 using Android.Views;
 using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
-using Com.Tuyenmonkey.Textdecorator;
 using Java.IO;
 using Java.Util;
 using WoWonder.Activities.Comment.Fragment;
@@ -21,7 +18,6 @@ using WoWonder.Activities.NativePost.Post;
 using WoWonder.Activities.UserProfile;
 using WoWonder.Helpers.CacheLoaders;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.Anjo;
@@ -72,17 +68,10 @@ namespace WoWonder.Activities.Comment.Adapters
             {
                 return viewType switch
                 {
-                    0 => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
-                        this, PostEventListener),
-                    1 => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)
-                            ?.Inflate(Resource.Layout.Style_Comment_Image, parent, false), this, PostEventListener),
-                    666 => new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)
-                        ?.Inflate(Resource.Layout.Style_EmptyState, parent, false)),
-                    _ => new CommentAdapterViewHolder(
-                        LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false),
-                        this, PostEventListener)
+                    0 => new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener),
+                    1 => new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment_Image, parent, false), this, PostEventListener),
+                    666 => new AdapterHolders.EmptyStateAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_EmptyState, parent, false)),
+                    _ => new CommentAdapterViewHolder(LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.Style_Comment, parent, false), this, PostEventListener)
                 };
             }
             catch (Exception exception)
@@ -91,8 +80,7 @@ namespace WoWonder.Activities.Comment.Adapters
                 return null!;
             }
         }
-
-
+         
         // Replace the contents of a view (invoked by the layout manager)
         public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
         {
@@ -105,7 +93,8 @@ namespace WoWonder.Activities.Comment.Adapters
                         if (viewHolder is not AdapterHolders.EmptyStateAdapterViewHolder emptyHolder)
                             return;
 
-                        emptyHolder.EmptyText.Text = "No Replies to be displayed";
+                        emptyHolder.EmptyImage.SetImageResource(Resource.Drawable.comment_emptstate);
+                        emptyHolder.EmptyText.Text = ActivityContext.GetText(Resource.String.Lbl_NoRepliesToBeDisplayed);
                         return;
                     }
                 }
@@ -144,60 +133,40 @@ namespace WoWonder.Activities.Comment.Adapters
                 }
 
                 holder.TimeTextView.Text = Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
-                holder.UserName.Text = item.Publisher.Name;
                 GlideImageLoader.LoadImage(ActivityContext, item.Publisher.Avatar, holder.Image, ImageStyle.CircleCrop, ImagePlaceholders.Color);
+
+                holder.UserName.Text = WoWonderTools.GetNameFinal(item.Publisher);
+
+                switch (item.Publisher.Verified)
+                {
+                    case "1":
+                        holder.UserName.SetCompoundDrawablesWithIntrinsicBounds(0, 0, Resource.Drawable.icon_checkmark_small_vector, 0);
+                        break;
+                }
                  
-                var textHighLighter = item.Publisher.Name;
-                var textIsPro = string.Empty;
-
-                switch (item.Publisher.Verified)
+                switch (string.IsNullOrEmpty(item.CFile))
                 {
-                    case "1":
-                        textHighLighter += " " + IonIconsFonts.CheckmarkCircle;
-                        break;
-                }
-
-                switch (item.Publisher.IsPro)
-                {
-                    case "1":
-                        textIsPro = " " + IonIconsFonts.Flash;
-                        textHighLighter += textIsPro;
-                        break;
-                }
-
-                var decorator = TextDecorator.Decorate(holder.UserName, textHighLighter)
-                    .SetTextStyle((int)TypefaceStyle.Bold, 0, item.Publisher.Name.Length);
-
-                switch (item.Publisher.Verified)
-                {
-                    case "1":
-                        decorator.SetTextColor(Resource.Color.Post_IsVerified, IonIconsFonts.CheckmarkCircle);
-                        break;
-                }
-
-                switch (item.Publisher.IsPro)
-                {
-                    case "1":
-                        decorator.SetTextColor(Resource.Color.text_color_in_between, textIsPro);
-                        break;
-                }
-
-                decorator.Build();
-
-                switch (holder.ItemViewType)
-                {
-                    case 1 when !string.IsNullOrEmpty(item.CFile) && (item.CFile.Contains("file://") || item.CFile.Contains("content://") || item.CFile.Contains("storage") || item.CFile.Contains("/data/user/0/")):
+                    case false when item.CFile.Contains("file://") || item.CFile.Contains("content://") || item.CFile.Contains("storage") || item.CFile.Contains("/data/user/0/"):
                     {
                         File file2 = new File(item.CFile);
                         var photoUri = FileProvider.GetUriForFile(ActivityContext, ActivityContext.PackageName + ".fileprovider", file2);
                         Glide.With(ActivityContext).Load(photoUri).Apply(new RequestOptions()).Into(holder.CommentImage);
-                         
-                        //GlideImageLoader.LoadImage(ActivityContext, item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+
+                        //GlideImageLoader.LoadImage(ActivityContext,item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
                         break;
                     }
-                    case 1:
-                        GlideImageLoader.LoadImage(ActivityContext, Client.WebsiteUrl + "/" + item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                    default:
+                    {
+                        item.CFile = item.CFile.Contains(InitializeWoWonder.WebsiteUrl) switch
+                        {
+                            false => WoWonderTools.GetTheFinalLink(item.CFile),
+                            _ => item.CFile
+                        };
+
+                        GlideImageLoader.LoadImage(ActivityContext, item.CFile, holder.CommentImage, ImageStyle.CenterCrop, ImagePlaceholders.Color);
+                        item.CFile = WoWonderTools.GetFile("", Methods.Path.FolderDiskImage, item.CFile.Split('/').Last(), item.CFile);
                         break;
+                    }
                 }
 
                 switch (AppSettings.PostButton)
@@ -502,8 +471,8 @@ namespace WoWonder.Activities.Comment.Adapters
                             {
                                 WoWonderTools.OpenProfile(ActivityContext, user.UserId, user);
                             }
-                            else switch (userData?.Count)
-                                {
+                            else switch (userData?.Count) 
+                            {
                                     case > 0:
                                         {
                                             var data = userData.FirstOrDefault(a => a.Value == name);

@@ -7,7 +7,9 @@
     android:gravity="center_horizontal"
     android:paddingStart="5dp"
     android:paddingEnd="5dp"
-    android:showDividers="end" 
+    android:showDividers="end"
+    android:backgroundTint="?attr/colorFill"
+    app:backgroundTint="?attr/colorFill"
     android:background="?attr/colorFill" >
     <at.markushi.ui.CircleButton
         android:layout_width="70dp"

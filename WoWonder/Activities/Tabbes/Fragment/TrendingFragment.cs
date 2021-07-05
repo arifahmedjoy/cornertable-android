@@ -12,8 +12,9 @@ using Newtonsoft.Json;
 using WoWonder.Activities.Articles;
 using WoWonder.Activities.Covid19;
 using WoWonder.Activities.FriendRequest;
+using WoWonder.Activities.FriendsBirthday;
+using WoWonder.Activities.Hashtag;
 using WoWonder.Activities.NativePost.Pages;
-using WoWonder.Activities.Search;
 using WoWonder.Activities.Tabbes.Adapters;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
@@ -23,7 +24,7 @@ using WoWonderClient.Requests;
 
 namespace WoWonder.Activities.Tabbes.Fragment
 {
-    public class TrendingFragment : AndroidX.Fragment.App.Fragment 
+    public class TrendingFragment : AndroidX.Fragment.App.Fragment
     {
         #region  Variables Basic
 
@@ -63,7 +64,9 @@ namespace WoWonder.Activities.Tabbes.Fragment
             {
                 base.OnViewCreated(view, savedInstanceState); 
                 InitComponent(view);
-                SetRecyclerViewAdapters(); 
+                SetRecyclerViewAdapters();
+
+                Task.Factory.StartNew(StartApiService);
             }
             catch (Exception exception)
             {
@@ -112,7 +115,7 @@ namespace WoWonder.Activities.Tabbes.Fragment
                 MAdapter.ItemClick += MAdapterOnItemClick;
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
-                MRecycler.SetItemViewCacheSize(10);
+                MRecycler.SetItemViewCacheSize(50);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;  
                 MRecycler.SetAdapter(MAdapter); 
             }
@@ -139,6 +142,13 @@ namespace WoWonder.Activities.Tabbes.Fragment
                         Activity.StartActivity(intent);
                         break;
                     }
+                    case Classes.ItemType.FriendsBirthday:
+                    {
+                        var dataUser = item.UserList?.FirstOrDefault();
+                        if (dataUser != null)
+                            WoWonderTools.OpenProfile(Activity, dataUser.UserId, dataUser);
+                        break;
+                    }
                     case Classes.ItemType.LastActivities when item.LastActivities.ActivityType == "following" || item.LastActivities.ActivityType == "friend":
                         WoWonderTools.OpenProfile(Activity, item.LastActivities.UserId, item.LastActivities.Activator);
                         break;
@@ -162,14 +172,19 @@ namespace WoWonder.Activities.Tabbes.Fragment
                     }
                     case Classes.ItemType.Section when item.SectionType == Classes.ItemType.HashTag:
                     {
-                        var intent = new Intent(Activity, typeof(SearchTabbedActivity));
-                        intent.PutExtra("Key", "");
+                        var intent = new Intent(Activity, typeof(HashTagActivity));
                         Activity.StartActivity(intent);
                         break;
                     } 
                     case Classes.ItemType.Section when item.SectionType == Classes.ItemType.LastActivities:
                     {
                         var intent = new Intent(Activity, typeof(LastActivitiesActivity));
+                        Activity.StartActivity(intent);
+                        break;
+                    }
+                    case Classes.ItemType.Section when item.SectionType == Classes.ItemType.FriendsBirthday:
+                    {
+                        var intent = new Intent(Activity, typeof(FriendsBirthdayActivity));
                         Activity.StartActivity(intent);
                         break;
                     }
@@ -203,190 +218,194 @@ namespace WoWonder.Activities.Tabbes.Fragment
 
         #endregion
 
-        #region Load Activities & Weather & Blogs
+        #region Load Activities & Weather & Blogs & Friends Birthday
 
-        public void StartApiService(string offset = "0")
+        private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadActivitiesAsync(offset) }); 
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadActivitiesAsync() }); 
         }
 
         private async Task LoadActivitiesAsync(string offset = "0")
         {
             if (Methods.CheckConnectivity())
             {
-                switch (AppSettings.ShowLastActivities)
+                if (AppSettings.ShowLastActivities)
                 {
-                    case true:
+                    var (apiStatus, respond) = await RequestsAsync.Global.GetActivitiesAsync("6", offset);
+                    if (apiStatus == 200)
                     {
-                        var (apiStatus, respond) = await RequestsAsync.Global.GetActivitiesAsync("6", offset);
-                        switch (apiStatus)
+                        if (respond is LastActivitiesObject result)
                         {
-                            case 200:
+                            // LastActivities
+                            var respondListLastActivities = result.Activities.Count;
+                            if (respondListLastActivities > 0)
                             {
-                                switch (respond)
+                                var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastActivities);
+                                if (checkList == null)
                                 {
-                                    case LastActivitiesObject result:
+                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
                                     {
-                                        // LastActivities
-                                        var respondListLastActivities = result.Activities.Count;
-                                        switch (respondListLastActivities)
+                                        Id = 900,
+                                        Title = Activity.GetText(Resource.String.Lbl_LastActivities),
+                                        SectionType = Classes.ItemType.LastActivities,
+                                        Type = Classes.ItemType.Section,
+                                    });
+
+                                    var list = result.Activities.Take(5).ToList();
+
+                                    foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastActivities?.Id == item.Id && a.Type == Classes.ItemType.LastActivities) where check == null select item)
+                                    {
+                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
                                         {
-                                            case > 0:
-                                            {
-                                                var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastActivities);
-                                                switch (checkList)
-                                                {
-                                                    case null:
-                                                    {
-                                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                                        {
-                                                            Id = 900,
-                                                            Title = Activity.GetText(Resource.String.Lbl_LastActivities),
-                                                            SectionType = Classes.ItemType.LastActivities,
-                                                            Type = Classes.ItemType.Section,
-                                                        });
-
-                                                        var list = result.Activities.Take(5).ToList();
-
-                                                        foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastActivities?.Id == item.Id && a.Type == Classes.ItemType.LastActivities) where check == null select item)
-                                                        {
-                                                            GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                                            {
-                                                                Id = long.Parse(item.Id),
-                                                                LastActivities = item,
-                                                                Type = Classes.ItemType.LastActivities
-                                                            });
-                                                        }
-                                                        GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                                        {
-                                                            Type = Classes.ItemType.Divider
-                                                        });
-                                                        break;
-                                                    }
-                                                }
-
-                                                break;
-                                            }
-                                        }
-
-                                        break;
+                                            Id = long.Parse(item.Id),
+                                            LastActivities = item,
+                                            Type = Classes.ItemType.LastActivities
+                                        });
                                     }
+
+                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                    {
+                                        Type = Classes.ItemType.Divider
+                                    });
                                 }
-
-                                break;
                             }
-                            default:
-                                Methods.DisplayReportResult(Activity, respond);
-                                break;
                         }
-
-                        break;
                     }
+                    else
+                        Methods.DisplayReportResult(Activity, respond);
                 }
 
+                await GetFriendsBirthdayApi();
                 await GetWeatherApi();
                 await GetExchangeCurrencyApi();
 
                 Activity?.RunOnUiThread(ShowEmptyPage);
             }  
         }
-     
-        //private void StartApiServiceWeather()
-        //{
-        //    if (!Methods.CheckConnectivity())
-        //        Toast.MakeText(Context, Context.GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
-        //    else
-        //        PollyController.RunRetryPolicyFunction(new List<Func<Task>> {async () => await GetWeatherApi(), async () => await GetExchangeCurrencyApi() });
-        //}
-
+      
         private async Task GetWeatherApi()
         {
-            switch (AppSettings.ShowWeather)
+            if (AppSettings.ShowWeather && Methods.CheckConnectivity())
             {
-                case true when Methods.CheckConnectivity():
+                GetWeatherObject respond = await ApiRequest.GetWeather();
+                if (respond != null)
                 {
-                    GetWeatherObject respond = await ApiRequest.GetWeather();
-                    if (respond != null)
+                    var checkList = MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Weather);
+                    switch (checkList)
                     {
-                        var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Weather);
-                        switch (checkList)
+                        case null:
                         {
-                            case null:
+                            var weather = new Classes.TrendingClass
                             {
-                                var weather = new Classes.TrendingClass
-                                {
-                                    Id = 600,
-                                    Weather = respond,
-                                    Type = Classes.ItemType.Weather
-                                };
-                         
-                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(weather);
-                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                {
-                                    Type = Classes.ItemType.Divider
-                                });
-                                break;
-                            }
-                            default:
-                                checkList.Weather = respond;
-                                break;
-                        }
-                    }
+                                Id = 600,
+                                Weather = respond,
+                                Type = Classes.ItemType.Weather
+                            };
 
-                    Activity?.RunOnUiThread(() => MAdapter.NotifyDataSetChanged());
-                    break;
+                            MAdapter.TrendingList.Add(weather);
+                            MAdapter.TrendingList.Add(new Classes.TrendingClass
+                            {
+                                Type = Classes.ItemType.Divider
+                            });
+                            break;
+                        }
+                        default:
+                            checkList.Weather = respond;
+                            break;
+                    }
                 }
             }
         }
         
-        private async Task GetExchangeCurrencyApi()
+        private async Task GetFriendsBirthdayApi()
         {
-            switch (AppSettings.ShowExchangeCurrency)
+            if (Methods.CheckConnectivity())
             {
-                case true when Methods.CheckConnectivity():
+                if (AppSettings.ShowFriendsBirthday)
                 {
-                    var (apiStatus, respond) = await ApiRequest.GetExchangeCurrencyAsync();
-                    if (apiStatus != 200 || respond is not Classes.ExchangeCurrencyObject result || result.Rates == null)
+                    var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsBirthdayAsync();
+                    if (apiStatus == 200)
                     {
-                        switch (AppSettings.SetApisReportMode)
+                        if (respond is ListUsersObject result)
                         {
-                            case true when apiStatus != 400 && respond is Classes.ExErrorObject error:
-                                Methods.DialogPopup.InvokeAndShowDialog(Activity, "ReportMode", error?.Description, "Close");
-                                break;
+                            // FriendsBirthday
+                            var respondList = result.Data.Count;
+                            if (respondList > 0)
+                            {
+                                var checkListFriendsBirthday = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.FriendsBirthday);
+                                if (checkListFriendsBirthday == null)
+                                {
+                                    MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                    {
+                                        Id = 950,
+                                        Title = Activity.GetText(Resource.String.Lbl_FriendsBirthday),
+                                        SectionType = Classes.ItemType.FriendsBirthday,
+                                        Type = Classes.ItemType.Section,
+                                    });
+
+                                    MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                    {
+                                        Id = 951,
+                                        UserList = new List<UserDataObject>(result.Data),
+                                        Type = Classes.ItemType.FriendsBirthday
+                                    });
+
+                                    MAdapter.TrendingList.Add(new Classes.TrendingClass
+                                    {
+                                        Type = Classes.ItemType.Divider
+                                    });
+                                }
+                            }
                         }
                     }
                     else
-                    {
-                        var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ExchangeCurrency);
-                        switch (checkList)
-                        {
-                            case null:
-                            {
-                                var exchangeCurrency = new Classes.TrendingClass
-                                {
-                                    Id = 2013,
-                                    ExchangeCurrency = result,
-                                    Type = Classes.ItemType.ExchangeCurrency
-                                };
-                         
-                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(exchangeCurrency);
-                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                {
-                                    Type = Classes.ItemType.Divider
-                                });
-                                break;
-                            }
-                            default:
-                                checkList.ExchangeCurrency = result;
-                                break;
-                        }
-                    }
+                        Methods.DisplayReportResult(Activity, respond);
+                }
+            } 
+        }
 
-                    Activity?.RunOnUiThread(() => MAdapter.NotifyDataSetChanged());
-                    break;
+        private async Task GetExchangeCurrencyApi()
+        {
+            if (AppSettings.ShowExchangeCurrency && Methods.CheckConnectivity())
+            {
+                var (apiStatus, respond) = await ApiRequest.GetExchangeCurrencyAsync();
+                if (apiStatus != 200 || respond is not Classes.ExchangeCurrencyObject result || result.Rates == null)
+                {
+                    switch (AppSettings.SetApisReportMode)
+                    {
+                        case true when apiStatus != 400 && respond is Classes.ExErrorObject error:
+                            Methods.DialogPopup.InvokeAndShowDialog(Activity, "ReportMode", error?.Description, "Close");
+                            break;
+                    }
+                }
+                else
+                {
+                    var checkList = MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.ExchangeCurrency);
+                    switch (checkList)
+                    {
+                        case null:
+                        {
+                            var exchangeCurrency = new Classes.TrendingClass
+                            {
+                                Id = 2013,
+                                ExchangeCurrency = result,
+                                Type = Classes.ItemType.ExchangeCurrency
+                            };
+
+                            MAdapter.TrendingList.Add(exchangeCurrency);
+                            MAdapter.TrendingList.Add(new Classes.TrendingClass
+                            {
+                                Type = Classes.ItemType.Divider
+                            });
+                            break;
+                        }
+                        default:
+                            checkList.ExchangeCurrency = result;
+                            break;
+                    }
                 }
             }
         }
@@ -395,13 +414,11 @@ namespace WoWonder.Activities.Tabbes.Fragment
         {
             try
             {  
-                var respondListShortcuts = ListUtils.ShortCutsList.Count;
+                var respondListShortcuts = ListUtils.ShortCutsList?.Count;
                 switch (respondListShortcuts)
                 {
                     case > 0 when AppSettings.ShowShortcuts:
-                    {
-                        var listSort = ListUtils.ShortCutsList.OrderBy(a => a.Name).ToList();
-                     
+                    { 
                         var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.Shortcuts);
                         switch (checkList)
                         {
@@ -410,15 +427,12 @@ namespace WoWonder.Activities.Tabbes.Fragment
                                 var shortcuts = new Classes.TrendingClass
                                 {
                                     Id = 700,
-                                    ShortcutsList = new List<Classes.ShortCuts>(),
+                                    ShortcutsList = new List<Classes.ShortCuts>(ListUtils.ShortCutsList),
                                     Type = Classes.ItemType.Shortcuts
                                 };
 
-                                foreach (var item in from item in listSort let check = shortcuts.ShortcutsList.FirstOrDefault(a => a.SocialId == item.SocialId && a.Type == item.Type) where check == null select item)
-                                {
-                                    shortcuts.ShortcutsList.Add(item);
-                                }
-
+                                //shortcuts.ShortcutsList = shortcuts.ShortcutsList.OrderBy(cuts => cuts.SocialId).ToList();
+                              
                                 GlobalContext.TrendingTab.MAdapter.TrendingList.Add(shortcuts);
                                 GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
                                 {
@@ -432,49 +446,38 @@ namespace WoWonder.Activities.Tabbes.Fragment
                     }
                 }
 
-                var respondLastBlogs = ListUtils.ListCachedDataArticle.Count;
+                var respondLastBlogs = ListUtils.ListCachedDataArticle?.Count;
                 switch (respondLastBlogs)
                 {
                     case > 0:
                     {
                         var checkList = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(q => q.Type == Classes.ItemType.LastBlogs);
-                        switch (checkList)
+                        if (checkList == null)
                         {
-                            case null:
+                            GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                            {
+                                Id = 1200,
+                                Title = Activity.GetText(Resource.String.Lbl_LastBlogs),
+                                SectionType = Classes.ItemType.LastBlogs,
+                                Type = Classes.ItemType.Section,
+                            });
+
+                            var list = ListUtils.ListCachedDataArticle.Take(3)?.ToList();
+
+                            foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastBlogs?.Id == item.Id && a.Type == Classes.ItemType.LastBlogs) where check == null select item)
                             {
                                 GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
                                 {
-                                    Id = 1200,
-                                    Title = Activity.GetText(Resource.String.Lbl_LastBlogs),
-                                    SectionType = Classes.ItemType.LastBlogs,
-                                    Type = Classes.ItemType.Section,
-                                });
-
-                                var list = ListUtils.ListCachedDataArticle.Take(3).ToList();
-
-                                foreach (var item in from item in list let check = GlobalContext.TrendingTab.MAdapter.TrendingList.FirstOrDefault(a => a.LastBlogs?.Id == item.Id && a.Type == Classes.ItemType.LastBlogs) where check == null select item)
-                                {
-                                    GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                    {
-                                        Id = long.Parse(item.Id),
-                                        LastBlogs = item,
-                                        Type = Classes.ItemType.LastBlogs
-                                    });
-                                }
-                                /*var item = ListUtils.ListCachedDataArticle.FirstOrDefault(); 
-                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                {
-                                    Id = 1200,
+                                    Id = long.Parse(item.Id),
                                     LastBlogs = item,
                                     Type = Classes.ItemType.LastBlogs
-                                });*/
-
-                                GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
-                                {
-                                    Type = Classes.ItemType.Divider
                                 });
-                                break;
                             }
+
+                            GlobalContext.TrendingTab.MAdapter.TrendingList.Add(new Classes.TrendingClass
+                            {
+                                Type = Classes.ItemType.Divider
+                            });
                         }
 
                         break;

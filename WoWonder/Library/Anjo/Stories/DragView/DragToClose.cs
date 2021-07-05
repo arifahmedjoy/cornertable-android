@@ -83,7 +83,7 @@ namespace WoWonder.Library.Anjo.Stories.DragView
         /// <param name="attrs"></param>
         private void Init(Context context, IAttributeSet attrs)
         {
-            TypedArray array = null;
+            TypedArray array = null!;
             try
             {
                 if (attrs != null)

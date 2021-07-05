@@ -2,7 +2,7 @@ using System;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
-using AndroidX.ViewPager.Widget;
+using AndroidX.ViewPager2.Widget;
 using Google.Android.Material.Tabs;
 using WoWonder.Activities.Chat.ChatWindow.Adapters;
 using WoWonder.Activities.Chat.StickersFragments;
@@ -10,7 +10,7 @@ using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Activities.Chat.GroupChat.Fragment
 {
-    public class GroupChatStickersTabFragment : AndroidX.Fragment.App.Fragment
+    public class GroupChatStickersTabFragment : AndroidX.Fragment.App.Fragment, TabLayoutMediator.ITabConfigurationStrategy
     {
         private TabLayout Tabs;
 
@@ -24,7 +24,7 @@ namespace WoWonder.Activities.Chat.GroupChat.Fragment
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -35,7 +35,7 @@ namespace WoWonder.Activities.Chat.GroupChat.Fragment
                 base.OnViewCreated(view, savedInstanceState);
 
                 Tabs = view.FindViewById<TabLayout>(Resource.Id.tabsSticker);
-                ViewPager viewPager = view.FindViewById<ViewPager>(Resource.Id.viewpagerSticker);
+                ViewPager2 viewPager = view.FindViewById<ViewPager2>(Resource.Id.viewpagerSticker);
                 //AppBarLayout appBarLayoutview = view.FindViewById<AppBarLayout>(Resource.Id.appbarSticker);
 
                 SetUpViewPager(viewPager);
@@ -46,11 +46,11 @@ namespace WoWonder.Activities.Chat.GroupChat.Fragment
             }
         }
 
-        private void SetUpViewPager(ViewPager viewPager)
+        private void SetUpViewPager(ViewPager2 viewPager)
         {
             try
             {
-                StickersTabAdapter adapter = new StickersTabAdapter(ChildFragmentManager);
+                StickersTabAdapter adapter = new StickersTabAdapter(this);
                 if (AppSettings.ShowStickerStack0)
                     adapter.AddFragment(new StickerFragment1("GroupChatWindowActivity"), "0");
 
@@ -73,7 +73,7 @@ namespace WoWonder.Activities.Chat.GroupChat.Fragment
                     adapter.AddFragment(new StickerFragment7("GroupChatWindowActivity"), "6");
 
                 viewPager.Adapter = adapter;
-                Tabs.SetupWithViewPager(viewPager);
+                new TabLayoutMediator(Tabs, viewPager, this).Attach();
                 Tabs.SetBackgroundColor(!AppSettings.SetTabDarkTheme ? Color.ParseColor(AppSettings.StickersBarColor) : Color.ParseColor(AppSettings.StickersBarColorDark));
 
                 if (Tabs.TabCount > 0)
@@ -113,6 +113,18 @@ namespace WoWonder.Activities.Chat.GroupChat.Fragment
             }
         }
 
+        public void OnConfigureTab(TabLayout.Tab tab, int position)
+        {
+            try
+            {
+
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+
+        }
         public override void OnLowMemory()
         {
             try

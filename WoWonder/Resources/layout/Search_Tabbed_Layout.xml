@@ -3,13 +3,14 @@
    android:orientation="vertical"
     tools:ignore="RtlHardcoded"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorFill">
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/mainAppBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="100dp"
         android:fitsSystemWindows="true"
-        android:background="@color/primaryDark"
+        android:background="?attr/colorFill"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsingToolbar"
@@ -17,20 +18,18 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
             app:scrimAnimationDuration="100"
-            app:contentScrim="@color/primaryDark"
-            android:background="@xml/framealfacolor"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:layout_scrollFlags="enterAlwaysCollapsed"
             app:collapsedTitleTextAppearance="@style/TextAppearance.MyApp.Title.Collapsed"
             app:expandedTitleTextAppearance="@style/TextAppearance.MyApp.Title.Expanded">
             <LinearLayout
                 android:id="@+id/info_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginTop="50dp"
                 android:gravity="bottom"
                 android:orientation="vertical"
                 android:paddingStart="8dp"
                 android:paddingEnd="10dp"
-                android:background="@xml/gradientblack"
                 android:fitsSystemWindows="true"
                 android:layoutDirection="ltr">
                 <androidx.recyclerview.widget.RecyclerView
@@ -38,13 +37,18 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:layout_alignParentTop="true" />
+                    android:layout_alignParentTop="true"
+                    android:visibility="gone"/>
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/Searchtabs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:tabMode="fixed"
-                    app:tabGravity="fill" />
+                    app:tabGravity="fill"
+                    app:tabSelectedTextColor="@color/accent"
+                    android:background="?attr/colorFill"
+                    app:tabTextColor="?attr/colorReact"
+					app:tabTextAppearance="?android:attr/textAppearanceSmall"/>
             </LinearLayout>
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar" 
@@ -52,22 +56,38 @@
                 android:layout_height="50dp"
                 android:layout_marginTop="1dp"
                 android:fitsSystemWindows="true"
-                app:layout_collapseMode="pin" >
-               <AutoCompleteTextView
-                      android:id="@+id/searchBox"
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:background="@null"
-                      android:drawableTint="@color/textLight_color"
-                      android:layout_gravity="center_vertical"
-                      android:hint="@string/Lbl_Search"
-                      
-                      android:textSize="19dp"
-                      android:singleLine="true"
-                      android:imeOptions="actionSearch"
-                      android:layout_margin="10.2dp"
-
-                      android:drawablePadding="13dp" />
+                app:layout_collapseMode="pin">
+                <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" 
+                android:orientation="horizontal">
+                <AutoCompleteTextView
+                    android:id="@+id/searchBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" 
+                    android:background="@null"
+                    android:drawableTint="@color/textLight_color"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:gravity="start|center"
+                    android:hint="@string/Lbl_Search"           
+                    android:textSize="19dp"
+                    android:singleLine="true"
+                    android:imeOptions="actionSearch"
+                    android:layout_marginEnd="50dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="10dp" />
+                <ImageView
+                    android:id="@+id/filter_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" 
+                    android:src="@drawable/filter_drawable"
+                    android:tint="@color/primary" 
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="20dp"  />
+            </RelativeLayout> 
 			 <!--<androidx.appcompat.widget.SearchView
                     android:id="@+id/searchBox"
                     android:layout_width="match_parent"
@@ -103,5 +123,6 @@
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="20dp"
         app:backgroundTint="@color/accent"
-        android:layout_marginBottom="50dp" />
+        android:layout_marginBottom="50dp"
+        android:visibility="gone"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

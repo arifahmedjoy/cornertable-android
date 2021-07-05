@@ -14,7 +14,6 @@ using Android.Runtime;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
-using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide.Util;
@@ -84,7 +83,7 @@ namespace WoWonder.Activities.Chat
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileSharing), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileSharing), ToastLength.Long);
                     Finish();
                 }
             }
@@ -142,7 +141,6 @@ namespace WoWonder.Activities.Chat
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
-            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
 
             IMenuItem item = menu.FindItem(Resource.Id.searchUserBar);
             SearchView searchItem = (SearchView)item.ActionView;
@@ -151,15 +149,6 @@ namespace WoWonder.Activities.Chat
             SearchView.SetIconifiedByDefault(true);
             SearchView.QueryTextChange += SearchView_OnTextChange;
             SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
-
-            //Change text colors
-            var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
-            editText.SetHintTextColor(Color.Black);
-            editText.SetTextColor(Color.ParseColor("#888888"));
-
-            //Change Color Icon Search
-            ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
-            searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
 
             return base.OnCreateOptionsMenu(menu);
         }
@@ -238,13 +227,12 @@ namespace WoWonder.Activities.Chat
                 if (ToolBar != null)
                 {
                     ToolBar.Title = GetText(Resource.String.Lbl_Select_contact);
-                    ToolBar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
+                    ToolBar.SetTitleTextColor(Color.White);
                     SetSupportActionBar(ToolBar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
-                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -431,7 +419,7 @@ namespace WoWonder.Activities.Chat
                                 }
                         }
 
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_MessagesSent), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_MessagesSent), ToastLength.Short);
                         Finish();
                     }
                 }
@@ -576,7 +564,7 @@ namespace WoWonder.Activities.Chat
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
             {
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadContactsAsync });
@@ -595,7 +583,7 @@ namespace WoWonder.Activities.Chat
             {
                 var countList = MAdapter.UserList.Count;
                 var (apiStatus, respond) = await RequestsAsync.Global.GetFriendsAsync(UserDetails.UserId, "following", "35", lastIdUser);
-                if (apiStatus != 200 || (respond is not GetFriendsObject result) || result.DataFriends == null)
+                if (apiStatus != 200 || respond is not GetFriendsObject result || result.DataFriends == null)
                 {
                     Methods.DisplayReportResult(this, respond);
                 }
@@ -625,7 +613,7 @@ namespace WoWonder.Activities.Chat
                     else
                     {
                         if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                     }
                 }
 
@@ -638,11 +626,11 @@ namespace WoWonder.Activities.Chat
                 x.InflateLayout(Inflated, EmptyStateInflater.Type.NoConnection);
                 if (!x.EmptyStateButton.HasOnClickListeners)
                 {
-                    x.EmptyStateButton.Click += null;
+                    x.EmptyStateButton.Click += null!;
                     x.EmptyStateButton.Click += EmptyStateButtonOnClick;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
             MainScrollEvent.IsLoading = false;
@@ -674,7 +662,7 @@ namespace WoWonder.Activities.Chat
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }
@@ -800,7 +788,7 @@ namespace WoWonder.Activities.Chat
                     else
                     {
                         if (MAdapter.UserList.Count > 10 && !MRecycler.CanScrollVertically(1))
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_No_more_users), ToastLength.Short);
                     }
                 }
             }
@@ -832,8 +820,7 @@ namespace WoWonder.Activities.Chat
         {
             try
             {
-                Client a = new Client(AppSettings.TripleDesAppServiceProvider);
-                Console.WriteLine(a);
+                InitializeWoWonder.Initialize(AppSettings.TripleDesAppServiceProvider);
 
                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
                 dbDatabase.CheckTablesStatus();
@@ -974,7 +961,7 @@ namespace WoWonder.Activities.Chat
             }
         }
 
-        private void HandleSendFile(Intent intent)
+        private async void HandleSendFile(Intent intent)
         {
             try
             {
@@ -989,11 +976,11 @@ namespace WoWonder.Activities.Chat
 
                     // Update UI to reflect image being shared
                     var filePath = Methods.AttachmentFiles.GetActualPathFromFile(this, fileUri);
-                    var check = WoWonderTools.CheckMimeTypesWithServer(filePath);
+                    var check = await WoWonderTools.CheckMimeTypesWithServer(filePath);
                     if (!check)
                     {
                         //this file not supported on the server , please select another file 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                         return;
                     }
 
@@ -1090,7 +1077,7 @@ namespace WoWonder.Activities.Chat
         ///  Update UI to reflect multiple file being shared
         /// </summary>
         /// <param name="intent"></param>
-        private void HandleSendMultipleFiles(Intent intent)
+        private async void HandleSendMultipleFiles(Intent intent)
         {
             try
             {
@@ -1109,11 +1096,11 @@ namespace WoWonder.Activities.Chat
                         {
                             // Update UI to reflect image being shared
                             var filePath = Methods.AttachmentFiles.GetActualPathFromFile(this, fileUri);
-                            var check = WoWonderTools.CheckMimeTypesWithServer(filePath);
+                            var check = await WoWonderTools.CheckMimeTypesWithServer(filePath);
                             if (!check)
                             {
                                 //this file not supported on the server , please select another file 
-                                Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                                 return;
                             }
 
@@ -1216,7 +1203,7 @@ namespace WoWonder.Activities.Chat
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {

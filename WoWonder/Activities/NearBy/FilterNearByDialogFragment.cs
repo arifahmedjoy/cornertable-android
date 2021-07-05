@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
-
-
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Google.Android.Material.BottomSheet;
-using Java.Lang;
 using WoWonder.Adapters;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.SQLite;
@@ -22,18 +17,19 @@ using Exception = System.Exception;
 
 namespace WoWonder.Activities.NearBy
 {
-    public class FilterNearByDialogFragment : BottomSheetDialogFragment, SeekBar.IOnSeekBarChangeListener, MaterialDialog.IListCallback, MaterialDialog.ISingleButtonCallback
+    public class FilterNearByDialogFragment : BottomSheetDialogFragment, SeekBar.IOnSeekBarChangeListener, IDialogInterfaceOnShowListener
     {
         #region Variables Basic
 
         private PeopleNearByActivity ContextNearBy;
-        private TextView IconBack, TxtDistanceCount, TxtRelationship, RelationshipMoreIcon;
+        private TextView TxtDistanceCount;
         private TextView ResetTextView;
-        private RelativeLayout LayoutRelationship;
         private SeekBar DistanceBar;
-        private RecyclerView GenderRecycler;
         private GendersAdapter GenderAdapter;
         private Button ButtonOffline, ButtonOnline, BothStatusButton, BtnApply;
+        private Button BtnSingle, BtnRelationship, BtnMarried, BtnEngaged, BtnRelationAll;
+        private ImageButton ButtonBack;
+        private RecyclerView GenderRecycler;
         private int DistanceCount, Status;
         private string Gender, RelationshipId;
 
@@ -71,17 +67,27 @@ namespace WoWonder.Activities.NearBy
             {
                 base.OnViewCreated(view, savedInstanceState);
 
+                Dialog.SetOnShowListener(this);
+
                 InitComponent(view);
                 SetRecyclerViewAdapters();
 
-                IconBack.Click += IconBackOnClick;
+                ButtonBack.Click += IconBackOnClick;
 
+                // status buttons click
                 ButtonOffline.Click += ButtonOfflineOnClick;
                 ButtonOnline.Click += ButtonOnlineOnClick;
                 BothStatusButton.Click += BothStatusButtonOnClick;
+
+                // relationship buttons click
+                BtnSingle.Click += BtnSingle_Click;
+                BtnRelationship.Click += BtnRelationship_Click;
+                BtnMarried.Click += BtnMarried_Click;
+                BtnEngaged.Click += BtnEngaged_Click;
+                BtnRelationAll.Click += BtnRelationAll_Click;
+
                 BtnApply.Click += BtnApplyOnClick;
                 ResetTextView.Click += ResetTextViewOnClick;
-                LayoutRelationship.Click += LayoutRelationshipOnClick;
 
                 GetFilter();
             }
@@ -89,6 +95,41 @@ namespace WoWonder.Activities.NearBy
             {
                 Methods.DisplayReportResultTrack(exception);
             }
+        }
+
+        private void BtnRelationAll_Click(object sender, EventArgs e)
+        {
+            RelationshipId = "5";
+
+            SetRelationship();
+        }
+
+        private void BtnEngaged_Click(object sender, EventArgs e)
+        {
+            RelationshipId = "4";
+
+            SetRelationship();
+        }
+
+        private void BtnMarried_Click(object sender, EventArgs e)
+        {
+            RelationshipId = "3";
+
+            SetRelationship();
+        }
+
+        private void BtnRelationship_Click(object sender, EventArgs e)
+        {
+            RelationshipId = "2";
+
+            SetRelationship();
+        }
+
+        private void BtnSingle_Click(object sender, EventArgs e)
+        {
+            RelationshipId = "1";
+
+            SetRelationship();
         }
 
         public override void OnLowMemory()
@@ -110,27 +151,25 @@ namespace WoWonder.Activities.NearBy
         {
             try
             {
-                IconBack = view.FindViewById<TextView>(Resource.Id.IconBack);
-
-                GenderRecycler = view.FindViewById<RecyclerView>(Resource.Id.GenderRecyler);
-
+                ButtonBack = view.FindViewById<ImageButton>(Resource.Id.ib_back);
 
                 TxtDistanceCount = view.FindViewById<TextView>(Resource.Id.Distancenumber);
                 DistanceBar = view.FindViewById<SeekBar>(Resource.Id.distanceSeeker);
 
-                ButtonOffline = view.FindViewById<Button>(Resource.Id.OfflineButton);
-                ButtonOnline = view.FindViewById<Button>(Resource.Id.OnlineButton);
-                BothStatusButton = view.FindViewById<Button>(Resource.Id.BothStatusButton);
+                GenderRecycler = view.FindViewById<RecyclerView>(Resource.Id.GenderRecyler);
+
+                ButtonOffline = view.FindViewById<Button>(Resource.Id.btn_status_offline);
+                ButtonOnline = view.FindViewById<Button>(Resource.Id.btn_status_online);
+                BothStatusButton = view.FindViewById<Button>(Resource.Id.btn_status_all);
+
+                BtnSingle = view.FindViewById<Button>(Resource.Id.btn_single);
+                BtnRelationship = view.FindViewById<Button>(Resource.Id.btn_relationship);
+                BtnMarried = view.FindViewById<Button>(Resource.Id.btn_married);
+                BtnEngaged = view.FindViewById<Button>(Resource.Id.btn_engaged);
+                BtnRelationAll = view.FindViewById<Button>(Resource.Id.btn_relation_all);
+
                 BtnApply = view.FindViewById<Button>(Resource.Id.ApplyButton);
                 ResetTextView = view.FindViewById<TextView>(Resource.Id.Resetbutton);
-
-                LayoutRelationship = view.FindViewById<RelativeLayout>(Resource.Id.LayoutRelationship);
-
-                TxtRelationship = view.FindViewById<TextView>(Resource.Id.textRelationship);
-                RelationshipMoreIcon = view.FindViewById<TextView>(Resource.Id.RelationshipMoreIcon);
-
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconBack, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropright : IonIconsFonts.IosArrowDropleft);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, RelationshipMoreIcon, AppSettings.FlowDirectionRightToLeft ? IonIconsFonts.IosArrowDropleft : IonIconsFonts.IosArrowDropright);
 
                 DistanceBar.Max = 300;
                 DistanceBar.SetOnSeekBarChangeListener(this);
@@ -179,33 +218,33 @@ namespace WoWonder.Activities.NearBy
                 switch (ListUtils.SettingsSiteList?.Genders?.Count)
                 {
                     case > 0:
-                    {
-                        foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
                         {
-                            GenderAdapter.GenderList.Add(new Classes.Gender
+                            foreach (var (key, value) in ListUtils.SettingsSiteList?.Genders)
                             {
-                                GenderId = key,
-                                GenderName = value,
-                                GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
-                                GenderSelect = false
-                            });
-                        }
+                                GenderAdapter.GenderList.Add(new Classes.Gender
+                                {
+                                    GenderId = key,
+                                    GenderName = value,
+                                    GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#B0B6C3",
+                                    GenderSelect = false
+                                });
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
                         GenderAdapter.GenderList.Add(new Classes.Gender
                         {
                             GenderId = "male",
                             GenderName = Activity.GetText(Resource.String.Radio_Male),
-                            GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                            GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#B0B6C3",
                             GenderSelect = false
                         });
                         GenderAdapter.GenderList.Add(new Classes.Gender
                         {
                             GenderId = "female",
                             GenderName = Activity.GetText(Resource.String.Radio_Female),
-                            GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#444444",
+                            GenderColor = AppSettings.SetTabDarkTheme ? "#ffffff" : "#B0B6C3",
                             GenderSelect = false
                         });
                         break;
@@ -231,29 +270,29 @@ namespace WoWonder.Activities.NearBy
                 switch (position)
                 {
                     case >= 0:
-                    {
-                        var item = GenderAdapter.GetItem(position);
-                        if (item != null)
                         {
-                            var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                            switch (check.Count)
+                            var item = GenderAdapter.GetItem(position);
+                            if (item != null)
                             {
-                                case > 0:
+                                var check = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
+                                switch (check.Count)
                                 {
-                                    foreach (var all in check)
-                                        all.GenderSelect = false;
-                                    break;
+                                    case > 0:
+                                        {
+                                            foreach (var all in check)
+                                                all.GenderSelect = false;
+                                            break;
+                                        }
                                 }
+
+                                item.GenderSelect = true;
+                                GenderAdapter.NotifyDataSetChanged();
+
+                                Gender = item.GenderId;
                             }
 
-                            item.GenderSelect = true;
-                            GenderAdapter.NotifyDataSetChanged();
-
-                            Gender = item.GenderId;
+                            break;
                         }
-
-                        break;
-                    }
                 }
             }
             catch (Exception exception)
@@ -294,7 +333,7 @@ namespace WoWonder.Activities.NearBy
                     Relationship = RelationshipId
                 };
                 dbDatabase.InsertOrUpdate_NearByFilter(newSettingsFilter);
-                
+
 
                 ContextNearBy.MAdapter.UserList.Clear();
                 ContextNearBy.MAdapter.NotifyDataSetChanged();
@@ -331,7 +370,7 @@ namespace WoWonder.Activities.NearBy
                     Relationship = "5",
                 };
                 dbDatabase.InsertOrUpdate_NearByFilter(newSettingsFilter);
-                
+
 
                 Gender = "all";
                 DistanceCount = 0;
@@ -343,36 +382,9 @@ namespace WoWonder.Activities.NearBy
                 UserDetails.NearByStatus = Status.ToString();
                 UserDetails.NearByRelationship = RelationshipId;
 
-                //////////////////////////// Gender //////////////////////////////
 
-                var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                switch (check1.Count)
-                {
-                    case > 0:
-                    {
-                        foreach (var all in check1)
-                            all.GenderSelect = false;
-                        break;
-                    }
-                }
-
-                var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == "all");
-                if (check2 != null)
-                {
-                    check2.GenderSelect = true;
-                    Gender = check2.GenderId;
-
-                    GenderAdapter.NotifyDataSetChanged();
-                }
                 //////////////////////////// Status ////////////////////////////// 
-                BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                BothStatusButton.SetTextColor(Color.ParseColor("#ffffff"));
-
-                ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
+                SetStatus();
 
                 switch (Build.VERSION.SdkInt)
                 {
@@ -387,15 +399,8 @@ namespace WoWonder.Activities.NearBy
 
                 TxtDistanceCount.Text = DistanceCount + " " + GetText(Resource.String.Lbl_km);
 
-                TxtRelationship.Text = RelationshipId switch
-                {
-                    "5" => GetText(Resource.String.Lbl_All),
-                    "1" => GetText(Resource.String.Lbl_Single),
-                    "2" => GetText(Resource.String.Lbl_InRelationship),
-                    "3" => GetText(Resource.String.Lbl_Married),
-                    "4" => GetText(Resource.String.Lbl_Engaged),
-                    _ => GetText(Resource.String.Lbl_All)
-                };
+                // Relationship
+                SetRelationship();
             }
             catch (Exception exception)
             {
@@ -410,16 +415,9 @@ namespace WoWonder.Activities.NearBy
             {
                 //follow_button_profile_friends >> Un click
                 //follow_button_profile_friends_pressed >> click
-                BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                BothStatusButton.SetTextColor(Color.ParseColor("#ffffff"));
-
-                ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
                 Status = 2;
+
+                SetStatus();
             }
             catch (Exception exception)
             {
@@ -434,16 +432,9 @@ namespace WoWonder.Activities.NearBy
             {
                 //follow_button_profile_friends >> Un click
                 //follow_button_profile_friends_pressed >> click
-                ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                ButtonOnline.SetTextColor(Color.ParseColor("#ffffff"));
-
-                BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                BothStatusButton.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
                 Status = 1;
+
+                SetStatus();
             }
             catch (Exception exception)
             {
@@ -458,16 +449,9 @@ namespace WoWonder.Activities.NearBy
             {
                 //follow_button_profile_friends >> Un click
                 //follow_button_profile_friends_pressed >> click
-                ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                ButtonOffline.SetTextColor(Color.ParseColor("#ffffff"));
-
-                BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                BothStatusButton.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
                 Status = 0;
+
+                SetStatus();
             }
             catch (Exception exception)
             {
@@ -475,36 +459,6 @@ namespace WoWonder.Activities.NearBy
             }
         }
 
-        //Relationship 
-        //1 >>  Single
-        //2 >>  In a relationship
-        //3 >>  Married
-        //4 >>  Engaged
-        //5 >>  All
-        private void LayoutRelationshipOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-                var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-
-                arrayAdapter.Add(GetText(Resource.String.Lbl_All));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_Single));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_InRelationship));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_Married));
-                arrayAdapter.Add(GetText(Resource.String.Lbl_Engaged));
-
-                dialogList.Title(GetText(Resource.String.Lbl_Relationship)).TitleColorRes(Resource.Color.primary);
-                dialogList.Items(arrayAdapter);
-                dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(this);
-                dialogList.AlwaysCallSingleChoiceCallback();
-                dialogList.ItemsCallback(this).Build().Show();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
         #endregion
 
         #region SeekBar
@@ -540,6 +494,162 @@ namespace WoWonder.Activities.NearBy
 
         #endregion
 
+        private void SetDistanceCount()
+        {
+            TxtDistanceCount.Text = DistanceCount + " " + GetText(Resource.String.Lbl_km);
+
+            switch (Build.VERSION.SdkInt)
+            {
+                case >= BuildVersionCodes.N:
+                    DistanceBar.SetProgress(DistanceCount == 0 ? 300 : DistanceCount, true);
+                    break;
+                // For API < 24 
+                default:
+                    DistanceBar.Progress = DistanceCount == 0 ? 300 : DistanceCount;
+                    break;
+            }
+        }
+
+        private void SetStatus()
+        {
+            switch (Status)
+            {
+                case 0:
+                    ButtonOffline.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    ButtonOffline.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BothStatusButton.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BothStatusButton.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    ButtonOnline.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    Status = 0;
+                    break;
+                case 1:
+                    ButtonOnline.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    ButtonOnline.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BothStatusButton.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BothStatusButton.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    ButtonOffline.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    Status = 1;
+                    break;
+                case 2:
+                    BothStatusButton.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    BothStatusButton.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    ButtonOnline.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    ButtonOffline.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    Status = 2;
+                    break;
+            }
+        }
+
+        private void SetRelationship()
+        {
+            switch (RelationshipId)
+            {
+                case "1":
+                    BtnSingle.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    BtnSingle.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BtnRelationship.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationship.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnMarried.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnMarried.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnEngaged.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnEngaged.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnRelationAll.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationAll.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    RelationshipId = "1";
+                    break;
+                case "2":
+                    BtnRelationship.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    BtnRelationship.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BtnSingle.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnSingle.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnMarried.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnMarried.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnEngaged.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnEngaged.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnRelationAll.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationAll.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    RelationshipId = "2";
+                    break;
+                case "3":
+                    BtnMarried.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    BtnMarried.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BtnRelationship.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationship.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnSingle.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnSingle.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnEngaged.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnEngaged.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnRelationAll.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationAll.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    RelationshipId = "3";
+                    break;
+                case "4":
+                    BtnEngaged.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    BtnEngaged.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BtnRelationship.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationship.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnMarried.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnMarried.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnSingle.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnSingle.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnRelationAll.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationAll.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    RelationshipId = "4";
+                    break;
+                case "5":
+                    BtnRelationAll.SetBackgroundResource(Resource.Drawable.round_button_pressed);
+                    BtnRelationAll.SetTextColor(Color.ParseColor("#ffffff"));
+
+                    BtnRelationship.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnRelationship.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnMarried.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnMarried.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnEngaged.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnEngaged.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    BtnSingle.SetBackgroundResource(Resource.Drawable.round_button_gray);
+                    BtnSingle.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#B0B6C3"));
+
+                    RelationshipId = "5";
+                    break;
+            }
+        }
+
         private void GetFilter()
         {
             try
@@ -554,96 +664,17 @@ namespace WoWonder.Activities.NearBy
                     Status = data.Status;
                     RelationshipId = data.Relationship;
 
-                    //////////////////////////// Gender //////////////////////////////
-                    Gender = data.Gender;
-
-                    var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                    switch (check1.Count)
-                    {
-                        case > 0:
-                        {
-                            foreach (var all in check1)
-                                all.GenderSelect = false;
-                            break;
-                        }
-                    }
-
-                    var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == data.Gender);
-                    if (check2 != null)
-                    {
-                        check2.GenderSelect = true;
-                        Gender = check2.GenderId;
-                    }
-
-                    GenderAdapter.NotifyDataSetChanged();
-
-                    TxtDistanceCount.Text = DistanceCount + " " + GetText(Resource.String.Lbl_km);
-
-                    switch (Build.VERSION.SdkInt)
-                    {
-                        case >= BuildVersionCodes.N:
-                            DistanceBar.SetProgress(DistanceCount == 0 ? 300 : DistanceCount, true);
-                            break;
-                        // For API < 24 
-                        default:
-                            DistanceBar.Progress = DistanceCount == 0 ? 300 : DistanceCount;
-                            break;
-                    }
+                    //////////////////////////// Distance //////////////////////////////
+                    SetDistanceCount();
 
                     //////////////////////////// Status //////////////////////////////
                     //Select Status >> Both (2)
                     //Select Status >> Online (1)
                     //Select Status >> Offline (0)
+                    SetStatus();
 
-                    switch (data.Status)
-                    {
-                        case 0:
-                            ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                            ButtonOffline.SetTextColor(Color.ParseColor("#ffffff"));
-
-                            BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                            BothStatusButton.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                            ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                            ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                            Status = 0;
-                            break;
-                        case 1:
-                            ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                            ButtonOnline.SetTextColor(Color.ParseColor("#ffffff"));
-
-                            BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                            BothStatusButton.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                            ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                            ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                            Status = 1;
-                            break;
-                        case 2:
-                            BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                            BothStatusButton.SetTextColor(Color.ParseColor("#ffffff"));
-
-                            ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                            ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                            ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                            ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                            Status = 2;
-                            break;
-                    }
-
-                    TxtRelationship.Text = RelationshipId switch
-                    {
-                        "1" => GetText(Resource.String.Lbl_Single),
-                        "2" => GetText(Resource.String.Lbl_InRelationship),
-                        "3" => GetText(Resource.String.Lbl_Married),
-                        "4" => GetText(Resource.String.Lbl_Engaged),
-                        "5" => GetText(Resource.String.Lbl_All),
-                        _ => GetText(Resource.String.Lbl_All)
-                    };
+                    //////////////////////////// Relationship //////////////////////////////
+                    SetRelationship();
                 }
                 else
                 {
@@ -661,37 +692,8 @@ namespace WoWonder.Activities.NearBy
                     Status = 2;
                     RelationshipId = "5";
 
-                    //////////////////////////// Gender //////////////////////////////
-
-                    var check1 = GenderAdapter.GenderList.Where(a => a.GenderSelect).ToList();
-                    switch (check1.Count)
-                    {
-                        case > 0:
-                        {
-                            foreach (var all in check1)
-                                all.GenderSelect = false;
-                            break;
-                        }
-                    }
-
-                    var check2 = GenderAdapter.GenderList.FirstOrDefault(a => a.GenderId == "all");
-                    if (check2 != null)
-                    {
-                        check2.GenderSelect = true;
-                        Gender = check2.GenderId;
-
-                        GenderAdapter.NotifyDataSetChanged();
-                    }
-
                     //////////////////////////// Status ////////////////////////////// 
-                    BothStatusButton.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends_pressed);
-                    BothStatusButton.SetTextColor(Color.ParseColor("#ffffff"));
-
-                    ButtonOnline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                    ButtonOnline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
-
-                    ButtonOffline.SetBackgroundResource(Resource.Drawable.follow_button_profile_friends);
-                    ButtonOffline.SetTextColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#ffffff") : Color.ParseColor("#444444"));
+                    SetStatus();
 
                     switch (Build.VERSION.SdkInt)
                     {
@@ -706,18 +708,10 @@ namespace WoWonder.Activities.NearBy
 
                     //TxtDistanceCount.Text = "300 " + GetText(Resource.String.Lbl_km);
 
-                    TxtRelationship.Text = RelationshipId switch
-                    {
-                        "5" => GetText(Resource.String.Lbl_All),
-                        "1" => GetText(Resource.String.Lbl_Single),
-                        "2" => GetText(Resource.String.Lbl_InRelationship),
-                        "3" => GetText(Resource.String.Lbl_Married),
-                        "4" => GetText(Resource.String.Lbl_Engaged),
-                        _ => GetText(Resource.String.Lbl_All)
-                    };
+                    SetRelationship();
                 }
 
-                
+
             }
             catch (Exception e)
             {
@@ -725,52 +719,26 @@ namespace WoWonder.Activities.NearBy
             }
         }
 
-        #region MaterialDialog
-
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnShow(IDialogInterface dialog)
         {
-            try
-            {
-                string text = itemString.ToString();
-                if (text == GetText(Resource.String.Lbl_Single))
-                    RelationshipId = "1";
-                else if (text == GetText(Resource.String.Lbl_InRelationship))
-                    RelationshipId = "2";
-                else if (text == GetText(Resource.String.Lbl_Married))
-                    RelationshipId = "3";
-                else if (text == GetText(Resource.String.Lbl_Engaged))
-                    RelationshipId = "4";
-                else if (text == GetText(Resource.String.Lbl_All))
-                    RelationshipId = "5";
+            var d = dialog as BottomSheetDialog;
+            var bottomSheet = d.FindViewById<View>(Resource.Id.design_bottom_sheet) as FrameLayout;
+            var bottomSheetBehavior = BottomSheetBehavior.From(bottomSheet);
+            var layoutParams = bottomSheet.LayoutParameters;
 
-                TxtRelationship.Text = itemString.ToString();
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            int height = GetWindowHeight();
+            if (layoutParams != null)
+                layoutParams.Height = height;
+            bottomSheet.LayoutParameters = layoutParams;
+            bottomSheetBehavior.State = BottomSheetBehavior.StateExpanded;
         }
 
-        public void OnClick(MaterialDialog p0, DialogAction p1)
+        private int GetWindowHeight()
         {
-            try
-            {
-                if (p1 == DialogAction.Positive)
-                {
-                }
-                else if (p1 == DialogAction.Negative)
-                {
-                    p0.Dismiss();
-                }
-            }
-            catch (Exception e)
-            {
-                Methods.DisplayReportResultTrack(e);
-            }
+            var displayMetrics = new DisplayMetrics();
+            ContextNearBy.WindowManager.DefaultDisplay.GetRealMetrics(displayMetrics);
+
+            return displayMetrics.HeightPixels;
         }
-
-
-        #endregion
-
     }
 }

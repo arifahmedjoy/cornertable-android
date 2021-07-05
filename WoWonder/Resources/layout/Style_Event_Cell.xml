@@ -28,13 +28,13 @@
             android:layout_weight="6.5" />
         <TextView
             android:layout_alignParentTop="true"
-            android:id="@+id/event_time"
+            android:id="@+id/event_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
             android:textSize="13dp"
-            android:paddingEnd="9dp"
-            android:paddingStart="9dp"
+            android:paddingEnd="10dp"
+            android:paddingStart="10dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
             android:backgroundTint="#E85668"
@@ -55,7 +55,8 @@
             android:layout_weight="1.5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16dp"
+            android:textSize="15sp"
+            
             android:textStyle="bold"
             android:layout_marginEnd="5dp"
             android:focusable="false"
@@ -63,7 +64,7 @@
             android:lines="1"
             android:layout_marginTop="3dp"
             android:maxLines="1"
-            android:layout_marginStart="5dp"
+            android:layout_marginStart="12dp"
             android:layout_marginBottom="3dp" />
         <TextView
             android:layout_below="@+id/event_titile"
@@ -71,45 +72,36 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1.5"
-            android:textSize="14dp"
+            android:textSize="14sp"
+            
             android:textStyle="normal"
             android:layout_marginEnd="5dp"
             android:focusable="false"
             android:clickable="false"
             android:maxLines="1"
             android:layout_marginTop="3dp"
-            android:layout_marginStart="5dp"
+            android:layout_marginStart="12dp"
             android:layout_marginBottom="10dp" />
-        <ImageView
+        <TextView
+            android:id="@+id/event_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/event_description"
-            android:id="@+id/placeImage"
-            android:scaleType="centerCrop"
-            android:layout_height="25dp"
-            android:layout_width="25dp"
-            android:background="@drawable/circlegradient5"
-            android:tint="#ffff"
-            android:padding="4dp"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="2dp"
-            android:src="@drawable/icon_map_marker_filled_vector" />
+            android:drawableStart="@drawable/ic_calendar"
+            android:drawablePadding="10dp"
+            android:layout_marginStart="12dp"
+            android:textSize="12sp"/>
         <TextView
             android:layout_below="@+id/event_description"
             android:id="@+id/event_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="13dp"
-            android:layout_marginTop="4dp"
-            android:layout_centerVertical="true"
-            android:textStyle="normal"
-            android:layout_marginEnd="29dp"
-            android:focusable="false"
-            android:clickable="false"
-            android:capitalize="characters"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawablePadding="10dp"
+            android:textSize="12sp"
+            android:layout_marginEnd="15dp"
             android:maxLines="1"
-            android:ellipsize="end"
-            android:layout_toEndOf="@id/placeImage"
-            android:layout_marginStart="3dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_toEndOf="@+id/event_time"
+            android:layout_marginStart="20dp"/>
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

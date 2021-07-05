@@ -2,7 +2,10 @@
 using System.Linq;
 using System.Timers;
 using Android.Animation;
+using Android.Content;
 using Android.Media;
+using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Views.Animations;
 using Android.Widget;
@@ -19,6 +22,7 @@ using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.MusicBar;
 using WoWonderClient.Classes.Message;
+using Exception = System.Exception;
 using Uri = Android.Net.Uri;
 
 namespace WoWonder.Activities.Chat.Adapters
@@ -75,6 +79,8 @@ namespace WoWonder.Activities.Chat.Adapters
                         case "Image" when !string.IsNullOrEmpty(item.Media) && !item.Media.Contains(".gif"):
                             modelType = item.Media.Contains("sticker") ? item.Position == "left" ? MessageModelType.LeftSticker : MessageModelType.RightSticker : item.Position == "left" ? MessageModelType.LeftImage : MessageModelType.RightImage;
                             break;
+                        case "File" when !string.IsNullOrEmpty(item.Stickers) && item.Stickers.Contains(".gif"):
+                        case "File" when !string.IsNullOrEmpty(item.Media) && item.Media.Contains(".gif"):
                         case "Image" when !string.IsNullOrEmpty(item.Stickers) && item.Stickers.Contains(".gif"):
                         case "Image" when !string.IsNullOrEmpty(item.Media) && item.Media.Contains(".gif"):
                             modelType = item.Position == "left" ? MessageModelType.LeftGif : MessageModelType.RightGif;
@@ -112,7 +118,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public TextView Time { get; private set; }
             public View MainView { get; private set; }
@@ -123,6 +129,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
 
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -133,9 +140,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "text");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     AutoLinkTextView = itemView.FindViewById<AutoLinkTextView>(Resource.Id.active);
                     Time = itemView.FindViewById<TextView>(Resource.Id.time);
@@ -150,9 +157,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     UserName = itemView.FindViewById<TextView>(Resource.Id.name);
                     if (UserName != null) UserName.Visibility = showName ? ViewStates.Visible : ViewStates.Gone;
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Text });
-                    AutoLinkTextView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Text });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Text });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Text });
+                    AutoLinkTextView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Text });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Text });
                 }
                 catch (Exception e)
                 {
@@ -165,7 +172,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public ImageView ImageView { get; private set; }
@@ -176,6 +183,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -186,8 +194,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     ImageView = itemView.FindViewById<ImageView>(Resource.Id.imgDisplay);
                     LoadingProgressview = itemView.FindViewById<ProgressBar>(Resource.Id.loadingProgressview);
@@ -203,8 +212,8 @@ namespace WoWonder.Activities.Chat.Adapters
                     UserName = itemView.FindViewById<TextView>(Resource.Id.name);
                     if (UserName != null) UserName.Visibility = showName ? ViewStates.Visible : ViewStates.Gone;
 
-                    ImageView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = typeClick });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = typeClick });
+                    ImageView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = typeClick });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = typeClick });
                 }
                 catch (Exception e)
                 {
@@ -219,7 +228,7 @@ namespace WoWonder.Activities.Chat.Adapters
 
             private readonly MessageAdapter MessageAdapter;
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public TextView DurationTextView { get; private set; }
@@ -232,6 +241,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public LottieAnimationView StarIcon { get; private set; }
 
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -244,8 +254,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     DurationTextView = itemView.FindViewById<TextView>(Resource.Id.Duration);
                     PlayButton = itemView.FindViewById<CircleButton>(Resource.Id.playButton);
@@ -264,8 +275,8 @@ namespace WoWonder.Activities.Chat.Adapters
 
                     PlayButton.SetOnClickListener(this);
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Sound });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Sound });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Sound });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Sound });
                 }
                 catch (Exception e)
                 {
@@ -277,12 +288,12 @@ namespace WoWonder.Activities.Chat.Adapters
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = MessageAdapter.DifferList[AdapterPosition]?.MesData;
+                        var item = MessageAdapter.DifferList[BindingAdapterPosition]?.MesData;
                         if (v.Id == PlayButton.Id && item != null)
                         {
-                            PlaySound(AdapterPosition, item);
+                            PlaySound(BindingAdapterPosition, item);
                         }
                     }
                 }
@@ -310,11 +321,11 @@ namespace WoWonder.Activities.Chat.Adapters
                                     item.MesData.MediaPlayer.Stop();
                                     item.MesData.MediaPlayer.Reset();
                                 }
-                                item.MesData.MediaPlayer = null;
-                                item.MesData.MediaTimer = null;
+                                item.MesData.MediaPlayer = null!;
+                                item.MesData.MediaTimer = null!;
 
                                 item.MesData.MediaPlayer?.Release();
-                                item.MesData.MediaPlayer = null;
+                                item.MesData.MediaPlayer = null!;
                             }
 
                             MessageAdapter.NotifyItemChanged(MessageAdapter.PositionSound, "WithoutBlobAudio");
@@ -340,7 +351,7 @@ namespace WoWonder.Activities.Chat.Adapters
                         DurationTextView.Text = "00:00";
                         MessageAdapter.PositionSound = position;
                         message.MediaPlayer = new MediaPlayer();
-                        message.MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder().SetUsage(AudioUsageKind.Media).SetContentType(AudioContentType.Music).Build());
+                        message.MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()?.SetUsage(AudioUsageKind.Media)?.SetContentType(AudioContentType.Music)?.Build());
 
                         message.MediaPlayer.Completion += (sender, e) =>
                         {
@@ -351,13 +362,20 @@ namespace WoWonder.Activities.Chat.Adapters
 
                                 message.MediaIsPlaying = false;
 
-                                message.MediaPlayer.Stop();
-                                message.MediaPlayer.Reset();
-                                message.MediaPlayer = null;
+                                if (message.MediaPlayer != null)
+                                {
+                                    message.MediaPlayer.Stop();
+                                    message.MediaPlayer.Reset();
+                                    message.MediaPlayer = null!;
+                                }
+                                 
+                                if (message.MediaTimer != null)
+                                {
+                                    message.MediaTimer.Enabled = false;
+                                    message.MediaTimer.Stop();
+                                    message.MediaTimer = null!;
+                                }
 
-                                message.MediaTimer.Enabled = false;
-                                message.MediaTimer.Stop();
-                                message.MediaTimer = null;
                             }
                             catch (Exception exception)
                             {
@@ -378,7 +396,7 @@ namespace WoWonder.Activities.Chat.Adapters
 
                                 message.MediaTimer ??= new Timer { Interval = 1000 };
 
-                                message.MediaPlayer.Start();
+                                message.MediaPlayer?.Start();
 
                                 //var durationOfSound = message.MediaPlayer.Duration;
 
@@ -487,7 +505,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
             private readonly MessageAdapter MessageAdapter;
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public TextView DurationTextView { get; private set; }
@@ -500,6 +518,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -512,8 +531,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     DurationTextView = itemView.FindViewById<TextView>(Resource.Id.Duration);
                     PlayButton = itemView.FindViewById<CircleButton>(Resource.Id.playButton);
@@ -531,8 +551,8 @@ namespace WoWonder.Activities.Chat.Adapters
                     UserName = itemView.FindViewById<TextView>(Resource.Id.name);
                     if (UserName != null) UserName.Visibility = showName ? ViewStates.Visible : ViewStates.Gone;
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Sound });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Sound });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Sound });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Sound });
                 }
                 catch (Exception e)
                 {
@@ -544,12 +564,12 @@ namespace WoWonder.Activities.Chat.Adapters
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        MessageAdapter.MusicBarMessageData = MessageAdapter.DifferList[AdapterPosition]?.MesData;
+                        MessageAdapter.MusicBarMessageData = MessageAdapter.DifferList[BindingAdapterPosition]?.MesData;
                         if (v.Id == PlayButton.Id && MessageAdapter.MusicBarMessageData != null)
                         {
-                            PlaySound(AdapterPosition, MessageAdapter.MusicBarMessageData);
+                            PlaySound(BindingAdapterPosition, MessageAdapter.MusicBarMessageData);
                         }
                     }
                 }
@@ -577,11 +597,11 @@ namespace WoWonder.Activities.Chat.Adapters
                                     item.MesData.MediaPlayer.Stop();
                                     item.MesData.MediaPlayer.Reset();
                                 }
-                                item.MesData.MediaPlayer = null;
-                                item.MesData.MediaTimer = null;
+                                item.MesData.MediaPlayer = null!;
+                                item.MesData.MediaTimer = null!;
 
                                 item.MesData.MediaPlayer?.Release();
-                                item.MesData.MediaPlayer = null;
+                                item.MesData.MediaPlayer = null!;
                             }
                         }
                     }
@@ -601,7 +621,7 @@ namespace WoWonder.Activities.Chat.Adapters
                     {
                         MessageAdapter.PositionSound = position;
                         message.MediaPlayer = new MediaPlayer();
-                        message.MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder().SetUsage(AudioUsageKind.Media).SetContentType(AudioContentType.Music).Build());
+                        message.MediaPlayer.SetAudioAttributes(new AudioAttributes.Builder().SetUsage(AudioUsageKind.Media)?.SetContentType(AudioContentType.Music)?.Build());
 
                         message.MediaPlayer.Completion += (sender, e) =>
                         {
@@ -612,14 +632,20 @@ namespace WoWonder.Activities.Chat.Adapters
 
                                 message.MediaIsPlaying = false;
 
-                                message.MediaPlayer.Stop();
-                                message.MediaPlayer.Reset();
-                                message.MediaPlayer = null;
-
-                                message.MediaTimer.Enabled = false;
-                                message.MediaTimer.Stop();
-                                message.MediaTimer = null;
-
+                                if (message.MediaPlayer != null)
+                                {
+                                    message.MediaPlayer.Stop();
+                                    message.MediaPlayer.Reset();
+                                    message.MediaPlayer = null!;
+                                }
+                                 
+                                if (message.MediaTimer != null)
+                                {
+                                    message.MediaTimer.Enabled = false;
+                                    message.MediaTimer.Stop();
+                                    message.MediaTimer = null!;
+                                }
+                                 
                                 FixedMusicBar.StopAutoProgress();
                             }
                             catch (Exception exception)
@@ -863,7 +889,7 @@ namespace WoWonder.Activities.Chat.Adapters
 
             private readonly MessageAdapter MessageAdapter;
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public TextView UserContactNameTextView { get; private set; }
@@ -875,6 +901,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -887,8 +914,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     UserContactNameTextView = itemView.FindViewById<TextView>(Resource.Id.contactName);
                     UserNumberTextView = itemView.FindViewById<TextView>(Resource.Id.numberText);
@@ -907,8 +935,8 @@ namespace WoWonder.Activities.Chat.Adapters
 
                     BubbleLayout.SetOnClickListener(this);
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Contact });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Contact });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Contact });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Contact });
                 }
                 catch (Exception e)
                 {
@@ -920,9 +948,9 @@ namespace WoWonder.Activities.Chat.Adapters
             {
                 try
                 {
-                    if (AdapterPosition != RecyclerView.NoPosition)
+                    if (BindingAdapterPosition != RecyclerView.NoPosition)
                     {
-                        var item = MessageAdapter.DifferList[AdapterPosition]?.MesData;
+                        var item = MessageAdapter.DifferList[BindingAdapterPosition]?.MesData;
                         if (v.Id == BubbleLayout.Id && item != null)
                         {
                             Methods.App.SaveContacts(MessageAdapter.MainActivity, item.ContactNumber, item.ContactName, "2");
@@ -940,7 +968,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public ImageView ImageView { get; private set; }
@@ -954,6 +982,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
             #endregion
 
             public VideoViewHolder(View itemView, Action<MesClickEventArgs> clickListener, Action<MesClickEventArgs> longClickListener, bool showName) : base(itemView)
@@ -963,8 +992,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     ImageView = itemView.FindViewById<ImageView>(Resource.Id.imgDisplay);
                     LoadingProgressview = itemView.FindViewById<ProgressBar>(Resource.Id.loadingProgressview);
@@ -985,9 +1015,9 @@ namespace WoWonder.Activities.Chat.Adapters
 
                     FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, IconView, IonIconsFonts.Camera);
 
-                    PlayButton.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Video });
-                    //itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Video });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Video });
+                    PlayButton.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Video });
+                    //itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Video });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Video });
                 }
                 catch (Exception e)
                 {
@@ -1000,7 +1030,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public View MainView { get; private set; }
             public ImageView ImageView { get; private set; }
             public ProgressBar LoadingProgressview { get; private set; }
@@ -1010,6 +1040,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -1020,8 +1051,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     ImageView = itemView.FindViewById<ImageView>(Resource.Id.imgDisplay);
                     LoadingProgressview = itemView.FindViewById<ProgressBar>(Resource.Id.loadingProgressview);
                     Time = itemView.FindViewById<TextView>(Resource.Id.time);
@@ -1036,8 +1068,8 @@ namespace WoWonder.Activities.Chat.Adapters
                     UserName = itemView.FindViewById<TextView>(Resource.Id.name);
                     if (UserName != null) UserName.Visibility = showName ? ViewStates.Visible : ViewStates.Gone;
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Sticker });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Sticker });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Sticker });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Sticker });
                 }
                 catch (Exception e)
                 {
@@ -1050,7 +1082,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public View MainView { get; private set; }
             public AutoLinkTextView AutoLinkNotsupportedView { get; private set; }
 
@@ -1061,7 +1093,7 @@ namespace WoWonder.Activities.Chat.Adapters
                 try
                 {
                     MainView = itemView;
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     AutoLinkNotsupportedView = itemView.FindViewById<AutoLinkTextView>(Resource.Id.active);
                     var time = itemView.FindViewById<TextView>(Resource.Id.time);
 
@@ -1081,7 +1113,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public TextView FileNameTextView { get; private set; }
@@ -1093,6 +1125,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -1103,8 +1136,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     FileNameTextView = itemView.FindViewById<TextView>(Resource.Id.fileName);
                     SizeFileTextView = itemView.FindViewById<TextView>(Resource.Id.sizefileText);
@@ -1121,8 +1155,8 @@ namespace WoWonder.Activities.Chat.Adapters
                     UserName = itemView.FindViewById<TextView>(Resource.Id.name);
                     if (UserName != null) UserName.Visibility = showName ? ViewStates.Visible : ViewStates.Gone;
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.File });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.File });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.File });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.File });
                 }
                 catch (Exception e)
                 {
@@ -1135,7 +1169,7 @@ namespace WoWonder.Activities.Chat.Adapters
         {
             #region Variables Basic
 
-            public LinearLayout LytParent { get; private set; }
+            public RelativeLayout LytParent { get; private set; }
             public LinearLayout BubbleLayout { get; private set; }
             public View MainView { get; private set; }
             public ImageView ImageView { get; private set; }
@@ -1148,6 +1182,7 @@ namespace WoWonder.Activities.Chat.Adapters
             public ImageView StarImage { get; private set; }
             public LottieAnimationView StarIcon { get; private set; }
             public RepliedMessageView RepliedMessageView { get; private set; }
+            public ReactionMessageView ReactionMessageView { get; private set; }
 
             #endregion
 
@@ -1158,8 +1193,9 @@ namespace WoWonder.Activities.Chat.Adapters
                     MainView = itemView;
 
                     RepliedMessageView = new RepliedMessageView(itemView, "file");
+                    ReactionMessageView = new ReactionMessageView(itemView);
 
-                    LytParent = itemView.FindViewById<LinearLayout>(Resource.Id.main);
+                    LytParent = itemView.FindViewById<RelativeLayout>(Resource.Id.main);
                     BubbleLayout = itemView.FindViewById<LinearLayout>(Resource.Id.bubble_layout);
                     ImageView = itemView.FindViewById<ImageView>(Resource.Id.imgDisplay);
                     Time = itemView.FindViewById<TextView>(Resource.Id.time);
@@ -1178,8 +1214,8 @@ namespace WoWonder.Activities.Chat.Adapters
                     UserName = itemView.FindViewById<TextView>(Resource.Id.name);
                     if (UserName != null) UserName.Visibility = showName ? ViewStates.Visible : ViewStates.Gone;
 
-                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Product });
-                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = AdapterPosition, Type = TypeClick.Product });
+                    itemView.Click += (sender, args) => clickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Product });
+                    itemView.LongClick += (sender, args) => longClickListener(new MesClickEventArgs { View = itemView, Position = BindingAdapterPosition, Type = TypeClick.Product });
                 }
                 catch (Exception e)
                 {
@@ -1194,6 +1230,8 @@ namespace WoWonder.Activities.Chat.Adapters
             #region Variables Basic
 
             public View MainView { get; private set; }
+            public View ColorView { get; private set; }
+            public LinearLayout RepliedMessageLayout { get; private set; }
             public TextView TxtOwnerName { get; private set; }
             public TextView TxtMessageType { get; private set; }
             public TextView TxtShortMessage { get; private set; }
@@ -1213,12 +1251,15 @@ namespace WoWonder.Activities.Chat.Adapters
                 {
                     MainView = itemView;
 
+                    RepliedMessageLayout = itemView.FindViewById<LinearLayout>(Resource.Id.replied_message_view);
+                    ColorView = itemView.FindViewById<View>(Resource.Id.color_view);
                     TxtOwnerName = itemView.FindViewById<TextView>(Resource.Id.owner_name);
                     TxtMessageType = itemView.FindViewById<TextView>(Resource.Id.message_type);
                     TxtShortMessage = itemView.FindViewById<TextView>(Resource.Id.short_message);
                     MessageFileThumbnail = itemView.FindViewById<ImageView>(Resource.Id.message_file_thumbnail);
                     BtnCloseReply = itemView.FindViewById<ImageView>(Resource.Id.clear_btn_reply_view);
 
+                    RepliedMessageLayout.Visibility = ViewStates.Gone;
                     BtnCloseReply.Visibility = ViewStates.Gone;
                     MessageFileThumbnail.Visibility = type == "file" ? ViewStates.Visible : ViewStates.Gone;
                 }
@@ -1228,5 +1269,76 @@ namespace WoWonder.Activities.Chat.Adapters
                 }
             }
         }
+         
+        public class ReactionMessageView : Java.Lang.Object
+        {
+            #region Variables Basic
+
+            public View MainView { get; private set; }
+            public LinearLayout CountLikeSection { get; private set; }
+            public ImageView ImageCountLike { get; private set; }
+             
+            #endregion
+             
+            public ReactionMessageView(View itemView)
+            {
+                try
+                {
+                    MainView = itemView;
+
+                    CountLikeSection = MainView.FindViewById<LinearLayout>(Resource.Id.countLikeSection);
+                    ImageCountLike = MainView.FindViewById<ImageView>(Resource.Id.ImagecountLike);
+                    CountLikeSection.Visibility = ViewStates.Gone;
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                }
+            }
+        }
+         
+        public class MsgPreCachingLayoutManager : LinearLayoutManager
+        {
+            private readonly Context Context;
+            private int ExtraLayoutSpace = -1;
+            private readonly int DefaultExtraLayoutSpace = 600;
+           
+            protected MsgPreCachingLayoutManager(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
+            {
+
+            }
+
+            public MsgPreCachingLayoutManager(Context context) : base(context)
+            {
+                Context = context;
+            }
+
+            public MsgPreCachingLayoutManager(Context context, IAttributeSet attrs, int defStyleAttr, int defStyleRes) : base(context, attrs, defStyleAttr, defStyleRes)
+            {
+                Context = context;
+            }
+
+            public MsgPreCachingLayoutManager(Context context, int orientation, bool reverseLayout) : base(context, orientation, reverseLayout)
+            {
+                Context = context;
+            }
+             
+            public void SetExtraLayoutSpace(int space)
+            {
+                ExtraLayoutSpace = space;
+            }
+
+            [Obsolete("deprecated")]
+            protected override int GetExtraLayoutSpace(RecyclerView.State state)
+            {
+                return ExtraLayoutSpace switch
+                {
+                    > 0 => ExtraLayoutSpace,
+                    _ => DefaultExtraLayoutSpace
+                };
+            } 
+        }
+
+
     }
 }

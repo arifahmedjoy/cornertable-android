@@ -52,7 +52,7 @@ namespace WoWonder.SQLite
             public new string ProductCustomFields { get; set; } 
             public new string PostReactionsTypes  { get; set; } 
             public new string ProPackages { get; set; } 
-            public new string ProPackagesTypes { get; set; } 
+            public new string ProPackagesTypes { get; set; }  
         }
 
         [Table("MyContactsTb")]
@@ -61,6 +61,7 @@ namespace WoWonder.SQLite
             [PrimaryKey, AutoIncrement]
             public int AutoIdMyFollowing { get; set; }
 
+            public new string ApiNotificationSettings { get; set; }
             public new string Details { get; set; }
         }
          
@@ -70,6 +71,7 @@ namespace WoWonder.SQLite
             [PrimaryKey, AutoIncrement]
             public int AutoIdMyProfile { get; set; }
 
+            public new string ApiNotificationSettings { get; set; }
             public new string Details { get; set; }
         }
 
@@ -125,7 +127,15 @@ namespace WoWonder.SQLite
 
             public string DataPostJson { get; set; }  
         }
+         
+        [Table("StoryTb")]
+        public class StoryTb
+        {
+            [PrimaryKey, AutoIncrement]
+            public int AutoIdGift { get; set; } 
 
+            public string DataStoryJson { get; set; }  
+        }
 
         [Table("FilterLastChatTb")]
         public class FilterLastChatTb
@@ -143,10 +153,12 @@ namespace WoWonder.SQLite
             [PrimaryKey, AutoIncrement]
             public int AutoIdLastUsers { get; set; }
 
+            public new string ApiNotificationSettings { get; set; }
             public new string Details { get; set; }
             public new string UserData { get; set; }
             public new string LastMessage { get; set; }
             public new string Parts { get; set; }
+            public new string Mute { get; set; }
         }
 
         [Table("LastUsersChatTb")] //Old Version
@@ -169,6 +181,9 @@ namespace WoWonder.SQLite
             public new string MessageUser { get; set; }
             public new string UserData { get; set; }
             public new string ToData { get; set; }
+            public new string Reaction { get; set; }
+            public new string Reply { get; set; }
+            public new string Story { get; set; }
 
             //not Important
             public new string MediaPlayer { get; set; }
@@ -216,6 +231,9 @@ namespace WoWonder.SQLite
             public new string MessageUser { get; set; }
             public new string UserData { get; set; }
             public new string ToData { get; set; }
+            public new string Reaction { get; set; }
+            public new string Reply { get; set; }
+            public new string Story { get; set; }
 
             //not Important
             public new string MediaPlayer { get; set; }
@@ -232,6 +250,9 @@ namespace WoWonder.SQLite
             public new string MessageUser { get; set; }
             public new string UserData { get; set; }
             public new string ToData { get; set; }
+            public new string Reaction { get; set; }
+            public new string Reply { get; set; }
+            public new string Story { get; set; }
 
             //not Important
             public new string MediaPlayer { get; set; }
@@ -276,5 +297,6 @@ namespace WoWonder.SQLite
             public string Count { get; set; }
             public bool Visibility { get; set; }
         }
+
     }
 }

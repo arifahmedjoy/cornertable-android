@@ -86,10 +86,7 @@ namespace WoWonder.Activities.Comment.Adapters
                 {
                     Methods.DisplayReportResultTrack(e);
                 }
-                  
-                var font = Typeface.CreateFromAsset(MainView.Context.Resources?.Assets, "ionicons.ttf");
-                UserName.SetTypeface(font, TypefaceStyle.Normal);
-
+                   
                 switch (AppSettings.FlowDirectionRightToLeft)
                 {
                     case true:
@@ -166,10 +163,7 @@ namespace WoWonder.Activities.Comment.Adapters
                 {
                     Methods.DisplayReportResultTrack(e);
                 }
-
-                var font = Typeface.CreateFromAsset(MainView.Context.Resources?.Assets, "ionicons.ttf");
-                UserName.SetTypeface(font, TypefaceStyle.Normal);
-
+                 
                 switch (AppSettings.FlowDirectionRightToLeft)
                 {
                     case true:
@@ -185,9 +179,9 @@ namespace WoWonder.Activities.Comment.Adapters
                         break;
                 }
 
-                ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
-                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.Black);
+                ReplyTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                LikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
+                DislikeTextView.SetTextColor(AppSettings.SetTabDarkTheme ? Color.White : Color.ParseColor("#888888"));
 
                 MainView.SetOnLongClickListener(this);
                 Image.SetOnClickListener(this);
@@ -207,31 +201,30 @@ namespace WoWonder.Activities.Comment.Adapters
         {
             try
             {
-                if (AdapterPosition != RecyclerView.NoPosition)
+                if (BindingAdapterPosition != RecyclerView.NoPosition)
                 {
                     CommentObjectExtra item = TypeClass switch
                     {
-                        "Comment" => CommentAdapter.CommentList[AdapterPosition],
-                        "Post" => CommentAdapter.CommentList.FirstOrDefault(danjo =>
-                            string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record)),
-                        "Reply" => ReplyCommentAdapter.ReplyCommentList[AdapterPosition],
+                        "Comment" => CommentAdapter.CommentList[BindingAdapterPosition],
+                        "Post" => CommentAdapter.CommentList.FirstOrDefault(danjo => string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record)),
+                        "Reply" => ReplyCommentAdapter.ReplyCommentList[BindingAdapterPosition],
                         _ => null!
                     };
 
                     if (v.Id == Image.Id)
-                        PostClickListener.ProfilePostClick(new ProfileClickEventArgs { Holder = this, CommentClass = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.ProfilePostClick(new ProfileClickEventArgs { Holder = this, CommentClass = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == LikeTextView.Id)
-                        PostClickListener.LikeCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.LikeCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == DislikeTextView.Id)
-                        PostClickListener.DislikeCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.DislikeCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == ReplyTextView.Id)
-                        PostClickListener.CommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.CommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == CommentImage?.Id)
                         PostClickListener.OpenImageLightBox(item);
                     else if (v.Id == PlayButton?.Id)
-                        PostClickListener.PlaySound(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.PlaySound(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                     else if (v.Id == CountLikeSection?.Id) 
-                        PostClickListener.CountLikeCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                        PostClickListener.CountLikeCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
                 }
             }
             catch (Exception e)
@@ -243,19 +236,19 @@ namespace WoWonder.Activities.Comment.Adapters
         public bool OnLongClick(View v)
         {
             //add event if System = ReactButton 
-            if (AdapterPosition != RecyclerView.NoPosition)
+            if (BindingAdapterPosition != RecyclerView.NoPosition)
             {
                 CommentObjectExtra item = TypeClass switch
                 {
-                    "Comment" => CommentAdapter.CommentList[AdapterPosition],
+                    "Comment" => CommentAdapter.CommentList[BindingAdapterPosition],
                     "Post" => CommentAdapter.CommentList.FirstOrDefault(danjo =>
                         string.IsNullOrEmpty(danjo.CFile) && string.IsNullOrEmpty(danjo.Record)),
-                    "Reply" => ReplyCommentAdapter.ReplyCommentList[AdapterPosition],
+                    "Reply" => ReplyCommentAdapter.ReplyCommentList[BindingAdapterPosition],
                     _ => null!
                 };
 
                 if (v.Id == MainView.Id)
-                    PostClickListener.MoreCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = AdapterPosition, View = MainView });
+                    PostClickListener.MoreCommentReplyPostClick(new CommentReplyClickEventArgs { Holder = this, CommentObject = item, Position = BindingAdapterPosition, View = MainView });
             }
 
             return true;

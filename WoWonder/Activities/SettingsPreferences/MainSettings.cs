@@ -2,13 +2,13 @@ using System;
 using Android.App;
 using Android.Content;
 using Android.Content.Res;
-using Android.OS;
+using Android.OS; 
 using AndroidX.AppCompat.App;
 using AndroidX.Preference;
 using WoWonder.Activities.AddPost.Service;
 using WoWonder.Activities.Chat.Floating;
 using WoWonder.Helpers.Model;
-using WoWonder.Helpers.Utils;
+using WoWonder.Helpers.Utils; 
 
 namespace WoWonder.Activities.SettingsPreferences
 {
@@ -28,9 +28,8 @@ namespace WoWonder.Activities.SettingsPreferences
             try
             {
                 SharedData = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
-                LastPosition = Application.Context.GetSharedPreferences("last_position", FileCreationMode.Private);
                 InAppReview = Application.Context.GetSharedPreferences("In_App_Review", FileCreationMode.Private);
-
+                
                 string getValue = SharedData.GetString("Night_Mode_key", string.Empty);
                 ApplyTheme(getValue);
 
@@ -40,9 +39,10 @@ namespace WoWonder.Activities.SettingsPreferences
 
                 PostService.ActionPost = Application.Context.PackageName + ".action.ACTION_POST";
                 PostService.ActionStory = Application.Context.PackageName + ".action.ACTION_STORY";
-
+                
                 UserDetails.SoundControl = SharedData.GetBoolean("checkBox_PlaySound_key", true);
-                UserDetails.OnlineUsers = SharedData?.GetBoolean("notifications_key", true) ?? true;
+                UserDetails.NotificationPopup = SharedData.GetBoolean("notifications_key", true);
+                UserDetails.OnlineUsers = SharedData.GetBoolean("onlineUser_key", true);
             }
             catch (Exception e)
             {
@@ -69,33 +69,39 @@ namespace WoWonder.Activities.SettingsPreferences
                     AppCompatDelegate.DefaultNightMode = (int)Build.VERSION.SdkInt >= 29 ? AppCompatDelegate.ModeNightFollowSystem : AppCompatDelegate.ModeNightAutoBattery;
 
                     var currentNightMode = Application.Context.Resources?.Configuration?.UiMode & UiMode.NightMask;
-                    switch (currentNightMode)
+                    AppSettings.SetTabDarkTheme = currentNightMode switch
                     {
-                        case UiMode.NightNo:
+                        UiMode.NightNo =>
                             // Night mode is not active, we're using the light theme
-                            AppSettings.SetTabDarkTheme = false;
-                            break;
-                        case UiMode.NightYes:
+                            false,
+                        UiMode.NightYes =>
                             // Night mode is active, we're using dark theme
-                            AppSettings.SetTabDarkTheme = true;
-                            break;
-                    }
+                            true,
+                        _ => AppSettings.SetTabDarkTheme
+                    };
                 }
                 else
                 {
-                    if (AppSettings.SetTabDarkTheme) return;
-
-                    var currentNightMode = Application.Context.Resources?.Configuration?.UiMode & UiMode.NightMask;
-                    switch (currentNightMode)
+                    switch (AppSettings.SetTabDarkTheme)
                     {
-                        case UiMode.NightNo:
-                            // Night mode is not active, we're using the light theme
-                            AppSettings.SetTabDarkTheme = false;
+                        case true:
+                            return;
+                        default:
+                        {
+                            var currentNightMode = Application.Context.Resources?.Configuration?.UiMode & UiMode.NightMask;
+                            AppSettings.SetTabDarkTheme = currentNightMode switch
+                            {
+                                UiMode.NightNo =>
+                                    // Night mode is not active, we're using the light theme
+                                    false,
+                                UiMode.NightYes =>
+                                    // Night mode is active, we're using dark theme
+                                    true,
+                                _ => AppSettings.SetTabDarkTheme
+                            };
+
                             break;
-                        case UiMode.NightYes:
-                            // Night mode is active, we're using dark theme
-                            AppSettings.SetTabDarkTheme = true;
-                            break;
+                        }
                     }
                 }
             }

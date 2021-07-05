@@ -21,10 +21,10 @@
     android:layout_height="14dp"
     app:civ_border_width="2dp"
     app:civ_border_color="@color/textIcon"
-    android:layout_alignBottom="@id/card_pro_pic"
+    android:layout_alignBottom="@+id/card_pro_pic"
     android:layout_marginBottom="1dp" 
     android:layout_marginStart="44dp"
-    android:layout_above="@id/card_pro_pic"
+    android:layout_above="@+id/card_pro_pic"
     android:src="@drawable/green_color" />
   <TextView
     android:id="@+id/card_name"
@@ -40,7 +40,7 @@
     android:clickable="false"
     android:paddingEnd="10dp"
     android:focusable="false"
-    android:layout_toEndOf="@id/card_pro_pic"
+    android:layout_toEndOf="@+id/card_pro_pic"
     android:gravity="start"
     android:textAlignment="textStart" /> 
   <TextView
@@ -50,8 +50,8 @@
     android:ellipsize="end"
     android:lines="1"
     android:text="@string/Lbl_DefaultAbout"
-    android:layout_toEndOf="@id/card_pro_pic"
-    android:layout_below="@id/card_name"
+    android:layout_toEndOf="@+id/card_pro_pic"
+    android:layout_below="@+id/card_name"
     android:textColor="@color/text_color_in_between"
     android:textSize="@dimen/msg_text_secondary"
     android:layout_marginTop="4.5dp"
@@ -68,11 +68,10 @@
     android:layout_marginStart="10dp"
     android:layout_marginEnd="10dp" 
     android:textSize="20sp"
-    android:layout_centerInParent="true"
+    android:layout_alignParentTop="true"
     android:layout_alignParentEnd="true"
     android:padding="17dp"
-    android:text="Ic"
-    android:textAlignment="center"
+    android:text="Ic" 
     android:layout_gravity="top|center"
     android:gravity="top|center"  />
     <View
@@ -82,5 +81,5 @@
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
         android:background="?attr/colorDivider"
-        android:layout_below="@id/card_pro_pic" />
+        android:layout_below="@+id/card_pro_pic" />
 </RelativeLayout> 

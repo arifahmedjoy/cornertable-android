@@ -4,17 +4,17 @@
   <item android:id="@android:id/background">
     <shape>
       <corners android:radius="5dp"/>
-      <solid android:color="?attr/colorBubble"/>
+      <solid android:color="#D8FFCE"/>
     </shape>
   </item>
 
   <item android:id="@android:id/progress">
     <clip>
       <shape>
-        <corners android:radius="5dp"/>
+        <corners android:radius="2dp"/>
         <gradient
-            android:endColor="@color/accent"
-            android:startColor="@color/primaryDark"
+            android:endColor="#53D234"
+            android:startColor="#53D234"
                     />
       </shape>
     </clip>

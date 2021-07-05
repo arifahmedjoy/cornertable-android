@@ -15,7 +15,7 @@ namespace WoWonder.Helpers.Utils
     public class CustomNavigationController : Java.Lang.Object , MeowBottomNavigation.IClickListener, MeowBottomNavigation.IReselectListener
     {
         private readonly Activity MainContext;
-        public int PageNumber;
+        private int PageNumber;
         private static int OpenNewsFeedTab = 1;
 
         private readonly TabbedMainActivity Context;
@@ -60,9 +60,8 @@ namespace WoWonder.Helpers.Utils
                         break;
                 }
 
-                Models.Add(new MeowBottomNavigation.Model(3, ContextCompat.GetDrawable(MainContext, Resource.Drawable.ic_message_user)));
-                Models.Add(new MeowBottomNavigation.Model(4, ContextCompat.GetDrawable(MainContext, Resource.Drawable.ic_menu)));
-
+                Models.Add(new MeowBottomNavigation.Model(3, ContextCompat.GetDrawable(MainContext, Resource.Drawable.ic_menu)));
+                 
                 NavigationTabBar.AddModel(Models);
 
                 NavigationTabBar.SetDefaultIconColor(Color.ParseColor("#bfbfbf"));
@@ -104,8 +103,7 @@ namespace WoWonder.Helpers.Utils
                             {
                                 Context.FloatingActionButton.Visibility = AppSettings.ShowAddPostOnNewsFeed switch
                                 {
-                                    true when Context.FloatingActionButton.Visibility == ViewStates.Invisible =>
-                                        ViewStates.Visible,
+                                    true when Context.FloatingActionButton.Visibility == ViewStates.Invisible => ViewStates.Visible,
                                     _ => Context.FloatingActionButton.Visibility
                                 };
 
@@ -134,36 +132,20 @@ namespace WoWonder.Helpers.Utils
                                 };
 
                                 AdsGoogle.Ad_Interstitial(MainContext);
-
-                                switch (AppSettings.ShowLastActivities)
-                                {
-                                    case true:
-                                        Task.Factory.StartNew(() => { Context.TrendingTab.StartApiService(); });
-                                        break;
-                                }
-
+                                     
                                 Context.InAppReview();
                                 break;
                             }
-                            // Chat_Tab
+                            // More_Tab
                             case 3:
                             {
-                                if (Context.FloatingActionButton.Visibility != ViewStates.Visible)
-                                    Context.ChatTab.FloatingActionButtonView_Tag();
+                                Context.FloatingActionButton.Visibility = Context.FloatingActionButton.Visibility switch
+                                {
+                                    ViewStates.Visible => ViewStates.Gone,
+                                    _ => Context.FloatingActionButton.Visibility
+                                };
 
-                                Context.ToolBar.Visibility = ViewStates.Gone;
-
-                                AdsGoogle.Ad_Interstitial(MainContext);
-                                break;
-                            }
-                            // More_Tab
-                            case 4:
-                            {
-                                Context.FloatingActionButton.Visibility = ViewStates.Gone;
-
-                                Context.ToolBar.Visibility = ViewStates.Visible;
-
-                                AdsGoogle.Ad_RewardedVideo(MainContext);
+                                AdsGoogle.Ad_RewardedInterstitial(MainContext);
                                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => ApiRequest.Get_MyProfileData_Api(MainContext) });
                                 break;
                             }
@@ -209,13 +191,8 @@ namespace WoWonder.Helpers.Utils
                         Context.NewsFeedTab?.MainRecyclerView?.StopVideo();
                         OpenNewsFeedTab = 1;
                         break;
-                    // Chat_Tab
-                    case 3:
-                        Context.NewsFeedTab?.MainRecyclerView?.StopVideo();
-                        OpenNewsFeedTab = 1;
-                        break;
                     // More_Tab
-                    case 4:
+                    case 3:
                         Context.NewsFeedTab?.MainRecyclerView?.StopVideo();
                         OpenNewsFeedTab = 1;
                         break;
@@ -231,59 +208,58 @@ namespace WoWonder.Helpers.Utils
         {
             try
             {
-                if (id < 0) return;
-
-                if (showBadge)
+                switch (id)
                 {
-                    switch (id)
-                    {
-                        // News_Feed_Tab
-                        case 0:
-                            NavigationTabBar.SetCount(0, count);
-                            break;
-                        // Notifications_Tab
-                        case 1:
-                            NavigationTabBar.SetCount(1, count);
-                            break;
-                        // Trending_Tab
-                        case 2:
-                            NavigationTabBar.SetCount(2, count);
-                            break;
-                        // Chat_Tab
-                        case 3:
-                            NavigationTabBar.SetCount(3, count);
-                            break;
-                        // More_Tab
-                        case 4:
-                            NavigationTabBar.SetCount(4, count);
-                            break;
-                    }
+                    case < 0:
+                        return;
                 }
-                else
+
+                switch (showBadge)
                 {
-                    switch (id)
-                    {
-                        // News_Feed_Tab
-                        case 0:
-                            NavigationTabBar.SetCount(0, "empty");
-                            break;
-                        // Notifications_Tab
-                        case 1:
-                            NavigationTabBar.SetCount(1, "empty");
-                            break;
-                        // Trending_Tab
-                        case 2:
-                            NavigationTabBar.SetCount(2, "empty");
-                            break;
-                        // Chat_Tab
-                        case 3:
-                            NavigationTabBar.SetCount(3, "empty");
-                            break;
-                        // More_Tab
-                        case 4:
-                            NavigationTabBar.SetCount(4, "empty");
-                            break;
-                    }
+                    case true:
+                        switch (id)
+                        {
+                            // News_Feed_Tab
+                            case 0:
+                                NavigationTabBar.SetCount(0, count);
+                                break;
+                            // Notifications_Tab
+                            case 1:
+                                NavigationTabBar.SetCount(1, count);
+                                break;
+                            // Trending_Tab
+                            case 2:
+                                NavigationTabBar.SetCount(2, count);
+                                break;
+                            // More_Tab
+                            case 3:
+                                NavigationTabBar.SetCount(3, count);
+                                break;
+                        }
+
+                        break;
+                    default:
+                        switch (id)
+                        {
+                            // News_Feed_Tab
+                            case 0:
+                                NavigationTabBar.SetCount(0, "empty");
+                                break;
+                            // Notifications_Tab
+                            case 1:
+                                NavigationTabBar.SetCount(1, "empty");
+                                break;
+                            // Trending_Tab
+                            case 2:
+                                NavigationTabBar.SetCount(2, "empty");
+                                break;
+                            // More_Tab
+                            case 3:
+                                NavigationTabBar.SetCount(3, "empty");
+                                break;
+                        }
+
+                        break;
                 }
             }
             catch (Exception e)

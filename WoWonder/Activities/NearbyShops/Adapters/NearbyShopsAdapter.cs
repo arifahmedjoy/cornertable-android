@@ -235,8 +235,8 @@ namespace WoWonder.Activities.NearbyShops.Adapters
                 DeviderView.SetBackgroundColor(!AppSettings.SetTabDarkTheme ? Color.ParseColor("#e7e7e7") : Color.ParseColor("#BDBDBD"));
 
                 //Event
-                itemView.Click += (sender, e) => clickListener(new NearbyShopsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new NearbyShopsAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new NearbyShopsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new NearbyShopsAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception exception)
             {

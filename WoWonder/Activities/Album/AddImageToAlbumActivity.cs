@@ -299,14 +299,14 @@ namespace WoWonder.Activities.Album
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 switch (PathImage?.Count)
                 {
                     case 0:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_Image), ToastLength.Short);
                         return;
                 }
 
@@ -328,7 +328,7 @@ namespace WoWonder.Activities.Album
                                     case > 0:
                                     {
                                         AndHUD.Shared.Dismiss(this);
-                                        Toast.MakeText(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short)?.Show();
+                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CreatedSuccessfully), ToastLength.Short);
 
                                         //AlbumItem >> PostDataObject  
                                         Intent returnIntent = new Intent();
@@ -362,7 +362,7 @@ namespace WoWonder.Activities.Album
         #region Permissions && Result
 
         //Result
-        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
+        protected override async void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             try
             {
@@ -406,12 +406,12 @@ namespace WoWonder.Activities.Album
                                 {
                                     case false:
                                     {
-                                        var check = WoWonderTools.CheckMimeTypesWithServer(resultUri.Path);
+                                        var check = await WoWonderTools.CheckMimeTypesWithServer(resultUri.Path);
                                         switch (check)
                                         {
                                             case false:
                                                 //this file not supported on the server , please select another file 
-                                                Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                                                 return;
                                         }
                              
@@ -459,7 +459,7 @@ namespace WoWonder.Activities.Album
                         OpenDialogGallery();
                         break;
                     case 108:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -473,17 +473,17 @@ namespace WoWonder.Activities.Album
 
         #region Path
 
-        private void PickiTonCompleteListener(string path)
+        private async void PickiTonCompleteListener(string path)
         {
             try
             {
                 //  Chick if it was successful
-                var check = WoWonderTools.CheckMimeTypesWithServer(path);
+                var check = await WoWonderTools.CheckMimeTypesWithServer(path);
                 switch (check)
                 {
                     case false:
                         //this file not supported on the server , please select another file 
-                        Toast.MakeText(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_ErrorFileNotSupported), ToastLength.Short);
                         return;
                 }
 
@@ -506,7 +506,7 @@ namespace WoWonder.Activities.Album
                         });
                         break;
                     default:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Failed_to_load), ToastLength.Short);
                         break;
                 }
             }
@@ -523,7 +523,7 @@ namespace WoWonder.Activities.Album
         {
             try
             {
-                ImageData = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("AlbumObject"));
+                ImageData = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("AlbumObject") ?? "");
                 if (ImageData != null)
                 {
                     ToolbarTitle.Text = Methods.FunString.DecodeString(ImageData.AlbumName);
@@ -542,6 +542,12 @@ namespace WoWonder.Activities.Album
         {
             try
             {
+                if (!WoWonderTools.CheckAllowedFileUpload())
+                {
+                    Methods.DialogPopup.InvokeAndShowDialog(this, this.GetText(Resource.String.Lbl_Security), this.GetText(Resource.String.Lbl_Error_AllowedFileUpload), this.GetText(Resource.String.Lbl_Ok));
+                    return;
+                }
+                
                 switch ((int)Build.VERSION.SdkInt)
                 {
                     // Check if we're running on Android 5.0 or higher

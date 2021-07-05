@@ -12,6 +12,7 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
+using Com.Adcolony.Sdk;
 using Newtonsoft.Json;
 using WoWonder.Activities.Events.Adapters;
 using WoWonder.Helpers.Ads;
@@ -127,7 +128,10 @@ namespace WoWonder.Activities.Events.Fragment
                 SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
 
                 LinearLayout adContainer = view.FindViewById<LinearLayout>(Resource.Id.bannerContainer);
-                BannerAd = AdsFacebook.InitAdView(Activity,adContainer);
+                if (AppSettings.ShowFbBannerAds)
+                    BannerAd = AdsFacebook.InitAdView(Activity, adContainer, MRecycler);
+                else
+                    AdsColony.InitBannerAd(Activity, adContainer, AdColonyAdSize.Banner, MRecycler);
             }
             catch (Exception e)
             {

@@ -21,7 +21,6 @@ using WoWonder.Helpers.Model.Editor;
 using WoWonder.Helpers.Utils;
 using WoWonder.NiceArt;
 using WoWonder.NiceArt.Models;
-using WoWonder.NiceArt.Utils;
 using AlertDialog = Android.App.AlertDialog;
 using File = Java.IO.File;
 using FileNotFoundException = Java.IO.FileNotFoundException;
@@ -137,7 +136,7 @@ namespace WoWonder.Activities.Chat.Editor
                 }
 
                 int[] color = { Color.ParseColor("#6ec052"), Color.ParseColor("#28c4f3") };
-                var (gradient, bitmap) = ColorUtil.GetGradientDrawable(this, color, Width, Height);
+                var (gradient, bitmap) = ColorUtils.GetGradientDrawable(color, Width, Height);
                 if (bitmap != null)
                 {
                     NewColorEditor.ClearAllViews();
@@ -193,14 +192,14 @@ namespace WoWonder.Activities.Chat.Editor
                         if (!string.IsNullOrEmpty(item.ColorSecond))
                         {
                             int[] color = { Color.ParseColor(item.ColorFirst), Color.ParseColor(item.ColorSecond) };
-                            var (gradient, bitmap) = ColorUtil.GetGradientDrawable(this, color, Width, Height);
+                            var (gradient, bitmap) = ColorUtils.GetGradientDrawable(color, Width, Height);
 
                             NewColorView.GetSource()?.SetImageBitmap(bitmap);
                         }
                         else
                         {
                             int[] color = { Color.ParseColor(item.ColorFirst), Color.ParseColor(item.ColorFirst) };
-                            var (gradient, bitmap) = ColorUtil.GetGradientDrawable(this, color, Width, Height);
+                            var (gradient, bitmap) = ColorUtils.GetGradientDrawable(color, Width, Height);
                             NewColorView.GetSource()?.SetImageBitmap(bitmap);
                         }
                     }
@@ -238,7 +237,7 @@ namespace WoWonder.Activities.Chat.Editor
                     if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
                         SaveImage();
                     else
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                 }
                 else if (requestCode == 10)
                 {

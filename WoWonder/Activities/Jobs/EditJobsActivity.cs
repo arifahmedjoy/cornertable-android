@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android;
 using Android.App;
 using Android.Content;
@@ -11,7 +11,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Helpers.Controller;
@@ -306,7 +305,7 @@ namespace WoWonder.Activities.Jobs
                     {
                         TypeDialog = "Categories";
 
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         var arrayAdapter = CategoriesController.ListCategoriesJob.Select(item => item.CategoriesName).ToList();
 
@@ -334,7 +333,7 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 TypeDialog = "JobType";
                 var arrayAdapter = WoWonderTools.GetJobTypeList(this).Select(item => item.Value).ToList();
@@ -357,7 +356,7 @@ namespace WoWonder.Activities.Jobs
             {
                 if (e?.Event?.Action != MotionEventActions.Down) return;
 
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 TypeDialog = "SalaryDate";
                  
@@ -419,7 +418,7 @@ namespace WoWonder.Activities.Jobs
                         || string.IsNullOrEmpty(TxtMaximum.Text) || string.IsNullOrEmpty(TxtSalaryDate.Text) || string.IsNullOrEmpty(TxtJobType.Text)
                         || string.IsNullOrEmpty(TxtDescription.Text) || string.IsNullOrEmpty(TxtCategory.Text))
                     {
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                         return;
                     }
                       
@@ -437,7 +436,7 @@ namespace WoWonder.Activities.Jobs
                                 case MessageJobObject result:
                                 {
                                     Console.WriteLine(result.MessageData);
-                                    Toast.MakeText(this, GetString(Resource.String.Lbl_jobSuccessfullyEdited), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_jobSuccessfullyEdited), ToastLength.Short);
                                     AndHUD.Shared.Dismiss(this);
 
                                     JobInfoObject newInfoObject = new JobInfoObject
@@ -452,17 +451,17 @@ namespace WoWonder.Activities.Jobs
                                         Category = CategoryId,
                                     };
                              
-                                    JobInfoObject data = JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Id == DataInfoObject.Id);
+                                    var data = JobsActivity.GetInstance()?.MAdapter?.JobList?.FirstOrDefault(a => a.Job?.Id == DataInfoObject.Id);
                                     if (data != null)
                                     {
-                                        data.Title = TxtTitle.Text;
-                                        data.Location = TxtLocation.Text;
-                                        data.Minimum = TxtMinimum.Text;
-                                        data.Maximum = TxtMaximum.Text; 
-                                        data.SalaryDate = TxtSalaryDate.Text; 
-                                        data.JobType = TxtJobType.Text; 
-                                        data.Description = TxtDescription.Text; 
-                                        data.Category = CategoryId; 
+                                        data.Job.Title = TxtTitle.Text;
+                                        data.Job.Location = TxtLocation.Text;
+                                        data.Job.Minimum = TxtMinimum.Text;
+                                        data.Job.Maximum = TxtMaximum.Text; 
+                                        data.Job.SalaryDate = TxtSalaryDate.Text; 
+                                        data.Job.JobType = TxtJobType.Text; 
+                                        data.Job.Description = TxtDescription.Text; 
+                                        data.Job.Category = CategoryId; 
                                         JobsActivity.GetInstance().MAdapter.NotifyItemChanged(JobsActivity.GetInstance().MAdapter.JobList.IndexOf(data));
                                     }
 
@@ -483,7 +482,7 @@ namespace WoWonder.Activities.Jobs
                 }
                 else
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
             }
             catch (Exception exception)
@@ -531,7 +530,7 @@ namespace WoWonder.Activities.Jobs
                         new IntentController(this).OpenIntentLocation();
                         break;
                     case 105:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Permission_is_denied), ToastLength.Long);
                         break;
                 }
             }
@@ -564,23 +563,23 @@ namespace WoWonder.Activities.Jobs
             }
         }
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
                 switch (TypeDialog)
                 {
                     case "Categories":
-                        CategoryId = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString())?.CategoriesId;
-                        TxtCategory.Text = itemString.ToString();
+                        CategoryId = CategoriesController.ListCategoriesJob.FirstOrDefault(categories => categories.CategoriesName == itemString)?.CategoriesId;
+                        TxtCategory.Text = itemString;
                         break;
                     case "JobType":
-                        JobTypeId = WoWonderTools.GetJobTypeList(this)?.FirstOrDefault(a => a.Value == itemString.ToString()).Key.ToString();
-                        TxtJobType.Text = itemString.ToString();
+                        JobTypeId = WoWonderTools.GetJobTypeList(this)?.FirstOrDefault(a => a.Value == itemString).Key.ToString();
+                        TxtJobType.Text = itemString;
                         break;
                     case "SalaryDate":
-                        SalaryDateId = WoWonderTools.GetSalaryDateList(this)?.FirstOrDefault(a => a.Value == itemString.ToString()).Key.ToString();
-                        TxtSalaryDate.Text = itemString.ToString();
+                        SalaryDateId = WoWonderTools.GetSalaryDateList(this)?.FirstOrDefault(a => a.Value == itemString).Key.ToString();
+                        TxtSalaryDate.Text = itemString;
                         break;
                 }
             }

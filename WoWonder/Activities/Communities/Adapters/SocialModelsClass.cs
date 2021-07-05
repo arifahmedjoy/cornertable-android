@@ -1,21 +1,32 @@
-﻿using WoWonder.Activities.NativePost.Post;
+﻿using System.Collections.Generic;
 using WoWonderClient.Classes.Global;
 
 namespace WoWonder.Activities.Communities.Adapters
 {
     public enum SocialModelType
     {
-        MangedGroups, JoinedGroups, MangedPages, LikedPages, Pages, Groups,Section
+        MangedGroups = 100,
+        JoinedGroups = 200,
+        SuggestedGroups = 300,
+        MangedPages = 400,
+        LikedPages = 500,
+        SuggestedPages = 600,
+
+        Section = 10,
+        Divider = 20,
     }
 
     public class SocialModelsClass
     {
         public long Id { get; set; }
         public SocialModelType TypeView { get; set; }
-        public GroupsModelClass MangedGroupsModel { get; set; }
-        public PagesModelClass PagesModelClass { get; set; }
-        public GroupClass GroupData { get; set; }
-        public PageClass PageData { get; set; }
+        public List<PageClass> PageList { get; set; }
+        public List<PageClass> SuggestedPageList { get; set; }
+        public List<GroupClass> SuggestedGroupList { get; set; }
+
+        public PageClass Page { get; set; }
+        public GroupClass Group { get; set; }
+
         public string TitleHead { get; set; }
         public string MoreIcon { get; set; }
     }

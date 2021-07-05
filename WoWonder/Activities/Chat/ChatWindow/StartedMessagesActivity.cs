@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -11,18 +11,17 @@ using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
-using AndroidX.AppCompat.Content.Res;
 using AndroidX.Core.Content;
 using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using Bumptech.Glide.Util;
 using Java.IO;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Chat.Adapters;
 using WoWonder.Activities.Chat.ChatWindow.Adapters;
 using WoWonder.Activities.Chat.Viewer;
+using WoWonder.Activities.NativePost.Pages;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
 using WoWonder.Helpers.Model;
@@ -165,7 +164,6 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
-                    SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
                 }
             }
             catch (Exception e)
@@ -271,7 +269,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                                     i.SetData(Uri.Parse(item.MesData.Media));
                                     i.SetType(mimeType);
                                     StartActivity(i);
-                                    // Toast.MakeText(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long)?.Show();
+                                    // ToastUtils.ShowToast(MainActivity, MainActivity.GetText(Resource.String.Lbl_something_went_wrong), ToastLength.Long);
                                 }
 
                                 break;
@@ -383,7 +381,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     if (SelectedItemPositions != null)
                     {
                         var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         if (e.Type == Holders.TypeClick.Text)
                             arrayAdapter.Add(GetText(Resource.String.Lbl_Copy));
@@ -420,34 +418,34 @@ namespace WoWonder.Activities.Chat.ChatWindow
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                if (itemString.ToString() == GetText(Resource.String.Lbl_Copy))
+                if (itemString == GetText(Resource.String.Lbl_Copy))
                 {
                     CopyItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_MessageInfo))
+                else if (itemString == GetText(Resource.String.Lbl_MessageInfo))
                 {
                     var intent = new Intent(this, typeof(MessageInfoActivity));
                     intent.PutExtra("UserId", UserId);
                     intent.PutExtra("SelectedItem", JsonConvert.SerializeObject(SelectedItemPositions.MesData));
                     StartActivity(intent);
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_Forward))
+                else if (itemString == GetText(Resource.String.Lbl_Forward))
                 {
                     ForwardItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_DeleteMessage))
+                else if (itemString == GetText(Resource.String.Lbl_DeleteMessage))
                 {
                     DeleteMessageItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_UnFavorite) || itemString.ToString() == GetText(Resource.String.Lbl_Favorite))
+                else if (itemString == GetText(Resource.String.Lbl_UnFavorite) || itemString == GetText(Resource.String.Lbl_Favorite))
                 {
                     StarMessageItems();
                 }
-                else if (itemString.ToString() == GetText(Resource.String.Lbl_UnPin) || itemString.ToString() == GetText(Resource.String.Lbl_Pin))
+                else if (itemString == GetText(Resource.String.Lbl_UnPin) || itemString == GetText(Resource.String.Lbl_Pin))
                 {
                     PinMessageItems();
                 }
@@ -625,7 +623,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                     x.InflateLayout(Inflated, EmptyStateInflater.Type.NoStartedMessages);
                     if (!x.EmptyStateButton.HasOnClickListeners)
                     {
-                        x.EmptyStateButton.Click += null;
+                        x.EmptyStateButton.Click += null!;
                     }
                     EmptyStateLayout.Visibility = ViewStates.Visible;
                 }

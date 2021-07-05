@@ -32,11 +32,11 @@ namespace WoWonder.Activities.NativePost.Post
                 {
                     if (ListUtils.SettingsSiteList?.AgoraLiveVideo is 1 && !string.IsNullOrEmpty(ListUtils.SettingsSiteList?.AgoraAppId))
                     {
-                        if (item?.LiveTime != null && item?.LiveTime.Value > 0 && string.IsNullOrEmpty(item?.AgoraResourceId) && string.IsNullOrEmpty(item?.PostFile)) //Live
+                        if (item.LiveTime != null && item.LiveTime.Value > 0 && item.IsStillLive != null && item.IsStillLive.Value && string.IsNullOrEmpty(item.AgoraResourceId) && string.IsNullOrEmpty(item.PostFile)) //Live
                         {
                             return PostModelType.AgoraLivePost;
                         }
-                        else if (item?.LiveTime != null && item?.LiveTime.Value > 0 && !string.IsNullOrEmpty(item?.AgoraResourceId) && !string.IsNullOrEmpty(item?.PostFile)) //Saved
+                        else if (item.LiveTime != null && item.LiveTime.Value > 0 && !string.IsNullOrEmpty(item.AgoraResourceId) && !string.IsNullOrEmpty(item.PostFile)) //Saved
                         {
                             return PostModelType.VideoPost;
                         }

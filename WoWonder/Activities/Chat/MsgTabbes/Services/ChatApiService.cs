@@ -25,7 +25,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
     {
         public override IBinder OnBind(Intent intent)
         {
-            return null;
+            return null!;
         }
 
         public override void OnCreate()
@@ -33,7 +33,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
             try
             {
                 base.OnCreate();
-                //Toast.MakeText(Application.Context, "OnCreate", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(Application.Context, "OnCreate", ToastLength.Short);
                 new Handler(Looper.MainLooper).PostDelayed(new PostUpdaterHelper(new Handler(Looper.MainLooper)), AppSettings.RefreshChatActivitiesSeconds);
             }
             catch (Exception e)
@@ -46,7 +46,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
         {
             try
             {
-                //Toast.MakeText(Application.Context, "OnHandleWork", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(Application.Context, "OnHandleWork", ToastLength.Short);
                 new Handler(Looper.MainLooper).PostDelayed(new PostUpdaterHelper(new Handler(Looper.MainLooper)), AppSettings.RefreshChatActivitiesSeconds);
             }
             catch (Exception e)
@@ -63,7 +63,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
 
                 new Handler(Looper.MainLooper).PostDelayed(new PostUpdaterHelper(new Handler(Looper.MainLooper)), AppSettings.RefreshChatActivitiesSeconds);
 
-                //Toast.MakeText(Application.Context, "OnStartCommand", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(Application.Context, "OnStartCommand", ToastLength.Short);
 
                 return StartCommandResult.Sticky;
             }
@@ -91,7 +91,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                 if (string.IsNullOrEmpty(Methods.AppLifecycleObserver.AppState))
                     Methods.AppLifecycleObserver.AppState = "Background";
 
-                //Toast.MakeText(Application.Context, "AppState " + Methods.AppLifecycleObserver.AppState, ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(Application.Context, "AppState " + Methods.AppLifecycleObserver.AppState, ToastLength.Short);
 
                 if (Methods.AppLifecycleObserver.AppState == "Background" && string.IsNullOrEmpty(Current.AccessToken))
                 {
@@ -111,7 +111,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
             }
             catch (Exception e)
             {
-                //Toast.MakeText(Application.Context, "ResultSender failed",ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(Application.Context, "ResultSender failed",ToastLength.Short);
                 MainHandler ??= new Handler(Looper.MainLooper);
                 MainHandler?.PostDelayed(new PostUpdaterHelper(new Handler(Looper.MainLooper)), AppSettings.RefreshChatActivitiesSeconds);
                 Methods.DisplayReportResultTrack(e);
@@ -122,7 +122,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
         {
             try
             {
-                //Toast.MakeText(Application.Context, "StartApiService", ToastLength.Short)?.Show();
+                //ToastUtils.ShowToast(Application.Context, "StartApiService", ToastLength.Short);
                 if (LastChatFragment.ApiRun)
                     return;
 
@@ -145,6 +145,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                     }
                     else
                     {
+                        LastChatFragment.LoadCall(result);
                         var respondList = result.Data.Count;
                         if (respondList > 0)
                         {
@@ -159,8 +160,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                                 //Insert All data users to database
                                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
                                 dbDatabase.Insert_Or_Update_LastUsersChat(Application.Context, ListUtils.UserList, UserDetails.ChatHead);
-
-                                LastChatFragment.LoadCall(result);
                                 LastChatFragment.ApiRun = false;
                             }
                         }
@@ -168,10 +167,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                 }
                 else
                 {
+                    bool OnlineUsers = UserDetails.OnlineUsers;
                     if (Methods.AppLifecycleObserver.AppState == "Background")
-                        UserDetails.OnlineUsers = false;
-
-                    var (apiStatus, respond) = await RequestsAsync.Message.GetusersListAsync(UserDetails.UserId, UserDetails.UserId, "20", "0", UserDetails.OnlineUsers);
+                        OnlineUsers = false;
+                     
+                    var (apiStatus, respond) = await RequestsAsync.Message.GetUsersListAsync(UserDetails.UserId, UserDetails.UserId, "20", "0", OnlineUsers);
                     if (apiStatus != 200 || respond is not GetUsersListObject result || result.Users == null)
                     {
                         LastChatFragment.ApiRun = false;
@@ -179,6 +179,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                     }
                     else
                     {
+                        LastChatFragment.LoadCall(result);
                         var respondList = result.Users.Count;
                         if (respondList > 0)
                         {
@@ -193,8 +194,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes.Services
                                 //Insert All data users to database
                                 SqLiteDatabase dbDatabase = new SqLiteDatabase();
                                 dbDatabase.Insert_Or_Update_LastUsersChat(Application.Context, ListUtils.UserChatList, UserDetails.ChatHead);
-
-                                LastChatFragment.LoadCall(result);
+                                  
                                 LastChatFragment.ApiRun = false;
                             }
                         }

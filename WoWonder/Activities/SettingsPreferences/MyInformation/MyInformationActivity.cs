@@ -5,8 +5,6 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
-
-
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
@@ -18,6 +16,7 @@ using WoWonder.Activities.Base;
 using WoWonder.Activities.SettingsPreferences.Adapters;
 using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.CacheLoaders;
+using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonderClient.Classes.Global;
 using WoWonderClient.Requests;
@@ -33,11 +32,11 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
 
         private ImageView ImageUser;
 
-        private MyInformationAdapter MAdapter; 
+        private MyInformationAdapter MAdapter;
         private RecyclerView MRecycler;
-        private GridLayoutManager LayoutManager;
-        private TextView TxtName;
-        
+        private SpannedGridLayoutManager LayoutManager;
+        private TextView TxtName, TxtSubname;
+
         private Button BtnDownload;
         private string Link;
         #endregion
@@ -74,7 +73,7 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
             {
                 base.OnResume();
                 AddOrRemoveEvent(true);
-                
+
             }
             catch (Exception e)
             {
@@ -88,7 +87,7 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
             {
                 base.OnPause();
                 AddOrRemoveEvent(false);
-                
+
             }
             catch (Exception e)
             {
@@ -162,16 +161,18 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
 
                 ImageUser = FindViewById<ImageView>(Resource.Id.imageUser);
                 TxtName = FindViewById<TextView>(Resource.Id.nameUser);
+                TxtSubname = FindViewById<TextView>(Resource.Id.tv_subname);
 
                 BtnDownload = FindViewById<Button>(Resource.Id.downloadButton);
                 BtnDownload.Visibility = ViewStates.Gone;
-                 
+
                 var myProfile = ListUtils.MyProfileList?.FirstOrDefault();
                 if (myProfile != null)
                 {
                     GlideImageLoader.LoadImage(this, myProfile.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
-                    TxtName.Text = WoWonderTools.GetNameFinal(myProfile); 
-                } 
+                    TxtName.Text = WoWonderTools.GetNameFinal(myProfile);
+                    TxtSubname.Text = "@" + UserDetails.Username;
+                }
             }
             catch (Exception e)
             {
@@ -208,12 +209,24 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
             try
             {
                 MAdapter = new MyInformationAdapter(this);
-                LayoutManager = new GridLayoutManager(this, 2);
-                LayoutManager.SetSpanSizeLookup(new MySpanSizeLookup(4, 1, 1)); //5, 1, 2 
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
+                {
+                    LayoutManager = new SpannedGridLayoutManager(new MySpannedGridLayoutManager(), 3, 1.22f);
+                    MRecycler.AddItemDecoration(new GridSpacingItemDecoration(3, 15, true));
+                    MRecycler.SetLayoutManager(LayoutManager);
+                }
+                else
+                {
+                    LayoutManager = new SpannedGridLayoutManager(new MySpannedGridLayoutManager(), 3, 1.12f);
+                    MRecycler.AddItemDecoration(new GridSpacingItemDecoration(3, 15, true));
+                    MRecycler.SetLayoutManager(LayoutManager);
+                }
+
+                //LayoutManager.SetSpanSizeLookup(new MySpanSizeLookup(4, 1, 1)); //5, 1, 2 
                 MRecycler.SetLayoutManager(LayoutManager);
                 MRecycler.HasFixedSize = true;
                 MRecycler.SetItemViewCacheSize(10);
-                MRecycler.GetLayoutManager().ItemPrefetchEnabled = true; 
+                MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
                 MRecycler.SetAdapter(MAdapter);
             }
             catch (Exception e)
@@ -221,8 +234,8 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
                 Methods.DisplayReportResultTrack(e);
             }
         }
-         
-         
+
+
         private void AddOrRemoveEvent(bool addEvent)
         {
             try
@@ -250,18 +263,61 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
         {
             try
             {
-                
-
                 MAdapter = null!;
                 MRecycler = null!;
-                ImageUser= null!;
-                TxtName = null!; 
+                ImageUser = null!;
+                TxtName = null!;
                 BtnDownload = null!;
-                
+                TxtSubname = null!;
             }
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
+            }
+        }
+
+        private class MySpannedGridLayoutManager : SpannedGridLayoutManager.IGridSpanLookup
+        {
+            private bool Big1 = true;
+            private bool Big2 = true;
+
+            public SpannedGridLayoutManager.SpanInfo GetSpanInfo(int position)
+            {
+                try
+                {
+                    // Conditions for 2x2 items 
+                    if (position % 2 == 0)
+                    {
+                        if (Big1)
+                        {
+                            Big1 = false;
+                            return new SpannedGridLayoutManager.SpanInfo(2, 1);
+                        }
+                        else
+                        {
+                            Big1 = true;
+                            return new SpannedGridLayoutManager.SpanInfo(1, 1);
+                        }
+                    }
+                    else
+                    {
+                        if (Big2)
+                        {
+                            Big2 = false;
+                            return new SpannedGridLayoutManager.SpanInfo(1, 1);
+                        }
+                        else
+                        {
+                            Big2 = true;
+                            return new SpannedGridLayoutManager.SpanInfo(2, 1);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Methods.DisplayReportResultTrack(e);
+                    return new SpannedGridLayoutManager.SpanInfo(2, 1);
+                }
             }
         }
 
@@ -275,32 +331,32 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
             {
                 if (string.IsNullOrEmpty(Link)) return;
 
-                 var fileName = Link.Split('/').Last();
-                 Link = WoWonderTools.GetFile("", Methods.Path.FolderDcimFile, fileName, Link);
+                var fileName = Link.Split('/').Last();
+                Link = WoWonderTools.GetFile("", Methods.Path.FolderDcimFile, fileName, Link);
 
-                 var fileSplit = Link.Split('/').Last();
-                 string getFile = Methods.MultiMedia.GetMediaFrom_Disk(Methods.Path.FolderDcimFile, fileSplit);
-                 if (getFile != "File Dont Exists")
-                 {
-                     File file2 = new File(getFile);
-                     var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
+                var fileSplit = Link.Split('/').Last();
+                string getFile = Methods.MultiMedia.GetMediaFrom_Disk(Methods.Path.FolderDcimFile, fileSplit);
+                if (getFile != "File Dont Exists")
+                {
+                    File file2 = new File(getFile);
+                    var photoUri = FileProvider.GetUriForFile(this, PackageName + ".fileprovider", file2);
 
-                     Intent openFile = new Intent(Intent.ActionView, photoUri);
-                     openFile.SetFlags(ActivityFlags.NewTask);
-                     openFile.SetFlags(ActivityFlags.GrantReadUriPermission);
-                     StartActivity(openFile);
-                 }
-                 else
-                 {
-                     Intent intent = new Intent(Intent.ActionView, Uri.Parse(Link));
-                     StartActivity(intent);
-                 }
-                  
-                Toast.MakeText(this, GetText(Resource.String.Lbl_YourFileIsDownloaded), ToastLength.Long)?.Show();
+                    Intent openFile = new Intent(Intent.ActionView, photoUri);
+                    openFile.SetFlags(ActivityFlags.NewTask);
+                    openFile.SetFlags(ActivityFlags.GrantReadUriPermission);
+                    StartActivity(openFile);
+                }
+                else
+                {
+                    Intent intent = new Intent(Intent.ActionView, Uri.Parse(Link));
+                    StartActivity(intent);
+                }
+
+                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourFileIsDownloaded), ToastLength.Long);
             }
             catch (Exception exception)
             {
-                Methods.DisplayReportResultTrack(exception); 
+                Methods.DisplayReportResultTrack(exception);
             }
         }
 
@@ -312,54 +368,54 @@ namespace WoWonder.Activities.SettingsPreferences.MyInformation
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                     return;
                 }
-                 
+
                 var position = e.Position;
                 switch (position)
                 {
                     case > -1:
-                    {
-                        var item = MAdapter.GetItem(position);
-                        if (item != null)
                         {
-                            //Show a progress
-                            AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
-
-                            var (apiStatus, respond) = await RequestsAsync.Global.DownloadInfoAsync(item.Type);
-                            switch (apiStatus)
+                            var item = MAdapter.GetItem(position);
+                            if (item != null)
                             {
-                                case 200:
-                                {
-                                    switch (respond)
-                                    {
-                                        case DownloadInfoObject result:
-                                        {
-                                            Link = result.Link;
-                                            var fileName = Link.Split('/').Last();
-                                            WoWonderTools.GetFile("", Methods.Path.FolderDcimFile, fileName, Link);
+                                //Show a progress
+                                AndHUD.Shared.Show(this, GetText(Resource.String.Lbl_Loading));
 
-                                            BtnDownload.Visibility = ViewStates.Visible;
-                                 
-                                            Toast.MakeText(this, GetText(Resource.String.Lbl_YourFileIsReady), ToastLength.Long)?.Show(); 
-                                
-                                            AndHUD.Shared.Dismiss(this);
+                                var (apiStatus, respond) = await RequestsAsync.Global.DownloadInfoAsync(item.Type);
+                                switch (apiStatus)
+                                {
+                                    case 200:
+                                        {
+                                            switch (respond)
+                                            {
+                                                case DownloadInfoObject result:
+                                                    {
+                                                        Link = result.Link;
+                                                        var fileName = Link.Split('/').Last();
+                                                        WoWonderTools.GetFile("", Methods.Path.FolderDcimFile, fileName, Link);
+
+                                                        BtnDownload.Visibility = ViewStates.Visible;
+
+                                                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourFileIsReady), ToastLength.Long);
+
+                                                        AndHUD.Shared.Dismiss(this);
+                                                        break;
+                                                    }
+                                            }
+
                                             break;
                                         }
-                                    }
-
-                                    break;
+                                    default:
+                                        Methods.DisplayAndHudErrorResult(this, respond);
+                                        break;
                                 }
-                                default:
-                                    Methods.DisplayAndHudErrorResult(this, respond);
-                                    break;
-                            } 
-                        }
+                            }
 
-                        break;
-                    }
-                } 
+                            break;
+                        }
+                }
             }
             catch (Exception exception)
             {

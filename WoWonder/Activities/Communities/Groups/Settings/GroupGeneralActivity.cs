@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -15,7 +15,6 @@ using Android.Widget;
 using AndroidHUD;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Adapters;
@@ -331,7 +330,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                     {
                         TypeDialog = "SubCategories";
 
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         var arrayAdapter = new List<string>();
 
@@ -372,9 +371,9 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                     {
                         TypeDialog = "Categories";
 
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
-                        var arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
+                        List<string> arrayAdapter = CategoriesController.ListCategoriesGroup.Select(item => item.CategoriesName).ToList();
 
                         dialogList.Title(GetText(Resource.String.Lbl_SelectCategories)).TitleColorRes(Resource.Color.primary);
                         dialogList.Items(arrayAdapter);
@@ -400,28 +399,28 @@ namespace WoWonder.Activities.Communities.Groups.Settings
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                     return;
                 }
 
                 if (string.IsNullOrEmpty(TxtTitle.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_title), ToastLength.Short);
                     return;
                 }
                 if (string.IsNullOrEmpty(TxtUrl.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                     return;
                 }
                 if (string.IsNullOrEmpty(TxtAbout.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_about), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_about), ToastLength.Short);
                     return;
                 }
                 if (string.IsNullOrEmpty(TxtCategories.Text))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_select_category), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_select_category), ToastLength.Short);
                     return;
                 }
 
@@ -471,7 +470,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
 
                                 GroupProfileActivity.GroupDataClass = GroupData;
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_YourGroupWasUpdated), ToastLength.Short);
 
                                 Intent returnIntent = new Intent();
                                 returnIntent?.PutExtra("groupItem", JsonConvert.SerializeObject(GroupData));
@@ -500,7 +499,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
@@ -508,7 +507,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                 {
                     case "Categories":
                     {
-                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesName == itemString.ToString());
+                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesName == itemString);
                         if (category != null)
                         {
                             CategoryId = category.CategoriesId;
@@ -526,17 +525,17 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                                     break;
                             }
                         }
-                        TxtCategories.Text = itemString.ToString();
+                        TxtCategories.Text = itemString;
                         break;
                     }
                     case "SubCategories":
                     {
-                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.LangKey == itemString.ToString());
+                        var category = CategoriesController.ListCategoriesGroup.FirstOrDefault(categories => categories.CategoriesId == CategoryId)?.SubList.FirstOrDefault(sub => sub.LangKey == itemString);
                         if (category != null)
                         {
                             SubCategoryId = category.CategoryId;
                         }
-                        TxtSubCategories.Text = itemString.ToString();
+                        TxtSubCategories.Text = itemString;
                         break;
                     }
                 }
@@ -572,7 +571,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
         {
             try
             {
-                GroupData = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("GroupData"));
+                GroupData = JsonConvert.DeserializeObject<GroupClass>(Intent?.GetStringExtra("GroupData") ?? "");
                 if (GroupData != null)
                 {
                     TxtTitle.Text = GroupData.GroupTitle;
@@ -601,7 +600,7 @@ namespace WoWonder.Activities.Communities.Groups.Settings
                     switch (ListUtils.SettingsSiteList?.GroupCustomFields?.Count)
                     {
                         case > 0:
-                            MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList.GroupCustomFields);
+                            MAdapter.FieldList = new ObservableCollection<CustomField>(ListUtils.SettingsSiteList?.GroupCustomFields);
                             MAdapter.NotifyDataSetChanged();
 
                             MRecycler.Visibility = ViewStates.Visible;

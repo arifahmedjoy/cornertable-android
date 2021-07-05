@@ -6,14 +6,8 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Gms.Ads;
 using Android.Graphics;
 using Android.OS;
-using Android.Runtime;
-
-
-
-using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
@@ -22,19 +16,16 @@ using AndroidX.RecyclerView.Widget;
 using AndroidX.SwipeRefreshLayout.Widget;
 using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using Bumptech.Glide.Util;
-using Google.Android.Material.FloatingActionButton;
 using Newtonsoft.Json;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Jobs.Adapters;
-using WoWonder.Activities.NearbyBusiness;
-using WoWonder.Helpers.Ads;
 using WoWonder.Helpers.Controller;
-using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
+using WoWonderClient;
+using WoWonderClient.Classes.Global;
 using WoWonderClient.Classes.Jobs;
 using WoWonderClient.Requests;
-using SearchView = AndroidX.AppCompat.Widget.SearchView;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace WoWonder.Activities.Jobs
@@ -46,17 +37,16 @@ namespace WoWonder.Activities.Jobs
 
         public JobsAdapter MAdapter;
         public SwipeRefreshLayout SwipeRefreshLayout;
-        private RecyclerView MRecycler;
-        private LinearLayoutManager LayoutManager;
+        public RecyclerView MRecycler;
+        private LinearLayoutManager LayoutManager; 
         private ViewStub EmptyStateLayout;
         private View Inflated;
-        private RecyclerViewOnScrollListener MainScrollEvent;
-        private TextView BtnFilter;
-        private FloatingActionButton DiscoverButton;
-        private SearchView SearchView;
+        public RecyclerViewOnScrollListener MainScrollEvent;
+        private ImageView BtnFilter;
         private Toolbar ToolBar;
+        private EditText TxtSearch;
+        private ImageButton SearchButton;
         private string SearchText = "";
-        private AdView MAdView;
         private static JobsActivity Instance;
 
         #endregion
@@ -73,7 +63,7 @@ namespace WoWonder.Activities.Jobs
                 Methods.App.FullScreenApp(this);
 
                 // Create your application here
-                SetContentView(Resource.Layout.RecyclerDefaultLayout);
+                SetContentView(Resource.Layout.JobsMain_Layout);
 
                 Instance = this;
 
@@ -95,8 +85,7 @@ namespace WoWonder.Activities.Jobs
             try
             {
                 base.OnResume();
-                AddOrRemoveEvent(true);
-                MAdView?.Resume();
+                AddOrRemoveEvent(true); 
             }
             catch (Exception e)
             {
@@ -110,7 +99,6 @@ namespace WoWonder.Activities.Jobs
             {
                 base.OnPause();
                 AddOrRemoveEvent(false);
-                MAdView?.Pause();
             }
             catch (Exception e)
             {
@@ -172,71 +160,7 @@ namespace WoWonder.Activities.Jobs
 
             return base.OnOptionsItemSelected(item);
         }
-
-        public override bool OnCreateOptionsMenu(IMenu menu)
-        {
-            MenuInflater.Inflate(Resource.Menu.SearchGif_Menu, menu);
-            WoWonderTools.ChangeMenuIconColor(menu, Color.ParseColor("#888888"));
-
-            var item = menu.FindItem(Resource.Id.searchUserBar);
-            SearchView searchItem = (SearchView)item.ActionView;
-
-            SearchView = searchItem.JavaCast<SearchView>();
-            SearchView.SetIconifiedByDefault(true);
-            SearchView.QueryTextChange += SearchView_OnTextChange;
-            SearchView.QueryTextSubmit += SearchView_OnTextSubmit;
-
-            //Change text colors
-            var editText = (EditText)SearchView.FindViewById(Resource.Id.search_src_text);
-            editText.SetHintTextColor(Color.Black);
-            editText.SetTextColor(Color.ParseColor("#888888")); 
-
-            //Change Color Icon Search
-            ImageView searchViewIcon = (ImageView)SearchView.FindViewById(Resource.Id.search_mag_icon);
-            searchViewIcon.SetColorFilter(Color.ParseColor(AppSettings.MainColor));
-
-            return base.OnCreateOptionsMenu(menu);
-        }
-
-        private void SearchView_OnTextSubmit(object sender, SearchView.QueryTextSubmitEventArgs e)
-        {
-            try
-            {
-                SearchText = e.NewText;
-
-                SearchView.ClearFocus();
-
-                MAdapter.JobList.Clear();
-                MAdapter.NotifyDataSetChanged();
-
-                StartApiService();
-
-                //Hide keyboard programmatically in MonoDroid
-                e.Handled = true;
-
-                SearchView.ClearFocus();
-
-                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
-                inputManager?.HideSoftInputFromWindow(ToolBar.WindowToken, 0);
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
-        private void SearchView_OnTextChange(object sender, SearchView.QueryTextChangeEventArgs e)
-        {
-            try
-            {
-                SearchText = e.NewText;
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+         
         #endregion
          
         #region Functions
@@ -247,24 +171,19 @@ namespace WoWonder.Activities.Jobs
             {
                 MRecycler = (RecyclerView)FindViewById(Resource.Id.recyler);
                 EmptyStateLayout = FindViewById<ViewStub>(Resource.Id.viewStub);
-
+                 
                 SwipeRefreshLayout = (SwipeRefreshLayout)FindViewById(Resource.Id.swipeRefreshLayout);
                 SwipeRefreshLayout.SetColorSchemeResources(Android.Resource.Color.HoloBlueLight, Android.Resource.Color.HoloGreenLight, Android.Resource.Color.HoloOrangeLight, Android.Resource.Color.HoloRedLight);
                 SwipeRefreshLayout.Refreshing = true;
                 SwipeRefreshLayout.Enabled = true;
                 SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
-                 
-                MAdView = FindViewById<AdView>(Resource.Id.adView);
-                AdsGoogle.InitAdView(MAdView, MRecycler);
-
-                BtnFilter = FindViewById<TextView>(Resource.Id.toolbar_title);
+                  
+                BtnFilter = FindViewById<ImageView>(Resource.Id.toolbar_title);
                 BtnFilter.Visibility = ViewStates.Visible;
-                BtnFilter.SetTextSize(ComplexUnitType.Sp, 20f);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, BtnFilter, IonIconsFonts.Options);
                  
-                DiscoverButton = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                DiscoverButton.Visibility = AppSettings.ShowNearbyShops ? ViewStates.Visible : ViewStates.Gone;
-                DiscoverButton.SetImageResource(Resource.Drawable.ic_action_nearby); 
+                SearchButton = FindViewById<ImageButton>(Resource.Id.ib_search);
+                TxtSearch = FindViewById<EditText>(Resource.Id.et_search);
+                TxtSearch.ClearFocus();
             }
             catch (Exception e)
             {
@@ -288,8 +207,6 @@ namespace WoWonder.Activities.Jobs
                     SupportActionBar.SetHomeButtonEnabled(true);
                     SupportActionBar.SetDisplayShowHomeEnabled(true);
                     SupportActionBar.SetHomeAsUpIndicator(AppCompatResources.GetDrawable(this, AppSettings.FlowDirectionRightToLeft ? Resource.Drawable.ic_action_right_arrow_color : Resource.Drawable.ic_action_left_arrow_color));
-
-                    
                 }
             }
             catch (Exception e)
@@ -304,7 +221,7 @@ namespace WoWonder.Activities.Jobs
             {
                 MAdapter = new JobsAdapter(this)
                 {
-                    JobList = new ObservableCollection<JobInfoObject>()
+                    JobList = new ObservableCollection<Classes.JobClass>()
                 };
                 LayoutManager = new LinearLayoutManager(this);
                 MRecycler.SetLayoutManager(LayoutManager);
@@ -312,7 +229,7 @@ namespace WoWonder.Activities.Jobs
                 MRecycler.SetItemViewCacheSize(10);
                 MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
                 var sizeProvider = new FixedPreloadSizeProvider(10, 10);
-                var preLoader = new RecyclerViewPreloader<JobInfoObject>(this, MAdapter, sizeProvider, 10);
+                var preLoader = new RecyclerViewPreloader<Classes.JobClass>(this, MAdapter, sizeProvider, 10);
                 MRecycler.AddOnScrollListener(preLoader);
                 MRecycler.SetAdapter(MAdapter);
 
@@ -352,13 +269,13 @@ namespace WoWonder.Activities.Jobs
                         MAdapter.ItemClick += MAdapterOnItemClick;
                         SwipeRefreshLayout.Refresh += SwipeRefreshLayoutOnRefresh;
                         BtnFilter.Click += BtnFilterOnClick;
-                        DiscoverButton.Click += DiscoverButtonOnClick;
+                        SearchButton.Click += SearchButtonOnClick;
                         break;
                     default:
                         MAdapter.ItemClick -= MAdapterOnItemClick;
                         SwipeRefreshLayout.Refresh -= SwipeRefreshLayoutOnRefresh;
                         BtnFilter.Click -= BtnFilterOnClick;
-                        DiscoverButton.Click -= DiscoverButtonOnClick;
+                        SearchButton.Click -= SearchButtonOnClick;
                         break;
                 }
             }
@@ -371,22 +288,16 @@ namespace WoWonder.Activities.Jobs
         private void DestroyBasic()
         {
             try
-            {
-                MAdView?.Destroy();
-
-                MAdapter = null!;
-                SwipeRefreshLayout = null!;
-                MRecycler = null!;
+            { 
+                SwipeRefreshLayout = null!; 
                 EmptyStateLayout = null!;
                 Inflated = null!;
                 MainScrollEvent = null!;
                 SearchText = null!;
                 BtnFilter = null!;
                 ToolBar = null!;
-                DiscoverButton = null!;
-                SearchView = null!;
+                SearchButton = null!;
                 SearchText = null!;
-                MAdView = null!;
                 Instance = null!;
             }
             catch (Exception e)
@@ -397,20 +308,34 @@ namespace WoWonder.Activities.Jobs
         #endregion
 
         #region Events
-
-        //Nearby Business
-        private void DiscoverButtonOnClick(object sender, EventArgs e)
+         
+        private void SearchButtonOnClick(object sender, EventArgs e)
         {
             try
             {
-                StartActivity(new Intent(this, typeof(NearbyBusinessActivity)));
+                if (string.IsNullOrEmpty(TxtSearch.Text) || string.IsNullOrWhiteSpace(TxtSearch.Text))
+                    return;
+
+                SearchText = TxtSearch.Text;
+
+                TxtSearch.ClearFocus();
+
+                MAdapter.JobList.Clear();
+                MAdapter.NotifyDataSetChanged();
+
+                StartApiService();
+                 
+                TxtSearch.ClearFocus();
+
+                var inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+                inputManager?.HideSoftInputFromWindow(ToolBar.WindowToken, 0);
             }
             catch (Exception exception)
             {
                 Methods.DisplayReportResultTrack(exception);
             }
         }
-
+         
         // Show Filter 
         private void BtnFilterOnClick(object sender, EventArgs e)
         {
@@ -431,7 +356,7 @@ namespace WoWonder.Activities.Jobs
             try
             {
                 MAdapter.JobList.Clear();
-                MAdapter.NotifyDataSetChanged();
+                MAdapter.NotifyDataSetChanged(); 
 
                 MainScrollEvent.IsLoading = false;
 
@@ -450,8 +375,8 @@ namespace WoWonder.Activities.Jobs
             {
                 //Code get last id where LoadMore >>
                 var item = MAdapter.JobList.LastOrDefault();
-                if (item != null && !string.IsNullOrEmpty(item.Id) && !MainScrollEvent.IsLoading)
-                    StartApiService(item.Id);
+                if (item != null && !string.IsNullOrEmpty(item.Job?.Id) && !MainScrollEvent.IsLoading)
+                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadJobsAsync(item.Job?.Id) });
             }
             catch (Exception exception)
             {
@@ -467,7 +392,7 @@ namespace WoWonder.Activities.Jobs
                 if (item != null)
                 {
                     var intent = new Intent(this, typeof(JobsViewActivity));
-                    intent.PutExtra("JobsObject", JsonConvert.SerializeObject(item));
+                    intent.PutExtra("JobsObject", JsonConvert.SerializeObject(item.Job));
                     StartActivity(intent);
                 }
             }
@@ -481,15 +406,15 @@ namespace WoWonder.Activities.Jobs
 
         #region Load Jobs 
          
-        public void StartApiService(string offset = "")
+        public void StartApiService(string offset = "0")
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
-                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadJobsAsync(offset) });
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => LoadBusinessAsync()});
         }
-
-        private async Task LoadJobsAsync(string offset)
+       
+        private async Task LoadJobsAsync(string offset = "0")
         {
             switch (MainScrollEvent.IsLoading)
             {
@@ -510,39 +435,43 @@ namespace WoWonder.Activities.Jobs
                 else
                 {
                     var respondList = result.Data.Count;
-                    switch (respondList)
+                    if (respondList > 0)
                     {
-                        case > 0:
+                        var checkList = MAdapter.JobList.FirstOrDefault(q => q.Type == Classes.ItemType.Section);
+                        if (checkList == null)
                         {
-                            foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == item.Id) where check == null select item)
+                            MAdapter.JobList.Add(new Classes.JobClass
                             {
-                                MAdapter.JobList.Add(WoWonderTools.ListFilterJobs(item));
-                            }
-
-                            switch (countList)
-                            {
-                                case > 0:
-                                    RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
-                                    break;
-                                default:
-                                    RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
-                                    break;
-                            }
-
-                            break;
+                                Id = 1200,
+                                Title = GetText(Resource.String.Lbl_PopularJobs),
+                                Type = Classes.ItemType.Section,
+                            });
                         }
-                        default:
-                        {
-                            switch (MAdapter.JobList.Count)
-                            {
-                                case > 10 when !MRecycler.CanScrollVertically(1):
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short)?.Show();
-                                    break;
-                            }
 
-                            break;
+                        foreach (var item in from item in result.Data let check = MAdapter.JobList.FirstOrDefault(a => a.Id == Convert.ToInt64(item.Id)) where check == null select item)
+                        {
+                            MAdapter.JobList.Add(new Classes.JobClass
+                            {
+                                Id = Convert.ToInt64(item.Id),
+                                Type = Classes.ItemType.JobRecent,
+                                Job = WoWonderTools.ListFilterJobs(item)
+                            });
+                        }
+
+                        if (countList > 0)
+                        {
+                            RunOnUiThread(() => { MAdapter.NotifyItemRangeInserted(countList, MAdapter.JobList.Count - countList); });
+                        }
+                        else
+                        {
+                            RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
                         }
                     }
+                    else
+                    {
+                        if (MAdapter.JobList.Count > 10 && !MRecycler.CanScrollVertically(1))
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreJobs), ToastLength.Short);
+                    } 
                 }
 
                 RunOnUiThread(ShowEmptyPage);
@@ -560,11 +489,69 @@ namespace WoWonder.Activities.Jobs
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MainScrollEvent.IsLoading = false;
             }
         }
+         
+        private async Task LoadBusinessAsync(string offset = "0")
+        {
+            if (Methods.CheckConnectivity())
+            {
+                //int countList = MAdapter.TrendingList.Count;
+                var (apiStatus, respond) = await RequestsAsync.Nearby.GetNearbyBusinessesAsync("10", offset, "", UserDetails.NearbyBusinessDistanceCount);
+                if (apiStatus != 200 || respond is not NearbyBusinessesObject result || result.Data == null)
+                {
+                    Methods.DisplayReportResult(this, respond);
+                }
+                else
+                {
+                    var respondList = result.Data.Count;
+                    if (respondList > 0)
+                    {
+                        var checkList = MAdapter.JobList.FirstOrDefault(q => q.Type == Classes.ItemType.NearbyJob);
+                        if (checkList == null)
+                        {
+                            var nearbyJob = new Classes.JobClass
+                            {
+                                Id = 205530,
+                                JobList = new List<JobInfoObject>(),
+                                Type = Classes.ItemType.NearbyJob
+                            };
 
+                            foreach (var item in from item in result.Data let check = nearbyJob.JobList.FirstOrDefault(a => a.Id == item.Job?.JobInfoClass.Id) where check == null select item)
+                            {
+                                item.Job.Value.JobInfoClass.Image = item.Job.Value.JobInfoClass.Image.Contains(InitializeWoWonder.WebsiteUrl) switch
+                                {
+                                    false => WoWonderTools.GetTheFinalLink(item.Job.Value.JobInfoClass.Image),
+                                    _ => item.Job.Value.JobInfoClass.Image
+                                };
+
+                                nearbyJob.JobList.Add(item.Job?.JobInfoClass);
+                            }
+
+                            MAdapter.JobList.Insert(0, nearbyJob);
+                            RunOnUiThread(() => { MAdapter.NotifyItemInserted(0); });
+                        }
+                        else
+                        {
+                            foreach (var item in from item in result.Data let check = checkList.JobList.FirstOrDefault(a => a.Id == item.Job?.JobInfoClass.Id) where check == null select item)
+                            {
+                                checkList.JobList.Add(item.Job?.JobInfoClass);
+                            }
+                        }
+                    }
+                }
+
+                await LoadJobsAsync(offset);
+
+            }
+            else
+            {
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+            }
+        }
+         
         private void ShowEmptyPage()
         {
             try

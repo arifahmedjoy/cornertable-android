@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using WoWonder.Helpers.Model;
+using WoWonder.Helpers.Utils;
 
 namespace WoWonder.Library.Anjo
 {
@@ -61,7 +62,7 @@ namespace WoWonder.Library.Anjo
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Methods.DisplayReportResultTrack(e);
                 return new List<Reaction>();
             }
         }

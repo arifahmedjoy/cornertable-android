@@ -106,8 +106,7 @@ namespace WoWonder.Activities.Communities.Adapters
                 //Online Or offline
                 var online = WoWonderTools.GetStatusOnline(Convert.ToInt32(users.LastseenUnixTime), users.LastseenStatus);
                 holder.ImageLastSeen.SetImageResource(online ? Resource.Drawable.Green_Color : Resource.Drawable.Grey_Offline);
-
-
+                 
                 if (users.UserId == UserDetails.UserId)
                     holder.ButtonMore.Visibility = ViewStates.Gone; 
             }
@@ -233,9 +232,9 @@ namespace WoWonder.Activities.Communities.Adapters
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeLight, ButtonMore, FontAwesomeIcon.EllipsisH);
 
                 //Event
-                ButtonMore.Click += (sender, e) => moreClickListener(new MembersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.Click += (sender, e) => clickListener(new MembersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
-                itemView.LongClick += (sender, e) => longClickListener(new MembersAdapterClickEventArgs { View = itemView, Position = AdapterPosition });
+                ButtonMore.Click += (sender, e) => moreClickListener(new MembersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.Click += (sender, e) => clickListener(new MembersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
+                itemView.LongClick += (sender, e) => longClickListener(new MembersAdapterClickEventArgs { View = itemView, Position = BindingAdapterPosition });
             }
             catch (Exception e)
             {

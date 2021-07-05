@@ -12,7 +12,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.ViewPager2.Widget;
-using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Tabs;
 using WoWonder.Activities.Base;
 using WoWonder.Activities.Fundings.Fragment;
@@ -38,8 +37,8 @@ namespace WoWonder.Activities.Fundings
         public FundingFragment FundingTab;
         public MyFundingFragment MyFundingTab;
         private TabLayout TabLayout;
-        private FloatingActionButton ActionButton; 
         private Toolbar ToolBar;
+        private TextView AddText;
         private static FundingActivity Instance;
 
         #endregion
@@ -56,7 +55,7 @@ namespace WoWonder.Activities.Fundings
                 Methods.App.FullScreenApp(this);
 
                 // Create your application here
-                SetContentView(Resource.Layout.EventMain_Layout);
+                SetContentView(Resource.Layout.FundingMain_Layout); 
 
                 Instance = this;
 
@@ -164,13 +163,25 @@ namespace WoWonder.Activities.Fundings
                 ViewPager = FindViewById<ViewPager2>(Resource.Id.viewpager);
                 TabLayout = FindViewById<TabLayout>(Resource.Id.tabs);
 
-                ActionButton = FindViewById<FloatingActionButton>(Resource.Id.floatingActionButtonView);
-                ActionButton.Visibility = ViewStates.Visible;
-                ActionButton.SetImageResource(Resource.Drawable.ic_add);
+                AddText = FindViewById<TextView>(Resource.Id.toolbar_title);
 
                 ViewPager.OffscreenPageLimit = 2;
                 SetUpViewPager(ViewPager);
                 new TabLayoutMediator(TabLayout, ViewPager, this).Attach();
+                 
+                switch (ListUtils.SettingsSiteList?.FundingRequest)
+                {
+                    case "all":
+                        AddText.Visibility = ViewStates.Visible;
+                        break;
+                    case "verified":
+                        var isVerified = ListUtils.MyProfileList.FirstOrDefault()?.Verified ?? "0";
+                        AddText.Visibility = isVerified == "1" ? ViewStates.Visible : ViewStates.Gone;
+                        break;
+                    default:
+                        AddText.Visibility = ViewStates.Gone;
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -223,10 +234,10 @@ namespace WoWonder.Activities.Fundings
                 {
                     // true +=  // false -=
                     case true:
-                        ActionButton.Click += ActionButtonOnClick;
+                        AddText.Click += AddOnClick;
                         break;
                     default:
-                        ActionButton.Click -= ActionButtonOnClick;
+                        AddText.Click -= AddOnClick;
                         break;
                 }
             }
@@ -242,7 +253,7 @@ namespace WoWonder.Activities.Fundings
             {
                 ViewPager = null!;
                 TabLayout = null!;
-                ActionButton = null!;
+                AddText = null!;
                 ToolBar = null!;
                 Instance = null!;
             }
@@ -298,7 +309,7 @@ namespace WoWonder.Activities.Fundings
         #region Events
 
         //Add Funding
-        private void ActionButtonOnClick(object sender, EventArgs e)
+        private void AddOnClick(object sender, EventArgs e)
         {
             try
             {
@@ -319,7 +330,7 @@ namespace WoWonder.Activities.Fundings
             if (Methods.CheckConnectivity())
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => GetFunding(offsetFunding), () => GetMyFunding(offsetMyFunding) });
             else
-                Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
         }
 
         public async Task GetFunding(string offset = "0")
@@ -366,7 +377,7 @@ namespace WoWonder.Activities.Fundings
                                         switch (FundingTab.MAdapter.FundingList.Count)
                                         {
                                             case > 10 when !FundingTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short);
                                                 break;
                                         }
 
@@ -400,7 +411,7 @@ namespace WoWonder.Activities.Fundings
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 FundingTab.MainScrollEvent.IsLoading = false;
             }
         }
@@ -449,7 +460,7 @@ namespace WoWonder.Activities.Fundings
                                         switch (MyFundingTab.MAdapter.FundingList.Count)
                                         {
                                             case > 10 when !MyFundingTab.MRecycler.CanScrollVertically(1):
-                                                Toast.MakeText(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short)?.Show();
+                                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_NoMoreFunding), ToastLength.Short);
                                                 break;
                                         }
 
@@ -483,7 +494,7 @@ namespace WoWonder.Activities.Fundings
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 MyFundingTab.MainScrollEvent.IsLoading = false;
             }
         }

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:clickable="false"
     android:orientation="vertical"
-    android:background="?attr/colorFill"
+    android:background="?attr/colorBgApp"
     android:focusable="false"
     android:layout_alignParentStart="true"
     android:foregroundGravity="center_horizontal"
@@ -29,66 +29,86 @@
     android:layout_height="match_parent">
     <LinearLayout
       android:id="@+id/CurrentPasswordLiner"
-      android:layout_height="match_parent"
+      android:layout_height="wrap_content"
       android:layout_width="match_parent"
       android:orientation="vertical"
-      android:gravity="top|center"
-      android:layout_gravity="top|center"
-      android:layout_marginTop="20dp">
-        <ImageView
-            android:id="@+id/ImageUser"
-            android:scaleType="centerCrop"
-            android:layout_width="79dp"
-            android:layout_height="79dp"
-            android:focusable="false"
-            android:clickable="false"
-            android:src="@drawable/no_profile_image_circle" />
+      android:gravity="top|start"
+      android:layout_gravity="top|center">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="start|center_vertical"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:paddingTop="23dp"
+                android:paddingBottom="23dp">
+                <ImageView
+                    android:id="@+id/ImageUser"
+                    android:scaleType="centerCrop"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:src="@drawable/no_profile_image_circle" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+                    <TextView
+                        android:id="@+id/name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"/>
+                    <TextView
+                        android:id="@+id/tv_subname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+            </LinearLayout>
 		<TextView
             android:id="@+id/myAffiliatesText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:lines="1"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="18dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
             android:focusable="false"
             android:clickable="false"
-            android:layout_alignParentStart="true"
             android:gravity="start"
-			android:textSize="13dp"
-            android:textAlignment="textStart" />
+			android:textSize="20sp"
+                android:textStyle="bold"/>
 		<TextView
             android:id="@+id/linkText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:lines="1"
             android:textColor="#1B5E20"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="23dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
             android:focusable="false"
             android:clickable="false"
-            android:layout_alignParentStart="true"
             android:gravity="start"
-			android:textSize="13dp"
-            android:textAlignment="textStart" />
+			android:textSize="14sp" />
 		 <Button
-			android:layout_width="wrap_content"
-            android:layout_height="25dp"
+			android:layout_width="match_parent"
+            android:layout_height="37dp"
             android:id="@+id/cont"
-            android:textSize="12sp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="11dp"
-            android:layout_marginEnd="15dp"
+            android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="15dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/follow_button_profile_friends"
+            android:layout_marginTop="50dp"
+            android:background="@drawable/follow_button_profile_friends_pressed"
             android:tag="false"
-            android:paddingTop="1dp"
-            android:paddingStart="17dp"
-            android:paddingEnd="17dp"
-            android:textAlignment="center"
             android:textAllCaps="false"
             android:text="@string/Lbl_ShareTo"
-            android:textColor="@color/accent" />
+            android:textColor="@color/gnt_white" />
         <WoWonder.Helpers.Ads.TemplateView
           android:id="@+id/my_template"
           android:padding="8dp"

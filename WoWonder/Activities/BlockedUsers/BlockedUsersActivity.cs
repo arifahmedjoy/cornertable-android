@@ -320,7 +320,7 @@ namespace WoWonder.Activities.BlockedUsers
                                     break;
                             }
 
-                            Toast.MakeText(Application.Context, GetString(Resource.String.Lbl_Unblock_successfully), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_Unblock_successfully), ToastLength.Short);
 
                             PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Global.BlockUserAsync(item.UserId, false) });//false >> "un-block"
                         }
@@ -342,7 +342,7 @@ namespace WoWonder.Activities.BlockedUsers
         private void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { LoadBlockedUser });
         }
@@ -393,7 +393,7 @@ namespace WoWonder.Activities.BlockedUsers
                         break;
                 }
 
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             }
         }
 
@@ -416,7 +416,7 @@ namespace WoWonder.Activities.BlockedUsers
                         Inflated ??= EmptyStateLayout.Inflate();
 
                         EmptyStateInflater x = new EmptyStateInflater();
-                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoUsers);
+                        x.InflateLayout(Inflated, EmptyStateInflater.Type.NoBlockedUsers);
                         switch (x.EmptyStateButton.HasOnClickListeners)
                         {
                             case false:

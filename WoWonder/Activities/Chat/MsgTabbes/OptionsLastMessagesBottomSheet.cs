@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
 using AndroidHUD;
 using Google.Android.Material.BottomSheet;
-using Java.Lang;
 using Newtonsoft.Json;
 using WoWonder.Activities.Chat.Call.Agora;
 using WoWonder.Activities.Chat.Call.Twilio;
@@ -32,14 +31,14 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         #region Variables Basic
 
         private MsgTabbedMainActivity GlobalContext;
-
-        private RelativeLayout ArchiveLayout, DeleteLayout, PinLayout, MuteLayout, ReadLayout, BlockLayout, CallLayout, ProfileLayout, GroupInfoLayout, ExitGroupLayout, AddMembersLayout, ReportLayout;
-        private TextView ArchiveIcon, DeleteIcon, PinIcon, MuteIcon, ReadIcon, BlockIcon, CallIcon, ProfileIcon, GroupInfoIcon, ExitGroupIcon, AddMembersIcon, ReportIcon;
-        private TextView ArchiveText, DeleteText, PinText, MuteText, ReadText, BlockText, CallText, ProfileText, GroupInfoText, ExitGroupText, AddMembersText, ReportText;
+        //wael  add Mute call
+        private RelativeLayout ArchiveLayout, DeleteLayout, PinLayout, MuteLayout, ReadLayout, BlockLayout, CallLayout, ProfileLayout, GroupInfoLayout, ExitGroupLayout, AddMembersLayout;
+        private TextView ArchiveIcon, DeleteIcon, PinIcon, MuteIcon, ReadIcon, BlockIcon, CallIcon, ProfileIcon, GroupInfoIcon, ExitGroupIcon, AddMembersIcon;
+        private TextView ArchiveText, DeleteText, PinText, MuteText, ReadText, BlockText, CallText, ProfileText, GroupInfoText, ExitGroupText, AddMembersText;
 
         private string Type;
-        private ChatObject DataChatObject;
-        private GetUsersListObject.User DataUserObject;
+        private ChatObject DataChatObjectN;
+        private GetUsersListObject.User DataUserObjectOld;
         private PageClass PageClassObject;
 
         #endregion
@@ -50,7 +49,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         {
             base.OnCreate(savedInstanceState);
             // Create your fragment here
-            GlobalContext = MsgTabbedMainActivity.GetInstance();
+            GlobalContext = (MsgTabbedMainActivity)Activity;
         }
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -67,7 +66,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             catch (Exception e)
             {
                 Methods.DisplayReportResultTrack(e);
-                return null;
+                return null!;
             }
         }
 
@@ -162,11 +161,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 AddMembersText = view.FindViewById<TextView>(Resource.Id.AddMembersText);
                 AddMembersLayout.Click += AddMembersLayoutOnClick;
 
-                ReportLayout = view.FindViewById<RelativeLayout>(Resource.Id.ReportLayout);
-                ReportIcon = view.FindViewById<TextView>(Resource.Id.ReportIcon);
-                ReportText = view.FindViewById<TextView>(Resource.Id.ReportText);
-                ReportLayout.Click += ReportLayoutOnClick;
-
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ArchiveIcon, IonIconsFonts.Archive);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, DeleteIcon, IonIconsFonts.Trash);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.FontAwesomeSolid, PinIcon, FontAwesomeIcon.Thumbtack);
@@ -178,7 +172,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, GroupInfoIcon, IonIconsFonts.InformationCircle);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ExitGroupIcon, IonIconsFonts.Exit);
                 FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, AddMembersIcon, IonIconsFonts.PersonAdd);
-                FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReportIcon, IonIconsFonts.IosBug);
 
                 if (!AppSettings.EnableChatArchive)
                     ArchiveLayout.Visibility = ViewStates.Gone;
@@ -191,9 +184,6 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                 if (!AppSettings.EnableChatMakeAsRead)
                     ReadLayout.Visibility = ViewStates.Gone;
-
-                if (!AppSettings.EnableChatReport)
-                    ReportLayout.Visibility = ViewStates.Gone;
             }
             catch (Exception e)
             {
@@ -204,28 +194,14 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         #endregion
 
         #region Event
-
-        //Report user // wael add new api and check if Reported
-        private void ReportLayoutOnClick(object sender, EventArgs e)
-        {
-            try
-            {
-
-                Dismiss();
-            }
-            catch (Exception exception)
-            {
-                Methods.DisplayReportResultTrack(exception);
-            }
-        }
-
+         
         //Add Members to group
         private void AddMembersLayoutOnClick(object sender, EventArgs e)
         {
             try
             {
                 Intent intent = new Intent(Activity, typeof(EditGroupChatActivity));
-                intent.PutExtra("GroupObject", JsonConvert.SerializeObject(DataChatObject));
+                intent.PutExtra("GroupObject", JsonConvert.SerializeObject(DataChatObjectN));
                 intent.PutExtra("Type", "Edit");
                 Activity.StartActivity(intent);
 
@@ -244,11 +220,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             {
                 if (!Methods.CheckConnectivity())
                 {
-                    Toast.MakeText(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Activity, Activity.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
                 else
                 {
-                    var dialog = new MaterialDialog.Builder(Activity).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var dialog = new MaterialDialog.Builder(Activity).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                     dialog.Content(GetText(Resource.String.Lbl_AreYouSureExitGroup));
                     dialog.PositiveText(GetText(Resource.String.Lbl_Exit)).OnPositive(async (materialDialog, action) =>
                     {
@@ -257,20 +233,20 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             //Show a progress
                             AndHUD.Shared.Show(Activity, GetText(Resource.String.Lbl_Loading));
 
-                            var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChatAsync(DataChatObject.GroupId);
+                            var (apiStatus, respond) = await RequestsAsync.GroupChat.ExitGroupChatAsync(DataChatObjectN.GroupId);
                             if (apiStatus == 200)
                             {
                                 if (respond is AddOrRemoveUserToGroupObject result)
                                 {
                                     Console.WriteLine(result.MessageData);
 
-                                    Toast.MakeText(Activity, Activity.GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(Activity, Activity.GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short);
 
                                     //remove item to my Group list  
                                     if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                                     {
                                         var adapter = GlobalContext?.LastChatTab.MAdapter;
-                                        var data = adapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                        var data = adapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                         if (data != null)
                                         {
                                             adapter?.LastChatsList.Remove(data);
@@ -280,7 +256,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     else
                                     {
                                         var adapter = GlobalContext?.LastGroupChatsTab.MAdapter;
-                                        var data = adapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                        var data = adapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                         if (data != null)
                                         {
                                             adapter.LastChatsList.Remove(data);
@@ -305,7 +281,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(new WoWonderTools.MyMaterialDialog());
                     dialog.AlwaysCallSingleChoiceCallback();
                     dialog.Build().Show();
-                }
+                } 
             }
             catch (Exception exception)
             {
@@ -319,7 +295,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             try
             {
                 Intent intent = new Intent(Activity, typeof(EditGroupChatActivity));
-                intent.PutExtra("GroupObject", JsonConvert.SerializeObject(DataChatObject));
+                intent.PutExtra("GroupObject", JsonConvert.SerializeObject(DataChatObjectN));
                 intent.PutExtra("Type", "Profile");
                 Activity.StartActivity(intent);
 
@@ -337,9 +313,9 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             try
             {
                 if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
-                    WoWonderTools.OpenProfile(Activity, DataChatObject.UserId, DataChatObject.UserData);
+                    WoWonderTools.OpenProfile(Activity, DataChatObjectN.UserId, DataChatObjectN.UserData);
                 else
-                    WoWonderTools.OpenProfile(Activity, DataUserObject.UserId, DataUserObject);
+                    WoWonderTools.OpenProfile(Activity, DataUserObjectOld.UserId, DataUserObjectOld);
 
                 Dismiss();
             }
@@ -353,124 +329,154 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         private void CallLayoutOnClick(object sender, EventArgs e)
         {
             try
-            {
-                string timeNow = DateTime.Now.ToString("hh:mm");
-                var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string time = Convert.ToString(unixTimestamp);
-
-                switch (AppSettings.EnableAudioCall)
+            { 
+                if (AppSettings.EnableAudioCall && AppSettings.EnableVideoCall)
                 {
-                    case true when AppSettings.EnableVideoCall:
-                        {
-                            var arrayAdapter = new List<string>();
-                            var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                    var arrayAdapter = new List<string>();
+                    var dialogList = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
-                            arrayAdapter.Add(Context.GetText(Resource.String.Lbl_Voice_call));
-                            arrayAdapter.Add(Context.GetText(Resource.String.Lbl_Video_call));
-
-                            dialogList.Title(GetText(Resource.String.Lbl_Call));
-                            //dialogList.Content(GetText(Resource.String.Lbl_Select_Type_Call));
-                            dialogList.Items(arrayAdapter);
-                            dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
-                            dialogList.AlwaysCallSingleChoiceCallback();
-                            dialogList.ItemsCallback(this).Build().Show();
-                            break;
-                        }
-                    // Video Call On
-                    case false when AppSettings.EnableVideoCall:
-                        try
+                    if (AppSettings.EnableAudioVideoCall)
+                    {
+                        var dataSettings = ListUtils.SettingsSiteList;
+                        if (dataSettings?.WhoCall == "pro") //just pro user can chat 
                         {
-                            Intent intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
-                            switch (AppSettings.UseLibrary)
+                            var dataUser = ListUtils.MyProfileList?.FirstOrDefault()?.IsPro;
+                            if (dataUser == "0") // Not Pro remove call
                             {
-                                case SystemCall.Agora:
-                                    intentVideoCall = new Intent(Context, typeof(AgoraVideoCallActivity));
-                                    intentVideoCall.PutExtra("type", "Agora_video_calling_start");
-                                    break;
-                                case SystemCall.Twilio:
-                                    intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
-                                    intentVideoCall.PutExtra("type", "Twilio_video_calling_start");
-                                    break;
+                                //CallLayout.Visibility = ViewStates.Gone;
+                                return;
                             }
-
-                            if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+                        }
+                        else //all users can chat
+                        {
+                            if (dataSettings?.VideoChat == "0" || !AppSettings.EnableVideoCall)
                             {
-                                intentVideoCall.PutExtra("UserID", DataChatObject.UserId);
-                                intentVideoCall.PutExtra("avatar", DataChatObject.Avatar);
-                                intentVideoCall.PutExtra("name", DataChatObject.Name);
+                                //VideoCallButton.Visibility = ViewStates.Gone;
                             }
                             else
                             {
-                                intentVideoCall.PutExtra("UserID", DataUserObject.UserId);
-                                intentVideoCall.PutExtra("avatar", DataUserObject.Avatar);
-                                intentVideoCall.PutExtra("name", DataUserObject.Name);
+                                arrayAdapter.Add(Context.GetText(Resource.String.Lbl_Video_call));
                             }
 
-                            intentVideoCall.PutExtra("time", timeNow);
-                            intentVideoCall.PutExtra("CallID", time);
-                            intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                            intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                            intentVideoCall.PutExtra("from_id", "0");
-                            intentVideoCall.PutExtra("active", "0");
-                            intentVideoCall.PutExtra("status", "0");
-                            intentVideoCall.PutExtra("room_name", "TestRoom");
-                            Activity.StartActivity(intentVideoCall);
-                        }
-                        catch (Exception exception)
-                        {
-                            Methods.DisplayReportResultTrack(exception);
-                        }
-
-                        break;
-                    // Audio Call On
-                    case true when AppSettings.EnableVideoCall == false:
-                        try
-                        {
-                            Intent intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
-                            switch (AppSettings.UseLibrary)
+                            if (dataSettings?.AudioChat == "0" || !AppSettings.EnableAudioCall)
                             {
-                                case SystemCall.Agora:
-                                    intentVideoCall = new Intent(Context, typeof(AgoraAudioCallActivity));
-                                    intentVideoCall.PutExtra("type", "Agora_audio_calling_start");
-                                    break;
-                                case SystemCall.Twilio:
-                                    intentVideoCall = new Intent(Context, typeof(TwilioAudioCallActivity));
-                                    intentVideoCall.PutExtra("type", "Twilio_audio_calling_start");
-                                    break;
-                            }
-
-                            if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
-                            {
-                                intentVideoCall.PutExtra("UserID", DataChatObject.UserId);
-                                intentVideoCall.PutExtra("avatar", DataChatObject.Avatar);
-                                intentVideoCall.PutExtra("name", DataChatObject.Name);
+                                //AudioCallButton.Visibility = ViewStates.Gone;
                             }
                             else
                             {
-                                intentVideoCall.PutExtra("UserID", DataUserObject.UserId);
-                                intentVideoCall.PutExtra("avatar", DataUserObject.Avatar);
-                                intentVideoCall.PutExtra("name", DataUserObject.Name);
+                                arrayAdapter.Add(Context.GetText(Resource.String.Lbl_Voice_call));
                             }
-
-                            intentVideoCall.PutExtra("time", timeNow);
-                            intentVideoCall.PutExtra("CallID", time);
-                            intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                            intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                            intentVideoCall.PutExtra("from_id", "0");
-                            intentVideoCall.PutExtra("active", "0");
-                            intentVideoCall.PutExtra("status", "0");
-                            intentVideoCall.PutExtra("room_name", "TestRoom");
-                            Activity.StartActivity(intentVideoCall);
                         }
-                        catch (Exception exception)
-                        {
-                            Methods.DisplayReportResultTrack(exception);
-                        }
+                    }
+                    else
+                    {
+                        //CallLayout.Visibility = ViewStates.Gone;
+                        return;
+                    }
 
-                        break;
+                    dialogList.Title(GetText(Resource.String.Lbl_Call));
+                    //dialogList.Content(GetText(Resource.String.Lbl_Select_Type_Call));
+                    dialogList.Items(arrayAdapter);
+                    dialogList.NegativeText(GetText(Resource.String.Lbl_Close)).OnNegative(new WoWonderTools.MyMaterialDialog());
+                    dialogList.AlwaysCallSingleChoiceCallback();
+                    dialogList.ItemsCallback(this).Build().Show();
                 }
+                else if (AppSettings.EnableAudioCall == false && AppSettings.EnableVideoCall)
+                {
+                    try
+                    {
+                        Intent intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
+                        switch (AppSettings.UseLibrary)
+                        {
+                            case SystemCall.Agora:
+                                intentVideoCall = new Intent(Context, typeof(AgoraVideoCallActivity));
+                                intentVideoCall.PutExtra("type", "Agora_video_calling_start");
+                                break;
+                            case SystemCall.Twilio:
+                                intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
+                                intentVideoCall.PutExtra("type", "Twilio_video_calling_start");
+                                break;
+                        }
 
-                Dismiss();
+                        if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+                        {
+                            var callUserObject = new CallUserObject
+                            {
+                                UserId = DataChatObjectN.UserId,
+                                Avatar = DataChatObjectN.Avatar,
+                                Name = DataChatObjectN.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));  
+                        }
+                        else
+                        {
+                            var callUserObject = new CallUserObject
+                            {
+                                UserId = DataUserObjectOld.UserId,
+                                Avatar = DataUserObjectOld.Avatar,
+                                Name = DataUserObjectOld.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
+                        } 
+                        Activity.StartActivity(intentVideoCall);
+                        Dismiss();
+                    }
+                    catch (Exception exception)
+                    {
+                        Methods.DisplayReportResultTrack(exception);
+                    }
+                }
+                else if (AppSettings.EnableAudioCall && AppSettings.EnableVideoCall == false)
+                {
+                    try
+                    {
+                        Intent intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
+                        switch (AppSettings.UseLibrary)
+                        {
+                            case SystemCall.Agora:
+                                intentVideoCall = new Intent(Context, typeof(AgoraAudioCallActivity));
+                                intentVideoCall.PutExtra("type", "Agora_audio_calling_start");
+                                break;
+                            case SystemCall.Twilio:
+                                intentVideoCall = new Intent(Context, typeof(TwilioAudioCallActivity));
+                                intentVideoCall.PutExtra("type", "Twilio_audio_calling_start");
+                                break;
+                        }
+
+                        if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
+                        {
+                            var callUserObject = new CallUserObject
+                            {
+                                UserId = DataChatObjectN.UserId,
+                                Avatar = DataChatObjectN.Avatar,
+                                Name = DataChatObjectN.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
+                        }
+                        else
+                        {
+                            var callUserObject = new CallUserObject
+                            {
+                                UserId = DataUserObjectOld.UserId,
+                                Avatar = DataUserObjectOld.Avatar,
+                                Name = DataUserObjectOld.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                             
+                        }
+                         
+                        Activity.StartActivity(intentVideoCall);
+                        Dismiss();
+                    }
+                    catch (Exception exception)
+                    {
+                        Methods.DisplayReportResultTrack(exception);
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -483,7 +489,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         {
             try
             {
-                string userId = AppSettings.LastChatSystem == SystemApiGetLastChat.New ? DataChatObject.UserId : DataUserObject.UserId;
+                string userId = AppSettings.LastChatSystem == SystemApiGetLastChat.New ? DataChatObjectN.UserId : DataUserObjectOld.UserId;
 
                 if (Methods.CheckConnectivity())
                 {
@@ -498,15 +504,15 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                         Methods.Path.DeleteAll_FolderUser(userId);
 
-                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Blocked_successfully), ToastLength.Short)?.Show();
-
-                        Dismiss();
+                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Blocked_successfully), ToastLength.Short);
                     }
                 }
                 else
                 {
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                 }
+
+                Dismiss();
             }
             catch (Exception exception)
             {
@@ -524,43 +530,43 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                 {
                     var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                    var seen = DataChatObject.LastMessage.LastMessageClass.Seen == "0" ? DataChatObject.LastMessage.LastMessageClass.Seen = "1" : DataChatObject.LastMessage.LastMessageClass.Seen = "0";
+                    var seen = DataChatObjectN.LastMessage.LastMessageClass.Seen == "0" ? DataChatObjectN.LastMessage.LastMessageClass.Seen = "1" : DataChatObjectN.LastMessage.LastMessageClass.Seen = "0";
 
                     //wael add api  
-                    Classes.LastChatsClass checkUser = null;
+                    Classes.LastChatsClass checkUser = null!;
                     switch (Type)
                     {
                         case "user":
-                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObject.UserId);
+                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObjectN.UserId);
                             break;
                         case "page":
-                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObject.LastMessage.LastMessageClass?.ToData?.UserId);
+                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObjectN.LastMessage.LastMessageClass?.ToData?.UserId);
                             if (checkPage != null)
                             {
-                                var userAdminPage = DataChatObject.UserId;
-                                if (userAdminPage == DataChatObject.LastMessage.LastMessageClass.ToData.UserId)
+                                var userAdminPage = DataChatObjectN.UserId;
+                                if (userAdminPage == DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId)
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.UserData?.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.UserData?.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.UserData?.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
                                 }
                                 else
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.ToData.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.ToData.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
                                 }
                             }
                             else
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId);
                             break;
                         //break;
                         case "group":
-                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                             break;
                     }
                     if (checkUser != null)
@@ -577,9 +583,9 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         case "user":
                             {
                                 var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                var seen = DataUserObject.LastMessage.Seen == "0" ? DataUserObject.LastMessage.Seen = "1" : DataUserObject.LastMessage.Seen = "0";
+                                var seen = DataUserObjectOld.LastMessage.Seen == "0" ? DataUserObjectOld.LastMessage.Seen = "1" : DataUserObjectOld.LastMessage.Seen = "0";
 
-                                var checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObject.UserId);
+                                var checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObjectOld.UserId);
                                 if (checkUser != null)
                                 {
                                     checkUser.LastMessagesUser.LastMessage.Seen = seen;
@@ -629,9 +635,9 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         case "group":
                             {
                                 var mAdapter = GlobalContext?.LastGroupChatsTab?.MAdapter;
-                                var seen = DataChatObject.LastMessage.LastMessageClass.Seen == "0" ? DataChatObject.LastMessage.LastMessageClass.Seen = "1" : DataChatObject.LastMessage.LastMessageClass.Seen = "0";
+                                var seen = DataChatObjectN.LastMessage.LastMessageClass.Seen == "0" ? DataChatObjectN.LastMessage.LastMessageClass.Seen = "1" : DataChatObjectN.LastMessage.LastMessageClass.Seen = "0";
 
-                                var checkGroup = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                var checkGroup = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 if (checkGroup?.LastChat != null)
                                 {
                                     checkGroup.LastChat.LastMessage.LastMessageClass.Seen = seen;
@@ -650,102 +656,106 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             }
         }
 
-        //Mark As Mute/UnMute //wael
+        //Mark As Mute/UnMute
         private void MuteLayoutOnClick(object sender, EventArgs e)
         {
             try
             {
                 bool isMute = false;
-                Classes.OptionLastChat muteObject = null;
+                Classes.OptionLastChat muteObject = null!;
+                Mute globalMute = null!;
+                string idChat = null!;
+
                 if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                 {
                     var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                    isMute = !DataChatObject.IsMute;
+                    isMute = !DataChatObjectN.IsMute;
+                    idChat = DataChatObjectN.ChatId;
+                    globalMute = DataChatObjectN.Mute;
 
-                    //wael add api  
-                    Classes.LastChatsClass checkUser = null;
+                    Classes.LastChatsClass checkUser = null!;
                     switch (Type)
                     {
                         case "user":
-                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObject.UserId);
+                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObjectN.UserId);
                             muteObject = new Classes.OptionLastChat
                             {
                                 ChatType = "user",
-                                IdChat = DataChatObject.UserId,
-                                UserId = DataChatObject.UserId,
+                                ChatId = DataChatObjectN.ChatId,
+                                UserId = DataChatObjectN.UserId,
                                 GroupId = "",
                                 PageId = "",
-                                Name = DataChatObject.Name
+                                Name = DataChatObjectN.Name
                             };
                             break;
                         case "page":
-                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObject.LastMessage.LastMessageClass?.ToData?.UserId);
+                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObjectN.LastMessage.LastMessageClass?.ToData?.UserId);
                             if (checkPage != null)
                             {
-                                var userAdminPage = DataChatObject.UserId;
-                                if (userAdminPage == DataChatObject.LastMessage.LastMessageClass.ToData.UserId)
+                                var userAdminPage = DataChatObjectN.UserId;
+                                if (userAdminPage == DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId)
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.UserData?.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.UserData?.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.UserData?.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
 
                                     muteObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "page",
-                                        IdChat = DataChatObject.PageId + userId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = userId,
                                         GroupId = "",
-                                        PageId = DataChatObject.PageId,
+                                        PageId = DataChatObjectN.PageId,
                                         Name = name
                                     };
                                 }
                                 else
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.ToData.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.ToData.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
 
                                     muteObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "page",
-                                        IdChat = DataChatObject.PageId + userId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = userId,
                                         GroupId = "",
-                                        PageId = DataChatObject.PageId,
+                                        PageId = DataChatObjectN.PageId,
                                         Name = name
                                     };
                                 }
                             }
                             else
                             {
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId);
                                 muteObject = new Classes.OptionLastChat
                                 {
                                     ChatType = "page",
-                                    IdChat = DataChatObject.PageId,
+                                    ChatId = DataChatObjectN.PageId,
                                     UserId = "",
                                     GroupId = "",
-                                    PageId = DataChatObject.PageId,
-                                    Name = DataChatObject.PageName
+                                    PageId = DataChatObjectN.PageId,
+                                    Name = DataChatObjectN.PageName
                                 };
                             }
                             break;
                         //break;
                         case "group":
                             {
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 muteObject = new Classes.OptionLastChat
                                 {
                                     ChatType = "group",
-                                    IdChat = DataChatObject.GroupId,
+                                    ChatId = DataChatObjectN.ChatId,
                                     UserId = "",
-                                    GroupId = DataChatObject.GroupId,
+                                    GroupId = DataChatObjectN.GroupId,
                                     PageId = "",
-                                    Name = DataChatObject.GroupName
+                                    Name = DataChatObjectN.GroupName
                                 };
                             }
                             break;
@@ -753,32 +763,40 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     if (checkUser != null)
                     {
                         checkUser.LastChat.IsMute = isMute;
+                        checkUser.LastChat.Mute.Notify = isMute ? "no" : "yes";
+                        globalMute = checkUser.LastChat.Mute;
+
                         mAdapter?.NotifyItemChanged(mAdapter.LastChatsList.IndexOf(checkUser), "WithoutBlobMute");
                     }
                 }
                 else
-                {
-                    //wael add api  
+                { 
                     switch (Type)
                     {
                         case "user":
                             {
                                 var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                isMute = !DataUserObject.IsMute;
+                                isMute = !DataUserObjectOld.IsMute;
+                                idChat = DataUserObjectOld.UserId;
+                                globalMute = DataUserObjectOld.Mute;
 
-                                var checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObject.UserId);
+                                var checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObjectOld.UserId);
                                 if (checkUser != null)
                                 {
                                     checkUser.LastMessagesUser.IsMute = isMute;
+
+                                    checkUser.LastMessagesUser.Mute.Notify = isMute ? "no" : "yes";
+                                    globalMute = checkUser.LastChat.Mute;
+
                                     mAdapter?.NotifyItemChanged(mAdapter.LastChatsList.IndexOf(checkUser), "WithoutBlobMute");
                                     muteObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "user",
-                                        IdChat = DataUserObject.UserId,
-                                        UserId = DataUserObject.UserId,
+                                        ChatId = DataUserObjectOld.UserId,
+                                        UserId = DataUserObjectOld.UserId,
                                         GroupId = "",
                                         PageId = "",
-                                        Name = DataUserObject.Name
+                                        Name = DataUserObjectOld.Name
                                     };
                                 }
                                 break;
@@ -787,7 +805,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             {
                                 var mAdapter = GlobalContext?.LastPageChatsTab?.MAdapter;
                                 isMute = !PageClassObject.IsMute;
-
+                                idChat = PageClassObject.PageId;
+                                 
                                 var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChatPage?.PageId == PageClassObject.PageId && a.LastChatPage?.LastMessage?.ToData?.UserId == PageClassObject.LastMessage?.ToData?.UserId);
                                 if (checkPage != null)
                                 {
@@ -799,6 +818,9 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         if (checkUser != null)
                                         {
                                             checkUser.LastChatPage.IsMute = isMute;
+                                            //checkUser.LastChatPage.Mute.Notify = isMute ? "no" : "yes";
+                                            //GlobalMute = checkUser.LastChatPage.Mute;
+
                                             mAdapter?.NotifyItemChanged(mAdapter.LastChatsList.IndexOf(checkUser), "WithoutBlobMute");
                                         }
 
@@ -808,7 +830,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         muteObject = new Classes.OptionLastChat
                                         {
                                             ChatType = "page",
-                                            IdChat = PageClassObject.PageId + userId,
+                                            ChatId = PageClassObject.PageId + userId,
                                             UserId = userId,
                                             GroupId = "",
                                             PageId = PageClassObject.PageId,
@@ -822,6 +844,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         if (checkUser != null)
                                         {
                                             checkUser.LastChatPage.IsMute = isMute;
+
+                                            //checkUser.LastChatPage.Mute.Notify = isMute ? "no" : "yes";
+                                            //GlobalMute = checkUser.LastChatPage.Mute;
+
                                             mAdapter?.NotifyItemChanged(mAdapter.LastChatsList.IndexOf(checkUser), "WithoutBlobMute");
                                         }
 
@@ -831,7 +857,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         muteObject = new Classes.OptionLastChat
                                         {
                                             ChatType = "page",
-                                            IdChat = PageClassObject.PageId + userId,
+                                            ChatId = PageClassObject.PageId + userId,
                                             UserId = userId,
                                             GroupId = "",
                                             PageId = PageClassObject.PageId,
@@ -845,22 +871,27 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         case "group":
                             {
                                 var mAdapter = GlobalContext?.LastGroupChatsTab?.MAdapter;
-                                isMute = !DataChatObject.IsMute;
-
-                                var checkGroup = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                isMute = !DataChatObjectN.IsMute;
+                                idChat = DataChatObjectN.GroupId;
+                                 
+                                var checkGroup = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 if (checkGroup != null)
                                 {
                                     checkGroup.LastChat.IsMute = isMute;
+
+                                    checkGroup.LastChat.Mute.Notify = isMute ? "no" : "yes";
+                                    globalMute = checkGroup.LastChat.Mute;
+                                     
                                     mAdapter?.NotifyItemChanged(mAdapter.LastChatsList.IndexOf(checkGroup), "WithoutBlobMute");
 
                                     muteObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "group",
-                                        IdChat = DataChatObject.GroupId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = "",
-                                        GroupId = DataChatObject.GroupId,
+                                        GroupId = DataChatObjectN.GroupId,
                                         PageId = "",
-                                        Name = DataChatObject.GroupName
+                                        Name = DataChatObjectN.GroupName
                                     };
                                 }
                                 break;
@@ -877,12 +908,27 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         var sqLiteDatabase = new SqLiteDatabase();
                         sqLiteDatabase.InsertORDelete_Mute(muteObject);
                     }
+                     
+                    var dictionary = new Dictionary<string, string>
+                    {
+                        {"notify", "no"}, 
+                    };
 
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_AddedMute), ToastLength.Long)?.Show();
+                    if (globalMute != null)
+                    {
+                        dictionary.Add("call_chat", globalMute.CallChat);
+                        dictionary.Add("archive", globalMute.Archive);
+                        dictionary.Add("pin", globalMute.Pin); 
+                    }
+
+                    if (Methods.CheckConnectivity())
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.MuteChatsInfoAsync(idChat, Type, dictionary) });
+                     
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_AddedMute), ToastLength.Long);
                 }
                 else
                 {
-                    var checkMute = ListUtils.MuteList.FirstOrDefault(a => muteObject != null && a.IdChat == muteObject.IdChat && a.ChatType == muteObject.ChatType);
+                    var checkMute = ListUtils.MuteList.FirstOrDefault(a => muteObject != null && a.ChatId == muteObject.ChatId && a.ChatType == muteObject.ChatType);
                     if (checkMute != null)
                     {
                         ListUtils.MuteList.Remove(checkMute);
@@ -890,8 +936,23 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         var sqLiteDatabase = new SqLiteDatabase();
                         sqLiteDatabase.InsertORDelete_Mute(checkMute);
                     }
+                     
+                    var dictionary = new Dictionary<string, string>
+                    {
+                        {"notify", "yes"},
+                    };
 
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_RemovedMute), ToastLength.Long)?.Show();
+                    if (globalMute != null)
+                    {
+                        dictionary.Add("call_chat", globalMute.CallChat);
+                        dictionary.Add("archive", globalMute.Archive);
+                        dictionary.Add("pin", globalMute.Pin);
+                    }
+
+                    if (Methods.CheckConnectivity())
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.MuteChatsInfoAsync(idChat, Type, dictionary) });
+                     
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_RemovedMute), ToastLength.Long);
                 }
 
                 Dismiss();
@@ -902,109 +963,117 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             }
         }
 
-        //Mark Pin //wael
+        //Mark Pin
         private void PinLayoutOnClick(object sender, EventArgs e)
         {
             try
             {
                 bool isPin = false;
-                Classes.OptionLastChat pinObject = null;
+                Classes.OptionLastChat pinObject = null!;
+                Mute globalMute = null!;
+                string idChat = null!;
+                
                 if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                 {
                     var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                    isPin = !DataChatObject.IsPin;
+                    isPin = !DataChatObjectN.IsPin;
+                    idChat = DataChatObjectN.ChatId;
+                    globalMute = DataChatObjectN.Mute;
 
-                    //wael add api  
-                    Classes.LastChatsClass checkUser = null;
+                    Classes.LastChatsClass checkUser = null!;
                     switch (Type)
                     {
                         case "user":
-                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObject.UserId);
+                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObjectN.UserId);
                             pinObject = new Classes.OptionLastChat
                             {
                                 ChatType = "user",
-                                IdChat = DataChatObject.UserId,
-                                UserId = DataChatObject.UserId,
+                                ChatId = DataChatObjectN.ChatId,
+                                UserId = DataChatObjectN.UserId,
                                 GroupId = "",
                                 PageId = "",
-                                Name = DataChatObject.Name
+                                Name = DataChatObjectN.Name
                             };
                             break;
                         case "page":
-                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObject.LastMessage.LastMessageClass?.ToData?.UserId);
+                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObjectN.LastMessage.LastMessageClass?.ToData?.UserId);
                             if (checkPage != null)
                             {
-                                var userAdminPage = DataChatObject.UserId;
-                                if (userAdminPage == DataChatObject.LastMessage.LastMessageClass.ToData.UserId)
+                                var userAdminPage = DataChatObjectN.UserId;
+                                if (userAdminPage == DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId)
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.UserData?.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.UserData?.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.UserData?.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
 
                                     pinObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "page",
-                                        IdChat = DataChatObject.PageId + userId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = userId,
                                         GroupId = "",
-                                        PageId = DataChatObject.PageId,
+                                        PageId = DataChatObjectN.PageId,
                                         Name = name
                                     };
                                 }
                                 else
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.ToData.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.ToData.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
 
                                     pinObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "page",
-                                        IdChat = DataChatObject.PageId + userId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = userId,
                                         GroupId = "",
-                                        PageId = DataChatObject.PageId,
+                                        PageId = DataChatObjectN.PageId,
                                         Name = name
                                     };
                                 }
                             }
                             else
                             {
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId);
                                 pinObject = new Classes.OptionLastChat
                                 {
                                     ChatType = "page",
-                                    IdChat = DataChatObject.PageId,
+                                    ChatId = DataChatObjectN.ChatId,
                                     UserId = "",
                                     GroupId = "",
-                                    PageId = DataChatObject.PageId,
-                                    Name = DataChatObject.PageName
+                                    PageId = DataChatObjectN.PageId,
+                                    Name = DataChatObjectN.PageName
                                 };
                             }
                             break;
                         //break;
                         case "group":
                             {
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 pinObject = new Classes.OptionLastChat
                                 {
                                     ChatType = "group",
-                                    IdChat = DataChatObject.GroupId,
+                                    ChatId = DataChatObjectN.ChatId,
                                     UserId = "",
-                                    GroupId = DataChatObject.GroupId,
+                                    GroupId = DataChatObjectN.GroupId,
                                     PageId = "",
-                                    Name = DataChatObject.GroupName
+                                    Name = DataChatObjectN.GroupName
                                 };
                             }
                             break;
                     }
+                 
                     if (checkUser != null)
                     {
                         checkUser.LastChat.IsPin = isPin;
+                        checkUser.LastChat.Mute.Pin = isPin ? "yes" : "no";
+                        globalMute = checkUser.LastChat.Mute;
+                        
                         var index = mAdapter.LastChatsList.IndexOf(checkUser);
                         if (isPin)
                         {
@@ -1020,7 +1089,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                 mAdapter.NotifyItemMoved(index, 0);
                                 mAdapter.NotifyItemChanged(0, "WithoutBlobPin");
                             }
-
+                             
                             //var checkPin = mAdapter.LastChatsList.LastOrDefault(o => o.LastChat != null && o.LastChat.IsPin);
                             //if (checkPin != null)
                             //{
@@ -1054,18 +1123,22 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 }
                 else
                 {
-                    //wael add api  
                     switch (Type)
                     {
                         case "user":
                             {
                                 var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                isPin = !DataUserObject.IsPin;
+                                isPin = !DataUserObjectOld.IsPin;
+                                idChat = DataUserObjectOld.UserId;
+                                globalMute = DataUserObjectOld.Mute;
 
-                                var checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObject.UserId);
+                                var checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObjectOld.UserId);
                                 if (checkUser != null)
                                 {
-                                    checkUser.LastChat.IsPin = isPin;
+                                    checkUser.LastMessagesUser.IsPin = isPin;
+
+                                    checkUser.LastMessagesUser.Mute.Pin = isPin ? "yes" : "no";
+                                    globalMute = checkUser.LastMessagesUser.Mute;
 
                                     var index = mAdapter.LastChatsList.IndexOf(checkUser);
                                     if (isPin)
@@ -1078,8 +1151,12 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                             if (ListUtils.FriendRequestsList.Count > 0)
                                                 toIndex++;
 
-                                            mAdapter.LastChatsList.Move(index, toIndex);
-                                            mAdapter.NotifyItemMoved(index, toIndex);
+                                            if (mAdapter.LastChatsList.Count > toIndex)
+                                            {
+                                                mAdapter.LastChatsList.Move(index, toIndex);
+                                                mAdapter.NotifyItemMoved(index, toIndex);
+                                            }
+
                                             mAdapter.NotifyItemChanged(toIndex, "WithoutBlobPin");
                                         }
                                         else
@@ -1106,11 +1183,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     pinObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "user",
-                                        IdChat = DataUserObject.UserId,
-                                        UserId = DataUserObject.UserId,
+                                        ChatId = DataUserObjectOld.UserId,
+                                        UserId = DataUserObjectOld.UserId,
                                         GroupId = "",
                                         PageId = "",
-                                        Name = DataUserObject.Name
+                                        Name = DataUserObjectOld.Name
                                     };
                                 }
                                 break;
@@ -1119,6 +1196,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             {
                                 var mAdapter = GlobalContext?.LastPageChatsTab?.MAdapter;
                                 isPin = !PageClassObject.IsPin;
+                                idChat = PageClassObject.PageId;
 
                                 var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChatPage?.PageId == PageClassObject.PageId && a.LastChatPage?.LastMessage?.ToData?.UserId == PageClassObject.LastMessage?.ToData?.UserId);
                                 if (checkPage != null)
@@ -1131,6 +1209,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         if (checkUser != null)
                                         {
                                             checkUser.LastChatPage.IsPin = isPin;
+                                            //checkUser.LastChatPage.Mute.Pin = isPin ? "yes" : "no";
+                                            //globalMute = checkUser.LastChatPage.Mute;
 
                                             var index = mAdapter.LastChatsList.IndexOf(checkUser);
                                             if (isPin)
@@ -1143,8 +1223,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                                     if (ListUtils.FriendRequestsList.Count > 0)
                                                         toIndex++;
 
-                                                    mAdapter.LastChatsList.Move(index, toIndex);
-                                                    mAdapter.NotifyItemMoved(index, toIndex);
+                                                    if (mAdapter.LastChatsList.Count > toIndex)
+                                                    {
+                                                        mAdapter.LastChatsList.Move(index, toIndex);
+                                                        mAdapter.NotifyItemMoved(index, toIndex);
+                                                    }
                                                     mAdapter.NotifyItemChanged(toIndex, "WithoutBlobPin");
                                                 }
                                                 else
@@ -1175,7 +1258,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         pinObject = new Classes.OptionLastChat
                                         {
                                             ChatType = "page",
-                                            IdChat = PageClassObject.PageId + userId,
+                                            ChatId = PageClassObject.PageId + userId,
                                             UserId = userId,
                                             GroupId = "",
                                             PageId = PageClassObject.PageId,
@@ -1189,6 +1272,9 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         if (checkUser != null)
                                         {
                                             checkUser.LastChatPage.IsPin = isPin;
+                                            //checkUser.LastChatPage.Mute.Pin = isPin ? "yes" : "no";
+                                            //globalMute = checkUser.LastChatPage.Mute;
+
                                             var index = mAdapter.LastChatsList.IndexOf(checkUser);
 
                                             if (isPin)
@@ -1201,8 +1287,12 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                                     if (ListUtils.FriendRequestsList.Count > 0)
                                                         toIndex++;
 
-                                                    mAdapter.LastChatsList.Move(index, toIndex);
-                                                    mAdapter.NotifyItemMoved(index, toIndex);
+                                                    if (mAdapter.LastChatsList.Count > toIndex)
+                                                    {
+                                                        mAdapter.LastChatsList.Move(index, toIndex);
+                                                        mAdapter.NotifyItemMoved(index, toIndex);
+                                                    }
+                                                   
                                                     mAdapter.NotifyItemChanged(toIndex, "WithoutBlobPin");
                                                 }
                                                 else
@@ -1233,7 +1323,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         pinObject = new Classes.OptionLastChat
                                         {
                                             ChatType = "page",
-                                            IdChat = PageClassObject.PageId + userId,
+                                            ChatId = PageClassObject.PageId + userId,
                                             UserId = userId,
                                             GroupId = "",
                                             PageId = PageClassObject.PageId,
@@ -1247,12 +1337,17 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         case "group":
                             {
                                 var mAdapter = GlobalContext?.LastGroupChatsTab?.MAdapter;
-                                isPin = !DataChatObject.IsPin;
+                                isPin = !DataChatObjectN.IsPin;
+                                idChat = DataChatObjectN.GroupId;
+                                globalMute = DataChatObjectN.Mute;
 
-                                var checkGroup = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                var checkGroup = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 if (checkGroup?.LastChat != null)
                                 {
                                     checkGroup.LastChat.IsPin = isPin;
+                                    checkGroup.LastChat.Mute.Pin = isPin ? "yes" : "no";
+                                    globalMute = checkGroup.LastChat.Mute;
+
                                     if (isPin)
                                     {
                                         var index = mAdapter.LastChatsList.IndexOf(checkGroup);
@@ -1267,8 +1362,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                                 if (ListUtils.FriendRequestsList.Count > 0)
                                                     toIndex++;
 
-                                                mAdapter.LastChatsList.Move(index, toIndex);
-                                                mAdapter.NotifyItemMoved(index, toIndex);
+                                                if (mAdapter.LastChatsList.Count > toIndex)
+                                                {
+                                                    mAdapter.LastChatsList.Move(index, toIndex);
+                                                    mAdapter.NotifyItemMoved(index, toIndex);
+                                                }
                                                 mAdapter.NotifyItemChanged(toIndex, "WithoutBlobPin");
                                             }
                                             else
@@ -1296,11 +1394,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     pinObject = new Classes.OptionLastChat
                                     {
                                         ChatType = "group",
-                                        IdChat = DataChatObject.GroupId,
+                                        ChatId = DataChatObjectN.GroupId,
                                         UserId = "",
-                                        GroupId = DataChatObject.GroupId,
+                                        GroupId = DataChatObjectN.GroupId,
                                         PageId = "",
-                                        Name = DataChatObject.GroupName
+                                        Name = DataChatObjectN.GroupName
                                     };
                                 }
                                 break;
@@ -1318,11 +1416,26 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         sqLiteDatabase.InsertORDelete_Pin(pinObject);
                     }
 
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_MessagePinned), ToastLength.Long)?.Show();
+                    var dictionary = new Dictionary<string, string>
+                    {
+                        {"pin", "yes"},
+                    };
+
+                    if (globalMute != null)
+                    {
+                        dictionary.Add("call_chat", globalMute.CallChat);
+                        dictionary.Add("archive", globalMute.Archive);
+                        dictionary.Add("notify", globalMute.Notify);
+                    }
+
+                    if (Methods.CheckConnectivity())
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.MuteChatsInfoAsync(idChat, Type, dictionary) });
+
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_MessagePinned), ToastLength.Long);
                 }
                 else
                 {
-                    var checkPin = ListUtils.PinList.FirstOrDefault(a => pinObject != null && a.IdChat == pinObject.IdChat && a.ChatType == pinObject.ChatType);
+                    var checkPin = ListUtils.PinList.FirstOrDefault(a => pinObject != null && a.ChatId == pinObject.ChatId && a.ChatType == pinObject.ChatType);
                     if (checkPin != null)
                     {
                         ListUtils.PinList.Remove(checkPin);
@@ -1331,7 +1444,22 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         sqLiteDatabase.InsertORDelete_Pin(checkPin);
                     }
 
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_MessageUnPinned), ToastLength.Long)?.Show();
+                    var dictionary = new Dictionary<string, string>
+                    {
+                        {"pin", "no"},
+                    };
+
+                    if (globalMute != null)
+                    {
+                        dictionary.Add("call_chat", globalMute.CallChat);
+                        dictionary.Add("archive", globalMute.Archive);
+                        dictionary.Add("notify", globalMute.Notify);
+                    }
+
+                    if (Methods.CheckConnectivity())
+                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.MuteChatsInfoAsync(idChat, Type, dictionary) });
+
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_MessageUnPinned), ToastLength.Long);
                 }
 
                 Dismiss();
@@ -1347,7 +1475,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
         {
             try
             {
-                var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialog = new MaterialDialog.Builder(Context).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 dialog.Title(GetText(Resource.String.Lbl_DeleteTheEntireConversation));
                 dialog.Content(GetText(Resource.String.Lbl_OnceYouDeleteConversation));
                 dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
@@ -1356,7 +1484,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     {
                         if (!Methods.CheckConnectivity())
                         {
-                            Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             return;
                         }
 
@@ -1367,7 +1495,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                                     {
                                         var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                        var userToDelete = mAdapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.UserId == DataChatObject.UserId);
+                                        var userToDelete = mAdapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.UserId == DataChatObjectN.UserId);
                                         if (userToDelete != null)
                                         {
                                             var index = mAdapter.LastChatsList.IndexOf(userToDelete);
@@ -1379,18 +1507,18 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         }
 
                                         var dbDatabase = new SqLiteDatabase();
-                                        dbDatabase.Delete_LastUsersChat(DataChatObject.UserId, "user");
-                                        dbDatabase.DeleteAllMessagesUser(UserDetails.UserId, DataChatObject.UserId);
+                                        dbDatabase.Delete_LastUsersChat(DataChatObjectN.UserId, "user");
+                                        dbDatabase.DeleteAllMessagesUser(UserDetails.UserId, DataChatObjectN.UserId);
 
-                                        Methods.Path.DeleteAll_FolderUser(DataChatObject.UserId);
+                                        Methods.Path.DeleteAll_FolderUser(DataChatObjectN.UserId);
 
-                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(DataChatObject.UserId) });
-                                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Long)?.Show();
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(DataChatObjectN.UserId) });
+                                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Long);
                                     }
                                     else
                                     {
                                         var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                        var userToDelete = mAdapter?.LastChatsList?.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObject.UserId);
+                                        var userToDelete = mAdapter?.LastChatsList?.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObjectOld.UserId);
                                         if (userToDelete != null)
                                         {
                                             var index = mAdapter.LastChatsList.IndexOf(userToDelete);
@@ -1402,13 +1530,13 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         }
 
                                         var dbDatabase = new SqLiteDatabase();
-                                        dbDatabase.Delete_LastUsersChat(DataUserObject.UserId, "user");
-                                        dbDatabase.DeleteAllMessagesUser(UserDetails.UserId, DataUserObject.UserId);
+                                        dbDatabase.Delete_LastUsersChat(DataUserObjectOld.UserId, "user");
+                                        dbDatabase.DeleteAllMessagesUser(UserDetails.UserId, DataUserObjectOld.UserId);
 
-                                        Methods.Path.DeleteAll_FolderUser(DataUserObject.UserId);
+                                        Methods.Path.DeleteAll_FolderUser(DataUserObjectOld.UserId);
 
-                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(DataUserObject.UserId) });
-                                        Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Long)?.Show();
+                                        PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.DeleteConversationAsync(DataUserObjectOld.UserId) });
+                                        ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Long);
                                     }
                                     break;
                                 }
@@ -1420,13 +1548,13 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     {
                                         var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
 
-                                        var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId);
+                                        var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId);
                                         if (checkPage != null)
                                         {
-                                            var userAdminPage = DataChatObject.UserId;
-                                            if (userAdminPage == DataChatObject.LastMessage.LastMessageClass.ToData.UserId)
+                                            var userAdminPage = DataChatObjectN.UserId;
+                                            if (userAdminPage == DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId)
                                             {
-                                                userId = DataChatObject.LastMessage.LastMessageClass.UserData.UserId;
+                                                userId = DataChatObjectN.LastMessage.LastMessageClass.UserData.UserId;
                                                 var data = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.UserData.UserId == userId);
                                                 if (data != null)
                                                 {
@@ -1436,7 +1564,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                             }
                                             else
                                             {
-                                                userId = DataChatObject.LastMessage.LastMessageClass.ToData.UserId;
+                                                userId = DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId;
                                                 var data = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.ToData.UserId == userId);
                                                 if (data != null)
                                                 {
@@ -1446,11 +1574,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                             }
 
                                             var dbDatabase = new SqLiteDatabase();
-                                            dbDatabase.Delete_LastUsersChat(DataChatObject.PageId, "page", userId);
+                                            dbDatabase.Delete_LastUsersChat(DataChatObjectN.PageId, "page", userId);
 
-                                            Methods.Path.DeleteAll_FolderUser(DataChatObject.PageId);
+                                            Methods.Path.DeleteAll_FolderUser(DataChatObjectN.PageId);
 
-                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.DeletePageChatAsync(DataChatObject.PageId, userId) });
+                                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.PageChat.DeletePageChatAsync(DataChatObjectN.PageId, userId) });
                                         }
                                     }
                                     else
@@ -1476,7 +1604,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         }
                                     }
 
-                                    Toast.MakeText(Activity, Activity.GetString(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(Activity, Activity.GetString(Resource.String.Lbl_TheConversationHasBeenDeleted), ToastLength.Short);
 
                                     break;
                                 }
@@ -1486,7 +1614,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                                     {
                                         var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                        var data = mAdapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                        var data = mAdapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                         if (data != null)
                                         {
                                             mAdapter.LastChatsList.Remove(data);
@@ -1496,7 +1624,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     else
                                     {
                                         var adapter = GlobalContext?.LastGroupChatsTab.MAdapter;
-                                        var data = adapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                        var data = adapter?.LastChatsList?.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                         if (data != null)
                                         {
                                             adapter.LastChatsList.Remove(data);
@@ -1505,14 +1633,14 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     }
 
                                     var dbDatabase = new SqLiteDatabase();
-                                    dbDatabase.Delete_LastUsersChat(DataChatObject.GroupId, "group");
-                                    dbDatabase.DeleteAllMessagesUser(UserDetails.UserId, DataChatObject.GroupId);
+                                    dbDatabase.Delete_LastUsersChat(DataChatObjectN.GroupId, "group");
+                                    dbDatabase.DeleteAllMessagesUser(UserDetails.UserId, DataChatObjectN.GroupId);
 
-                                    Methods.Path.DeleteAll_FolderUser(DataChatObject.GroupId);
+                                    Methods.Path.DeleteAll_FolderUser(DataChatObjectN.GroupId);
 
-                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.ExitGroupChatAsync(DataChatObject.GroupId) });
+                                    PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.GroupChat.DeleteGroupChatAsync(DataChatObjectN.GroupId) });
 
-                                    Toast.MakeText(Activity, Activity.GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(Activity, Activity.GetString(Resource.String.Lbl_GroupSuccessfullyLeaved), ToastLength.Short);
                                     break;
                                 }
                         }
@@ -1526,7 +1654,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 });
                 dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(new WoWonderTools.MyMaterialDialog());
                 dialog.AlwaysCallSingleChoiceCallback();
-                dialog.Build().Show();
+                dialog.Build().Show(); 
             }
             catch (Exception exception)
             {
@@ -1540,109 +1668,111 @@ namespace WoWonder.Activities.Chat.MsgTabbes
             try
             {
                 bool isArchive = false;
-                Classes.LastChatArchive archiveObject = null;
-
-                //wael add api  
-                Classes.LastChatsClass checkUser = null;
+                Classes.LastChatArchive archiveObject = null!;
+                Mute globalMute = null!;
+                Classes.LastChatsClass checkUser = null!;
+                string idChat = null!;
 
                 if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                 {
                     var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                    isArchive = !DataChatObject.IsArchive;
-                    DataChatObject.IsArchive = isArchive;
+                    isArchive = !DataChatObjectN.IsArchive;
+                    DataChatObjectN.IsArchive = isArchive;
+                    idChat = DataChatObjectN.ChatId;
+                    globalMute = DataChatObjectN.Mute;
 
                     switch (Type)
                     {
                         case "user":
-                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObject.UserId);
+                            checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.UserId == DataChatObjectN.UserId);
                             archiveObject = new Classes.LastChatArchive
                             {
                                 ChatType = "user",
-                                IdChat = DataChatObject.UserId,
-                                UserId = DataChatObject.UserId,
+                                ChatId = DataChatObjectN.ChatId,
+                                UserId = DataChatObjectN.UserId,
                                 GroupId = "",
                                 PageId = "",
-                                Name = DataChatObject.Name,
-                                IdLastMessage = DataChatObject.LastMessage.LastMessageClass?.Id ?? "",
-                                LastChat = DataChatObject
+                                Name = DataChatObjectN.Name,
+                                IdLastMessage = DataChatObjectN.LastMessage.LastMessageClass?.Id ?? "",
+                                LastChat = DataChatObjectN
                             };
                             break;
                         case "page":
-                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObject.LastMessage.LastMessageClass?.ToData?.UserId);
+                            var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId && a.LastChat?.LastMessage.LastMessageClass?.ToData?.UserId == DataChatObjectN.LastMessage.LastMessageClass?.ToData?.UserId);
                             if (checkPage != null)
                             {
-                                var userAdminPage = DataChatObject.UserId;
-                                if (userAdminPage == DataChatObject.LastMessage.LastMessageClass.ToData.UserId)
+                                var userAdminPage = DataChatObjectN.UserId;
+                                if (userAdminPage == DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId)
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.UserData?.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.UserData?.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.UserData?.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.UserData?.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
 
                                     archiveObject = new Classes.LastChatArchive
                                     {
                                         ChatType = "page",
-                                        IdChat = DataChatObject.PageId + userId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = userId,
                                         GroupId = "",
-                                        PageId = DataChatObject.PageId,
+                                        PageId = DataChatObjectN.PageId,
                                         Name = name,
-                                        IdLastMessage = DataChatObject.LastMessage.LastMessageClass?.Id ?? "",
-                                        LastChat = DataChatObject
+                                        IdLastMessage = DataChatObjectN.LastMessage.LastMessageClass?.Id ?? "",
+                                        LastChat = DataChatObjectN
                                     };
                                 }
                                 else
                                 {
-                                    var userId = DataChatObject.LastMessage.LastMessageClass.ToData.UserId;
+                                    var userId = DataChatObjectN.LastMessage.LastMessageClass.ToData.UserId;
                                     checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.LastMessage.LastMessageClass.ToData.UserId == userId);
 
-                                    var name = DataChatObject.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObject.PageName + ")";
+                                    var name = DataChatObjectN.LastMessage.LastMessageClass.ToData.Name + "(" + DataChatObjectN.PageName + ")";
                                     Console.WriteLine(name);
-
+                                    
                                     archiveObject = new Classes.LastChatArchive
                                     {
                                         ChatType = "page",
-                                        IdChat = DataChatObject.PageId + userId,
+                                        ChatId = DataChatObjectN.ChatId,
                                         UserId = userId,
                                         GroupId = "",
-                                        PageId = DataChatObject.PageId,
+                                        PageId = DataChatObjectN.PageId,
                                         Name = name,
-                                        IdLastMessage = DataChatObject.LastMessage.LastMessageClass?.Id ?? "",
-                                        LastChat = DataChatObject
+                                        IdLastMessage = DataChatObjectN.LastMessage.LastMessageClass?.Id ?? "",
+                                        LastChat = DataChatObjectN
                                     };
                                 }
                             }
                             else
                             {
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObject.PageId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.PageId == DataChatObjectN.PageId);
                                 archiveObject = new Classes.LastChatArchive
                                 {
                                     ChatType = "page",
-                                    IdChat = DataChatObject.PageId,
+                                    ChatId = DataChatObjectN.ChatId,
                                     UserId = "",
                                     GroupId = "",
-                                    PageId = DataChatObject.PageId,
-                                    Name = DataChatObject.PageName,
-                                    IdLastMessage = DataChatObject.LastMessage.LastMessageClass?.Id ?? "",
-                                    LastChat = DataChatObject
+                                    PageId = DataChatObjectN.PageId,
+                                    Name = DataChatObjectN.PageName,
+                                    IdLastMessage = DataChatObjectN.LastMessage.LastMessageClass?.Id ?? "",
+                                    LastChat = DataChatObjectN
                                 };
                             }
                             break;
                         //break;
                         case "group":
                             {
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 archiveObject = new Classes.LastChatArchive
                                 {
                                     ChatType = "group",
-                                    IdChat = DataChatObject.GroupId,
+                                    ChatId = DataChatObjectN.GroupId,
                                     UserId = "",
-                                    GroupId = DataChatObject.GroupId,
+                                    GroupId = DataChatObjectN.GroupId,
                                     PageId = "",
-                                    Name = DataChatObject.GroupName,
-                                    IdLastMessage = DataChatObject.LastMessage.LastMessageClass?.Id ?? "",
-                                    LastChat = DataChatObject
+                                    Name = DataChatObjectN.GroupName,
+                                    IdLastMessage = DataChatObjectN.LastMessage.LastMessageClass?.Id ?? "",
+                                    LastChat = DataChatObjectN
                                 };
                             }
                             break;
@@ -1650,6 +1780,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                     if (checkUser != null)
                     {
                         checkUser.LastChat.IsArchive = isArchive;
+                        checkUser.LastChat.Mute.Archive = isArchive ? "yes" : "no";
+                        globalMute = checkUser.LastChat.Mute;
 
                         var index = mAdapter.LastChatsList.IndexOf(checkUser);
                         mAdapter.LastChatsList.Remove(checkUser);
@@ -1658,33 +1790,38 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                 }
                 else
                 {
-                    //wael add api  
                     switch (Type)
                     {
                         case "user":
                             {
                                 var mAdapter = GlobalContext?.LastChatTab?.MAdapter;
-                                isArchive = !DataUserObject.IsArchive;
-                                DataUserObject.IsArchive = isArchive;
+                                isArchive = !DataUserObjectOld.IsArchive;
+                                DataUserObjectOld.IsArchive = isArchive;
+                                globalMute = DataUserObjectOld.Mute;
 
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObject.UserId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastMessagesUser?.UserId == DataUserObjectOld.UserId);
                                 if (checkUser?.LastMessagesUser != null)
                                 {
                                     checkUser.LastMessagesUser.IsArchive = isArchive;
+
+                                    checkUser.LastMessagesUser.Mute.Archive = isArchive ? "yes" : "no";
+                                    globalMute = checkUser.LastMessagesUser.Mute;
+
                                     var index = mAdapter.LastChatsList.IndexOf(checkUser);
                                     mAdapter.LastChatsList.Remove(checkUser);
                                     mAdapter.NotifyItemRemoved(index);
 
+                                    idChat = DataUserObjectOld.UserId;
                                     archiveObject = new Classes.LastChatArchive
                                     {
                                         ChatType = "user",
-                                        IdChat = DataUserObject.UserId,
-                                        UserId = DataUserObject.UserId,
+                                        ChatId = DataUserObjectOld.UserId,
+                                        UserId = DataUserObjectOld.UserId,
                                         GroupId = "",
                                         PageId = "",
-                                        Name = DataUserObject.Name,
-                                        IdLastMessage = DataUserObject?.LastMessage?.Id ?? "",
-                                        LastMessagesUser = DataUserObject
+                                        Name = DataUserObjectOld.Name,
+                                        IdLastMessage = DataUserObjectOld?.LastMessage?.Id ?? "",
+                                        LastMessagesUser = DataUserObjectOld
                                     };
                                 }
                                 break;
@@ -1694,6 +1831,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                 var mAdapter = GlobalContext?.LastPageChatsTab?.MAdapter;
                                 isArchive = !PageClassObject.IsArchive;
                                 PageClassObject.IsArchive = isArchive;
+                                //globalMute = PageClassObject.Mute;
 
                                 var checkPage = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChatPage?.PageId == PageClassObject.PageId && a.LastChatPage?.LastMessage?.ToData?.UserId == PageClassObject.LastMessage?.ToData?.UserId);
                                 if (checkPage != null)
@@ -1706,6 +1844,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         if (checkUser != null)
                                         {
                                             checkUser.LastChatPage.IsArchive = isArchive;
+
+                                            //checkUser.LastChatPage.Mute.Archive = isArchive ? "yes" : "no";
+                                            //globalMute = checkUser.LastChatPage.Mute;
+                                             
                                             var index = mAdapter.LastChatsList.IndexOf(checkUser);
                                             mAdapter.LastChatsList.Remove(checkUser);
                                             mAdapter.NotifyItemRemoved(index);
@@ -1714,10 +1856,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         var name = PageClassObject.LastMessage.UserData?.Name + "(" + PageClassObject.PageName + ")";
                                         Console.WriteLine(name);
 
+                                        idChat = PageClassObject.PageId;
                                         archiveObject = new Classes.LastChatArchive
                                         {
                                             ChatType = "page",
-                                            IdChat = PageClassObject.PageId + userId,
+                                            ChatId = PageClassObject.PageId + userId,
                                             UserId = userId,
                                             GroupId = "",
                                             PageId = PageClassObject.PageId,
@@ -1733,6 +1876,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         if (checkUser != null)
                                         {
                                             checkUser.LastChatPage.IsArchive = isArchive;
+
+                                            //checkUser.LastChatPage.Mute.Archive = isArchive ? "yes" : "no";
+                                            //globalMute = checkUser.LastChatPage.Mute;
+
                                             var index = mAdapter.LastChatsList.IndexOf(checkUser);
                                             mAdapter.LastChatsList.Remove(checkUser);
                                             mAdapter.NotifyItemRemoved(index);
@@ -1741,10 +1888,11 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         var name = PageClassObject.LastMessage.ToData.Name + "(" + PageClassObject.PageName + ")";
                                         Console.WriteLine(name);
 
+                                        idChat = PageClassObject.PageId;
                                         archiveObject = new Classes.LastChatArchive
                                         {
                                             ChatType = "page",
-                                            IdChat = PageClassObject.PageId + userId,
+                                            ChatId = PageClassObject.PageId + userId,
                                             UserId = userId,
                                             GroupId = "",
                                             PageId = PageClassObject.PageId,
@@ -1760,27 +1908,33 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         case "group":
                             {
                                 var mAdapter = GlobalContext?.LastGroupChatsTab?.MAdapter;
-                                isArchive = !DataChatObject.IsArchive;
-                                DataChatObject.IsArchive = isArchive;
+                                isArchive = !DataChatObjectN.IsArchive;
+                                DataChatObjectN.IsArchive = isArchive;
+                                globalMute = DataChatObjectN.Mute;
 
-                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObject.GroupId);
+                                checkUser = mAdapter?.LastChatsList.FirstOrDefault(a => a.LastChat?.GroupId == DataChatObjectN.GroupId);
                                 if (checkUser?.LastChat != null)
                                 {
                                     checkUser.LastChat.IsArchive = isArchive;
+
+                                    checkUser.LastChat.Mute.Archive = isArchive ? "yes" : "no";
+                                    globalMute = checkUser.LastChat.Mute;
+
                                     var index = mAdapter.LastChatsList.IndexOf(checkUser);
                                     mAdapter.LastChatsList.Remove(checkUser);
                                     mAdapter.NotifyItemRemoved(index);
 
+                                    idChat = DataChatObjectN.GroupId;
                                     archiveObject = new Classes.LastChatArchive
                                     {
                                         ChatType = "group",
-                                        IdChat = DataChatObject.GroupId,
+                                        ChatId = DataChatObjectN.GroupId,
                                         UserId = "",
-                                        GroupId = DataChatObject.GroupId,
+                                        GroupId = DataChatObjectN.GroupId,
                                         PageId = "",
-                                        Name = DataChatObject.GroupName,
-                                        IdLastMessage = DataChatObject.LastMessage.LastMessageClass?.Id ?? "",
-                                        LastChat = DataChatObject
+                                        Name = DataChatObjectN.GroupName,
+                                        IdLastMessage = DataChatObjectN.LastMessage.LastMessageClass?.Id ?? "",
+                                        LastChat = DataChatObjectN
                                     };
                                 }
                                 break;
@@ -1798,13 +1952,28 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         sqLiteDatabase.InsertORDelete_Archive(archiveObject);
 
                         ArchivedActivity.GetInstance()?.GetArchivedList();
+
+                        var dictionary = new Dictionary<string, string>
+                        {
+                            {"archive", "yes"},
+                        };
+
+                        if (globalMute != null)
+                        {
+                            dictionary.Add("call_chat", globalMute.CallChat);
+                            dictionary.Add("pin", globalMute.Archive);
+                            dictionary.Add("notify", globalMute.Notify);
+                        }
+
+                        if (Methods.CheckConnectivity())
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.MuteChatsInfoAsync(idChat , Type, dictionary) });
                     }
 
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_Archive), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_Archive), ToastLength.Long);
                 }
                 else
                 {
-                    var checkArchive = ListUtils.ArchiveList.FirstOrDefault(a => archiveObject != null && a.IdChat == archiveObject.IdChat && a.ChatType == archiveObject.ChatType);
+                    var checkArchive = ListUtils.ArchiveList.FirstOrDefault(a => archiveObject != null && a.ChatId == archiveObject.ChatId && a.ChatType == archiveObject.ChatType);
                     if (checkArchive != null)
                     {
                         ListUtils.ArchiveList.Remove(checkArchive);
@@ -1813,9 +1982,24 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         sqLiteDatabase.InsertORDelete_Archive(checkArchive);
 
                         ArchivedActivity.GetInstance()?.GetArchivedList();
+
+                        var dictionary = new Dictionary<string, string>
+                        {
+                            {"archive", "no"}, 
+                        };
+
+                        if (globalMute != null)
+                        {
+                            dictionary.Add("call_chat", globalMute.CallChat);
+                            dictionary.Add("pin", globalMute.Archive);
+                            dictionary.Add("notify", globalMute.Notify);
+                        }
+
+                        if (Methods.CheckConnectivity())
+                            PollyController.RunRetryPolicyFunction(new List<Func<Task>> { () => RequestsAsync.Message.MuteChatsInfoAsync(idChat, Type, dictionary) });
                     }
 
-                    Toast.MakeText(Context, Context.GetText(Resource.String.Lbl_UnArchive), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(Context, Context.GetText(Resource.String.Lbl_UnArchive), ToastLength.Long);
                 }
 
                 GlobalContext?.LastChatTab?.ShowEmptyPage();
@@ -1832,18 +2016,13 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
         #region MaterialDialog
 
-        public void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
-
+                string text = itemString; 
                 if (text == Context.GetText(Resource.String.Lbl_Voice_call))
-                {
-                    string timeNow = DateTime.Now.ToString("hh:mm");
-                    var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                    string time = Convert.ToString(unixTimestamp);
-
+                { 
                     Intent intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
                     switch (AppSettings.UseLibrary)
                     {
@@ -1857,30 +2036,37 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             break;
                     }
 
+                    CallUserObject callUserObject;
+
                     switch (AppSettings.LastChatSystem)
                     {
                         case SystemApiGetLastChat.New:
-                            intentVideoCall.PutExtra("UserID", DataChatObject.UserId);
-                            intentVideoCall.PutExtra("avatar", DataChatObject.Avatar);
-                            intentVideoCall.PutExtra("name", DataChatObject.Name);
+                            callUserObject = new CallUserObject
+                            {
+                                UserId = DataChatObjectN.UserId,
+                                Avatar = DataChatObjectN.Avatar,
+                                Name = DataChatObjectN.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
                             break;
                         default:
-                            intentVideoCall.PutExtra("UserID", DataUserObject.UserId);
-                            intentVideoCall.PutExtra("avatar", DataUserObject.Avatar);
-                            intentVideoCall.PutExtra("name", DataUserObject.Name);
+                            callUserObject = new CallUserObject
+                            {
+                                UserId = DataUserObjectOld.UserId,
+                                Avatar = DataUserObjectOld.Avatar,
+                                Name = DataUserObjectOld.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject));
+                             
                             break;
                     }
-
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
+                      
                     Activity.StartActivity(intentVideoCall);
                 }
                 else if (text == Context.GetText(Resource.String.Lbl_Video_call))
-                {
-                    string timeNow = DateTime.Now.ToString("hh:mm");
-                    var unixTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                    string time = Convert.ToString(unixTimestamp);
-
+                { 
                     Intent intentVideoCall = new Intent(Context, typeof(TwilioVideoCallActivity));
                     switch (AppSettings.UseLibrary)
                     {
@@ -1894,28 +2080,32 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             break;
                     }
 
+                    CallUserObject callUserObject;
+
                     switch (AppSettings.LastChatSystem)
                     {
                         case SystemApiGetLastChat.New:
-                            intentVideoCall.PutExtra("UserID", DataChatObject.UserId);
-                            intentVideoCall.PutExtra("avatar", DataChatObject.Avatar);
-                            intentVideoCall.PutExtra("name", DataChatObject.Name);
+                            callUserObject = new CallUserObject
+                            {
+                                UserId = DataChatObjectN.UserId,
+                                Avatar = DataChatObjectN.Avatar,
+                                Name = DataChatObjectN.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
                             break;
                         default:
-                            intentVideoCall.PutExtra("UserID", DataUserObject.UserId);
-                            intentVideoCall.PutExtra("avatar", DataUserObject.Avatar);
-                            intentVideoCall.PutExtra("name", DataUserObject.Name);
+                            callUserObject = new CallUserObject
+                            {
+                                UserId = DataUserObjectOld.UserId,
+                                Avatar = DataUserObjectOld.Avatar,
+                                Name = DataUserObjectOld.Name,
+                                Data = new CallUserObject.DataCallUser()
+                            };
+                            intentVideoCall.PutExtra("callUserObject", JsonConvert.SerializeObject(callUserObject)); 
                             break;
                     }
-
-                    intentVideoCall.PutExtra("time", timeNow);
-                    intentVideoCall.PutExtra("CallID", time);
-                    intentVideoCall.PutExtra("access_token", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("access_token_2", "YOUR_TOKEN");
-                    intentVideoCall.PutExtra("from_id", "0");
-                    intentVideoCall.PutExtra("active", "0");
-                    intentVideoCall.PutExtra("status", "0");
-                    intentVideoCall.PutExtra("room_name", "TestRoom");
+                     
                     Activity.StartActivity(intentVideoCall);
                 }
             }
@@ -1939,10 +2129,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         {
                             if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                             {
-                                DataChatObject = JsonConvert.DeserializeObject<ChatObject>(Arguments.GetString("ItemObject") ?? "");
-                                if (DataChatObject != null) //not read Change to read (Normal)
+                                DataChatObjectN = JsonConvert.DeserializeObject<ChatObject>(Arguments.GetString("ItemObject") ?? "");
+                                if (DataChatObjectN != null) //not read Change to read (Normal)
                                 {
-                                    if (DataChatObject.LastMessage.LastMessageClass?.Seen == "0")
+                                    if (DataChatObjectN.LastMessage.LastMessageClass?.Seen == "0")
                                     {
                                         ReadText.Text = Context.GetText(Resource.String.Lbl_MarkAsRead);
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.Mail);
@@ -1953,7 +2143,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.MailUnread);
                                     }
 
-                                    if (DataChatObject.IsMute)
+                                    if (DataChatObjectN.IsMute)
                                     {
                                         MuteText.Text = Context.GetText(Resource.String.Lbl_UnMuteNotification);
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.Notifications);
@@ -1964,17 +2154,17 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.NotificationsOff);
                                     }
 
-                                    PinText.Text = Context.GetText(DataChatObject.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
-                                    ArchiveText.Text = Context.GetText(DataChatObject.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
+                                    PinText.Text = Context.GetText(DataChatObjectN.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
+                                    ArchiveText.Text = Context.GetText(DataChatObjectN.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
 
                                 }
                             }
                             else
                             {
-                                DataUserObject = JsonConvert.DeserializeObject<GetUsersListObject.User>(Arguments.GetString("ItemObject") ?? "");
-                                if (DataUserObject != null) //not read Change to read (Normal)
+                                DataUserObjectOld = JsonConvert.DeserializeObject<GetUsersListObject.User>(Arguments.GetString("ItemObject") ?? "");
+                                if (DataUserObjectOld != null) //not read Change to read (Normal)
                                 {
-                                    if (DataUserObject.LastMessage?.Seen == "0")
+                                    if (DataUserObjectOld.LastMessage?.Seen == "0")
                                     {
                                         ReadText.Text = Context.GetText(Resource.String.Lbl_MarkAsRead);
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.Mail);
@@ -1985,7 +2175,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.MailUnread);
                                     }
 
-                                    if (DataUserObject.IsMute)
+                                    if (DataUserObjectOld.IsMute)
                                     {
                                         MuteText.Text = Context.GetText(Resource.String.Lbl_UnMuteNotification);
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.Notifications);
@@ -1996,8 +2186,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.NotificationsOff);
                                     }
 
-                                    PinText.Text = Context.GetText(DataUserObject.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
-                                    ArchiveText.Text = Context.GetText(DataUserObject.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
+                                    PinText.Text = Context.GetText(DataUserObjectOld.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
+                                    ArchiveText.Text = Context.GetText(DataUserObjectOld.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
 
                                 }
                             }
@@ -2008,18 +2198,49 @@ namespace WoWonder.Activities.Chat.MsgTabbes
 
                             if (page == "Archived")
                                 PinLayout.Visibility = ViewStates.Gone;
+                             
+                            if (AppSettings.EnableAudioVideoCall)
+                            {
+                                var dataSettings = ListUtils.SettingsSiteList;
+                                if (dataSettings?.WhoCall == "pro") //just pro user can chat 
+                                {
+                                    var dataUser = ListUtils.MyProfileList?.FirstOrDefault()?.IsPro;
+                                    if (dataUser == "0") // Not Pro remove call
+                                    {
+                                        CallLayout.Visibility = ViewStates.Gone;
+                                    }
+                                }
+                                else //all users can chat
+                                {
+                                    if (dataSettings?.VideoChat == "0" || !AppSettings.EnableVideoCall)
+                                    {
+                                        //VideoCallButton.Visibility = ViewStates.Gone;
+                                        AppSettings.EnableVideoCall = false;
+                                    }
 
+                                    if (dataSettings?.AudioChat == "0" || !AppSettings.EnableAudioCall)
+                                    {
+                                        //AudioCallButton.Visibility = ViewStates.Gone;
+                                        AppSettings.EnableAudioCall = false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                CallLayout.Visibility = ViewStates.Gone;
+                            }
+                             
                             break;
                         }
                     case "page":
                         {
                             if (AppSettings.LastChatSystem == SystemApiGetLastChat.New)
                             {
-                                DataChatObject = JsonConvert.DeserializeObject<ChatObject>(Arguments.GetString("ItemObject") ?? "");
+                                DataChatObjectN = JsonConvert.DeserializeObject<ChatObject>(Arguments.GetString("ItemObject") ?? "");
 
-                                if (DataChatObject != null) //not read Change to read (Normal)  
+                                if (DataChatObjectN != null) //not read Change to read (Normal)  
                                 {
-                                    if (DataChatObject.LastMessage.LastMessageClass?.Seen == "0")
+                                    if (DataChatObjectN.LastMessage.LastMessageClass?.Seen == "0")
                                     {
                                         ReadText.Text = Context.GetText(Resource.String.Lbl_MarkAsRead);
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.Mail);
@@ -2030,7 +2251,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.MailUnread);
                                     }
 
-                                    if (DataChatObject.IsMute)
+                                    if (DataChatObjectN.IsMute)
                                     {
                                         MuteText.Text = Context.GetText(Resource.String.Lbl_UnMuteNotification);
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.Notifications);
@@ -2041,8 +2262,8 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                         FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.NotificationsOff);
                                     }
 
-                                    PinText.Text = Context.GetText(DataChatObject.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
-                                    ArchiveText.Text = Context.GetText(DataChatObject.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
+                                    PinText.Text = Context.GetText(DataChatObjectN.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
+                                    ArchiveText.Text = Context.GetText(DataChatObjectN.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
 
                                 }
                             }
@@ -2084,8 +2305,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                             ProfileLayout.Visibility = ViewStates.Gone;
                             GroupInfoLayout.Visibility = ViewStates.Gone;
                             ExitGroupLayout.Visibility = ViewStates.Gone;
-                            AddMembersLayout.Visibility = ViewStates.Gone;
-                            ReportLayout.Visibility = ViewStates.Gone;
+                            AddMembersLayout.Visibility = ViewStates.Gone; 
 
                             if (page == "Archived")
                                 PinLayout.Visibility = ViewStates.Gone;
@@ -2094,10 +2314,10 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                         }
                     case "group":
                         {
-                            DataChatObject = JsonConvert.DeserializeObject<ChatObject>(Arguments.GetString("ItemObject") ?? "");
-                            if (DataChatObject != null) //not read Change to read (Normal)  
+                            DataChatObjectN = JsonConvert.DeserializeObject<ChatObject>(Arguments.GetString("ItemObject") ?? "");
+                            if (DataChatObjectN != null) //not read Change to read (Normal)  
                             {
-                                if (DataChatObject.LastMessage.LastMessageClass?.Seen == "0")
+                                if (DataChatObjectN.LastMessage.LastMessageClass?.Seen == "0")
                                 {
                                     ReadText.Text = Context.GetText(Resource.String.Lbl_MarkAsRead);
                                     FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.Mail);
@@ -2108,7 +2328,7 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, ReadIcon, IonIconsFonts.MailUnread);
                                 }
 
-                                if (DataChatObject.IsMute)
+                                if (DataChatObjectN.IsMute)
                                 {
                                     MuteText.Text = Context.GetText(Resource.String.Lbl_UnMuteNotification);
                                     FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.Notifications);
@@ -2119,17 +2339,16 @@ namespace WoWonder.Activities.Chat.MsgTabbes
                                     FontUtils.SetTextViewIcon(FontsIconFrameWork.IonIcons, MuteIcon, IonIconsFonts.NotificationsOff);
                                 }
 
-                                PinText.Text = Context.GetText(DataChatObject.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
-                                ArchiveText.Text = Context.GetText(DataChatObject.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
+                                PinText.Text = Context.GetText(DataChatObjectN.IsPin ? Resource.String.Lbl_UnPin : Resource.String.Lbl_Pin);
+                                ArchiveText.Text = Context.GetText(DataChatObjectN.IsArchive ? Resource.String.Lbl_UnArchive : Resource.String.Lbl_Archive);
 
-                                if (DataChatObject?.Owner != null && !DataChatObject.Owner.Value)
+                                if (DataChatObjectN?.Owner != null && !DataChatObjectN.Owner.Value)
                                     AddMembersLayout.Visibility = ViewStates.Gone;
                             }
 
                             BlockLayout.Visibility = ViewStates.Gone;
                             CallLayout.Visibility = ViewStates.Gone;
                             ProfileLayout.Visibility = ViewStates.Gone;
-                            ReportLayout.Visibility = ViewStates.Gone;
 
                             if (page == "Archived")
                                 PinLayout.Visibility = ViewStates.Gone;

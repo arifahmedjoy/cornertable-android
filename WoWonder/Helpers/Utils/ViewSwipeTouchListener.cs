@@ -34,7 +34,7 @@ namespace WoWonder.Helpers.Utils
 
         public interface IOnSwipeListener
         {
-            void Swipe(View v, SwipeType type); 
+            void Swipe(View v, SwipeType type);
         }
 
         public enum SwipeType
@@ -108,7 +108,7 @@ namespace WoWonder.Helpers.Utils
                     Methods.DisplayReportResultTrack(e);
                     return base.OnFling(e1, e2, velocityX, velocityY);
                 }
-            } 
+            }
         }
     }
-}
+} 

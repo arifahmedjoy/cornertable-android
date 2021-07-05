@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -15,6 +16,8 @@ using AndroidX.AppCompat.Widget;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Graphics.Drawable;
 using AndroidX.RecyclerView.Widget;
+using AndroidX.SwipeRefreshLayout.Widget;
+using Bumptech.Glide.Util;
 using Com.Google.Android.Youtube.Player;
 using Newtonsoft.Json;
 using Refractored.Controls;
@@ -28,9 +31,12 @@ using WoWonder.Helpers.Fonts;
 using WoWonder.Helpers.Model;
 using WoWonder.Helpers.Utils;
 using WoWonder.Library.Anjo;
+using WoWonder.Library.Anjo.IntegrationRecyclerView;
 using WoWonder.Library.Anjo.SuperTextLibrary;
 using WoWonder.SQLite;
+using WoWonderClient.Classes.Comments;
 using WoWonderClient.Classes.Posts;
+using WoWonderClient.Requests;
 using String = Java.Lang.String;
 
 namespace WoWonder.Activities.NativePost.Pages
@@ -41,8 +47,13 @@ namespace WoWonder.Activities.NativePost.Pages
         #region Variables Basic
 
         private CoordinatorLayout MainView;
+         
         private CommentAdapter MAdapter;
-        private RecyclerView MainRecyclerView;
+        private RecyclerView MRecycler;
+        private LinearLayoutManager LayoutManager;
+        private RecyclerViewOnScrollListener MainScrollEvent;
+
+        private SwipeRefreshLayout SwipeRefreshLayout;
 
         private IYouTubePlayer YoutubePlayer;
         private string PostId;
@@ -219,6 +230,14 @@ namespace WoWonder.Activities.NativePost.Pages
                 ShareLinearLayout = FindViewById<LinearLayout>(Resource.Id.ShareLinearLayout);
                 CommentLinearLayout = FindViewById<LinearLayout>(Resource.Id.CommentLinearLayout);
                 SecondReactionLinearLayout = FindViewById<LinearLayout>(Resource.Id.SecondReactionLinearLayout);
+                 
+                MRecycler = FindViewById<RecyclerView>(Resource.Id.recycler_view);
+
+                SwipeRefreshLayout = FindViewById<SwipeRefreshLayout>(Resource.Id.swipeRefreshLayout);
+                SwipeRefreshLayout.SetColorSchemeResources(Android.Resource.Color.HoloBlueLight, Android.Resource.Color.HoloGreenLight, Android.Resource.Color.HoloOrangeLight, Android.Resource.Color.HoloRedLight);
+                SwipeRefreshLayout.Refreshing = false;
+                SwipeRefreshLayout.Enabled = false;
+                SwipeRefreshLayout.SetProgressBackgroundColorSchemeColor(AppSettings.SetTabDarkTheme ? Color.ParseColor("#424242") : Color.ParseColor("#f7f7f7"));
 
                 if (SecondReactionButton != null)
                 {
@@ -270,9 +289,25 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             {
-                MainRecyclerView = FindViewById<RecyclerView>(Resource.Id.recycler_view);
+                MAdapter = new CommentAdapter(this)
+                {
+                    CommentList = new ObservableCollection<CommentObjectExtra>()
+                };
+                LayoutManager = new LinearLayoutManager(this);
+                MRecycler.SetLayoutManager(LayoutManager);
+                MRecycler.HasFixedSize = true;
+                MRecycler.SetItemViewCacheSize(10);
+                MRecycler.GetLayoutManager().ItemPrefetchEnabled = true;
+                var sizeProvider = new FixedPreloadSizeProvider(10, 10);
+                var preLoader = new RecyclerViewPreloader<CommentObjectExtra>(this, MAdapter, sizeProvider, 10);
+                MRecycler.AddOnScrollListener(preLoader);
+                MRecycler.SetAdapter(MAdapter);
 
-                MAdapter = new CommentAdapter(this);
+                RecyclerViewOnScrollListener xamarinRecyclerViewOnScrollListener = new RecyclerViewOnScrollListener(LayoutManager);
+                MainScrollEvent = xamarinRecyclerViewOnScrollListener;
+                MainScrollEvent.LoadMoreEvent += MainScrollEventOnLoadMoreEvent;
+                MRecycler.AddOnScrollListener(xamarinRecyclerViewOnScrollListener);
+                MainScrollEvent.IsLoading = false;
             }
             catch (Exception e)
             {
@@ -313,7 +348,7 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             { 
-                PostObject = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostObject")); 
+                PostObject = JsonConvert.DeserializeObject<PostDataObject>(Intent?.GetStringExtra("PostObject") ?? ""); 
                 if (PostObject != null)
                 {
                     var readMoreOption = new StReadMoreOption.Builder()
@@ -609,21 +644,8 @@ namespace WoWonder.Activities.NativePost.Pages
                             break;
                         }
                     }
-                     
-                    switch (PostObject?.GetPostComments?.Count)
-                    {
-                        case > 0:
-                        {
-                            var db = ClassMapper.Mapper?.Map<List<CommentObjectExtra>>(PostObject.GetPostComments);
-                            MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>(db);
-                            break;
-                        }
-                        default:
-                            MAdapter.CommentList = new ObservableCollection<CommentObjectExtra>();
-                            break;
-                    }
 
-                    MAdapter.NotifyDataSetChanged();
+                    StartApiService();
                 } 
             }
             catch (Exception e)
@@ -642,7 +664,7 @@ namespace WoWonder.Activities.NativePost.Pages
                     errorReason.GetErrorDialog(this, 1).Show();
                     break;
                 default:
-                    Toast.MakeText(this, errorReason.ToString(), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, errorReason.ToString(), ToastLength.Short);
                     break;
             }
         }
@@ -684,7 +706,7 @@ namespace WoWonder.Activities.NativePost.Pages
                 else if (v.Id == UserAvatar.Id)
                     PostClickListener.ProfilePostClick(new ProfileClickEventArgs { NewsFeedClass = PostObject, View = MainView }, "NewsFeedClass", "UserAvatar");
                 else if (v.Id == MoreIcon.Id)
-                    PostClickListener.MorePostIconClick(new GlobalClickEventArgs { NewsFeedClass = PostObject, View = MainView });
+                    PostClickListener.MorePostIconClick(new GlobalClickEventArgs { NewsFeedClass = PostObject, View = MainView }, "YoutubePlayer");
                 else if (v.Id == LikeButton.Id)
                     LikeButton.ClickLikeAndDisLike(new GlobalClickEventArgs { NewsFeedClass = PostObject, View = MainView }, null);
                 else if (v.Id == CommentLinearLayout.Id)
@@ -725,18 +747,19 @@ namespace WoWonder.Activities.NativePost.Pages
         {
             try
             {
-                var typeText = Methods.FunString.Check_Regex(p1.Replace(" ", ""));
+                p1 = p1.Replace(" ", "").Replace("\n", "");
+                var typeText = Methods.FunString.Check_Regex(p1);
                 switch (typeText)
                 {
                     case "Email":
-                        Methods.App.SendEmail(this, p1.Replace(" ", ""));
+                        Methods.App.SendEmail(this, p1);
                         break;
                     case "Website":
                     {
                         string url = p1.Contains("http") switch
                         {
-                            false => "http://" + p1.Replace(" ", ""),
-                            _ => p1.Replace(" ", "")
+                            false => "http://" + p1,
+                            _ => p1
                         };
 
                         //var intent = new Intent(this, typeof(LocalWebViewActivity));
@@ -749,8 +772,8 @@ namespace WoWonder.Activities.NativePost.Pages
                     case "Hashtag":
                     {
                         var intent = new Intent(this, typeof(HashTagPostsActivity));
-                        intent.PutExtra("Id", p1.Replace(" ", ""));
-                        intent.PutExtra("Tag", p1.Replace(" ", ""));
+                        intent.PutExtra("Id", p1);
+                        intent.PutExtra("Tag", p1);
                         StartActivity(intent);
                         break;
                     }
@@ -827,7 +850,7 @@ namespace WoWonder.Activities.NativePost.Pages
                         break;
                     }
                     case "Number":
-                        Methods.App.SaveContacts(this, p1.Replace(" ", ""), "", "2");
+                        Methods.App.SaveContacts(this, p1, "", "2");
                         break;
                 }
             }
@@ -836,5 +859,85 @@ namespace WoWonder.Activities.NativePost.Pages
                 Methods.DisplayReportResultTrack(exception);
             }
         }
+
+        //Scroll
+        private void MainScrollEventOnLoadMoreEvent(object sender, EventArgs e)
+        {
+            try
+            {
+                //Code get last id where LoadMore >>
+                var item = MAdapter.CommentList.LastOrDefault();
+                if (item != null && !string.IsNullOrEmpty(item.Id) && !MainScrollEvent.IsLoading)
+                    StartApiService(item.Id);
+            }
+            catch (Exception exception)
+            {
+                Methods.DisplayReportResultTrack(exception);
+            }
+        }
+
+        #region Load Data Comment
+
+        private void StartApiService(string offset = "0")
+        {
+            if (!Methods.CheckConnectivity())
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
+            else
+                PollyController.RunRetryPolicyFunction(new List<Func<Task>> {() =>  LoadDataComment(offset) });
+        }
+
+        private async Task LoadDataComment(string offset = "0")
+        {
+            switch (MainScrollEvent.IsLoading)
+            {
+                case true:
+                    return;
+            }
+
+            if (Methods.CheckConnectivity())
+            {
+                MainScrollEvent.IsLoading = true;
+                var (apiStatus, respond) = await RequestsAsync.Comment.GetPostCommentsAsync(PostId, "10", offset);
+                if (apiStatus != 200 || respond is not CommentObject result || result.CommentList == null)
+                {
+                    MainScrollEvent.IsLoading = false;
+                    Methods.DisplayReportResult(this, respond);
+                }
+                else
+                {
+                    var respondList = result.CommentList?.Count;
+                    switch (respondList)
+                    {
+                        case > 0:
+                            {
+                                foreach (var item in result.CommentList)
+                                {
+                                    CommentObjectExtra check = MAdapter.CommentList.FirstOrDefault(a => a.Id == item.Id);
+                                    switch (check)
+                                    {
+                                        case null:
+                                            {
+                                                var db = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                                if (db != null) MAdapter.CommentList.Add(db);
+                                                break;
+                                            }
+                                        default:
+                                            check = ClassMapper.Mapper?.Map<CommentObjectExtra>(item);
+                                            check.Replies = item.Replies;
+                                            check.RepliesCount = item.RepliesCount;
+                                            break;
+                                    }
+                                }
+
+                                RunOnUiThread(() => { MAdapter.NotifyDataSetChanged(); });
+                                break;
+                            }
+                    }
+                }
+            }
+        }
+
+        #endregion
+
     }
 }

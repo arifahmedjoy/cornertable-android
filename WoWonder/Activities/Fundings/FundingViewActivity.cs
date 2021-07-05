@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using AFollestad.MaterialDialogs;
+using MaterialDialogsCore;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -17,7 +17,7 @@ using Android.Widget;
 using AndroidX.AppCompat.Content.Res;
 using AndroidX.RecyclerView.Widget;
 using Com.Razorpay;
-using Java.Lang;
+using InAppBilling.Lib;
 using Newtonsoft.Json;
 using WoWonder.Library.Anjo.Share;
 using WoWonder.Library.Anjo.Share.Abstractions;
@@ -36,8 +36,6 @@ using WoWonder.PaymentGoogle;
 using WoWonderClient;
 using WoWonderClient.Classes.Funding;
 using WoWonderClient.Classes.Global;
-using WoWonderClient.Classes.Message;
-using WoWonderClient.InAppBilling;
 using WoWonderClient.Requests;
 using Xamarin.PayPal.Android;
 using Exception = System.Exception;
@@ -50,8 +48,8 @@ namespace WoWonder.Activities.Fundings
     {
         #region Variables Basic
 
-        private ImageView ImageUser, ImageFunding, IconBack;
-        private TextView TxtMore, TxtUsername, TxtTime, TxtTitle, TxtDescription, TxtFundRaise, TxtFundAmount, TxtDonation;
+        private ImageView ImageUser, ImageFunding, IconBack, Avatar;
+        private TextView TxtMore, TxtUsername, TxtTime, TxtTitle, TxtDescription, TxtFundRaise, TxtFundAmount, TxtDonation, Username;
         private ProgressBar ProgressBar;
         private Button BtnDonate, BtnShare, BtnContact;
         private LinearLayout RecentDonationsLayout;
@@ -159,7 +157,7 @@ namespace WoWonder.Activities.Fundings
             {
                 switch (AppSettings.ShowInAppBilling)
                 {
-                    case true when Client.IsExtended:
+                    case true when InitializeWoWonder.IsExtended:
                         BillingPayment?.DisconnectInAppBilling();
                         break;
                 }
@@ -235,7 +233,7 @@ namespace WoWonder.Activities.Fundings
             {
                 BillingPayment = AppSettings.ShowInAppBilling switch
                 {
-                    true when Client.IsExtended => new InitInAppBillingPayment(this),
+                    true when InitializeWoWonder.IsExtended => new InitInAppBillingPayment(this),
                     _ => BillingPayment
                 };
 
@@ -293,6 +291,8 @@ namespace WoWonder.Activities.Fundings
                 BtnDonate = FindViewById<Button>(Resource.Id.DonateButton);
                 BtnShare = FindViewById<Button>(Resource.Id.share);
                 BtnContact = FindViewById<Button>(Resource.Id.cont);
+                Avatar = FindViewById<ImageView>(Resource.Id.avatar);
+                Username = FindViewById<TextView>(Resource.Id.name);
 
                 RecentDonationsLayout = FindViewById<LinearLayout>(Resource.Id.layout_recent_donations);
                 RecentDonationsLayout.Visibility = ViewStates.Gone;
@@ -308,17 +308,7 @@ namespace WoWonder.Activities.Fundings
                 }
                  
                 ProgressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
-
-                var font = Typeface.CreateFromAsset(Application.Context.Resources?.Assets, "ionicons.ttf");
-                TxtDonation.SetTypeface(font, TypefaceStyle.Normal);
-
-                switch (AppSettings.FlowDirectionRightToLeft)
-                {
-                    case true:
-                        IconBack.SetImageResource(Resource.Drawable.ic_action_ic_back_rtl);
-                        break;
-                }
-
+                
                 BtnContact.Visibility = AppSettings.MessengerIntegration switch
                 {
                     false => ViewStates.Gone,
@@ -479,7 +469,7 @@ namespace WoWonder.Activities.Fundings
                 {
                     case true when AppSettings.ShowDialogAskOpenMessenger:
                     {
-                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
                         dialog.Content(GetText(Resource.String.Lbl_ContentAskOPenAppMessenger));
@@ -544,7 +534,7 @@ namespace WoWonder.Activities.Fundings
                 DialogType = "More";
 
                 var arrayAdapter = new List<string>();
-                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                 arrayAdapter.Add(GetText(Resource.String.Lbl_Copy));
 
@@ -589,7 +579,7 @@ namespace WoWonder.Activities.Fundings
         {
             try
             {
-                Methods.CopyToClipboard(this, Client.WebsiteUrl + "/show_fund/" + DataObject.HashedId);
+                Methods.CopyToClipboard(this, InitializeWoWonder.WebsiteUrl + "/show_fund/" + DataObject.HashedId);
             }
             catch (Exception e)
             {
@@ -612,7 +602,7 @@ namespace WoWonder.Activities.Fundings
                         {
                             Title = DataObject.Title,
                             Text = DataObject.Description,
-                            Url = Client.WebsiteUrl + "/show_fund/" + DataObject.HashedId
+                            Url = InitializeWoWonder.WebsiteUrl + "/show_fund/" + DataObject.HashedId
                         });
                         break;
                 }
@@ -630,7 +620,7 @@ namespace WoWonder.Activities.Fundings
             {
                 DialogType = "Donate";
 
-                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
                 dialog.Title(Resource.String.Lbl_Donate).TitleColorRes(Resource.Color.primary);
                 dialog.Input(Resource.String.Lbl_DonateCode, 0, false, (materialDialog, s) =>
                 {
@@ -645,18 +635,18 @@ namespace WoWonder.Activities.Fundings
 
                         if (Convert.ToDouble(CodeName) > Convert.ToDouble(DataObject.Amount))
                         {
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_CantDonate) + " " + TxtFundAmount.Text, ToastLength.Long)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CantDonate) + " " + TxtFundAmount.Text, ToastLength.Long);
                             return;
                         }
                          
                         DialogType = "Payment";
 
                         var arrayAdapter = new List<string>();
-                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
+                        var dialogList = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
 
                         switch (AppSettings.ShowInAppBilling)
                         {
-                            case true when Client.IsExtended && Convert.ToInt64(CodeName) <= 100:
+                            case true when InitializeWoWonder.IsExtended && Convert.ToInt64(CodeName) <= 100:
                                 arrayAdapter.Add(GetString(Resource.String.Btn_GooglePlay));
                                 break;
                         }
@@ -745,7 +735,7 @@ namespace WoWonder.Activities.Fundings
 
                 switch (AppSettings.ShowInAppBilling)
                 {
-                    case true when Client.IsExtended:
+                    case true when InitializeWoWonder.IsExtended:
                         BillingPayment?.Handler?.HandleActivityResult(requestCode, resultCode, data);
                         break;
                 }
@@ -763,7 +753,7 @@ namespace WoWonder.Activities.Fundings
                                 TxtUsername.Text = Methods.FunString.DecodeString(item.UserData.Name);
 
                                 TxtTime.Text = GetString(Resource.String.Lbl_Last_seen) + " " +
-                                               Methods.Time.TimeAgo(Convert.ToInt32(item.Time), true);
+                                               Methods.Time.TimeAgo(Convert.ToInt32(item.Time), false);
 
                                 TxtTitle.Text = Methods.FunString.DecodeString(item.Title);
                                 TxtDescription.Text = Methods.FunString.DecodeString(item.Description);
@@ -797,16 +787,16 @@ namespace WoWonder.Activities.Fundings
 
                                 break;
                             case Result.Canceled:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Canceled), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Canceled), ToastLength.Long);
                                 break;
                         }
 
                         break;
                     case PaymentActivity.ResultExtrasInvalid:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Invalid), ToastLength.Long);
                         break;
                     case BillingProcessor.PurchaseFlowRequestCode when resultCode == Result.Ok &&
-                                                                       AppSettings.ShowInAppBilling && Client.IsExtended:
+                                                                       AppSettings.ShowInAppBilling && InitializeWoWonder.IsExtended:
                         await FundingPay();
                         break;
                     case 2654 when resultCode == Result.Ok:
@@ -824,11 +814,11 @@ namespace WoWonder.Activities.Fundings
 
         #region MaterialDialog
 
-        public async void OnSelection(MaterialDialog p0, View p1, int itemId, ICharSequence itemString)
+        public async void OnSelection(MaterialDialog dialog, View itemView, int position, string itemString)
         {
             try
             {
-                string text = itemString.ToString();
+                string text = itemString;
                 if (text == GetString(Resource.String.Btn_Paypal))
                 {
                     InitPayPalPayment.BtnPaypalOnClick(CodeName, "Funding");
@@ -854,9 +844,9 @@ namespace WoWonder.Activities.Fundings
                 {
                     DialogType = "PayStack";
                      
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
-                    dialog.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
+                    var dialogBuilder = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                    dialogBuilder.Title(Resource.String.Lbl_PayStack).TitleColorRes(Resource.Color.primary);
+                    dialogBuilder.Input(Resource.String.Lbl_Email, 0, false, async (materialDialog, s) =>
                     {
                         try
                         {
@@ -873,7 +863,7 @@ namespace WoWonder.Activities.Fundings
                                     Methods.DialogPopup.InvokeAndShowDialog(this, GetText(Resource.String.Lbl_VerificationFailed), GetText(Resource.String.Lbl_IsEmailValid), GetText(Resource.String.Lbl_Ok));
                                     return;
                                 default:
-                                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                                     await PayStack(s.ToString());
                                     break;
@@ -884,11 +874,11 @@ namespace WoWonder.Activities.Fundings
                             Methods.DisplayReportResultTrack(e);
                         }
                     });
-                    dialog.InputType(InputTypes.TextVariationEmailAddress);
-                    dialog.PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(this);
-                    dialog.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
-                    dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.Build().Show();
+                    dialogBuilder.InputType(InputTypes.TextVariationEmailAddress);
+                    dialogBuilder.PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(this);
+                    dialogBuilder.NegativeText(GetText(Resource.String.Lbl_Cancel)).OnNegative(this);
+                    dialogBuilder.AlwaysCallSingleChoiceCallback();
+                    dialogBuilder.Build().Show();
                 }
                 else if (text == GetString(Resource.String.Lbl_CashFree))
                 {
@@ -896,7 +886,7 @@ namespace WoWonder.Activities.Fundings
                 }
                 else if (text == GetString(Resource.String.Lbl_PaySera))
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                     await PaySera();  
                 }
@@ -916,10 +906,10 @@ namespace WoWonder.Activities.Fundings
                 {
                     DialogType = "Delete";
 
-                    var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light);
-                    dialog.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
-                    dialog.Content(GetText(Resource.String.Lbl_DeleteFunding));
-                    dialog.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
+                    var dialogBuilder = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light);
+                    dialogBuilder.Title(Resource.String.Lbl_Warning).TitleColorRes(Resource.Color.primary);
+                    dialogBuilder.Content(GetText(Resource.String.Lbl_DeleteFunding));
+                    dialogBuilder.PositiveText(GetText(Resource.String.Lbl_Yes)).OnPositive((materialDialog, action) =>
                     {
                         try
                         {
@@ -964,11 +954,11 @@ namespace WoWonder.Activities.Fundings
                                     }
                                 }
 
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_postSuccessfullyDeleted), ToastLength.Short);
                             }
                             else
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
                             }
                         }
                         catch (Exception e)
@@ -976,9 +966,9 @@ namespace WoWonder.Activities.Fundings
                             Methods.DisplayReportResultTrack(e);
                         }
                     });
-                    dialog.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
-                    dialog.AlwaysCallSingleChoiceCallback();
-                    dialog.ItemsCallback(this).Build().Show();
+                    dialogBuilder.NegativeText(GetText(Resource.String.Lbl_No)).OnNegative(this);
+                    dialogBuilder.AlwaysCallSingleChoiceCallback();
+                    dialogBuilder.ItemsCallback(this).Build().Show();
                 }
             }
             catch (Exception e)
@@ -1046,7 +1036,7 @@ namespace WoWonder.Activities.Fundings
             try
             {
                 Console.WriteLine("razorpay : Payment failed: " + code + " " + response);
-                Toast.MakeText(this, "Payment failed: " + response, ToastLength.Long)?.Show();
+                ToastUtils.ShowToast(this, "Payment failed: " + response, ToastLength.Long);
             }
             catch (Exception e)
             {
@@ -1070,11 +1060,11 @@ namespace WoWonder.Activities.Fundings
                             {"fund_id", DataObject.Id}
                         };
 
-                        var (apiStatus, respond) = await RequestsAsync.Global.RazorPayAsync(razorpayPaymentId, "fund", keyValues);
+                        var (apiStatus, respond) = await RequestsAsync.Payments.RazorPayAsync(razorpayPaymentId, "fund", keyValues);
                         switch (apiStatus)
                         {
                             case 200:
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long);
                                 StartApiService();
                                 break;
                             default:
@@ -1085,7 +1075,7 @@ namespace WoWonder.Activities.Fundings
                         break;
                     }
                     case false:
-                        Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                        ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                         break;
                 }
             }
@@ -1110,7 +1100,7 @@ namespace WoWonder.Activities.Fundings
                         {"fund_id", DataObject.Id},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePayStackAsync("fund", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializePayStackAsync("fund", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1132,7 +1122,7 @@ namespace WoWonder.Activities.Fundings
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -1153,7 +1143,7 @@ namespace WoWonder.Activities.Fundings
                         {"fund_id", DataObject.Id},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializePaySeraAsync("fund", keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializePaySeraAsync("fund", keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1175,7 +1165,7 @@ namespace WoWonder.Activities.Fundings
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -1189,7 +1179,7 @@ namespace WoWonder.Activities.Fundings
         {
             try
             { 
-                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? AFollestad.MaterialDialogs.Theme.Dark : AFollestad.MaterialDialogs.Theme.Light)
+                var dialog = new MaterialDialog.Builder(this).Theme(AppSettings.SetTabDarkTheme ? MaterialDialogsCore.Theme.Dark : MaterialDialogsCore.Theme.Light)
                     .Title(GetText(Resource.String.Lbl_CashFree)).TitleColorRes(Resource.Color.primary)
                     .CustomView(Resource.Layout.CashFreePaymentLayout, true)
                     .PositiveText(GetText(Resource.String.Lbl_PayNow)).OnPositive(async (materialDialog, action) =>
@@ -1198,7 +1188,7 @@ namespace WoWonder.Activities.Fundings
                         {
                             if (string.IsNullOrEmpty(TxtName.Text) || string.IsNullOrWhiteSpace(TxtName.Text))
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_name), ToastLength.Short);
                                 return;
                             }
 
@@ -1212,11 +1202,11 @@ namespace WoWonder.Activities.Fundings
 
                             if (string.IsNullOrEmpty(TxtPhone.Text) || string.IsNullOrWhiteSpace(TxtPhone.Text))
                             {
-                                Toast.MakeText(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short)?.Show();
+                                ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_enter_your_data), ToastLength.Short);
                                 return;
                             }
 
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short)?.Show();
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Please_wait), ToastLength.Short);
 
                             await CashFree(TxtName.Text , TxtEmail.Text , TxtPhone.Text);
                         }
@@ -1276,7 +1266,7 @@ namespace WoWonder.Activities.Fundings
                         {"fund_id", DataObject.Id},
                     };
 
-                    var (apiStatus, respond) = await RequestsAsync.Global.InitializeCashFreeAsync("fund", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "" , ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
+                    var (apiStatus, respond) = await RequestsAsync.Payments.InitializeCashFreeAsync("fund", AppSettings.CashFreeCurrency, ListUtils.SettingsSiteList?.CashfreeSecretKey ?? "" , ListUtils.SettingsSiteList?.CashfreeMode, keyValues);
                     switch (apiStatus)
                     {
                         case 200:
@@ -1298,7 +1288,7 @@ namespace WoWonder.Activities.Fundings
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 }
             }
             catch (Exception e)
@@ -1315,9 +1305,11 @@ namespace WoWonder.Activities.Fundings
             { 
                 if (dataObject != null)
                 { 
-                    GlideImageLoader.LoadImage(this, dataObject.UserData.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable); 
+                    GlideImageLoader.LoadImage(this, dataObject.UserData.Avatar, ImageUser, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
+                    GlideImageLoader.LoadImage(this, dataObject.UserData.Avatar, Avatar, ImageStyle.CircleCrop, ImagePlaceholders.Drawable);
                     GlideImageLoader.LoadImage(this, dataObject.Image, ImageFunding, ImageStyle.CenterCrop, ImagePlaceholders.Drawable);
 
+                    Username.Text = WoWonderTools.GetNameFinal(dataObject.UserData);
                     TxtUsername.Text = WoWonderTools.GetNameFinal(dataObject.UserData);
 
                     bool success = int.TryParse(dataObject.Time, out var number);
@@ -1325,13 +1317,13 @@ namespace WoWonder.Activities.Fundings
                     {
                         case true:
                             Console.WriteLine("Converted '{0}' to {1}.", dataObject.Time, number);
-                            TxtTime.Text = GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(number, true);
-                            TxtDonation.Text = IonIconsFonts.Time + "  " + Methods.Time.TimeAgo(number, false);
+                            TxtTime.Text = GetString(Resource.String.Lbl_Last_seen) + " " + Methods.Time.TimeAgo(number, false);
+                            TxtDonation.Text = Methods.Time.TimeAgo(number, false);
                             break;
                         default:
                             Console.WriteLine("Attempted conversion of '{0}' failed.", dataObject.Time ?? "<null>");
                             TxtTime.Text = Methods.Time.ReplaceTime(dataObject.Time);
-                            TxtDonation.Text = IonIconsFonts.Time + "  " + dataObject.Time;
+                            TxtDonation.Text = dataObject.Time;
                             break;
                     }
                      
@@ -1346,10 +1338,10 @@ namespace WoWonder.Activities.Fundings
                         dataObject.Amount = dataObject.Amount.Replace(AppSettings.CurrencyFundingPriceStatic, "");
 
                         decimal d = decimal.Parse(dataObject.Raised, CultureInfo.InvariantCulture);
-                        TxtFundRaise.Text = AppSettings.CurrencyFundingPriceStatic + d.ToString("0.00");
+                        TxtFundRaise.Text = GetText(Resource.String.Lbl_Collected) + " " + AppSettings.CurrencyFundingPriceStatic + d.ToString("0.00");
 
                         decimal amount = decimal.Parse(dataObject.Amount, CultureInfo.InvariantCulture);
-                        TxtFundAmount.Text = AppSettings.CurrencyFundingPriceStatic + amount.ToString("0.00");
+                        TxtFundAmount.Text = GetText(Resource.String.Lbl_Goal) + " " + AppSettings.CurrencyFundingPriceStatic + amount.ToString("0.00");
                     }
                     catch (Exception exception)
                     {
@@ -1397,7 +1389,7 @@ namespace WoWonder.Activities.Fundings
                     switch (apiStatus)
                     {
                         case 200:
-                            Toast.MakeText(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long)?.Show(); 
+                            ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_Donated), ToastLength.Long); 
                             StartApiService();
                             break;
                         default:
@@ -1407,7 +1399,7 @@ namespace WoWonder.Activities.Fundings
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 } 
             }
             catch (Exception e)
@@ -1437,7 +1429,7 @@ namespace WoWonder.Activities.Fundings
         public void StartApiService()
         {
             if (!Methods.CheckConnectivity())
-                Toast.MakeText(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short)?.Show();
+                ToastUtils.ShowToast(this, GetString(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Short);
             else
                 PollyController.RunRetryPolicyFunction(new List<Func<Task>> { GetFundingById });
         }
@@ -1469,7 +1461,7 @@ namespace WoWonder.Activities.Fundings
                 }
                 else
                 {
-                    Toast.MakeText(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long)?.Show();
+                    ToastUtils.ShowToast(this, GetText(Resource.String.Lbl_CheckYourInternetConnection), ToastLength.Long);
                 } 
             }
             catch (Exception e)

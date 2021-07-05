@@ -34,7 +34,6 @@
             android:ellipsize="end"
             android:lines="1"
             android:maxLines="1"
-			android:text="USD"
             android:clickable="false"
             android:textAlignment="textStart" />  
 	    

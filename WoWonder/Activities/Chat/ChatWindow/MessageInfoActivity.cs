@@ -127,7 +127,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
                 {
                     toolbar.Title = GetText(Resource.String.Lbl_MessageInfo);
 
-                    toolbar.SetTitleTextColor(Color.White);
+                    toolbar.SetTitleTextColor(Color.ParseColor(AppSettings.MainColor));
                     SetSupportActionBar(toolbar);
                     SupportActionBar.SetDisplayShowCustomEnabled(true);
                     SupportActionBar.SetDisplayHomeAsUpEnabled(true);
@@ -174,7 +174,7 @@ namespace WoWonder.Activities.Chat.ChatWindow
         {
             try
             {
-                var item = JsonConvert.DeserializeObject<MessageDataExtra>(Intent?.GetStringExtra("SelectedItem"));
+                var item = JsonConvert.DeserializeObject<MessageDataExtra>(Intent?.GetStringExtra("SelectedItem") ?? "");
                 if (item != null)
                 {
                     MAdapter.DifferList.Add(new AdapterModelsClassMessage
