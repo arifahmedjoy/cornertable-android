@@ -99,9 +99,9 @@ namespace WoWonder
 
         //Colony Ads >> Please add the code ad in the Here 
         //*********************************************************  
-        public static bool ShowColonyBannerAds = true; //#New
-        public static bool ShowColonyInterstitialAds = true; //#New
-        public static bool ShowColonyRewardAds = true; //#New
+        public static bool ShowColonyBannerAds = false; //#New
+        public static bool ShowColonyInterstitialAds = false; //#New
+        public static bool ShowColonyRewardAds = false; //#New
 
         public static string AdsColonyAppId = "appff22269a7a0a4be8aa"; //#New
         public static string AdsColonyBannerId = "vz85ed7ae2d631414fbd"; //#New
